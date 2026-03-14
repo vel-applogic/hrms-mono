@@ -122,12 +122,30 @@ export const CandidateData = ({ data, searchParams }: Props) => {
 
   return (
     <div className='flex h-full flex-col gap-4 pt-4'>
-      <div className='center-container'>
+      <div className='center-container flex items-center justify-between'>
         <span className='text-xl font-medium tracking-tight text-white'>Candidates</span>
+        <Button className='shrink-0 rounded-[40px]' onClick={handleAddNew}>
+          <Plus className='h-4 w-4' />
+          Add new candidate
+        </Button>
       </div>
 
       <div className='center-container flex items-center justify-between gap-3'>
-        <div className='flex min-w-0 flex-1 items-center gap-3'>
+        <span className='text-sm font-medium text-muted-foreground'>
+          {data.totalRecords > 0
+            ? `Showing records: ${(data.page - 1) * data.limit + 1} - ${Math.min(data.page * data.limit, data.totalRecords)} of ${data.totalRecords}`
+            : 'No records found'}
+        </span>
+        <div className='flex items-center gap-3'>
+          {hasActiveFilters && (
+            <Button variant='outline' size='sm' onClick={handleClearAll} className='shrink-0'>
+              <X className='h-4 w-4' />
+              Clear
+            </Button>
+          )}
+          <CandidateStatusFilter values={searchParams.candidateStatus} onChange={handleStatusChange} />
+          <CandidateProgressFilter values={searchParams.candidateProgress} onChange={handleProgressChange} />
+          <CandidateSourceFilter values={searchParams.candidateSource} onChange={handleSourceChange} />
           <div className='flex h-10 w-[298px] shrink-0 items-center gap-3 rounded-[40px] border border-border bg-background px-4'>
             <svg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'>
               <path
@@ -146,20 +164,7 @@ export const CandidateData = ({ data, searchParams }: Props) => {
               className='w-full bg-transparent text-sm font-medium text-white placeholder:text-muted-foreground focus:outline-none'
             />
           </div>
-          <CandidateStatusFilter values={searchParams.candidateStatus} onChange={handleStatusChange} />
-          <CandidateProgressFilter values={searchParams.candidateProgress} onChange={handleProgressChange} />
-          <CandidateSourceFilter values={searchParams.candidateSource} onChange={handleSourceChange} />
-          {hasActiveFilters && (
-            <Button variant='outline' size='sm' onClick={handleClearAll} className='shrink-0'>
-              <X className='h-4 w-4' />
-              Clear
-            </Button>
-          )}
         </div>
-        <Button className='shrink-0 rounded-[40px]' onClick={handleAddNew}>
-          <Plus className='h-4 w-4' />
-          Add new candidate
-        </Button>
       </div>
 
       <div className='center-container flex flex-1 flex-col min-h-0 pb-4'>

@@ -29,7 +29,7 @@ function TopNav({ currentUserName }: { currentUserName: string }) {
     <nav className='flex items-center justify-between px-4 py-2 md:px-8 md:py-1'>
       {/* Logo - always visible */}
       <div className='flex items-center gap-3 md:gap-5 md:px-4 md:py-1'>
-        <img src='/logo.svg' alt='Hrms' width={52} height={36} />
+        <img src='/logo.png' alt='Hrms' width={160} />
         <span className='hidden rounded border border-primary px-1.5 py-0.5 text-sm font-bold tracking-widest text-white sm:inline'>ADMIN</span>
       </div>
 

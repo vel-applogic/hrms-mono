@@ -1,6 +1,7 @@
 import { SearchParamsSchema, PolicyFilterRequestType, SortDirectionDtoEnum } from '@repo/dto';
 
 import { PolicyData } from '@/feature/policy/policy-data';
+import { policyService } from '@/lib/service/policy.service';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,9 +24,11 @@ export default async function PolicyPage({ searchParams }: Props) {
     policyFilterRequest.sort = { field: policySearchParams.sKey, direction: policySearchParams.sVal as SortDirectionDtoEnum };
   }
 
+  const data = await policyService.search(policyFilterRequest);
+
   return (
     <div className='flex h-full flex-col'>
-      <PolicyData filterRequest={policyFilterRequest} searchParams={policySearchParams} />
+      <PolicyData data={data} searchParams={policySearchParams} />
     </div>
   );
 }
