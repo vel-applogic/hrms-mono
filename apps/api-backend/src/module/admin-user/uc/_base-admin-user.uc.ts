@@ -22,10 +22,10 @@ export class BaseAdminUserUc extends BaseUc {
   }
 
   async getByIdOrThrow(id: number): Promise<AdminUserDetailResponseType> {
-    const chapter = await this.getById(id);
-    if (!chapter) {
+    const user = await this.getById(id);
+    if (!user) {
       throw new ApiBadRequestError('User not found', { userId: id });
     }
-    return chapter;
+    return user;
   }
 }

@@ -13,11 +13,7 @@ import Link from 'next/link';
 
 const tabs = [
   { label: 'Users', href: '/user' },
-  { label: 'Chapters', href: '/chapter' },
-  { label: 'Topics', href: '/topic' },
-  { label: 'Themes', href: '/theme' },
-  { label: 'Questions', href: '/question' },
-  { label: 'Flashcards', href: '/flashcard' },
+  { label: 'Policies', href: '/policy' },
   { label: 'Candidates', href: '/candidate' },
 ];
 

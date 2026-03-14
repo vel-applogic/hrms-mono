@@ -89,12 +89,6 @@ export function auditEntityTypeDtoEnumToDbEnum(dtoEnum: AuditEntityTypeDtoEnum):
   const mapping: Record<AuditEntityTypeDtoEnum, AuditEntityTypeDbEnum> = {
     [AuditEntityTypeDtoEnum.user]: 'user',
     [AuditEntityTypeDtoEnum.user_admin]: 'user_admin',
-    [AuditEntityTypeDtoEnum.chapter]: 'chapter',
-    [AuditEntityTypeDtoEnum.topic]: 'topic',
-    [AuditEntityTypeDtoEnum.slide]: 'slide',
-    [AuditEntityTypeDtoEnum.flashcard]: 'flashcard',
-    [AuditEntityTypeDtoEnum.theme]: 'theme',
-    [AuditEntityTypeDtoEnum.question]: 'question',
     [AuditEntityTypeDtoEnum.candidate]: 'candidate',
     [AuditEntityTypeDtoEnum.policy]: 'policy',
   };
@@ -111,12 +105,6 @@ export function auditEntityTypeDbEnumToDtoEnum(dbEnum: AuditEntityTypeDbEnum): A
   const mapping: Record<string, AuditEntityTypeDtoEnum> = {
     user: AuditEntityTypeDtoEnum.user,
     user_admin: AuditEntityTypeDtoEnum.user_admin,
-    chapter: AuditEntityTypeDtoEnum.chapter,
-    topic: AuditEntityTypeDtoEnum.topic,
-    slide: AuditEntityTypeDtoEnum.slide,
-    flashcard: AuditEntityTypeDtoEnum.flashcard,
-    theme: AuditEntityTypeDtoEnum.theme,
-    question: AuditEntityTypeDtoEnum.question,
     candidate: AuditEntityTypeDtoEnum.candidate,
     policy: AuditEntityTypeDtoEnum.policy,
   };

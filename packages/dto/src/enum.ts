@@ -53,12 +53,6 @@ export enum AuditEventTypeDtoEnum {
 export enum AuditEntityTypeDtoEnum {
   user = 'user',
   user_admin = 'user_admin',
-  chapter = 'chapter',
-  topic = 'topic',
-  slide = 'slide',
-  flashcard = 'flashcard',
-  question = 'question',
-  theme = 'theme',
   candidate = 'candidate',
   policy = 'policy',
 }

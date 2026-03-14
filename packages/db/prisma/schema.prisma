@@ -18,12 +18,6 @@ model AppMigration {
 enum AuditEntityTypeDbEnum {
   user
   user_admin
-  chapter
-  topic
-  slide
-  flashcard
-  question
-  theme
   candidate
   policy
 
@@ -75,10 +69,6 @@ model Media {
   createdAt    DateTime        @default(now()) @map("created_at")
   updatedAt    DateTime        @updatedAt @map("updated_at")
 
-  chapters           Chapter[]
-  topics             Topic[]
-  questions          Question[]
-  slideHasMedias     SlideHasMedia[]
   candidateHasMedias CandidateHasMedia[]
   policyHasMedias    PolicyHasMedia[]
 
@@ -259,150 +249,6 @@ model PolicyHasMedia {
   @@map("policy_has_media")
 }
 
-model Theme {
-  id                 Int                 @id @default(autoincrement())
-  title              String
-  description        String?
-  createdAt          DateTime            @default(now()) @map("created_at")
-  updatedAt          DateTime            @updatedAt @map("updated_at")
-  slideHasThemes     SlideHasTheme[]
-  flashcardHasThemes FlashcardHasTheme[]
-  questionHasThemes  QuestionHasTheme[]
-
-  @@map("theme")
-}
-
-model Chapter {
-  id            Int         @id @default(autoincrement())
-  title         String
-  mediaId       Int?
-  media         Media?      @relation(fields: [mediaId], references: [id])
-  description   String?
-  summaryPoints String[]
-  createdAt     DateTime    @default(now()) @map("created_at")
-  updatedAt     DateTime    @updatedAt @map("updated_at")
-  topics        Topic[]
-  flashcards    Flashcard[]
-  slides        Slide[]
-  questions     Question[]
-
-  @@map("chapter")
-}
-
-model Topic {
-  id         Int         @id @default(autoincrement())
-  title      String
-  mediaId    Int?        @map("media_id")
-  media      Media?      @relation(fields: [mediaId], references: [id])
-  chapterId  Int         @map("chapter_id")
-  chapter    Chapter     @relation(fields: [chapterId], references: [id])
-  createdAt  DateTime    @default(now()) @map("created_at")
-  updatedAt  DateTime    @updatedAt @map("updated_at")
-  slides     Slide[]
-  questions  Question[]
-  flashcards Flashcard[]
-
-  @@map("topic")
-}
-
-model Slide {
-  id             Int             @id @default(autoincrement())
-  content        Json
-  topicId        Int             @map("topic_id")
-  topic          Topic           @relation(fields: [topicId], references: [id])
-  chapterId      Int             @map("chapter_id")
-  chapter        Chapter         @relation(fields: [chapterId], references: [id])
-  createdAt      DateTime        @default(now()) @map("created_at")
-  updatedAt      DateTime        @updatedAt @map("updated_at")
-  slideHasThemes SlideHasTheme[]
-  slideHasMedias SlideHasMedia[]
-
-  @@map("slide")
-}
-
-model SlideHasMedia {
-  id        Int      @id @default(autoincrement())
-  slideId   Int      @map("slide_id")
-  slide     Slide    @relation(fields: [slideId], references: [id])
-  mediaId   Int      @map("media_id")
-  media     Media    @relation(fields: [mediaId], references: [id])
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("slide_has_media")
-}
-
-model SlideHasTheme {
-  id        Int      @id @default(autoincrement())
-  slideId   Int      @map("slide_id")
-  slide     Slide    @relation(fields: [slideId], references: [id])
-  themeId   Int      @map("theme_id")
-  theme     Theme    @relation(fields: [themeId], references: [id])
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("slide_has_theme")
-}
-
-model Flashcard {
-  id                 Int                 @id @default(autoincrement())
-  contentFront       String
-  contentBack        String
-  topicId            Int                 @map("topic_id")
-  topic              Topic               @relation(fields: [topicId], references: [id])
-  chapterId          Int                 @map("chapter_id")
-  chapter            Chapter             @relation(fields: [chapterId], references: [id])
-  createdAt          DateTime            @default(now()) @map("created_at")
-  updatedAt          DateTime            @updatedAt @map("updated_at")
-  flashcardHasThemes FlashcardHasTheme[]
-
-  @@map("flashcard")
-}
-
-model FlashcardHasTheme {
-  id          Int       @id @default(autoincrement())
-  flashcardId Int       @map("flashcard_id")
-  flashcard   Flashcard @relation(fields: [flashcardId], references: [id])
-  themeId     Int       @map("theme_id")
-  theme       Theme     @relation(fields: [themeId], references: [id])
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  @@map("flashcard_has_theme")
-}
-
-model Question {
-  id                Int                @id @default(autoincrement())
-  question          String
-  type              QuestionTypeEnum
-  answerOptions     Json               @map("answer_options") // { options: [{ key: string, value: string }] }
-  correctAnswerKeys String[]           @map("correct_answer_keys")
-  explanation       String
-  mediaId           Int?               @map("media_id")
-  media             Media?             @relation(fields: [mediaId], references: [id])
-  topicId           Int                @map("topic_id")
-  topic             Topic              @relation(fields: [topicId], references: [id])
-  chapterId         Int                @map("chapter_id")
-  chapter           Chapter            @relation(fields: [chapterId], references: [id])
-  createdAt         DateTime           @default(now()) @map("created_at")
-  updatedAt         DateTime           @updatedAt @map("updated_at")
-  questionHasThemes QuestionHasTheme[]
-
-  @@map("question")
-}
-
-model QuestionHasTheme {
-  id         Int      @id @default(autoincrement())
-  questionId Int      @map("question_id")
-  question   Question @relation(fields: [questionId], references: [id])
-  themeId    Int      @map("theme_id")
-  theme      Theme    @relation(fields: [themeId], references: [id])
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-
-  @@map("question_has_theme")
-}
-
 // ENUMS
 
 enum UserRoleDbEnum {
@@ -410,11 +256,6 @@ enum UserRoleDbEnum {
   user
 
   @@map("userRoleDbEnum")
-}
-
-enum QuestionTypeEnum {
-  mcq
-  trueOrFalse
 }
 
 enum PlanEnum {

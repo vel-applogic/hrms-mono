@@ -65,7 +65,7 @@ const badgeVariants = cva(/* base */, { variants: { /* all custom variants */ } 
 
 ## Card/List View Toggle Pattern
 
-Pages that support both a card view and a list (datatable) view must follow this pattern. Reference implementation: `/question` page (`question-list.tsx`).
+Pages that support both a card view and a list (datatable) view must follow this pattern. Reference implementation: `/user` page.
 
 ### Page layout (`page.tsx`)
 

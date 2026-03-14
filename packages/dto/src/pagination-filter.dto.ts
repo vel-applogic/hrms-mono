@@ -66,13 +66,6 @@ export const SearchParamsSchema = z.object({
   search: z.string().optional(),
   sKey: z.string().optional(),
   sVal: z.string().optional(),
-  chapterId: z.string().regex(/^\d+$/, { message: 'Search param chapterId must be a number' }).transform(Number).optional(),
-  topicId: z.string().regex(/^\d+$/, { message: 'Search param topicId must be a number' }).transform(Number).optional(),
-  themeIds: z
-    .string()
-    .regex(/^(\d+,)*\d+$/, { message: 'Search param themeIds must be comma-separated numbers' })
-    .transform((val) => val.split(',').map(Number))
-    .optional(),
   status: z.enum(['active', 'inactive']).optional(),
   plan: z.enum(['free', 'premium']).optional(),
   candidateStatus: z
