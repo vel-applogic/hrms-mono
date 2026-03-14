@@ -1,10 +1,12 @@
 'use client';
 
 import type { EmployeeFeedbackResponseType, PaginatedResponseType } from '@repo/dto';
+import { EmployeeFeedbackTrendDtoEnum } from '@repo/dto';
 import { Button } from '@repo/ui/component/ui/button';
+import { Label } from '@repo/ui/component/ui/label';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { createEmployeeFeedback, deleteEmployeeFeedback, searchEmployeeFeedbacks, updateEmployeeFeedback } from '@/lib/action/employee-feedback.actions';
 
@@ -42,6 +44,14 @@ export function EmployeeViewFeedbacks({ employeeId, initialPage }: Props) {
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const hasMore = feedbacks.length < totalRecords;
+
+  const stats = useMemo(() => {
+    const totalPoints = feedbacks.reduce((sum, f) => sum + (f.point ?? 0), 0);
+    const positive = feedbacks.filter((f) => f.trend === EmployeeFeedbackTrendDtoEnum.positive).length;
+    const neutral = feedbacks.filter((f) => f.trend === EmployeeFeedbackTrendDtoEnum.neutral).length;
+    const negative = feedbacks.filter((f) => f.trend === EmployeeFeedbackTrendDtoEnum.negative).length;
+    return { totalPoints, positive, neutral, negative };
+  }, [feedbacks]);
 
   const loadMore = useCallback(async () => {
     if (!hasMore || loadingMore) return;
@@ -100,6 +110,25 @@ export function EmployeeViewFeedbacks({ employeeId, initialPage }: Props) {
         <h2 className='text-lg font-medium'>Feedbacks</h2>
       </div>
 
+      <div className='mb-6 flex flex-wrap gap-4'>
+        <div className='w-[200px] shrink-0 rounded-md border border-border bg-muted/30 p-4'>
+          <Label className='text-muted-foreground'>Total points</Label>
+          <p className='mt-1 text-lg font-medium'>{stats.totalPoints}</p>
+        </div>
+        <div className='w-[200px] shrink-0 rounded-md border border-border bg-muted/30 p-4'>
+          <Label className='text-muted-foreground'>Positive</Label>
+          <p className='mt-1 text-lg font-medium text-green-500'>{stats.positive}</p>
+        </div>
+        <div className='w-[200px] shrink-0 rounded-md border border-border bg-muted/30 p-4'>
+          <Label className='text-muted-foreground'>Neutral</Label>
+          <p className='mt-1 text-lg font-medium text-muted-foreground'>{stats.neutral}</p>
+        </div>
+        <div className='w-[200px] shrink-0 rounded-md border border-border bg-muted/30 p-4'>
+          <Label className='text-muted-foreground'>Negative</Label>
+          <p className='mt-1 text-lg font-medium text-red-500'>{stats.negative}</p>
+        </div>
+      </div>
+
       <div className='relative flex-1 overflow-y-auto'>
         <div className='relative pl-1'>
           <div className='absolute left-[7.82rem] top-0 bottom-0 w-px bg-primary' />
@@ -127,7 +156,9 @@ export function EmployeeViewFeedbacks({ employeeId, initialPage }: Props) {
                     <p className='text-sm font-semibold'>{feedback.title}</p>
                     <p className='whitespace-pre-wrap text-sm'>{feedback.feedback}</p>
                     <p className='text-xs text-muted-foreground'>
-                      {feedback.trend} • by {feedback.givenBy.firstname} {feedback.givenBy.lastname}
+                      {feedback.trend}
+                      {feedback.point != null && ` • ${feedback.point} pts`}
+                      {' • '}by {feedback.givenBy.firstname} {feedback.givenBy.lastname}
                     </p>
                     <div className='flex items-center gap-0.5'>
                       <Button variant='ghost' size='icon' className='h-6 w-6' onClick={() => setEditingFeedback(feedback)}>
