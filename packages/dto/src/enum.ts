@@ -54,6 +54,7 @@ export enum AuditEntityTypeDtoEnum {
   user = 'user',
   user_admin = 'user_admin',
   candidate = 'candidate',
+  employee = 'employee',
   policy = 'policy',
 }
 
@@ -96,4 +97,22 @@ export enum CandidateMediaTypeDtoEnum {
   resume = 'resume',
   offerLetter = 'offerLetter',
   otherDocuments = 'otherDocuments',
+}
+
+export enum EmployeeStatusDtoEnum {
+  active = 'active',
+  resigned = 'resigned',
+  onLeave = 'onLeave',
+  terminated = 'terminated',
+}
+
+export enum EmployeeMediaTypeDtoEnum {
+  photo = 'photo',
+  document = 'document',
+}
+
+export enum EmployeeFeedbackTrendDtoEnum {
+  positive = 'positive',
+  negative = 'negative',
+  neutral = 'neutral',
 }

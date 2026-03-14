@@ -90,6 +90,7 @@ export function auditEntityTypeDtoEnumToDbEnum(dtoEnum: AuditEntityTypeDtoEnum):
     [AuditEntityTypeDtoEnum.user]: 'user',
     [AuditEntityTypeDtoEnum.user_admin]: 'user_admin',
     [AuditEntityTypeDtoEnum.candidate]: 'candidate',
+    [AuditEntityTypeDtoEnum.employee]: 'employee',
     [AuditEntityTypeDtoEnum.policy]: 'policy',
   };
 
@@ -106,6 +107,7 @@ export function auditEntityTypeDbEnumToDtoEnum(dbEnum: AuditEntityTypeDbEnum): A
     user: AuditEntityTypeDtoEnum.user,
     user_admin: AuditEntityTypeDtoEnum.user_admin,
     candidate: AuditEntityTypeDtoEnum.candidate,
+    employee: AuditEntityTypeDtoEnum.employee,
     policy: AuditEntityTypeDtoEnum.policy,
   };
 

@@ -1,0 +1,70 @@
+import { Injectable } from '@nestjs/common';
+import type { EmployeeDetailResponseType, OperationStatusResponseType } from '@repo/dto';
+import { AuditActivityStatusDtoEnum, AuditEntityTypeDtoEnum, AuditEventGroupDtoEnum, AuditEventTypeDtoEnum } from '@repo/dto';
+import {
+  AuditService,
+  CommonLoggerService,
+  CurrentUserType,
+  IUseCase,
+  PrismaService,
+  UserDao,
+  UserEmployeeCompensationDao,
+  UserEmployeeDetailDao,
+  UserEmployeeFeedbackDao,
+  UserEmployeeHasMediaDao,
+} from '@repo/nest-lib';
+
+import { S3Service } from '#src/external-service/s3.service.js';
+
+import { BaseEmployeeUc } from './_base-employee.uc.js';
+
+type Params = {
+  currentUser: CurrentUserType;
+  id: number;
+};
+
+@Injectable()
+export class EmployeeDeleteUc extends BaseEmployeeUc implements IUseCase<Params, OperationStatusResponseType> {
+  constructor(
+    prisma: PrismaService,
+    logger: CommonLoggerService,
+    userEmployeeDetailDao: UserEmployeeDetailDao,
+    userEmployeeHasMediaDao: UserEmployeeHasMediaDao,
+    s3Service: S3Service,
+    private readonly userEmployeeFeedbackDao: UserEmployeeFeedbackDao,
+    private readonly userEmployeeCompensationDao: UserEmployeeCompensationDao,
+    private readonly userDao: UserDao,
+    private readonly auditService: AuditService,
+  ) {
+    super(prisma, logger, userEmployeeDetailDao, userEmployeeHasMediaDao, s3Service);
+  }
+
+  async execute(params: Params): Promise<OperationStatusResponseType> {
+    this.logger.i('Deleting employee', { id: params.id });
+
+    const employee = await this.getByIdOrThrow(params.id);
+
+    await this.transaction(async (tx) => {
+      const pc = tx;
+      await pc.userEmployeeFeedback.deleteMany({ where: { userId: params.id } });
+      await pc.userEmployeeCompensation.deleteMany({ where: { userId: params.id } });
+      await pc.userEmployeeHasMedia.deleteMany({ where: { userId: params.id } });
+      await pc.userEmployeeDetail.delete({ where: { userId: params.id } });
+      await this.userDao.delete({ id: params.id, tx });
+    });
+
+    void this.recordActivity(params, employee);
+    return { success: true, message: 'Employee deleted successfully' };
+  }
+
+  private async recordActivity(params: Params, deleted: EmployeeDetailResponseType): Promise<void> {
+    await this.auditService.recordActivity({
+      eventGroup: AuditEventGroupDtoEnum.operation,
+      eventType: AuditEventTypeDtoEnum.delete,
+      status: AuditActivityStatusDtoEnum.success,
+      currentUser: params.currentUser,
+      description: `Employee ${deleted.firstname} ${deleted.lastname} deleted`,
+      relatedEntities: [{ entityType: AuditEntityTypeDtoEnum.employee, entityId: deleted.id }],
+    });
+  }
+}

@@ -12,3 +12,17 @@ export { CandidateHasMediaDao } from './candidate-has-media.dao.js';
 export { CandidateHasFeedbackDao, type CandidateHasFeedbackWithUserType } from './candidate-has-feedback.dao.js';
 export { PolicyDao, type PolicyDetailRecordType, type PolicyListRecordType } from './policy.dao.js';
 export { PolicyHasMediaDao } from './policy-has-media.dao.js';
+export {
+  UserEmployeeDetailDao,
+  type EmployeeListRecordType,
+  type EmployeeDetailRecordType,
+} from './user-employee-detail.dao.js';
+export {
+  UserEmployeeHasMediaDao,
+  type UserEmployeeHasMediaWithMediaType,
+} from './user-employee-has-media.dao.js';
+export { UserEmployeeCompensationDao } from './user-employee-compensation.dao.js';
+export {
+  UserEmployeeFeedbackDao,
+  type UserEmployeeFeedbackWithCreatedByType,
+} from './user-employee-feedback.dao.js';

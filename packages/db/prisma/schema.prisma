@@ -19,6 +19,7 @@ enum AuditEntityTypeDbEnum {
   user
   user_admin
   candidate
+  employee
   policy
 
   @@map("auditEntityTypeDbEnum")
@@ -151,7 +152,7 @@ enum EmployeeStatusEnum {
 
 model UserEmployeeDetail {
   id            Int                @id @default(autoincrement())
-  userId        Int                @map("user_id")
+  userId        Int                @unique @map("user_id")
   user          User               @relation("EmployeeUser", fields: [userId], references: [id])
   personalEmail String?            @map("personal_email")
   dob           DateTime
@@ -166,6 +167,9 @@ model UserEmployeeDetail {
   createdAt     DateTime           @default(now()) @map("created_at")
   updatedAt     DateTime           @updatedAt @map("updated_at")
 
+  @@index([userId])
+  @@index([reportToId])
+  @@index([status])
   @@map("user_employee_detail")
 }
 
@@ -183,10 +187,11 @@ model UserEmployeeHasMedia {
   mediaId   Int               @map("media_id")
   media     Media             @relation(fields: [mediaId], references: [id])
   type      EmployeeMediaType
-  title     String
+  caption   String?           @map("caption")
   createdAt DateTime          @default(now()) @map("created_at")
   updatedAt DateTime          @updatedAt @map("updated_at")
 
+  @@index([userId])
   @@map("employee_has_media")
 }
 
@@ -204,6 +209,7 @@ model UserEmployeeCompensation {
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
+  @@index([userId])
   @@map("employee_salary")
 }
 
@@ -221,11 +227,15 @@ model UserEmployeeFeedback {
   user        User                  @relation("EmployeeFeedbackUser", fields: [userId], references: [id])
   trend       EmployeeFeedbackTrend @map("trend")
   point       Int?                  @default(0) @map("point")
+  title       String                @map("title")
   feedback    String                @map("feedback")
   createdById Int                   @map("created_by_id")
   createdBy   User                  @relation("EmployeeFeedbackCreatedBy", fields: [createdById], references: [id])
   createdAt   DateTime              @default(now()) @map("created_at")
   updatedAt   DateTime              @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("user_employee_feedback")
 }
 
 // CANDIDATE

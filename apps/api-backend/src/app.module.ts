@@ -12,6 +12,9 @@ import { AppStatusModule } from './module/app-status/app-status.module.js';
 import { AuthModule } from './module/auth/auth.module.js';
 import { CandidateModule } from './module/candidate/candidate.module.js';
 import { CandidateFeedbackModule } from './module/candidate-feedback/candidate-feedback.module.js';
+import { EmployeeModule } from './module/employee/employee.module.js';
+import { EmployeeFeedbackModule } from './module/employee-feedback/employee-feedback.module.js';
+import { EmployeeCompensationModule } from './module/employee-compensation/employee-compensation.module.js';
 import { MediaModule } from './module/media/media.module.js';
 import { SeederModule } from './module/seeder/seeder.module.js';
 import { PolicyModule } from './module/policy/policy.module.js';
@@ -29,6 +32,9 @@ import { ServiceModule } from './service/service.module.js';
     AdminUserModule,
     CandidateModule,
     CandidateFeedbackModule,
+    EmployeeModule,
+    EmployeeFeedbackModule,
+    EmployeeCompensationModule,
     PolicyModule,
     SeederModule,
     ExternalServiceModule,

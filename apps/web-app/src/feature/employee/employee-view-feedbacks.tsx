@@ -1,15 +1,15 @@
 'use client';
 
-import type { CandidateFeedbackResponseType, PaginatedResponseType } from '@repo/dto';
+import type { EmployeeFeedbackResponseType, PaginatedResponseType } from '@repo/dto';
 import { Button } from '@repo/ui/component/ui/button';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { createCandidateFeedback, deleteCandidateFeedback, searchCandidateFeedbacks, updateCandidateFeedback } from '@/lib/action/candidate-feedback.actions';
+import { createEmployeeFeedback, deleteEmployeeFeedback, searchEmployeeFeedbacks, updateEmployeeFeedback } from '@/lib/action/employee-feedback.actions';
 
-import { CandidateFeedbackDeleteDialog } from './container/candidate-feedback-delete.dialog';
-import { CandidateFeedbackFormDialog } from './container/candidate-feedback-form.dialog';
+import { EmployeeFeedbackDeleteDialog } from './container/employee-feedback-delete.dialog';
+import { EmployeeFeedbackFormDialog } from './container/employee-feedback-form.dialog';
 
 const PAGE_SIZE = 10;
 
@@ -26,19 +26,19 @@ function formatTimelineDate(iso: string): string {
 }
 
 interface Props {
-  candidateId: number;
-  initialPage: PaginatedResponseType<CandidateFeedbackResponseType>;
+  employeeId: number;
+  initialPage: PaginatedResponseType<EmployeeFeedbackResponseType>;
 }
 
-export function CandidateViewFeedbacks({ candidateId, initialPage }: Props) {
+export function EmployeeViewFeedbacks({ employeeId, initialPage }: Props) {
   const router = useRouter();
-  const [feedbacks, setFeedbacks] = useState<CandidateFeedbackResponseType[]>(initialPage.results);
+  const [feedbacks, setFeedbacks] = useState<EmployeeFeedbackResponseType[]>(initialPage.results);
   const [page, setPage] = useState(initialPage.page);
   const [totalRecords, setTotalRecords] = useState(initialPage.totalRecords);
   const [loadingMore, setLoadingMore] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [editingFeedback, setEditingFeedback] = useState<CandidateFeedbackResponseType | null>(null);
-  const [deletingFeedback, setDeletingFeedback] = useState<CandidateFeedbackResponseType | null>(null);
+  const [editingFeedback, setEditingFeedback] = useState<EmployeeFeedbackResponseType | null>(null);
+  const [deletingFeedback, setDeletingFeedback] = useState<EmployeeFeedbackResponseType | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const hasMore = feedbacks.length < totalRecords;
@@ -47,8 +47,8 @@ export function CandidateViewFeedbacks({ candidateId, initialPage }: Props) {
     if (!hasMore || loadingMore) return;
     setLoadingMore(true);
     try {
-      const next = await searchCandidateFeedbacks({
-        candidateId,
+      const next = await searchEmployeeFeedbacks({
+        employeeId,
         pagination: { page: page + 1, limit: PAGE_SIZE },
       });
       setFeedbacks((prev) => [...prev, ...next.results]);
@@ -57,7 +57,7 @@ export function CandidateViewFeedbacks({ candidateId, initialPage }: Props) {
     } finally {
       setLoadingMore(false);
     }
-  }, [candidateId, hasMore, loadingMore, page]);
+  }, [employeeId, hasMore, loadingMore, page]);
 
   useEffect(() => {
     const el = sentinelRef.current;
@@ -72,14 +72,14 @@ export function CandidateViewFeedbacks({ candidateId, initialPage }: Props) {
     return () => obs.disconnect();
   }, [hasMore, loadingMore, loadMore]);
 
-  const handleAddSuccess = (newFeedback: CandidateFeedbackResponseType) => {
+  const handleAddSuccess = (newFeedback: EmployeeFeedbackResponseType) => {
     setFeedbacks((prev) => [newFeedback, ...prev]);
     setTotalRecords((prev) => prev + 1);
     setAddDialogOpen(false);
     router.refresh();
   };
 
-  const handleEditSuccess = (updated: CandidateFeedbackResponseType) => {
+  const handleEditSuccess = (updated: EmployeeFeedbackResponseType) => {
     setFeedbacks((prev) => prev.map((f) => (f.id === updated.id ? updated : f)));
     setEditingFeedback(null);
     router.refresh();
@@ -104,7 +104,6 @@ export function CandidateViewFeedbacks({ candidateId, initialPage }: Props) {
         <div className='relative pl-1'>
           <div className='absolute left-[7.82rem] top-0 bottom-0 w-px bg-primary' />
           <div className='flex flex-col'>
-            {/* Add new row at top of timeline */}
             <div className='flex gap-4 pb-6'>
               <p className='w-24 shrink-0 pt-0.5 text-right text-xs text-muted-foreground'>Now</p>
               <div className='flex w-5 shrink-0 items-start justify-center pt-0.5'>
@@ -125,9 +124,10 @@ export function CandidateViewFeedbacks({ candidateId, initialPage }: Props) {
                 </div>
                 <div className='min-w-0 flex-1 pt-0.5'>
                   <div className='flex w-fit flex-col gap-0.5'>
-                    <p className='whitespace-pre-wrap text-sm font-semibold'>{feedback.feedback}</p>
+                    <p className='text-sm font-semibold'>{feedback.title}</p>
+                    <p className='whitespace-pre-wrap text-sm'>{feedback.feedback}</p>
                     <p className='text-xs text-muted-foreground'>
-                      by {feedback.givenBy.firstname} {feedback.givenBy.lastname}
+                      {feedback.trend} • by {feedback.givenBy.firstname} {feedback.givenBy.lastname}
                     </p>
                     <div className='flex items-center gap-0.5'>
                       <Button variant='ghost' size='icon' className='h-6 w-6' onClick={() => setEditingFeedback(feedback)}>
@@ -151,15 +151,15 @@ export function CandidateViewFeedbacks({ candidateId, initialPage }: Props) {
         )}
       </div>
 
-      <CandidateFeedbackFormDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} candidateId={candidateId} onSuccess={handleAddSuccess} />
-      <CandidateFeedbackFormDialog
+      <EmployeeFeedbackFormDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} employeeId={employeeId} onSuccess={handleAddSuccess} />
+      <EmployeeFeedbackFormDialog
         open={!!editingFeedback}
         onOpenChange={(open) => !open && setEditingFeedback(null)}
-        candidateId={candidateId}
+        employeeId={employeeId}
         feedback={editingFeedback ?? undefined}
         onSuccess={handleEditSuccess}
       />
-      <CandidateFeedbackDeleteDialog
+      <EmployeeFeedbackDeleteDialog
         open={!!deletingFeedback}
         onOpenChange={(open) => !open && setDeletingFeedback(null)}
         feedback={deletingFeedback}

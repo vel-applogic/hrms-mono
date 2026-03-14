@@ -1,5 +1,14 @@
 -- CreateEnum
-CREATE TYPE "auditEntityTypeDbEnum" AS ENUM ('user', 'user_admin', 'candidate', 'policy');
+CREATE TYPE "auditEntityTypeDbEnum" AS ENUM ('user', 'user_admin', 'candidate', 'employee', 'policy');
+
+-- CreateEnum
+CREATE TYPE "employeeStatusEnum" AS ENUM ('active', 'resigned', 'onLeave', 'terminated');
+
+-- CreateEnum
+CREATE TYPE "employeeMediaType" AS ENUM ('photo', 'document');
+
+-- CreateEnum
+CREATE TYPE "employeeFeedbackTrend" AS ENUM ('positive', 'negative', 'neutral');
 
 -- CreateEnum
 CREATE TYPE "candidateSource" AS ENUM ('email', 'googleSearch', 'lead', 'linkedin', 'referral', 'websiteForm');
@@ -137,6 +146,70 @@ CREATE TABLE "user_plan_history" (
 );
 
 -- CreateTable
+CREATE TABLE "user_employee_detail" (
+    "id" SERIAL NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "personal_email" TEXT,
+    "dob" TIMESTAMP(3) NOT NULL,
+    "pan" TEXT NOT NULL,
+    "aadhaar" TEXT NOT NULL,
+    "designation" TEXT NOT NULL,
+    "date_of_joining" TIMESTAMP(3) NOT NULL,
+    "date_of_leaving" TIMESTAMP(3),
+    "status" "employeeStatusEnum" NOT NULL,
+    "report_to_id" INTEGER,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "user_employee_detail_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "employee_has_media" (
+    "id" SERIAL NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "media_id" INTEGER NOT NULL,
+    "type" "employeeMediaType" NOT NULL,
+    "caption" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "employee_has_media_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "employee_salary" (
+    "id" SERIAL NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "basic" DOUBLE PRECISION NOT NULL,
+    "hra" DOUBLE PRECISION NOT NULL,
+    "other_allowances" DOUBLE PRECISION NOT NULL,
+    "gross" DOUBLE PRECISION NOT NULL,
+    "effective_from" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "effective_till" TIMESTAMP(3),
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "employee_salary_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "user_employee_feedback" (
+    "id" SERIAL NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "trend" "employeeFeedbackTrend" NOT NULL,
+    "point" INTEGER DEFAULT 0,
+    "title" TEXT NOT NULL,
+    "feedback" TEXT NOT NULL,
+    "created_by_id" INTEGER NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "user_employee_feedback_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "CandidateHasMedia" (
     "id" SERIAL NOT NULL,
     "candidate_id" INTEGER NOT NULL,
@@ -232,6 +305,33 @@ CREATE INDEX "audit_activity_has_entity_entity_type_entity_id_idx" ON "audit_act
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "user_employee_detail_user_id_key" ON "user_employee_detail"("user_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "user_employee_detail_pan_key" ON "user_employee_detail"("pan");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "user_employee_detail_aadhaar_key" ON "user_employee_detail"("aadhaar");
+
+-- CreateIndex
+CREATE INDEX "user_employee_detail_user_id_idx" ON "user_employee_detail"("user_id");
+
+-- CreateIndex
+CREATE INDEX "user_employee_detail_report_to_id_idx" ON "user_employee_detail"("report_to_id");
+
+-- CreateIndex
+CREATE INDEX "user_employee_detail_status_idx" ON "user_employee_detail"("status");
+
+-- CreateIndex
+CREATE INDEX "employee_has_media_user_id_idx" ON "employee_has_media"("user_id");
+
+-- CreateIndex
+CREATE INDEX "employee_salary_user_id_idx" ON "employee_salary"("user_id");
+
+-- CreateIndex
+CREATE INDEX "user_employee_feedback_user_id_idx" ON "user_employee_feedback"("user_id");
+
+-- CreateIndex
 CREATE INDEX "candidate_has_feedback_candidate_id_idx" ON "candidate_has_feedback"("candidate_id");
 
 -- AddForeignKey
@@ -248,6 +348,27 @@ ALTER TABLE "user_verify_email" ADD CONSTRAINT "user_verify_email_user_id_fkey" 
 
 -- AddForeignKey
 ALTER TABLE "user_plan_history" ADD CONSTRAINT "user_plan_history_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_employee_detail" ADD CONSTRAINT "user_employee_detail_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_employee_detail" ADD CONSTRAINT "user_employee_detail_report_to_id_fkey" FOREIGN KEY ("report_to_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "employee_has_media" ADD CONSTRAINT "employee_has_media_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "employee_has_media" ADD CONSTRAINT "employee_has_media_media_id_fkey" FOREIGN KEY ("media_id") REFERENCES "media"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "employee_salary" ADD CONSTRAINT "employee_salary_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_employee_feedback" ADD CONSTRAINT "user_employee_feedback_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_employee_feedback" ADD CONSTRAINT "user_employee_feedback_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "CandidateHasMedia" ADD CONSTRAINT "CandidateHasMedia_media_id_fkey" FOREIGN KEY ("media_id") REFERENCES "media"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

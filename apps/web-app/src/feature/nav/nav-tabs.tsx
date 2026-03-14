@@ -7,6 +7,7 @@ const tabs = [
   { label: 'USERS', href: '/user' },
   { label: 'POLICIES', href: '/policy' },
   { label: 'CANDIDATES', href: '/candidate' },
+  { label: 'EMPLOYEES', href: '/employee' },
 ];
 
 export function NavTabs() {

@@ -10,4 +10,7 @@ export * from './plan.dto.js';
 export * from './audit-activity.dto.js';
 export * from './candidate.dto.js';
 export * from './candidate-feedback.dto.js';
+export * from './employee.dto.js';
+export * from './employee-feedback.dto.js';
+export * from './employee-compensation.dto.js';
 export * from './policy.dto.js';

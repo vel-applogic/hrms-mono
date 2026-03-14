@@ -8,6 +8,10 @@ export {
   CandidateDao,
   CandidateHasMediaDao,
   CandidateHasFeedbackDao,
+  UserEmployeeDetailDao,
+  UserEmployeeHasMediaDao,
+  UserEmployeeCompensationDao,
+  UserEmployeeFeedbackDao,
   PolicyDao,
   PolicyHasMediaDao,
 } from './dao/index.js';
@@ -19,6 +23,10 @@ export type {
   CandidateDetailRecordType,
   CandidateHasMediaWithMedia,
   CandidateHasFeedbackWithUserType,
+  EmployeeListRecordType,
+  EmployeeDetailRecordType,
+  UserEmployeeHasMediaWithMediaType,
+  UserEmployeeFeedbackWithCreatedByType,
 } from './dao/index.js';
 export { CommonDbModule } from './db-module.js';
 export { PrismaService } from './prisma/prisma.service.js';
