@@ -1,19 +1,12 @@
 'use client';
 
 import type { CandidateDetailResponseType, CandidateUpdateDocumentsRequestType } from '@repo/dto';
+import { Drawer } from '@repo/ui/container/drawer/drawer';
 import { Button } from '@repo/ui/component/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@repo/ui/component/shadcn/dialog';
 import { Label } from '@repo/ui/component/ui/label';
 import { useEffect, useState } from 'react';
 
 import { FileUpload } from '@/container/s3-file-upload/s3-file-upload';
-
 import { updateCandidateDocuments } from '@/lib/action/candidate.actions';
 
 interface Props {
@@ -27,7 +20,7 @@ function toUpsertMedia(doc: { id: number; key: string; name: string; type: strin
   return { id: doc.id, key: doc.key, name: doc.name, type: doc.type as 'image' | 'file' };
 }
 
-export function CandidateDocumentsEditDialog({ open, onOpenChange, candidate, onSuccess }: Props) {
+export function CandidateDocumentsEditDrawer({ open, onOpenChange, candidate, onSuccess }: Props) {
   const [resume, setResume] = useState<{ key: string; name: string; type: string; id?: number } | undefined>();
   const [offerLetters, setOfferLetters] = useState<Array<{ key: string; name: string; type: string; id?: number }>>([]);
   const [otherDocuments, setOtherDocuments] = useState<Array<{ key: string; name: string; type: string; id?: number }>>([]);
@@ -73,44 +66,12 @@ export function CandidateDocumentsEditDialog({ open, onOpenChange, candidate, on
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className='max-h-[90vh] overflow-y-auto'>
-        <DialogHeader>
-          <DialogTitle>Add/Edit Documents</DialogTitle>
-        </DialogHeader>
-        <div className='flex flex-col gap-6 py-4'>
-          <div className='flex flex-col gap-2'>
-            <Label>Resume</Label>
-            <FileUpload
-              isMultiple={false}
-              media={resume ? [resume] : []}
-              onUploaded={(val) => setResume(val)}
-              onRemove={() => setResume(undefined)}
-              onError={(err) => err && setError(err)}
-            />
-          </div>
-          <div className='flex flex-col gap-2'>
-            <Label>Offer letters</Label>
-            <FileUpload
-              isMultiple={true}
-              media={offerLetters}
-              onUploaded={(val) => setOfferLetters((prev) => [...prev, val])}
-              onRemove={(index) => setOfferLetters((prev) => prev.filter((_, i) => i !== index))}
-              onError={(err) => err && setError(err)}
-            />
-          </div>
-          <div className='flex flex-col gap-2'>
-            <Label>Other documents</Label>
-            <FileUpload
-              isMultiple={true}
-              media={otherDocuments}
-              onUploaded={(val) => setOtherDocuments((prev) => [...prev, val])}
-              onRemove={(index) => setOtherDocuments((prev) => prev.filter((_, i) => i !== index))}
-              onError={(err) => err && setError(err)}
-            />
-          </div>
-        </div>
-        <DialogFooter>
+    <Drawer
+      open={open}
+      onOpenChange={handleOpenChange}
+      title='Add/Edit Documents'
+      footer={
+        <div className='flex items-center gap-3'>
           {error && <p className='mr-auto text-sm text-destructive'>{error}</p>}
           <Button type='button' variant='outline' onClick={() => handleOpenChange(false)} disabled={loading}>
             Cancel
@@ -118,8 +79,47 @@ export function CandidateDocumentsEditDialog({ open, onOpenChange, candidate, on
           <Button onClick={handleSubmit} disabled={loading}>
             {loading ? 'Saving...' : 'Save'}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      }
+    >
+      <div className='flex flex-col gap-6 p-6'>
+        <div className='flex flex-col gap-2'>
+          <Label>Resume</Label>
+          <FileUpload
+            isMultiple={false}
+            media={resume ? [resume] : []}
+            onUploaded={(val) => setResume(val)}
+            onRemove={() => setResume(undefined)}
+            onError={(err) => err && setError(err)}
+            variant='dark'
+            previewFirst
+          />
+        </div>
+        <div className='flex flex-col gap-2'>
+          <Label>Offer letters</Label>
+          <FileUpload
+            isMultiple={true}
+            media={offerLetters}
+            onUploaded={(val) => setOfferLetters((prev) => [...prev, val])}
+            onRemove={(index) => setOfferLetters((prev) => prev.filter((_, i) => i !== index))}
+            onError={(err) => err && setError(err)}
+            variant='dark'
+            previewFirst
+          />
+        </div>
+        <div className='flex flex-col gap-2'>
+          <Label>Other documents</Label>
+          <FileUpload
+            isMultiple={true}
+            media={otherDocuments}
+            onUploaded={(val) => setOtherDocuments((prev) => [...prev, val])}
+            onRemove={(index) => setOtherDocuments((prev) => prev.filter((_, i) => i !== index))}
+            onError={(err) => err && setError(err)}
+            variant='dark'
+            previewFirst
+          />
+        </div>
+      </div>
+    </Drawer>
   );
 }

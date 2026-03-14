@@ -198,7 +198,9 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
             </SelectTrigger>
             <SelectContent>
               {Object.values(CandidateSourceDtoEnum).map((s) => (
-                <SelectItem key={s} value={s}>{s}</SelectItem>
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -220,7 +222,11 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
                   }}
                 />
                 {contactNumbers.length > 1 && (
-                  <button type='button' onClick={() => setContactNumbers(contactNumbers.filter((_, idx) => idx !== i))} className='shrink-0 text-muted-foreground hover:text-destructive'>
+                  <button
+                    type='button'
+                    onClick={() => setContactNumbers(contactNumbers.filter((_, idx) => idx !== i))}
+                    className='shrink-0 text-muted-foreground hover:text-destructive'
+                  >
                     <Trash2 className='h-4 w-4' />
                   </button>
                 )}
@@ -334,7 +340,9 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
               </SelectTrigger>
               <SelectContent>
                 {Object.values(NoticePeriodUnitDtoEnum).map((u) => (
-                  <SelectItem key={u} value={u}>{u}</SelectItem>
+                  <SelectItem key={u} value={u}>
+                    {u}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -351,7 +359,9 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
               </SelectTrigger>
               <SelectContent>
                 {Object.values(CandidateStatusDtoEnum).map((s) => (
-                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -364,7 +374,9 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
               </SelectTrigger>
               <SelectContent>
                 {Object.values(CandidateProgressDtoEnum).map((p) => (
-                  <SelectItem key={p} value={p}>{p}</SelectItem>
+                  <SelectItem key={p} value={p}>
+                    {p}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -380,6 +392,7 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
             onUploaded={(val) => form.setValue('resume', val)}
             onRemove={() => form.setValue('resume', undefined)}
             onError={(err) => err && form.setError('resume', { message: err })}
+            variant='dark'
           />
           {form.formState.errors.resume && <p className='text-sm text-destructive'>{String(form.formState.errors.resume.message)}</p>}
         </div>

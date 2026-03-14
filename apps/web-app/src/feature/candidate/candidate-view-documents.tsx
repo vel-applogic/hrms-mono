@@ -7,7 +7,7 @@ import { FileText, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { CandidateDocumentsEditDialog } from './container/candidate-documents-edit.dialog';
+import { CandidateDocumentsEditDrawer } from './container/candidate-documents-edit.drawer';
 import { getCandidateById } from '@/lib/action/candidate.actions';
 
 interface Props {
@@ -101,7 +101,7 @@ export function CandidateViewDocuments({ candidateId }: Props) {
         />
       </div>
 
-      <CandidateDocumentsEditDialog open={editOpen} onOpenChange={setEditOpen} candidate={candidate} onSuccess={handleSuccess} />
+      <CandidateDocumentsEditDrawer open={editOpen} onOpenChange={setEditOpen} candidate={candidate} onSuccess={handleSuccess} />
     </div>
   );
 }

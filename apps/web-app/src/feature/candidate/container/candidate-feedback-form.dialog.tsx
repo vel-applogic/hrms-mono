@@ -1,14 +1,8 @@
 'use client';
 
 import type { CandidateFeedbackResponseType } from '@repo/dto';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@repo/ui/component/shadcn/dialog';
 import { Button } from '@repo/ui/component/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@repo/ui/component/shadcn/dialog';
 import { Label } from '@repo/ui/component/ui/label';
 import { Textarea } from '@repo/ui/component/ui/textarea';
 import { useEffect, useState } from 'react';
@@ -23,13 +17,7 @@ interface Props {
   onSuccess: (feedback: CandidateFeedbackResponseType) => void;
 }
 
-export function CandidateFeedbackFormDialog({
-  open,
-  onOpenChange,
-  candidateId,
-  feedback,
-  onSuccess,
-}: Props) {
+export function CandidateFeedbackFormDialog({ open, onOpenChange, candidateId, feedback, onSuccess }: Props) {
   const isEditing = !!feedback;
   const [text, setText] = useState(feedback?.feedback ?? '');
   const [loading, setLoading] = useState(false);
@@ -84,14 +72,7 @@ export function CandidateFeedbackFormDialog({
         <div className='flex flex-col gap-4 py-4'>
           <div className='flex flex-col gap-2'>
             <Label htmlFor='feedback'>Feedback</Label>
-            <Textarea
-              id='feedback'
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder='Enter feedback...'
-              rows={4}
-              className='resize-none'
-            />
+            <Textarea id='feedback' value={text} onChange={(e) => setText(e.target.value)} placeholder='Enter feedback...' rows={4} className='resize-none' />
             {error && <p className='text-sm text-destructive'>{error}</p>}
           </div>
         </div>

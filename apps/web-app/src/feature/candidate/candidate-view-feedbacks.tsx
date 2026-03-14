@@ -93,18 +93,27 @@ export function CandidateViewFeedbacks({ candidateId, initialPage }: Props) {
 
   return (
     <div className='flex h-full flex-col'>
-      <div className='mb-6 flex items-center justify-between'>
+      <div className='mb-6'>
         <h2 className='text-lg font-medium'>Feedbacks</h2>
-        <Button size='sm' onClick={() => setAddDialogOpen(true)}>
-          <Plus className='h-4 w-4' />
-          Add new
-        </Button>
       </div>
 
       <div className='relative flex-1 overflow-y-auto'>
         <div className='relative pl-1'>
           <div className='absolute left-[6.84rem] top-0 bottom-0 w-px bg-primary' />
           <div className='flex flex-col'>
+            {/* Add new row at top of timeline */}
+            <div className='flex gap-4 pb-6'>
+              <p className='w-20 shrink-0 pt-0.5 text-right text-xs text-muted-foreground'>Now</p>
+              <div className='flex w-5 shrink-0 items-start justify-center pt-0.5'>
+                <div className='z-10 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-primary bg-background' />
+              </div>
+              <div className='flex min-w-0 flex-1 items-center justify-start pt-0.5'>
+                <Button size='sm' onClick={() => setAddDialogOpen(true)}>
+                  <Plus className='h-4 w-4' />
+                  Add new
+                </Button>
+              </div>
+            </div>
             {feedbacks.map((feedback) => (
               <div key={feedback.id} className='flex gap-4 pb-6'>
                 <p className='w-20 shrink-0 pt-0.5 text-right text-xs text-muted-foreground'>{formatTimelineDate(feedback.createdAt)}</p>

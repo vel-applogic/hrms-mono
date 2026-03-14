@@ -84,6 +84,10 @@ interface Props {
   onError: (error?: string) => void;
   onNoteChange?: (index: number, note: string) => void;
   showNotes?: boolean;
+  /** Use transparent background and white text (for dark modals) */
+  variant?: 'default' | 'dark';
+  /** Show file preview above the upload dropzone (default: uploader first) */
+  previewFirst?: boolean;
 }
 
 export const ImageUpload = (props: Props) => {
@@ -94,6 +98,8 @@ export const ImageUpload = (props: Props) => {
       onRemove={props.onRemove}
       onUploaded={props.onUploaded}
       onError={props.onError}
+      variant={props.variant}
+      previewFirst={props.previewFirst}
       accept={{ 'image/jpeg': ['.jpg', '.jpeg'], 'image/png': ['.png'], 'image/gif': ['.gif'], 'image/webp': ['.webp'] }}
       maxSizeInBytes={IMAGE_MAX_SIZE_IN_BYTES}
       type={MediaTypeDtoEnum.image}
@@ -109,6 +115,8 @@ export const FileUpload = (props: Props) => {
       onRemove={props.onRemove}
       onUploaded={props.onUploaded}
       onError={props.onError}
+      variant={props.variant}
+      previewFirst={props.previewFirst}
       accept={{
         'application/pdf': ['.pdf'],
         'application/msword': ['.doc'],
@@ -140,7 +148,7 @@ export const UnifiedUpload = (props: Props) => {
   };
   const maxSize = Math.max(IMAGE_MAX_SIZE_IN_BYTES, FILE_MAX_SIZE_IN_BYTES);
 
-  return <MediaUpload {...props} accept={accept} maxSizeInBytes={maxSize} type={isImage(props.media?.[0]?.key || '') ? MediaTypeDtoEnum.image : MediaTypeDtoEnum.doc} />;
+  return <MediaUpload {...props} accept={accept} variant={props.variant} previewFirst={props.previewFirst} maxSizeInBytes={maxSize} type={isImage(props.media?.[0]?.key || '') ? MediaTypeDtoEnum.image : MediaTypeDtoEnum.doc} />;
 };
 
 interface MediaUploadProps {
@@ -154,6 +162,8 @@ interface MediaUploadProps {
   maxSizeInBytes?: number;
   accept: Accept;
   type: MediaTypeDtoEnum;
+  variant?: 'default' | 'dark';
+  previewFirst?: boolean;
 }
 
 const MediaUpload = (props: MediaUploadProps) => {
@@ -375,53 +385,74 @@ const MediaUpload = (props: MediaUploadProps) => {
 
   const hasUploadedFiles = props.media != null && props.media.length > 0;
   const showDropzone = props.isMultiple || (!hasUploadedFiles && !currentFile);
+  const isDark = props.variant === 'dark';
+  const previewFirst = props.previewFirst ?? false;
+
+  const dropzoneSection = showDropzone && (
+    <>
+      <div
+        ref={dropzoneRef}
+        {...getRootProps({
+          onDrop: (e) => {
+            void handleWebImageDrop(e);
+          },
+          onFocus: () => setIsFocused(true),
+          onBlur: () => setIsFocused(false),
+        })}
+        tabIndex={0}
+        className={cn(
+          'border-2 border-dashed rounded-lg flex flex-col items-center justify-center px-6 py-8 cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary',
+          isDark
+            ? 'bg-transparent border-white/30 hover:border-white/50 hover:bg-white/5'
+            : 'bg-white border-gray-300 hover:border-gray-400 hover:bg-gray-50',
+          isDragActive && (isDark ? 'border-primary bg-primary/5' : 'border-primary bg-primary/5'),
+          isFocused && (isDark ? 'border-primary bg-primary/5' : 'border-primary bg-primary/5'),
+        )}
+      >
+        <input {...getInputProps()} />
+        <Upload className={cn('w-8 h-8 mb-3', isDark ? 'text-white' : 'text-gray-400')} />
+        <div className='text-center'>
+          <p className={cn('text-sm', isDark ? 'text-white' : 'text-gray-600')}>
+            <span className='font-medium'>Click to upload</span> or drag and drop
+          </p>
+          <p className={cn('text-xs mt-1', isDark ? 'text-white/70' : 'text-gray-500')}>Max. File Size: {props.maxSizeInBytes ? formatBytes(props.maxSizeInBytes) : '30MB'}</p>
+        </div>
+      </div>
+      <button
+        type='button'
+        onClick={handlePasteFromClipboard}
+        className={cn(
+          'flex items-center justify-center gap-2 w-full py-2 px-4 text-sm rounded-lg transition-colors',
+          isDark ? 'bg-transparent border border-white/30 text-white hover:bg-white/10' : 'text-gray-600 bg-gray-50 border border-gray-200 hover:bg-gray-100 hover:text-gray-700',
+        )}
+      >
+        <ClipboardPaste className='w-4 h-4' />
+        Paste from clipboard
+      </button>
+    </>
+  );
+
+  const previewSection = hasUploadedFiles && <FilePreview media={props.media!} onRemove={(index) => props.onRemove(index)} onNoteChange={props.onNoteChange} showNotes={props.showNotes} variant={props.variant} />;
 
   return (
     <div className='flex flex-col gap-2'>
-      {showDropzone && (
+      {previewFirst ? (
         <>
-          <div
-            ref={dropzoneRef}
-            {...getRootProps({
-              onDrop: (e) => {
-                void handleWebImageDrop(e);
-              },
-              onFocus: () => setIsFocused(true),
-              onBlur: () => setIsFocused(false),
-            })}
-            tabIndex={0}
-            className={cn(
-              'bg-white border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center px-6 py-8 cursor-pointer transition-all hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary',
-              isDragActive && 'border-primary bg-primary/5',
-              isFocused && 'border-primary bg-primary/5',
-            )}
-          >
-            <input {...getInputProps()} />
-            <Upload className='w-8 h-8 text-gray-400 mb-3' />
-            <div className='text-center'>
-              <p className='text-sm text-gray-600'>
-                <span className='font-medium'>Click to upload</span> or drag and drop
-              </p>
-              <p className='text-xs text-gray-500 mt-1'>Max. File Size: {props.maxSizeInBytes ? formatBytes(props.maxSizeInBytes) : '30MB'}</p>
-            </div>
-          </div>
-          <button
-            type='button'
-            onClick={handlePasteFromClipboard}
-            className='flex items-center justify-center gap-2 w-full py-2 px-4 text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:text-gray-700 transition-colors'
-          >
-            <ClipboardPaste className='w-4 h-4' />
-            Paste from clipboard
-          </button>
+          {previewSection}
+          {dropzoneSection}
+        </>
+      ) : (
+        <>
+          {dropzoneSection}
+          {previewSection}
         </>
       )}
-
-      {hasUploadedFiles && <FilePreview media={props.media!} onRemove={(index) => props.onRemove(index)} onNoteChange={props.onNoteChange} showNotes={props.showNotes} />}
       {currentFile && (
         <FileProgress
           file={currentFile}
           result={result}
           progress={progress}
+          variant={props.variant}
           onRemove={() => {
             setCurrentFile(null);
             setResult(undefined);
@@ -430,7 +461,7 @@ const MediaUpload = (props: MediaUploadProps) => {
         />
       )}
       {filesToUpload.length > 0 && (
-        <div className='text-sm text-muted-foreground'>
+        <div className={cn('text-sm', isDark ? 'text-white/70' : 'text-muted-foreground')}>
           {filesToUpload.length} file{filesToUpload.length > 1 ? 's' : ''} waiting to upload...
         </div>
       )}
@@ -438,24 +469,30 @@ const MediaUpload = (props: MediaUploadProps) => {
   );
 };
 
-const FileProgress = (props: { file: File; result?: MediaUploadResponseType; progress: number; onRemove: () => void }) => {
+const FileProgress = (props: { file: File; result?: MediaUploadResponseType; progress: number; onRemove: () => void; variant?: 'default' | 'dark' }) => {
   const fileExtension = props.file.name.split('.').pop()?.toLowerCase() || '';
   const fileName = props.file.name.split('.').slice(0, -1).join('.') || props.file.name;
+  const isDark = props.variant === 'dark';
 
   return (
-    <div className='flex flex-row items-center gap-3 bg-white border border-gray-200 rounded-lg p-3'>
+    <div
+      className={cn(
+        'flex flex-row items-center gap-3 border rounded-lg p-3',
+        isDark ? 'bg-transparent border-white/20' : 'bg-white border-gray-200',
+      )}
+    >
       <div className='shrink-0'>
-        <div className='w-10 h-10 rounded bg-gray-100 flex items-center justify-center'>
+        <div className={cn('w-10 h-10 rounded flex items-center justify-center', isDark ? 'bg-white/10' : 'bg-gray-100')}>
           {props.progress >= 100 && props.result?.key != null && isImage(props.file.name) ? (
             <PreviewImage imageKey={props.result?.key} />
           ) : (
-            <FileIcon fileType={getFileType(props.file.name)} className='w-5 h-5 text-gray-600' />
+            <FileIcon fileType={getFileType(props.file.name)} className={cn('w-5 h-5', isDark ? 'text-white' : 'text-gray-600')} />
           )}
         </div>
       </div>
       <div className='flex flex-col justify-center gap-0.5 flex-1 min-w-0'>
-        <div className='font-medium text-sm text-gray-900 truncate'>{fileName}</div>
-        <div className='flex flex-row items-center gap-3 text-xs text-gray-500'>
+        <div className={cn('font-medium text-sm truncate', isDark ? 'text-white' : 'text-gray-900')}>{fileName}</div>
+        <div className={cn('flex flex-row items-center gap-3 text-xs', isDark ? 'text-white/70' : 'text-gray-500')}>
           <span>{formatBytes(props.file.size)}</span>
           <span className='uppercase font-medium'>{fileExtension}</span>
           {props.progress < 100 && <span>Uploading {props.progress}%</span>}
@@ -467,15 +504,17 @@ const FileProgress = (props: { file: File; result?: MediaUploadResponseType; pro
         )}
       </div>
       <div className='shrink-0'>
-        <button type='button' onClick={props.onRemove} className='p-1 hover:bg-gray-100 rounded transition-colors'>
-          <Trash2 className='w-4 h-4 text-gray-500' />
+        <button type='button' onClick={props.onRemove} className={cn('p-1 rounded transition-colors', isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100')}>
+          <Trash2 className={cn('w-4 h-4', isDark ? 'text-white' : 'text-gray-500')} />
         </button>
       </div>
     </div>
   );
 };
 
-const FilePreview = (props: { media: UpsertMediaType[]; onRemove: (index: number) => void; onNoteChange?: (index: number, note: string) => void; showNotes?: boolean }) => {
+const FilePreview = (props: { media: UpsertMediaType[]; onRemove: (index: number) => void; onNoteChange?: (index: number, note: string) => void; showNotes?: boolean; variant?: 'default' | 'dark' }) => {
+  const isDark = props.variant === 'dark';
+
   return (
     <div className='flex flex-col gap-2'>
       {props.media.map((m, index) => {
@@ -483,24 +522,30 @@ const FilePreview = (props: { media: UpsertMediaType[]; onRemove: (index: number
         const fileName = m.name?.split('.').slice(0, -1).join('.') || m.name || m.key;
 
         return (
-          <div key={m.key} className='rounded-md border border-input bg-transparent px-3 py-2 shadow-sm'>
+          <div
+            key={m.key}
+            className={cn(
+              'rounded-md border px-3 py-2 shadow-sm',
+              isDark ? 'bg-transparent border-white/20' : 'border-input bg-transparent',
+            )}
+          >
             <div className='flex flex-row items-center gap-3'>
               <div className='shrink-0'>
-                <div className='w-10 h-10 rounded bg-gray-100 flex items-center justify-center'>
-                  {isImage(m.key) ? <PreviewImage imageKey={m.key} /> : <FileIcon fileType={getFileType(m.key)} className='w-5 h-5 text-gray-600' />}
+                <div className={cn('w-10 h-10 rounded flex items-center justify-center', isDark ? 'bg-white/10' : 'bg-gray-100')}>
+                  {isImage(m.key) ? <PreviewImage imageKey={m.key} /> : <FileIcon fileType={getFileType(m.key)} className={cn('w-5 h-5', isDark ? 'text-white' : 'text-gray-600')} />}
                 </div>
               </div>
               <div className='flex flex-col justify-center gap-0.5 flex-1 min-w-0'>
-                <div className='font-medium text-sm text-gray-900 truncate'>{fileName}</div>
-                <div className='flex flex-row items-center gap-3 text-xs text-gray-500'>
+                <div className={cn('font-medium text-sm truncate', isDark ? 'text-white' : 'text-gray-900')}>{fileName}</div>
+                <div className={cn('flex flex-row items-center gap-3 text-xs', isDark ? 'text-white/70' : 'text-gray-500')}>
                   <span className='uppercase font-medium'>{fileExtension}</span>
                 </div>
               </div>
-              {/* <div className='shrink-0'>
-                <button type='button' onClick={() => props.onRemove(index)} className='p-1 hover:bg-gray-100 rounded transition-colors'>
-                  <Trash2 className='w-4 h-4 text-gray-500' />
+              <div className='shrink-0'>
+                <button type='button' onClick={() => props.onRemove(index)} className={cn('p-1 rounded transition-colors', isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100')}>
+                  <Trash2 className={cn('w-4 h-4', isDark ? 'text-white' : 'text-gray-500')} />
                 </button>
-              </div> */}
+              </div>
             </div>
             {props.showNotes && props.onNoteChange && (
               <div className='mt-2'>
