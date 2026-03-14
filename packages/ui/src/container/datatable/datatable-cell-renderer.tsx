@@ -15,6 +15,13 @@ import {
   DropdownMenuTrigger,
 } from '../../component/shadcn/dropdown-menu';
 import { Input } from '../../component/shadcn/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../component/shadcn/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../component/shadcn/tooltip';
 import { cn } from '../../lib/utils';
 
@@ -339,6 +346,111 @@ export const EditablePriceCellRenderer = (props: EditablePriceCellRendererProps)
       <span className="text-sm font-medium">{props.value != null ? `${props.value.toLocaleString()}` : '-'}</span>
       <ActionIconButton onClick={handleEditClick} customVariant="outline" className="h-6 w-auto px-1.5 opacity-60 hover:opacity-100 [&_svg]:!size-3">
         <Pencil />
+      </ActionIconButton>
+    </div>
+  );
+};
+
+// --- Editable Select Cell Renderer (badge + dropdown) ---
+
+export interface EditableSelectCellRendererProps {
+  value?: string;
+  data?: { id: number };
+  options: { value: string; label: string }[];
+  badgeColors: Record<string, string>;
+  onSave: (id: number, newValue: string) => Promise<{ success: boolean; error?: string }>;
+  onRefresh?: () => void;
+}
+
+export const EditableSelectCellRenderer = (props: EditableSelectCellRendererProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const value = props.value ?? '';
+  const id = props.data?.id;
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isLoading || !id) return;
+    setIsEditing(true);
+  };
+
+  const handleSelect = async (newValue: string) => {
+    if (isLoading || !id || newValue === value) {
+      setIsEditing(false);
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const result = await props.onSave(id, newValue);
+
+      if (result.success) {
+        setIsEditing(false);
+        props.onRefresh?.();
+      } else {
+        const { toast } = await import('sonner');
+        toast.error(result.error || 'Failed to save');
+        setIsEditing(false);
+      }
+    } catch {
+      const { toast } = await import('sonner');
+      toast.error('Failed to save');
+      setIsEditing(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const stopAllPropagation = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !isLoading) setIsEditing(false);
+  };
+
+  if (isEditing || isLoading) {
+    return (
+      <div className="flex items-center gap-1" onClick={stopAllPropagation} onMouseDown={stopAllPropagation} onMouseUp={stopAllPropagation}>
+        <Select value={value} onValueChange={handleSelect} onOpenChange={handleOpenChange} disabled={isLoading}>
+          <SelectTrigger className="h-7 min-w-[120px] text-sm">
+            <SelectValue placeholder="Select..." />
+          </SelectTrigger>
+          <SelectContent>
+            {props.options.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {isLoading && (
+          <div className="flex h-7 w-7 items-center justify-center">
+            <Spinner variant="small" />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const badgeClass = props.badgeColors[value] ?? 'border-border';
+
+  return (
+    <div className="flex items-center gap-1.5">
+      {value ? (
+        <span className={cn('inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium', badgeClass)}>
+          {value}
+        </span>
+      ) : (
+        <span className="text-muted-foreground">—</span>
+      )}
+      <ActionIconButton
+        onClick={handleEditClick}
+        customVariant="outline"
+        className="h-6 w-auto px-1 opacity-60 hover:opacity-100 [&_svg]:!size-3"
+      >
+        <Pencil size={12} />
       </ActionIconButton>
     </div>
   );

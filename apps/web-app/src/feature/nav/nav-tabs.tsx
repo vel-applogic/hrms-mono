@@ -11,6 +11,7 @@ const tabs = [
   { label: 'THEMES', href: '/theme' },
   { label: 'QUESTIONS', href: '/question' },
   { label: 'FLASHCARDS', href: '/flashcard' },
+  { label: 'CANDIDATES', href: '/candidate' },
 ];
 
 export function NavTabs() {

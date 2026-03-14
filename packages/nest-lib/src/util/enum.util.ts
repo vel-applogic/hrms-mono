@@ -95,6 +95,7 @@ export function auditEntityTypeDtoEnumToDbEnum(dtoEnum: AuditEntityTypeDtoEnum):
     [AuditEntityTypeDtoEnum.flashcard]: 'flashcard',
     [AuditEntityTypeDtoEnum.theme]: 'theme',
     [AuditEntityTypeDtoEnum.question]: 'question',
+    [AuditEntityTypeDtoEnum.candidate]: 'candidate' as AuditEntityTypeDbEnum,
   };
 
   const dbEnum = mapping[dtoEnum];
@@ -106,7 +107,7 @@ export function auditEntityTypeDtoEnumToDbEnum(dtoEnum: AuditEntityTypeDtoEnum):
 }
 
 export function auditEntityTypeDbEnumToDtoEnum(dbEnum: AuditEntityTypeDbEnum): AuditEntityTypeDtoEnum {
-  const mapping: Record<AuditEntityTypeDbEnum, AuditEntityTypeDtoEnum> = {
+  const mapping: Record<string, AuditEntityTypeDtoEnum> = {
     user: AuditEntityTypeDtoEnum.user,
     user_admin: AuditEntityTypeDtoEnum.user_admin,
     chapter: AuditEntityTypeDtoEnum.chapter,
@@ -115,6 +116,7 @@ export function auditEntityTypeDbEnumToDtoEnum(dbEnum: AuditEntityTypeDbEnum): A
     flashcard: AuditEntityTypeDtoEnum.flashcard,
     theme: AuditEntityTypeDtoEnum.theme,
     question: AuditEntityTypeDtoEnum.question,
+    candidate: AuditEntityTypeDtoEnum.candidate,
   };
 
   const dtoEnum = mapping[dbEnum];

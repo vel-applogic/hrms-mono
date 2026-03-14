@@ -10,7 +10,6 @@ const { diff } = deepDiff;
 
 export interface IUseCase<TInput, TOutput> {
   execute(input: TInput): Promise<TOutput>;
-  validate(input: TInput): Promise<unknown>;
 }
 
 export abstract class BaseUc {

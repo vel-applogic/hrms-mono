@@ -18,6 +18,7 @@ const tabs = [
   { label: 'Themes', href: '/theme' },
   { label: 'Questions', href: '/question' },
   { label: 'Flashcards', href: '/flashcard' },
+  { label: 'Candidates', href: '/candidate' },
 ];
 
 interface Props {

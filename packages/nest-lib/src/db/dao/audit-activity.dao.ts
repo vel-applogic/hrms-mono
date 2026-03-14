@@ -182,7 +182,7 @@ export class AuditActivityDao extends BaseDao {
       entities: {
         some: {
           OR: params.filterDto.id.map((item) => ({
-            entityType: item.entityType,
+            entityType: item.entityType as never,
             entityId: item.entityId,
           })),
         },

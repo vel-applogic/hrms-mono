@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { MediaTypeDtoEnum } from './enum.js';
 
-export type MediaPlacementType = 'chapter' | 'topic' | 'slide' | 'scene' | 'question' | 'avatar';
+export type MediaPlacementType = 'chapter' | 'topic' | 'slide' | 'scene' | 'question' | 'avatar' | 'candidate';
 
 export const MediaSchema = z.object({
   name: z.string(),

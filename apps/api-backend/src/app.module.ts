@@ -10,6 +10,7 @@ import { AccountModule } from './module/account/account.module.js';
 import { AdminUserModule } from './module/admin-user/admin-user.module.js';
 import { AppStatusModule } from './module/app-status/app-status.module.js';
 import { AuthModule } from './module/auth/auth.module.js';
+import { CandidateModule } from './module/candidate/candidate.module.js';
 import { ChapterModule } from './module/chapter/chapter.module.js';
 import { FlashcardModule } from './module/flashcard/flashcard.module.js';
 import { MediaModule } from './module/media/media.module.js';
@@ -31,6 +32,7 @@ import { ServiceModule } from './service/service.module.js';
     AccountModule,
     AdminUserModule,
     ChapterModule,
+    CandidateModule,
     ThemeModule,
     TopicModule,
     SlideModule,

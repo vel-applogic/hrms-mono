@@ -77,19 +77,20 @@ export const CreateAxiosInstance = (baseUrl: string): AxiosInstance => {
     const requestId = error.config?.headers.get('x-request-id') as string | undefined;
     const url = error.config?.url;
     const method = error.config?.method?.toUpperCase();
-    const body = sanitizeBody(error.config?.data);
+    const status = error.response?.status;
+    const data = error.response?.data;
+    const message = data?.message ?? (typeof data === 'object' ? JSON.stringify(data) : String(data ?? 'No response body'));
 
-    logger.error('Response error', { status: error.response?.status, data: error.response?.data, requestId, url, method });
+    logger.error(`Response error [${status ?? 'N/A'}] ${method ?? ''} ${url ?? ''}`, { status, message, requestId });
 
     const statusCode = error.response?.status ?? -1;
-    const message = error.response?.data?.message ?? 'Something went wrong';
-    const context = { url, method, requestId, body };
+    const context = { url, method, requestId, body: sanitizeBody(error.config?.data) };
 
     try {
       const errorData = APIErrorResponseSchema.parse(error.response?.data);
-      return Promise.reject(new APIError(statusCode, message, errorData.validationErrors, context));
+      return Promise.reject(new APIError(statusCode, data?.message ?? 'Something went wrong', errorData.validationErrors, context));
     } catch (_err) {
-      return Promise.reject(new APIError(statusCode, message, undefined, context));
+      return Promise.reject(new APIError(statusCode, data?.message ?? 'Something went wrong', undefined, context));
     }
   };
 

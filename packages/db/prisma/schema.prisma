@@ -24,6 +24,7 @@ enum AuditEntityTypeDbEnum {
   flashcard
   question
   theme
+  candidate
 
   @@map("auditEntityTypeDbEnum")
 }

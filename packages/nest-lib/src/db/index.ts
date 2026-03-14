@@ -14,6 +14,8 @@ export {
   QuestionHasThemeDao,
   UserForgotPasswordDao,
   UserVerifyEmailDao,
+  CandidateDao,
+  CandidateHasMediaDao,
 } from './dao/index.js';
 export type {
   OrderByParam,
@@ -24,6 +26,9 @@ export type {
   QuestionDetailRecordType,
   QuestionListRecordType,
   QuestionAnswerOptionRecordType,
+  CandidateListRecordType,
+  CandidateDetailRecordType,
+  CandidateHasMediaWithMedia,
 } from './dao/index.js';
 export { CommonDbModule } from './db-module.js';
 export { PrismaService } from './prisma/prisma.service.js';

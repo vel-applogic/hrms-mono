@@ -59,4 +59,46 @@ export enum AuditEntityTypeDtoEnum {
   flashcard = 'flashcard',
   question = 'question',
   theme = 'theme',
+  candidate = 'candidate',
+}
+
+export enum CandidateSourceDtoEnum {
+  email = 'email',
+  googleSearch = 'googleSearch',
+  lead = 'lead',
+  linkedin = 'linkedin',
+  referral = 'referral',
+  websiteForm = 'websiteForm',
+}
+
+export enum NoticePeriodUnitDtoEnum {
+  days = 'days',
+  weeks = 'weeks',
+  months = 'months',
+}
+
+export enum CandidateStatusDtoEnum {
+  new = 'new',
+  planed = 'planed',
+  notReachable = 'notReachable',
+  selected = 'selected',
+  onHold = 'onHold',
+  rejected = 'rejected',
+}
+
+export enum CandidateProgressDtoEnum {
+  new = 'new',
+  infoCollected = 'infoCollected',
+  lev1InterviewScheduled = 'lev1InterviewScheduled',
+  lev1InterviewCompleted = 'lev1InterviewCompleted',
+  lev2InterviewScheduled = 'lev2InterviewScheduled',
+  lev2InterviewCompleted = 'lev2InterviewCompleted',
+  offerReleased = 'offerReleased',
+  offerAccepted = 'offerAccepted',
+}
+
+export enum CandidateMediaTypeDtoEnum {
+  resume = 'resume',
+  offerLetter = 'offerLetter',
+  otherDocuments = 'otherDocuments',
 }

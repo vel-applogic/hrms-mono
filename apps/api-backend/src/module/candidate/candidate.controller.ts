@@ -1,0 +1,95 @@
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put } from '@nestjs/common';
+import type {
+  CandidateCreateRequestType,
+  CandidateDetailResponseType,
+  CandidateFilterRequestType,
+  CandidateListResponseType,
+  CandidateUpdateProgressRequestType,
+  CandidateUpdateRequestType,
+  CandidateUpdateStatusRequestType,
+  OperationStatusResponseType,
+  PaginatedResponseType,
+} from '@repo/dto';
+import {
+  CandidateCreateRequestSchema,
+  CandidateFilterRequestSchema,
+  CandidateUpdateProgressRequestSchema,
+  CandidateUpdateRequestSchema,
+  CandidateUpdateStatusRequestSchema,
+} from '@repo/dto';
+import type { CurrentUserType } from '@repo/nest-lib';
+import { CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
+
+import { CandidateCreateUc } from './uc/candidate-create.uc.js';
+import { CandidateDeleteUc } from './uc/candidate-delete.uc.js';
+import { CandidateGetUc } from './uc/candidate-get.uc.js';
+import { CandidateSearchUc } from './uc/candidate-search.uc.js';
+import { CandidateUpdateUc } from './uc/candidate-update.uc.js';
+import { CandidateUpdateProgressUc } from './uc/candidate-update-progress.uc.js';
+import { CandidateUpdateStatusUc } from './uc/candidate-update-status.uc.js';
+
+@Controller('api/candidate')
+export class CandidateController {
+  constructor(
+    private readonly searchUc: CandidateSearchUc,
+    private readonly getUc: CandidateGetUc,
+    private readonly createUc: CandidateCreateUc,
+    private readonly updateUc: CandidateUpdateUc,
+    private readonly updateStatusUc: CandidateUpdateStatusUc,
+    private readonly updateProgressUc: CandidateUpdateProgressUc,
+    private readonly deleteUc: CandidateDeleteUc,
+  ) {}
+
+  @Post()
+  async create(
+    @Body(new ZodValidationPipe(CandidateCreateRequestSchema)) body: CandidateCreateRequestType,
+    @CurrentUser() currentUser: CurrentUserType,
+  ): Promise<OperationStatusResponseType> {
+    return this.createUc.execute({ currentUser, dto: body });
+  }
+
+  @Put(':id')
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(new ZodValidationPipe(CandidateUpdateRequestSchema)) body: CandidateUpdateRequestType,
+    @CurrentUser() currentUser: CurrentUserType,
+  ): Promise<OperationStatusResponseType> {
+    return this.updateUc.execute({ currentUser, id, dto: body });
+  }
+
+  @Patch(':id/status')
+  async updateStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(new ZodValidationPipe(CandidateUpdateStatusRequestSchema)) body: CandidateUpdateStatusRequestType,
+    @CurrentUser() currentUser: CurrentUserType,
+  ): Promise<OperationStatusResponseType> {
+    return this.updateStatusUc.execute({ currentUser, id, dto: body });
+  }
+
+  @Patch(':id/progress')
+  async updateProgress(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(new ZodValidationPipe(CandidateUpdateProgressRequestSchema)) body: CandidateUpdateProgressRequestType,
+    @CurrentUser() currentUser: CurrentUserType,
+  ): Promise<OperationStatusResponseType> {
+    return this.updateProgressUc.execute({ currentUser, id, dto: body });
+  }
+
+  @Patch('/search')
+  async search(
+    @CurrentUser() currentUser: CurrentUserType,
+    @Body(new ZodValidationPipe(CandidateFilterRequestSchema)) filterDto: CandidateFilterRequestType,
+  ): Promise<PaginatedResponseType<CandidateListResponseType>> {
+    return this.searchUc.execute({ currentUser, filterDto });
+  }
+
+  @Get(':id')
+  async get(@Param('id', ParseIntPipe) id: number, @CurrentUser() currentUser: CurrentUserType): Promise<CandidateDetailResponseType> {
+    return this.getUc.execute({ currentUser, id });
+  }
+
+  @Delete(':id')
+  async delete(@Param('id', ParseIntPipe) id: number, @CurrentUser() currentUser: CurrentUserType): Promise<OperationStatusResponseType> {
+    return this.deleteUc.execute({ currentUser, id });
+  }
+}

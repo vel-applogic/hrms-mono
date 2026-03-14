@@ -16,3 +16,5 @@ export { AuditActivityDao } from './audit-activity.dao.js';
 export { AuditActivityHasEntityDao } from './audit-activity-has-entity.dao.js';
 export { UserForgotPasswordDao } from './user-forgot-password.dao.js';
 export { UserVerifyEmailDao } from './user-verify-email.dao.js';
+export { CandidateDao, type CandidateListRecordType, type CandidateDetailRecordType, type CandidateHasMediaWithMedia } from './candidate.dao.js';
+export { CandidateHasMediaDao } from './candidate-has-media.dao.js';

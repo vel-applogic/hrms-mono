@@ -2,18 +2,20 @@ import { Global, Module } from '@nestjs/common';
 
 import { CommonLoggerService } from '../logger/logger.service.js';
 import {
+  CandidateDao,
+  CandidateHasMediaDao,
   ChapterDao,
+  FlashcardDao,
+  FlashcardHasThemeDao,
   MediaDao,
+  QuestionDao,
+  QuestionHasThemeDao,
+  SlideDao,
+  SlideHasThemeDao,
+  ThemeDao,
   TopicDao,
   UserDao,
   UserPlanHistoryDao,
-  ThemeDao,
-  SlideDao,
-  SlideHasThemeDao,
-  FlashcardDao,
-  FlashcardHasThemeDao,
-  QuestionDao,
-  QuestionHasThemeDao,
 } from './dao/index.js';
 import { PrismaService } from './prisma/prisma.service.js';
 import { AuditService } from '../service/audit.service.js';
@@ -39,6 +41,8 @@ import { UserForgotPasswordDao } from './dao/user-forgot-password.dao.js';
     FlashcardHasThemeDao,
     QuestionDao,
     QuestionHasThemeDao,
+    CandidateDao,
+    CandidateHasMediaDao,
     CommonLoggerService,
     AuditActivityDao,
     AuditActivityHasEntityDao,
@@ -60,6 +64,8 @@ import { UserForgotPasswordDao } from './dao/user-forgot-password.dao.js';
     FlashcardHasThemeDao,
     QuestionDao,
     QuestionHasThemeDao,
+    CandidateDao,
+    CandidateHasMediaDao,
     CommonLoggerService,
     AuditActivityDao,
     AuditActivityHasEntityDao,

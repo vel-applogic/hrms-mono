@@ -75,6 +75,18 @@ export const SearchParamsSchema = z.object({
     .optional(),
   status: z.enum(['active', 'inactive']).optional(),
   plan: z.enum(['free', 'premium']).optional(),
+  candidateStatus: z
+    .string()
+    .optional()
+    .transform((val) => (val ? val.split(',').map((s) => s.trim()).filter(Boolean) : undefined)),
+  candidateProgress: z
+    .string()
+    .optional()
+    .transform((val) => (val ? val.split(',').map((s) => s.trim()).filter(Boolean) : undefined)),
+  candidateSource: z
+    .string()
+    .optional()
+    .transform((val) => (val ? val.split(',').map((s) => s.trim()).filter(Boolean) : undefined)),
 });
 
 export type SearchParamsType = z.infer<typeof SearchParamsSchema>;
