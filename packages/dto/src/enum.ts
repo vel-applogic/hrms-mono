@@ -60,6 +60,7 @@ export enum AuditEntityTypeDtoEnum {
   question = 'question',
   theme = 'theme',
   candidate = 'candidate',
+  policy = 'policy',
 }
 
 export enum CandidateSourceDtoEnum {

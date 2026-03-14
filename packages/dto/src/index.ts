@@ -15,3 +15,4 @@ export * from './question.dto.js';
 export * from './plan.dto.js';
 export * from './audit-activity.dto.js';
 export * from './candidate.dto.js';
+export * from './policy.dto.js';

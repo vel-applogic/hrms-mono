@@ -16,11 +16,15 @@ export {
   UserVerifyEmailDao,
   CandidateDao,
   CandidateHasMediaDao,
+  PolicyDao,
+  PolicyHasMediaDao,
 } from './dao/index.js';
 export type {
   OrderByParam,
   SlideDetailRecordType,
   SlideListRecordType,
+  PolicyDetailRecordType,
+  PolicyListRecordType,
   TopicListRecordType,
   FlashcardListRecordType,
   QuestionDetailRecordType,

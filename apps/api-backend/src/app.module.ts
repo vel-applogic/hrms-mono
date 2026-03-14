@@ -16,6 +16,7 @@ import { FlashcardModule } from './module/flashcard/flashcard.module.js';
 import { MediaModule } from './module/media/media.module.js';
 import { QuestionModule } from './module/question/question.module.js';
 import { SeederModule } from './module/seeder/seeder.module.js';
+import { PolicyModule } from './module/policy/policy.module.js';
 import { SlideModule } from './module/slide/slide.module.js';
 import { ThemeModule } from './module/theme/theme.module.js';
 import { TopicModule } from './module/topic/topic.module.js';
@@ -35,6 +36,7 @@ import { ServiceModule } from './service/service.module.js';
     CandidateModule,
     ThemeModule,
     TopicModule,
+    PolicyModule,
     SlideModule,
     FlashcardModule,
     QuestionModule,

@@ -25,6 +25,7 @@ enum AuditEntityTypeDbEnum {
   question
   theme
   candidate
+  policy
 
   @@map("auditEntityTypeDbEnum")
 }
@@ -79,6 +80,7 @@ model Media {
   questions          Question[]
   slideHasMedias     SlideHasMedia[]
   candidateHasMedias CandidateHasMedia[]
+  policyHasMedias    PolicyHasMedia[]
 
   @@map("media")
 }
@@ -125,6 +127,19 @@ model UserVerifyEmail {
   @@map("user_verify_email")
 }
 
+model UserPlanHistory {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+  plan      PlanEnum @map("plan")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("user_plan_history")
+}
+
+// CANDIDATE
 enum CandidateSource {
   email
   googleSearch
@@ -219,16 +234,29 @@ model CandidateHasFeedback {
   candidate   Candidate @relation(fields: [candidateId], references: [id])
 }
 
-model UserPlanHistory {
+// POLICIES
+model Policy {
   id        Int      @id @default(autoincrement())
-  userId    Int      @map("user_id")
-  user      User     @relation(fields: [userId], references: [id])
-  plan      PlanEnum @map("plan")
-  expiresAt DateTime @map("expires_at")
+  title     String
+  content   Json
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("user_plan_history")
+  policyHasMedias PolicyHasMedia[]
+
+  @@map("policy")
+}
+
+model PolicyHasMedia {
+  id        Int      @id @default(autoincrement())
+  policyId  Int      @map("policy_id")
+  policy    Policy   @relation(fields: [policyId], references: [id])
+  mediaId   Int      @map("media_id")
+  media     Media    @relation(fields: [mediaId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("policy_has_media")
 }
 
 model Theme {

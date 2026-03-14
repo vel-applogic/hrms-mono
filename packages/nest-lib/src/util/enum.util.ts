@@ -95,7 +95,8 @@ export function auditEntityTypeDtoEnumToDbEnum(dtoEnum: AuditEntityTypeDtoEnum):
     [AuditEntityTypeDtoEnum.flashcard]: 'flashcard',
     [AuditEntityTypeDtoEnum.theme]: 'theme',
     [AuditEntityTypeDtoEnum.question]: 'question',
-    [AuditEntityTypeDtoEnum.candidate]: 'candidate' as AuditEntityTypeDbEnum,
+    [AuditEntityTypeDtoEnum.candidate]: 'candidate',
+    [AuditEntityTypeDtoEnum.policy]: 'policy',
   };
 
   const dbEnum = mapping[dtoEnum];
@@ -117,6 +118,7 @@ export function auditEntityTypeDbEnumToDtoEnum(dbEnum: AuditEntityTypeDbEnum): A
     theme: AuditEntityTypeDtoEnum.theme,
     question: AuditEntityTypeDtoEnum.question,
     candidate: AuditEntityTypeDtoEnum.candidate,
+    policy: AuditEntityTypeDtoEnum.policy,
   };
 
   const dtoEnum = mapping[dbEnum];

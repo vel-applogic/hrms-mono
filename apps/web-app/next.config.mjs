@@ -7,7 +7,8 @@ const nextConfig = {
     BASE_URL: process.env.NEXTAUTH_URL_WEB_APP,
     AUTH_URL: process.env.NEXTAUTH_URL_WEB_APP,
     AUTH_SECRET: process.env.NEXTAUTH_SECRET_WEB_APP,
-    NEXT_PUBLIC_API_URL_ADMIN: process.env.BACKEND_API_URL,
+    // Use 127.0.0.1 instead of localhost to avoid IPv6 resolution issues (ECONNREFUSED)
+    NEXT_PUBLIC_API_URL_ADMIN: process.env.BACKEND_API_URL?.replace('localhost', '127.0.0.1') ?? process.env.BACKEND_API_URL,
   },
   async redirects() {
     return [

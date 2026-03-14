@@ -18,3 +18,5 @@ export { UserForgotPasswordDao } from './user-forgot-password.dao.js';
 export { UserVerifyEmailDao } from './user-verify-email.dao.js';
 export { CandidateDao, type CandidateListRecordType, type CandidateDetailRecordType, type CandidateHasMediaWithMedia } from './candidate.dao.js';
 export { CandidateHasMediaDao } from './candidate-has-media.dao.js';
+export { PolicyDao, type PolicyDetailRecordType, type PolicyListRecordType } from './policy.dao.js';
+export { PolicyHasMediaDao } from './policy-has-media.dao.js';

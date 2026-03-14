@@ -8,6 +8,7 @@ const tabs = [
   { label: 'CHAPTERS', href: '/chapter' },
   { label: 'TOPICS', href: '/topic' },
   { label: 'SLIDES', href: '/slide' },
+  { label: 'POLICIES', href: '/policy' },
   { label: 'THEMES', href: '/theme' },
   { label: 'QUESTIONS', href: '/question' },
   { label: 'FLASHCARDS', href: '/flashcard' },
