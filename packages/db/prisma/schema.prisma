@@ -73,10 +73,11 @@ model Media {
   createdAt    DateTime        @default(now()) @map("created_at")
   updatedAt    DateTime        @updatedAt @map("updated_at")
 
-  chapters       Chapter[]
-  topics         Topic[]
-  questions      Question[]
-  slideHasMedias SlideHasMedia[]
+  chapters           Chapter[]
+  topics             Topic[]
+  questions          Question[]
+  slideHasMedias     SlideHasMedia[]
+  candidateHasMedias CandidateHasMedia[]
 
   @@map("media")
 }
@@ -123,19 +124,100 @@ model UserVerifyEmail {
   @@map("user_verify_email")
 }
 
-// model Plan {
-//   id              Int               @id @default(autoincrement())
-//   name            String            @unique
-//   description     String?
-//   price           Decimal // TODO: remove this column
-//   createdAt       DateTime          @default(now()) @map("created_at")
-//   updatedAt       DateTime          @updatedAt @map("updated_at")
-//   userPlanHistory UserPlanHistory[]
+enum CandidateSource {
+  email
+  googleSearch
+  lead
+  linkedin
+  referral
+  websiteForm
 
-//   @@map("plan")
-// }
+  @@map("candidateSource")
+}
 
-// TODO: remove this table, create user plan history table
+enum NoticePeriodUnit {
+  days
+  weeks
+  months
+
+  @@map("noticePeriodUnit")
+}
+
+enum CandidateStatus {
+  new
+  planed
+  notReachable
+  selected
+  onHold
+  rejected
+}
+
+enum CandidateProgress {
+  new
+  infoCollected
+  lev1InterviewScheduled
+  lev1InterviewCompleted
+  lev2InterviewScheduled
+  lev2InterviewCompleted
+  offerReleased
+  offerAccepted
+}
+
+enum CandidateMediaType {
+  resume
+  offerLetter
+  otherDocuments
+
+  @@map("candidateMediaType")
+}
+
+model CandidateHasMedia {
+  id          Int                @id @default(autoincrement())
+  candidateId Int                @map("candidate_id")
+  mediaId     Int                @map("media_id")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+  type        CandidateMediaType @map("type")
+  media       Media              @relation(fields: [mediaId], references: [id])
+  candidate   Candidate          @relation(fields: [candidateId], references: [id])
+}
+
+model Candidate {
+  id                 Int               @id @default(autoincrement())
+  firstname          String
+  lastname           String
+  email              String
+  contactNumbers     String[]
+  source             CandidateSource
+  urls               String[]
+  expInYears         Float
+  relevantExpInYears Float
+  skills             String[]
+  currentCtcInLacs   Float
+  expectedCtcInLacs  Float
+  noticePeriod       Float
+  noticePeriodUnit   NoticePeriodUnit
+  status             CandidateStatus   @default(new)
+  progress           CandidateProgress @default(new)
+
+  createdAt             DateTime               @default(now()) @map("created_at")
+  updatedAt             DateTime               @updatedAt @map("updated_at")
+  isDeleted             Boolean                @default(false) @map("is_deleted")
+  candidateHasMedias    CandidateHasMedia[]
+  candidateHasFeedbacks CandidateHasFeedback[]
+
+  @@map("candidate")
+}
+
+model CandidateHasFeedback {
+  id          Int       @id @default(autoincrement())
+  candidateId Int       @map("candidate_id")
+  feedback    String
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+}
+
 model UserPlanHistory {
   id        Int      @id @default(autoincrement())
   userId    Int      @map("user_id")

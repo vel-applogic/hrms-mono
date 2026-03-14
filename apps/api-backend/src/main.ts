@@ -16,7 +16,7 @@ async function bootstrap() {
 
   setup(app);
 
-  const port = process.env.PORT_API_ADMIN || 5002;
+  const port = process.env.PORT_API_BACKEND || 6002;
   await app.listen(port);
 
   await app.get(Seeder).seed();

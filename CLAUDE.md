@@ -62,8 +62,8 @@ pnpm up "next@latest" --recursive
 
 ### Monorepo Structure
 
-- `apps/api-backend` - NestJS internal admin API (port 4001)
-- `apps/web-app` - Next.js admin interface (port 4000)
+- `apps/api-backend` - NestJS internal admin API (port 6002)
+- `apps/web-app` - Next.js admin interface (port 6001)
 - `packages/db` - Prisma ORM with PostgreSQL
 - `packages/dto` - DTOs (Zod schemas, types, enum definitions)
 - `packages/shared` - Code shared between all apps (errors, utilities)
