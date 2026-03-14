@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+.next/
+out/
+
+# Environment
+.envrc
+.env
+.env.dev
+.env.local
+.env.*.local
+
+# Turbo
+.turbo/
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Prisma
+packages/db/generated/
+
+# Misc
+*.log
+npm-debug.log*
+pnpm-debug.log*
+coverage/
+
+tsconfig.tsbuildinfo
+
+# Claude local settings
+.claude/settings.local.json
+
+.mcp.json

@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "Debug Start All",
+      "configurations": ["api-backend", "web-app server-side", "web-app client-side"],
+      "stopAll": true
+    }
+  ],
+  "configurations": [
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Attach to api-backend",
+      "localRoot": "${workspaceFolder}",
+      "cwd": "${workspaceFolder}/apps/api-backend",
+      "protocol": "inspector",
+      "port": 9601,
+      "restart": true,
+      "skipFiles": ["<node_internals>/**"],
+      "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"]
+    }
+  ]
+}

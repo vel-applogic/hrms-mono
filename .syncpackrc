@@ -1,0 +1,64 @@
+{
+  "customTypes": {
+    "nodeEngine": {
+      "path": "engines.node",
+      "strategy": "version"
+    }
+  },
+  "versionGroups": [
+    {
+      "label": "Local workspace dependencies",
+      "dependencies": [
+        "@repo/**"
+      ],
+      "packages": [
+        "**"
+      ],
+      "dependencyTypes": [
+        "prod",
+        "dev"
+      ],
+      "pinVersion": "workspace:*"
+    },
+    {
+      "label": "Keep zod version in sync across workspaces",
+      "dependencies": [
+        "zod"
+      ],
+      "packages": [
+        "**"
+      ],
+      "dependencyTypes": [
+        "prod",
+        "dev"
+      ]
+    },
+    {
+      "label": "Keep NestJS packages in sync across workspaces",
+      "dependencies": [
+        "@nestjs/**"
+      ],
+      "packages": [
+        "**"
+      ],
+      "dependencyTypes": [
+        "prod",
+        "dev"
+      ]
+    },
+    {
+      "label": "Keep React packages in sync across workspaces",
+      "dependencies": [
+        "react",
+        "react-dom"
+      ],
+      "packages": [
+        "**"
+      ],
+      "dependencyTypes": [
+        "prod",
+        "dev"
+      ]
+    }
+  ]
+}

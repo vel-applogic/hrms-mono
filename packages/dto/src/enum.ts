@@ -1,0 +1,62 @@
+export enum UserRoleDtoEnum {
+  admin = 'admin',
+  user = 'user',
+}
+
+// Common enums
+export enum MediaTypeDtoEnum {
+  doc = 'doc',
+  image = 'image',
+  zip = 'zip',
+  video = 'video',
+}
+
+export enum SortDirectionDtoEnum {
+  DESC = 'desc',
+  ASC = 'asc',
+}
+
+export enum PlanDtoEnum {
+  free = 'free',
+  premium = 'premium',
+}
+
+// Audit enums
+export enum AuditEventGroupDtoEnum {
+  authentication = 'authentication',
+  operation = 'operation',
+}
+
+export enum AuditActivityStatusDtoEnum {
+  success = 'success',
+  failure = 'failure',
+}
+export enum AuditEventTypeDtoEnum {
+  login_success = 'login_success',
+  login_failure = 'login_failure',
+  create = 'create',
+  update = 'update',
+  delete = 'delete',
+  password_reset = 'password_reset',
+  password_reset_request = 'password_reset_request',
+  otp_request = 'otp_request',
+  register = 'register',
+  email_verify = 'email_verify',
+  account_activate = 'account_activate',
+  confirm = 'confirm',
+  upgrade_plan = 'upgrade_plan',
+  downgrade_plan = 'downgrade_plan',
+  block_user = 'block_user',
+  unblock_user = 'unblock_user',
+}
+
+export enum AuditEntityTypeDtoEnum {
+  user = 'user',
+  user_admin = 'user_admin',
+  chapter = 'chapter',
+  topic = 'topic',
+  slide = 'slide',
+  flashcard = 'flashcard',
+  question = 'question',
+  theme = 'theme',
+}

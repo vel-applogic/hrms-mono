@@ -1,0 +1,11 @@
+{
+  "extends": "@repo/config-typescript/base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "exclude": ["dist", "node_modules", ".env"],
+  "include": ["src", "./prisma"]
+}

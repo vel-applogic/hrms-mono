@@ -1,0 +1,356 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model AppMigration {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("app_migrations")
+}
+
+enum AuditEntityTypeDbEnum {
+  user
+  user_admin
+  chapter
+  topic
+  slide
+  flashcard
+  question
+  theme
+
+  @@map("auditEntityTypeDbEnum")
+}
+
+model AuditActivity {
+  id          Int                       @id @default(autoincrement())
+  eventGroup  AuditEventGroupDbEnum     @map("event_group")
+  eventType   AuditEventTypeDbEnum      @map("event_type")
+  status      AuditActivityStatusDbEnum
+  actorId     Int?                      @map("actor_id")
+  description String?
+  data        Json?
+  createdAt   DateTime                  @default(now()) @map("created_at")
+  actor       User?                     @relation(fields: [actorId], references: [id])
+  entities    AuditActivityHasEntity[]
+
+  @@index([eventGroup, eventType])
+  @@index([actorId])
+  @@index([createdAt])
+  @@index([status])
+  @@map("audit_activity")
+}
+
+model AuditActivityHasEntity {
+  id             Int                   @id @default(autoincrement())
+  auditId        Int                   @map("audit_id")
+  entityType     AuditEntityTypeDbEnum @map("entity_type")
+  entityId       Int                   @map("entity_id")
+  message        String?
+  isSourceEntity Boolean               @default(false) @map("is_source_entity")
+  createdAt      DateTime              @default(now()) @map("created_at")
+  audit          AuditActivity         @relation(fields: [auditId], references: [id])
+
+  @@index([auditId])
+  @@index([entityType, entityId])
+  @@map("audit_activity_has_entity")
+}
+
+model Media {
+  id           Int             @id @default(autoincrement())
+  key          String
+  thumbnailKey String?         @map("thumbnail_key")
+  type         MediaTypeDbEnum
+  name         String
+  size         Int
+  ext          String
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
+
+  chapters       Chapter[]
+  topics         Topic[]
+  questions      Question[]
+  slideHasMedias SlideHasMedia[]
+
+  @@map("media")
+}
+
+model User {
+  id                  Int                  @id @default(autoincrement())
+  email               String               @unique
+  firstname           String
+  lastname            String
+  role                UserRoleDbEnum       @default(user)
+  plan                PlanEnum             @default(free)
+  password            String
+  isActive            Boolean              @default(true) @map("is_active")
+  lastLoggedInAt      DateTime?            @map("last_logged_in_at")
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  userPlanHistory     UserPlanHistory[]
+  auditActivities     AuditActivity[]
+  userForgotPasswords UserForgotPassword[]
+  userVerifyEmails    UserVerifyEmail[]
+
+  @@map("users")
+}
+
+model UserForgotPassword {
+  id                         Int       @id @default(autoincrement())
+  userId                     Int       @map("user_id")
+  forgotPasswordKey          String?   @map("forgot_password_key")
+  forgotPasswordKeyCreatedAt DateTime  @default(now()) @map("forgot_password_key_created_at")
+  resetAt                    DateTime? @map("reset_at")
+  user                       User      @relation(fields: [userId], references: [id])
+
+  @@map("user_forgot_password")
+}
+
+model UserVerifyEmail {
+  id                      Int       @id @default(autoincrement())
+  userId                  Int       @map("user_id")
+  verifyEmailKey          String?   @map("verify_email_key")
+  verifyEmailKeyCreatedAt DateTime  @default(now()) @map("verify_email_key_created_at")
+  verifiedAt              DateTime? @map("verified_at")
+  user                    User      @relation(fields: [userId], references: [id])
+
+  @@map("user_verify_email")
+}
+
+// model Plan {
+//   id              Int               @id @default(autoincrement())
+//   name            String            @unique
+//   description     String?
+//   price           Decimal // TODO: remove this column
+//   createdAt       DateTime          @default(now()) @map("created_at")
+//   updatedAt       DateTime          @updatedAt @map("updated_at")
+//   userPlanHistory UserPlanHistory[]
+
+//   @@map("plan")
+// }
+
+// TODO: remove this table, create user plan history table
+model UserPlanHistory {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+  plan      PlanEnum @map("plan")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("user_plan_history")
+}
+
+model Theme {
+  id                 Int                 @id @default(autoincrement())
+  title              String
+  description        String?
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  slideHasThemes     SlideHasTheme[]
+  flashcardHasThemes FlashcardHasTheme[]
+  questionHasThemes  QuestionHasTheme[]
+
+  @@map("theme")
+}
+
+model Chapter {
+  id            Int         @id @default(autoincrement())
+  title         String
+  mediaId       Int?
+  media         Media?      @relation(fields: [mediaId], references: [id])
+  description   String?
+  summaryPoints String[]
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+  topics        Topic[]
+  flashcards    Flashcard[]
+  slides        Slide[]
+  questions     Question[]
+
+  @@map("chapter")
+}
+
+model Topic {
+  id         Int         @id @default(autoincrement())
+  title      String
+  mediaId    Int?        @map("media_id")
+  media      Media?      @relation(fields: [mediaId], references: [id])
+  chapterId  Int         @map("chapter_id")
+  chapter    Chapter     @relation(fields: [chapterId], references: [id])
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+  slides     Slide[]
+  questions  Question[]
+  flashcards Flashcard[]
+
+  @@map("topic")
+}
+
+model Slide {
+  id             Int             @id @default(autoincrement())
+  content        Json
+  topicId        Int             @map("topic_id")
+  topic          Topic           @relation(fields: [topicId], references: [id])
+  chapterId      Int             @map("chapter_id")
+  chapter        Chapter         @relation(fields: [chapterId], references: [id])
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  slideHasThemes SlideHasTheme[]
+  slideHasMedias SlideHasMedia[]
+
+  @@map("slide")
+}
+
+model SlideHasMedia {
+  id        Int      @id @default(autoincrement())
+  slideId   Int      @map("slide_id")
+  slide     Slide    @relation(fields: [slideId], references: [id])
+  mediaId   Int      @map("media_id")
+  media     Media    @relation(fields: [mediaId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("slide_has_media")
+}
+
+model SlideHasTheme {
+  id        Int      @id @default(autoincrement())
+  slideId   Int      @map("slide_id")
+  slide     Slide    @relation(fields: [slideId], references: [id])
+  themeId   Int      @map("theme_id")
+  theme     Theme    @relation(fields: [themeId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("slide_has_theme")
+}
+
+model Flashcard {
+  id                 Int                 @id @default(autoincrement())
+  contentFront       String
+  contentBack        String
+  topicId            Int                 @map("topic_id")
+  topic              Topic               @relation(fields: [topicId], references: [id])
+  chapterId          Int                 @map("chapter_id")
+  chapter            Chapter             @relation(fields: [chapterId], references: [id])
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  flashcardHasThemes FlashcardHasTheme[]
+
+  @@map("flashcard")
+}
+
+model FlashcardHasTheme {
+  id          Int       @id @default(autoincrement())
+  flashcardId Int       @map("flashcard_id")
+  flashcard   Flashcard @relation(fields: [flashcardId], references: [id])
+  themeId     Int       @map("theme_id")
+  theme       Theme     @relation(fields: [themeId], references: [id])
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("flashcard_has_theme")
+}
+
+model Question {
+  id                Int                @id @default(autoincrement())
+  question          String
+  type              QuestionTypeEnum
+  answerOptions     Json               @map("answer_options") // { options: [{ key: string, value: string }] }
+  correctAnswerKeys String[]           @map("correct_answer_keys")
+  explanation       String
+  mediaId           Int?               @map("media_id")
+  media             Media?             @relation(fields: [mediaId], references: [id])
+  topicId           Int                @map("topic_id")
+  topic             Topic              @relation(fields: [topicId], references: [id])
+  chapterId         Int                @map("chapter_id")
+  chapter           Chapter            @relation(fields: [chapterId], references: [id])
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  questionHasThemes QuestionHasTheme[]
+
+  @@map("question")
+}
+
+model QuestionHasTheme {
+  id         Int      @id @default(autoincrement())
+  questionId Int      @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id])
+  themeId    Int      @map("theme_id")
+  theme      Theme    @relation(fields: [themeId], references: [id])
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("question_has_theme")
+}
+
+// ENUMS
+
+enum UserRoleDbEnum {
+  admin
+  user
+
+  @@map("userRoleDbEnum")
+}
+
+enum QuestionTypeEnum {
+  mcq
+  trueOrFalse
+}
+
+enum PlanEnum {
+  free
+  premium
+}
+
+enum MediaTypeDbEnum {
+  doc
+  image
+  zip
+  video
+
+  @@map("mediaTypeDbEnum")
+}
+
+enum AuditEventGroupDbEnum {
+  authentication
+  operation
+
+  @@map("auditEventGroupDbEnum")
+}
+
+enum AuditEventTypeDbEnum {
+  login_success
+  login_failure
+  create
+  update
+  delete
+  password_reset
+  password_reset_request
+  otp_request
+  register
+  email_verify
+  account_activate
+  confirm
+  upgrade_plan
+  downgrade_plan
+  block_user
+  unblock_user
+
+  @@map("auditEventTypeDbEnum")
+}
+
+enum AuditActivityStatusDbEnum {
+  success
+  failure
+
+  @@map("auditActivityStatusDbEnum")
+}

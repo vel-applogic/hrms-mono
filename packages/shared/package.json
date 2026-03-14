@@ -1,0 +1,30 @@
+{
+  "name": "@repo/shared",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.cjs",
+      "types": "./dist/index.d.cts"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsup --watch",
+    "dev:debug": "tsup --watch"
+  },
+  "dependencies": {
+    "@repo/dto": "workspace:*",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@repo/config-typescript": "workspace:*",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  }
+}

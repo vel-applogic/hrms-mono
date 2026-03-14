@@ -1,0 +1,45 @@
+{
+  "name": "hrms",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.30.3",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "dotenv -e .env -- turbo build",
+    "dev": "dotenv -e .env -- turbo dev",
+    "dev:debug": "dotenv -e .env -- turbo dev:debug",
+    "dev:api-backend": "dotenv -e .env -- turbo run dev --filter=api-backend",
+    "dev:web-app": "dotenv -e .env -- turbo run dev --filter=web-app",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "db:client-generate": "turbo db:client-generate",
+    "db:migrations-create": "turbo db:migrations-create",
+    "db:migrations-apply": "turbo db:migrations-apply",
+    "test:unit": "turbo test:unit"
+  },
+  "pnpm": {
+    "overrides": {
+      "pino": "10.3.1"
+    },
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@prisma/client",
+      "@prisma/engines",
+      "bcrypt",
+      "esbuild",
+      "prisma",
+      "sharp"
+    ]
+  },
+  "devDependencies": {
+    "@repo/config-typescript": "workspace:*",
+    "dotenv-cli": "^11.0.0",
+    "eslint": "^9.39.2",
+    "prettier": "^3.8.1",
+    "syncpack": "^13.0.4",
+    "turbo": "^2.8.12",
+    "typescript": "^5.9.3"
+  }
+}

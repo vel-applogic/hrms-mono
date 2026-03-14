@@ -1,0 +1,115 @@
+@import 'tailwindcss';
+
+@source "../src/**/*.{js,ts,jsx,tsx}";
+
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: #0A1624;
+  --color-foreground: #FFFFFF;
+  --color-card: #141F2D;
+  --color-card-foreground: #FFFFFF;
+  --color-popover: #141F2D;
+  --color-popover-foreground: #FFFFFF;
+  --color-primary: #226DD8;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #141F2D;
+  --color-secondary-foreground: #CED0D3;
+  --color-muted: #141F2D;
+  --color-muted-foreground: #848A91;
+  --color-accent: #141F2D;
+  --color-accent-foreground: #CED0D3;
+  --color-destructive: #F3444D;
+  --color-destructive-foreground: #FFFFFF;
+  --color-border: #2B333B;
+  --color-input: #2B333B;
+  --color-ring: #226DD8;
+  --color-success: #67CE67;
+  --color-warning: #FFC527;
+  --color-online: #55FDD9;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+@utility center-container {
+  @apply mx-auto w-full max-w-[2200px] px-4 md:px-11;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ag-grid dark theme overrides */
+.ag-theme-quartz {
+  --ag-font-family: 'DM Sans', sans-serif;
+  --ag-header-background-color: #141F2D;
+  --ag-border-color: #2B333B;
+  --ag-header-text-color: #848A91;
+  --ag-foreground-color: #FFFFFF;
+  --ag-background-color: #0A1624;
+  --ag-wrapper-border-radius: 0;
+
+  .ag-root-wrapper {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .ag-cell-auto-height {
+    --reduceLineHeightBy: 18px;
+    line-height: calc(var(--ag-internal-calculated-line-height) - var(--reduceLineHeightBy));
+    padding-top: calc(var(--reduceLineHeightBy) / 2);
+    padding-bottom: calc(var(--reduceLineHeightBy) / 2);
+  }
+
+  .ag-row .ag-cell {
+    display: flex;
+    align-items: center;
+  }
+
+  .ag-horizontal-right-spacer,
+  .ag-horizontal-left-spacer {
+    overflow: hidden !important;
+    background-color: transparent !important;
+  }
+
+  .ag-horizontal-right-spacer *,
+  .ag-horizontal-left-spacer * {
+    background-color: transparent !important;
+  }
+
+  /* Dark scrollbar styling */
+  .ag-body-horizontal-scroll-viewport,
+  .ag-horizontal-right-spacer,
+  .ag-horizontal-left-spacer {
+    border-top: 1px solid #2B333B;
+  }
+
+  .ag-body-horizontal-scroll-viewport,
+  .ag-body-vertical-scroll-viewport {
+    &::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    &::-webkit-scrollbar-track {
+      background: #0A1624;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: #2B333B;
+      border-radius: 5px;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      background: #3B454F;
+    }
+  }
+}

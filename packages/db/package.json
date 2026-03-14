@@ -1,0 +1,33 @@
+{
+  "name": "@repo/db",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/src/index.js",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./dist/src/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "db:client-generate": "prisma generate",
+    "db:migrations-create": "dotenvx run -f ../../.env -- prisma migrate dev --create-only",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dotenvx/dotenvx": "^1.52.0",
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0",
+    "dotenv": "^17.2.3",
+    "pg": "^8.18.0"
+  },
+  "devDependencies": {
+    "@repo/config-typescript": "workspace:*",
+    "@types/pg": "^8.16.0",
+    "prisma": "^7.3.0",
+    "typescript": "^5.9.3"
+  }
+}

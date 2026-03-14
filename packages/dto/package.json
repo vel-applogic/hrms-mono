@@ -1,0 +1,30 @@
+{
+  "name": "@repo/dto",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.cjs",
+      "types": "./dist/index.d.cts"
+    }
+  },
+  "scripts": {
+    "dev": "pnpm build --watch",
+    "dev:debug": "pnpm build --watch",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "date-fns": "^4.1.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@repo/config-typescript": "workspace:*",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  }
+}
