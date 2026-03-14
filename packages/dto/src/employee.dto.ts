@@ -31,8 +31,9 @@ export const EmployeeUpdateRequestSchema = EmployeeBaseFieldsSchema.extend({
 export type EmployeeUpdateRequestType = z.infer<typeof EmployeeUpdateRequestSchema>;
 
 export const EmployeeUpdateDocumentsRequestSchema = z.object({
-  photo: MediaUpsertSchema.optional(),
-  documents: z.array(MediaUpsertSchema.extend({ caption: z.string().optional() })).optional(),
+  resume: MediaUpsertSchema.optional(),
+  offerLetters: z.array(MediaUpsertSchema).optional(),
+  otherDocuments: z.array(MediaUpsertSchema).optional(),
 });
 export type EmployeeUpdateDocumentsRequestType = z.infer<typeof EmployeeUpdateDocumentsRequestSchema>;
 
@@ -66,7 +67,9 @@ export const EmployeeDetailResponseSchema = EmployeeListResponseSchema.extend({
     .optional()
     .nullable(),
   photo: MediaResponseSchema.optional(),
-  documents: z.array(MediaResponseSchema.extend({ caption: z.string().optional().nullable() })).optional(),
+  resume: MediaResponseSchema.optional(),
+  offerLetters: z.array(MediaResponseSchema).optional(),
+  otherDocuments: z.array(MediaResponseSchema).optional(),
 });
 export type EmployeeDetailResponseType = z.infer<typeof EmployeeDetailResponseSchema>;
 

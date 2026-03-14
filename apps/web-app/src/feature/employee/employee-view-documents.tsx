@@ -71,24 +71,36 @@ export function EmployeeViewDocuments({ employeeId }: Props) {
 
       <div className='flex flex-col gap-6'>
         <div className='flex flex-col gap-2'>
-          <Label className='text-muted-foreground'>Photo</Label>
+          <Label className='text-muted-foreground'>Resume</Label>
           <div className='grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3'>
-            {employee.photo ? (
-              <DocumentItem doc={{ id: employee.photo.id, name: employee.photo.name, urlFull: employee.photo.urlFull }} />
+            {employee.resume ? (
+              <DocumentItem doc={{ id: employee.resume.id, name: employee.resume.name, urlFull: employee.resume.urlFull }} />
             ) : (
-              <p className='col-span-full rounded-md border border-dashed border-border px-3 py-4 text-center text-sm text-muted-foreground'>No photo</p>
+              <p className='col-span-full rounded-md border border-dashed border-border px-3 py-4 text-center text-sm text-muted-foreground'>No resume</p>
             )}
           </div>
         </div>
         <div className='flex flex-col gap-2'>
-          <Label className='text-muted-foreground'>Documents</Label>
+          <Label className='text-muted-foreground'>Offer letters</Label>
           <div className='grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3'>
-            {(employee.documents ?? []).length > 0 ? (
-              (employee.documents ?? []).map((doc) => (
+            {(employee.offerLetters ?? []).length > 0 ? (
+              (employee.offerLetters ?? []).map((doc) => (
                 <DocumentItem key={doc.id} doc={{ id: doc.id, name: doc.name, urlFull: doc.urlFull }} />
               ))
             ) : (
-              <p className='col-span-full rounded-md border border-dashed border-border px-3 py-4 text-center text-sm text-muted-foreground'>No documents</p>
+              <p className='col-span-full rounded-md border border-dashed border-border px-3 py-4 text-center text-sm text-muted-foreground'>No offer letters</p>
+            )}
+          </div>
+        </div>
+        <div className='flex flex-col gap-2'>
+          <Label className='text-muted-foreground'>Other documents</Label>
+          <div className='grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3'>
+            {(employee.otherDocuments ?? []).length > 0 ? (
+              (employee.otherDocuments ?? []).map((doc) => (
+                <DocumentItem key={doc.id} doc={{ id: doc.id, name: doc.name, urlFull: doc.urlFull }} />
+              ))
+            ) : (
+              <p className='col-span-full rounded-md border border-dashed border-border px-3 py-4 text-center text-sm text-muted-foreground'>No other documents</p>
             )}
           </div>
         </div>

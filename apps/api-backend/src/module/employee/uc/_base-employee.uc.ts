@@ -37,10 +37,14 @@ export class BaseEmployeeUc extends BaseUc {
 
     const medias = await this.userEmployeeHasMediaDao.findByUserId({ userId });
     const photoRecord = medias.find((m) => m.type === EmployeeMediaType.photo);
-    const documentRecords = medias.filter((m) => m.type === EmployeeMediaType.document);
+    const resumeRecord = medias.find((m) => m.type === EmployeeMediaType.resume);
+    const offerLetterRecords = medias.filter((m) => m.type === EmployeeMediaType.offerLetter);
+    const otherDocumentsRecords = medias.filter((m) => m.type === EmployeeMediaType.otherDocuments);
 
     const photo = photoRecord ? await this.mapMediaRecord(photoRecord.media) : undefined;
-    const documents = await Promise.all(documentRecords.map((r) => this.mapMediaRecord(r.media).then((m) => ({ ...m, caption: r.caption ?? undefined }))));
+    const resume = resumeRecord ? await this.mapMediaRecord(resumeRecord.media) : undefined;
+    const offerLetters = await Promise.all(offerLetterRecords.map((r) => this.mapMediaRecord(r.media)));
+    const otherDocuments = await Promise.all(otherDocumentsRecords.map((r) => this.mapMediaRecord(r.media)));
 
     return {
       id: employee.userId,
@@ -67,7 +71,9 @@ export class BaseEmployeeUc extends BaseUc {
       createdAt: employee.createdAt.toISOString(),
       updatedAt: employee.updatedAt.toISOString(),
       photo,
-      documents: documents.length > 0 ? documents : undefined,
+      resume: resume ?? undefined,
+      offerLetters: offerLetters.length > 0 ? offerLetters : undefined,
+      otherDocuments: otherDocuments.length > 0 ? otherDocuments : undefined,
     };
   }
 

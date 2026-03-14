@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { FileUpload } from '@/container/s3-file-upload/s3-file-upload';
+import { ImageUpload } from '@/container/s3-file-upload/s3-file-upload';
 import { createEmployee, updateEmployee } from '@/lib/action/employee.actions';
 
 const CreateFormSchema = EmployeeCreateRequestSchema;
@@ -253,7 +253,7 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
 
         <div className='flex flex-col gap-2'>
           <Label>Photo</Label>
-          <FileUpload
+          <ImageUpload
             isMultiple={false}
             media={photoValue ? [photoValue] : []}
             onUploaded={(val) => form.setValue('photo', val)}

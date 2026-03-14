@@ -175,7 +175,9 @@ model UserEmployeeDetail {
 
 enum EmployeeMediaType {
   photo
-  document
+  resume
+  offerLetter
+  otherDocuments
 
   @@map("employeeMediaType")
 }

@@ -108,7 +108,9 @@ export enum EmployeeStatusDtoEnum {
 
 export enum EmployeeMediaTypeDtoEnum {
   photo = 'photo',
-  document = 'document',
+  resume = 'resume',
+  offerLetter = 'offerLetter',
+  otherDocuments = 'otherDocuments',
 }
 
 export enum EmployeeFeedbackTrendDtoEnum {

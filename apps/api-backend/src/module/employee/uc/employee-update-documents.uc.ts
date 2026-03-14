@@ -44,49 +44,54 @@ export class EmployeeUpdateDocumentsUc extends BaseEmployeeUc implements IUseCas
     await this.getByIdOrThrow(params.id);
 
     await this.transaction(async (tx) => {
-      if (params.dto.photo !== undefined) {
+      if (params.dto.resume !== undefined) {
         await this.userEmployeeHasMediaDao.deleteManyByUserIdAndType({
           userId: params.id,
-          type: EmployeeMediaType.photo,
+          type: EmployeeMediaType.resume,
           tx,
         });
-        if (params.dto.photo) {
-          if (params.dto.photo.key?.startsWith('temp/')) {
-            await this.createAndLinkMedia({ media: params.dto.photo, userId: params.id, type: EmployeeMediaType.photo, tx });
-          } else if (params.dto.photo.id) {
+        if (params.dto.resume) {
+          if (params.dto.resume.key?.startsWith('temp/')) {
+            await this.createAndLinkMedia({ media: params.dto.resume, userId: params.id, type: EmployeeMediaType.resume, tx });
+          } else if (params.dto.resume.id) {
             await this.userEmployeeHasMediaDao.create({
-              data: { userId: params.id, mediaId: params.dto.photo.id, type: EmployeeMediaType.photo },
+              data: { userId: params.id, mediaId: params.dto.resume.id, type: EmployeeMediaType.resume },
               tx,
             });
           }
         }
       }
 
-      if (params.dto.documents !== undefined) {
+      if (params.dto.offerLetters !== undefined) {
         await this.userEmployeeHasMediaDao.deleteManyByUserIdAndType({
           userId: params.id,
-          type: EmployeeMediaType.document,
+          type: EmployeeMediaType.offerLetter,
           tx,
         });
-        for (const doc of params.dto.documents) {
-          const media = { key: doc.key, name: doc.name, type: doc.type, id: doc.id };
-          const caption = 'caption' in doc ? doc.caption : undefined;
+        for (const media of params.dto.offerLetters) {
           if (media.key?.startsWith('temp/')) {
-            await this.createAndLinkMedia({
-              media,
-              userId: params.id,
-              type: EmployeeMediaType.document,
-              caption,
-              tx,
-            });
+            await this.createAndLinkMedia({ media, userId: params.id, type: EmployeeMediaType.offerLetter, tx });
           } else if (media.id) {
             await this.userEmployeeHasMediaDao.create({
-              data: {
-                userId: params.id,
-                mediaId: media.id,
-                type: EmployeeMediaType.document,
-                caption,
-              },
+              data: { userId: params.id, mediaId: media.id, type: EmployeeMediaType.offerLetter },
+              tx,
+            });
+          }
+        }
+      }
+
+      if (params.dto.otherDocuments !== undefined) {
+        await this.userEmployeeHasMediaDao.deleteManyByUserIdAndType({
+          userId: params.id,
+          type: EmployeeMediaType.otherDocuments,
+          tx,
+        });
+        for (const media of params.dto.otherDocuments) {
+          if (media.key?.startsWith('temp/')) {
+            await this.createAndLinkMedia({ media, userId: params.id, type: EmployeeMediaType.otherDocuments, tx });
+          } else if (media.id) {
+            await this.userEmployeeHasMediaDao.create({
+              data: { userId: params.id, mediaId: media.id, type: EmployeeMediaType.otherDocuments },
               tx,
             });
           }
@@ -101,7 +106,6 @@ export class EmployeeUpdateDocumentsUc extends BaseEmployeeUc implements IUseCas
     media: MediaUpsertType;
     userId: number;
     type: EmployeeMediaType;
-    caption?: string;
     tx: Prisma.TransactionClient;
   }): Promise<void> {
     const file = await this.mediaService.moveTempFileAndGetKey({
@@ -118,7 +122,7 @@ export class EmployeeUpdateDocumentsUc extends BaseEmployeeUc implements IUseCas
     });
 
     await this.userEmployeeHasMediaDao.create({
-      data: { userId: params.userId, mediaId, type: params.type, caption: params.caption },
+      data: { userId: params.userId, mediaId, type: params.type },
       tx: params.tx,
     });
   }

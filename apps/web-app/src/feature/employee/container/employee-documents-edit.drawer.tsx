@@ -1,6 +1,7 @@
 'use client';
 
 import type { EmployeeDetailResponseType, EmployeeUpdateDocumentsRequestType } from '@repo/dto';
+import { MediaTypeDtoEnum } from '@repo/dto';
 import { Button } from '@repo/ui/component/ui/button';
 import { Label } from '@repo/ui/component/ui/label';
 import { Drawer } from '@repo/ui/container/drawer/drawer';
@@ -17,30 +18,33 @@ interface Props {
 }
 
 function toUpsertMedia(doc: { id: number; key: string; name: string; type: string }) {
-  return { key: doc.key, name: doc.name, type: doc.type as 'image' | 'file', id: doc.id };
+  return { key: doc.key, name: doc.name, type: doc.type as MediaTypeDtoEnum, id: doc.id };
 }
 
 export function EmployeeDocumentsEditDrawer({ open, onOpenChange, employee, onSuccess }: Props) {
-  const [photo, setPhoto] = useState<{ key: string; name: string; type: string; id?: number } | undefined>();
-  const [documents, setDocuments] = useState<Array<{ key: string; name: string; type: string; id?: number }>>([]);
+  const [resume, setResume] = useState<{ key: string; name: string; type: MediaTypeDtoEnum; id?: number } | undefined>();
+  const [offerLetters, setOfferLetters] = useState<Array<{ key: string; name: string; type: MediaTypeDtoEnum; id?: number }>>([]);
+  const [otherDocuments, setOtherDocuments] = useState<Array<{ key: string; name: string; type: MediaTypeDtoEnum; id?: number }>>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (open) {
-      setPhoto(employee.photo ? toUpsertMedia(employee.photo) : undefined);
-      setDocuments((employee.documents ?? []).map(toUpsertMedia));
+      setResume(employee.resume ? toUpsertMedia(employee.resume) : undefined);
+      setOfferLetters((employee.offerLetters ?? []).map(toUpsertMedia));
+      setOtherDocuments((employee.otherDocuments ?? []).map(toUpsertMedia));
       setError('');
     }
-  }, [open, employee.photo, employee.documents]);
+  }, [open, employee.resume, employee.offerLetters, employee.otherDocuments]);
 
   const handleSubmit = async () => {
     setLoading(true);
     setError('');
     try {
       const payload: EmployeeUpdateDocumentsRequestType = {
-        photo: photo ? { key: photo.key, name: photo.name, type: photo.type as 'image' | 'file', id: photo.id } : undefined,
-        documents: documents.map((m) => ({ key: m.key, name: m.name, type: m.type as 'image' | 'file', id: m.id })),
+        resume: resume ? { key: resume.key, name: resume.name, type: resume.type, id: resume.id } : undefined,
+        offerLetters: offerLetters.map((m) => ({ key: m.key, name: m.name, type: m.type, id: m.id })),
+        otherDocuments: otherDocuments.map((m) => ({ key: m.key, name: m.name, type: m.type, id: m.id })),
       };
       await updateEmployeeDocuments(employee.id, payload);
       onSuccess();
@@ -54,8 +58,9 @@ export function EmployeeDocumentsEditDrawer({ open, onOpenChange, employee, onSu
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
-      setPhoto(employee.photo ? toUpsertMedia(employee.photo) : undefined);
-      setDocuments((employee.documents ?? []).map(toUpsertMedia));
+      setResume(employee.resume ? toUpsertMedia(employee.resume) : undefined);
+      setOfferLetters((employee.offerLetters ?? []).map(toUpsertMedia));
+      setOtherDocuments((employee.otherDocuments ?? []).map(toUpsertMedia));
       setError('');
     }
     onOpenChange(next);
@@ -80,24 +85,36 @@ export function EmployeeDocumentsEditDrawer({ open, onOpenChange, employee, onSu
     >
       <div className='flex flex-col gap-6 p-6'>
         <div className='flex flex-col gap-2'>
-          <Label>Photo</Label>
+          <Label>Resume</Label>
           <FileUpload
             isMultiple={false}
-            media={photo ? [photo] : []}
-            onUploaded={(val) => setPhoto(val)}
-            onRemove={() => setPhoto(undefined)}
+            media={resume ? [resume] : []}
+            onUploaded={(val) => setResume(val)}
+            onRemove={() => setResume(undefined)}
             onError={(err) => err && setError(err)}
             variant='dark'
             previewFirst
           />
         </div>
         <div className='flex flex-col gap-2'>
-          <Label>Documents</Label>
+          <Label>Offer letters</Label>
           <FileUpload
             isMultiple={true}
-            media={documents}
-            onUploaded={(val) => setDocuments((prev) => [...prev, val])}
-            onRemove={(index) => setDocuments((prev) => prev.filter((_, i) => i !== index))}
+            media={offerLetters}
+            onUploaded={(val) => setOfferLetters((prev) => [...prev, val])}
+            onRemove={(index) => setOfferLetters((prev) => prev.filter((_, i) => i !== index))}
+            onError={(err) => err && setError(err)}
+            variant='dark'
+            previewFirst
+          />
+        </div>
+        <div className='flex flex-col gap-2'>
+          <Label>Other documents</Label>
+          <FileUpload
+            isMultiple={true}
+            media={otherDocuments}
+            onUploaded={(val) => setOtherDocuments((prev) => [...prev, val])}
+            onRemove={(index) => setOtherDocuments((prev) => prev.filter((_, i) => i !== index))}
             onError={(err) => err && setError(err)}
             variant='dark'
             previewFirst
