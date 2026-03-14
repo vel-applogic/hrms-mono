@@ -24,13 +24,20 @@ export const CandidateBaseFieldsSchema = z.object({
 
 export const CandidateCreateRequestSchema = CandidateBaseFieldsSchema.extend({
   resume: MediaUpsertSchema.optional(),
-  offerLetters: z.array(MediaUpsertSchema).optional(),
-  otherDocuments: z.array(MediaUpsertSchema).optional(),
 });
 export type CandidateCreateRequestType = z.infer<typeof CandidateCreateRequestSchema>;
 
-export const CandidateUpdateRequestSchema = CandidateCreateRequestSchema.extend({});
+export const CandidateUpdateRequestSchema = CandidateBaseFieldsSchema.extend({
+  resume: MediaUpsertSchema.optional(),
+});
 export type CandidateUpdateRequestType = z.infer<typeof CandidateUpdateRequestSchema>;
+
+export const CandidateUpdateDocumentsRequestSchema = z.object({
+  resume: MediaUpsertSchema.optional(),
+  offerLetters: z.array(MediaUpsertSchema).optional(),
+  otherDocuments: z.array(MediaUpsertSchema).optional(),
+});
+export type CandidateUpdateDocumentsRequestType = z.infer<typeof CandidateUpdateDocumentsRequestSchema>;
 
 export const CandidateMediaResponseSchema = MediaResponseSchema.extend({
   candidateMediaType: z.nativeEnum(CandidateMediaTypeDtoEnum),

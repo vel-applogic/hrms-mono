@@ -4,6 +4,7 @@ import type {
   CandidateCreateRequestType,
   CandidateDetailResponseType,
   CandidateListResponseType,
+  CandidateUpdateDocumentsRequestType,
   CandidateUpdateProgressRequestType,
   CandidateUpdateRequestType,
   CandidateUpdateStatusRequestType,
@@ -22,6 +23,7 @@ export async function createCandidate(data: CandidateCreateRequestType): Promise
 export async function updateCandidate(id: number, data: CandidateUpdateRequestType): Promise<OperationStatusResponseType> {
   const result = await candidateService.update(id, data);
   revalidatePath('/candidate');
+  revalidatePath(`/candidate/${id}/basic`);
   return result;
 }
 
@@ -31,6 +33,16 @@ export async function updateCandidateStatus(
 ): Promise<OperationStatusResponseType> {
   const result = await candidateService.updateStatus(id, status);
   revalidatePath('/candidate');
+  return result;
+}
+
+export async function updateCandidateDocuments(
+  id: number,
+  data: CandidateUpdateDocumentsRequestType,
+): Promise<OperationStatusResponseType> {
+  const result = await candidateService.updateDocuments(id, data);
+  revalidatePath('/candidate');
+  revalidatePath(`/candidate/${id}/documents`);
   return result;
 }
 

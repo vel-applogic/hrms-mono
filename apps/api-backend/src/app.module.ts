@@ -11,6 +11,7 @@ import { AdminUserModule } from './module/admin-user/admin-user.module.js';
 import { AppStatusModule } from './module/app-status/app-status.module.js';
 import { AuthModule } from './module/auth/auth.module.js';
 import { CandidateModule } from './module/candidate/candidate.module.js';
+import { CandidateFeedbackModule } from './module/candidate-feedback/candidate-feedback.module.js';
 import { MediaModule } from './module/media/media.module.js';
 import { SeederModule } from './module/seeder/seeder.module.js';
 import { PolicyModule } from './module/policy/policy.module.js';
@@ -27,6 +28,7 @@ import { ServiceModule } from './service/service.module.js';
     AccountModule,
     AdminUserModule,
     CandidateModule,
+    CandidateFeedbackModule,
     PolicyModule,
     SeederModule,
     ExternalServiceModule,

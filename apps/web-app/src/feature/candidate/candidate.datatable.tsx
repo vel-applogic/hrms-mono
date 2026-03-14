@@ -18,7 +18,8 @@ import {
 } from '@repo/ui/container/datatable/datatable-cell-renderer';
 import { isSortable } from '@repo/ui/lib/utils';
 import { ColDef } from 'ag-grid-community';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 
 import { updateCandidateProgress, updateCandidateStatus } from '@/lib/action/candidate.actions';
@@ -32,6 +33,7 @@ interface Props {
 }
 
 const actionOptions: ActionOption[] = [
+  { name: 'View', icon: Eye, variant: 'outline' },
   { name: 'Edit', icon: Pencil, variant: 'outline' },
   { name: 'Delete', icon: Trash2, variant: 'outline-danger' },
 ];
@@ -60,6 +62,8 @@ const statusOptions = Object.values(CandidateStatusDtoEnum).map((v) => ({ value:
 const progressOptions = Object.values(CandidateProgressDtoEnum).map((v) => ({ value: v, label: v }));
 
 export const CandidateDataTableClient = (props: Props) => {
+  const router = useRouter();
+
   const onSaveStatus = useCallback(
     async (id: number, status: string) => {
       const r = await updateCandidateStatus(id, status as CandidateStatusDtoEnum);
@@ -200,6 +204,9 @@ export const CandidateDataTableClient = (props: Props) => {
   const onActionClick = useCallback(
     async (action: string, data: CandidateListResponseType) => {
       switch (action) {
+        case 'View':
+          router.push(`/candidate/${data.id}/basic`);
+          break;
         case 'Edit':
           props.onEdit(data);
           break;
@@ -208,7 +215,7 @@ export const CandidateDataTableClient = (props: Props) => {
           break;
       }
     },
-    [props],
+    [props, router],
   );
 
   return (

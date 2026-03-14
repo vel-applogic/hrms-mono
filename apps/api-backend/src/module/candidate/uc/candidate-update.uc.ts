@@ -68,24 +68,11 @@ export class CandidateUpdateUc extends BaseCandidateUc implements IUseCase<Param
         tx,
       });
 
-      // Resume: replace if new temp file provided
-      if (params.dto.resume?.key?.startsWith('temp/')) {
+      if (params.dto.resume === undefined) {
+        await this.candidateHasMediaDao.deleteManyByCandidateIdAndType({ candidateId: params.id, type: CandidateMediaType.resume, tx });
+      } else if (params.dto.resume.key?.startsWith('temp/')) {
         await this.candidateHasMediaDao.deleteManyByCandidateIdAndType({ candidateId: params.id, type: CandidateMediaType.resume, tx });
         await this.createAndLinkMedia({ media: params.dto.resume, candidateId: params.id, type: CandidateMediaType.resume, tx });
-      }
-
-      // Offer letters: append new temp files
-      for (const offerLetter of params.dto.offerLetters ?? []) {
-        if (offerLetter.key?.startsWith('temp/')) {
-          await this.createAndLinkMedia({ media: offerLetter, candidateId: params.id, type: CandidateMediaType.offerLetter, tx });
-        }
-      }
-
-      // Other documents: append new temp files
-      for (const doc of params.dto.otherDocuments ?? []) {
-        if (doc.key?.startsWith('temp/')) {
-          await this.createAndLinkMedia({ media: doc, candidateId: params.id, type: CandidateMediaType.otherDocuments, tx });
-        }
       }
     });
 

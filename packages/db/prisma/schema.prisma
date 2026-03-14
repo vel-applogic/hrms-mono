@@ -76,21 +76,23 @@ model Media {
 }
 
 model User {
-  id                  Int                  @id @default(autoincrement())
-  email               String               @unique
-  firstname           String
-  lastname            String
-  role                UserRoleDbEnum       @default(user)
-  plan                PlanEnum             @default(free)
-  password            String
-  isActive            Boolean              @default(true) @map("is_active")
-  lastLoggedInAt      DateTime?            @map("last_logged_in_at")
-  createdAt           DateTime             @default(now()) @map("created_at")
-  updatedAt           DateTime             @updatedAt @map("updated_at")
-  userPlanHistory     UserPlanHistory[]
-  auditActivities     AuditActivity[]
-  userForgotPasswords UserForgotPassword[]
-  userVerifyEmails    UserVerifyEmail[]
+  id             Int            @id @default(autoincrement())
+  email          String         @unique
+  firstname      String
+  lastname       String
+  role           UserRoleDbEnum @default(user)
+  plan           PlanEnum       @default(free)
+  password       String
+  isActive       Boolean        @default(true) @map("is_active")
+  lastLoggedInAt DateTime?      @map("last_logged_in_at")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  userPlanHistory       UserPlanHistory[]
+  auditActivities       AuditActivity[]
+  userForgotPasswords   UserForgotPassword[]
+  userVerifyEmails      UserVerifyEmail[]
+  candidateHasFeedbacks CandidateHasFeedback[]
 
   @@map("users")
 }
@@ -216,12 +218,17 @@ model Candidate {
 }
 
 model CandidateHasFeedback {
-  id          Int       @id @default(autoincrement())
-  candidateId Int       @map("candidate_id")
-  feedback    String
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  id           Int       @id @default(autoincrement())
+  candidateId  Int       @map("candidate_id")
+  createdById  Int       @map("created_by_id")
+  feedback     String
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  candidate    Candidate @relation(fields: [candidateId], references: [id])
+  createdBy    User      @relation(fields: [createdById], references: [id])
+
+  @@index([candidateId])
+  @@map("candidate_has_feedback")
 }
 
 // POLICIES

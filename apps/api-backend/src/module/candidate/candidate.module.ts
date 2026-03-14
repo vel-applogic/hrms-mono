@@ -9,6 +9,7 @@ import { CandidateDeleteUc } from './uc/candidate-delete.uc.js';
 import { CandidateGetUc } from './uc/candidate-get.uc.js';
 import { CandidateSearchUc } from './uc/candidate-search.uc.js';
 import { CandidateUpdateUc } from './uc/candidate-update.uc.js';
+import { CandidateUpdateDocumentsUc } from './uc/candidate-update-documents.uc.js';
 import { CandidateUpdateProgressUc } from './uc/candidate-update-progress.uc.js';
 import { CandidateUpdateStatusUc } from './uc/candidate-update-status.uc.js';
 
@@ -20,6 +21,7 @@ import { CandidateUpdateStatusUc } from './uc/candidate-update-status.uc.js';
     CandidateGetUc,
     CandidateCreateUc,
     CandidateUpdateUc,
+    CandidateUpdateDocumentsUc,
     CandidateUpdateStatusUc,
     CandidateUpdateProgressUc,
     CandidateDeleteUc,

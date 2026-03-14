@@ -94,8 +94,6 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
           status: candidate.status as CandidateStatusDtoEnum,
           progress: candidate.progress as CandidateProgressDtoEnum,
           resume: candidate.resume ? { key: candidate.resume.key, name: candidate.resume.name, type: candidate.resume.type } : undefined,
-          offerLetters: candidate.offerLetters?.map((m) => ({ key: m.key, name: m.name, type: m.type })) ?? [],
-          otherDocuments: candidate.otherDocuments?.map((m) => ({ key: m.key, name: m.name, type: m.type })) ?? [],
         });
         setContactNumbers(candidate.contactNumbers.length > 0 ? candidate.contactNumbers : ['']);
         setUrls(candidate.urls.length > 0 ? candidate.urls : ['']);
@@ -152,8 +150,6 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
   };
 
   const resumeValue = form.watch('resume');
-  const offerLettersValue = form.watch('offerLetters') ?? [];
-  const otherDocumentsValue = form.watch('otherDocuments') ?? [];
 
   return (
     <Drawer
@@ -386,30 +382,6 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
             onError={(err) => err && form.setError('resume', { message: err })}
           />
           {form.formState.errors.resume && <p className='text-sm text-destructive'>{String(form.formState.errors.resume.message)}</p>}
-        </div>
-
-        {/* Offer Letters — multiple files */}
-        <div className='flex flex-col gap-2'>
-          <Label>Offer letters</Label>
-          <FileUpload
-            isMultiple={true}
-            media={offerLettersValue}
-            onUploaded={(val) => form.setValue('offerLetters', [...offerLettersValue, val])}
-            onRemove={(index) => form.setValue('offerLetters', offerLettersValue.filter((_: unknown, i: number) => i !== index))}
-            onError={(err) => err && setError(err)}
-          />
-        </div>
-
-        {/* Other Documents — multiple files */}
-        <div className='flex flex-col gap-2'>
-          <Label>Other documents</Label>
-          <FileUpload
-            isMultiple={true}
-            media={otherDocumentsValue}
-            onUploaded={(val) => form.setValue('otherDocuments', [...otherDocumentsValue, val])}
-            onRemove={(index) => form.setValue('otherDocuments', otherDocumentsValue.filter((_: unknown, i: number) => i !== index))}
-            onError={(err) => err && setError(err)}
-          />
         </div>
 
         {error && <p className='text-sm text-destructive'>{error}</p>}

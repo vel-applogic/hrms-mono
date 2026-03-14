@@ -69,14 +69,6 @@ export class CandidateCreateUc extends BaseCandidateUc implements IUseCase<Param
         await this.createAndLinkMedia({ media: params.dto.resume, candidateId: candidate.id, type: CandidateMediaType.resume, tx });
       }
 
-      for (const offerLetter of params.dto.offerLetters ?? []) {
-        await this.createAndLinkMedia({ media: offerLetter, candidateId: candidate.id, type: CandidateMediaType.offerLetter, tx });
-      }
-
-      for (const doc of params.dto.otherDocuments ?? []) {
-        await this.createAndLinkMedia({ media: doc, candidateId: candidate.id, type: CandidateMediaType.otherDocuments, tx });
-      }
-
       return candidate.id;
     });
 

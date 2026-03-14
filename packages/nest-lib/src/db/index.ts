@@ -7,6 +7,7 @@ export {
   UserVerifyEmailDao,
   CandidateDao,
   CandidateHasMediaDao,
+  CandidateHasFeedbackDao,
   PolicyDao,
   PolicyHasMediaDao,
 } from './dao/index.js';
@@ -17,6 +18,7 @@ export type {
   CandidateListRecordType,
   CandidateDetailRecordType,
   CandidateHasMediaWithMedia,
+  CandidateHasFeedbackWithUserType,
 } from './dao/index.js';
 export { CommonDbModule } from './db-module.js';
 export { PrismaService } from './prisma/prisma.service.js';

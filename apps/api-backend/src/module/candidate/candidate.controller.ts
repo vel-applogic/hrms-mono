@@ -4,6 +4,7 @@ import type {
   CandidateDetailResponseType,
   CandidateFilterRequestType,
   CandidateListResponseType,
+  CandidateUpdateDocumentsRequestType,
   CandidateUpdateProgressRequestType,
   CandidateUpdateRequestType,
   CandidateUpdateStatusRequestType,
@@ -13,6 +14,7 @@ import type {
 import {
   CandidateCreateRequestSchema,
   CandidateFilterRequestSchema,
+  CandidateUpdateDocumentsRequestSchema,
   CandidateUpdateProgressRequestSchema,
   CandidateUpdateRequestSchema,
   CandidateUpdateStatusRequestSchema,
@@ -25,6 +27,7 @@ import { CandidateDeleteUc } from './uc/candidate-delete.uc.js';
 import { CandidateGetUc } from './uc/candidate-get.uc.js';
 import { CandidateSearchUc } from './uc/candidate-search.uc.js';
 import { CandidateUpdateUc } from './uc/candidate-update.uc.js';
+import { CandidateUpdateDocumentsUc } from './uc/candidate-update-documents.uc.js';
 import { CandidateUpdateProgressUc } from './uc/candidate-update-progress.uc.js';
 import { CandidateUpdateStatusUc } from './uc/candidate-update-status.uc.js';
 
@@ -35,6 +38,7 @@ export class CandidateController {
     private readonly getUc: CandidateGetUc,
     private readonly createUc: CandidateCreateUc,
     private readonly updateUc: CandidateUpdateUc,
+    private readonly updateDocumentsUc: CandidateUpdateDocumentsUc,
     private readonly updateStatusUc: CandidateUpdateStatusUc,
     private readonly updateProgressUc: CandidateUpdateProgressUc,
     private readonly deleteUc: CandidateDeleteUc,
@@ -55,6 +59,15 @@ export class CandidateController {
     @CurrentUser() currentUser: CurrentUserType,
   ): Promise<OperationStatusResponseType> {
     return this.updateUc.execute({ currentUser, id, dto: body });
+  }
+
+  @Patch(':id/documents')
+  async updateDocuments(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(new ZodValidationPipe(CandidateUpdateDocumentsRequestSchema)) body: CandidateUpdateDocumentsRequestType,
+    @CurrentUser() currentUser: CurrentUserType,
+  ): Promise<OperationStatusResponseType> {
+    return this.updateDocumentsUc.execute({ currentUser, id, dto: body });
   }
 
   @Patch(':id/status')

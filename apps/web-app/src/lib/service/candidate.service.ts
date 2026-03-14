@@ -5,6 +5,7 @@ import {
   CandidateFilterRequestType,
   CandidateListResponseSchema,
   CandidateListResponseType,
+  CandidateUpdateDocumentsRequestType,
   CandidateUpdateProgressRequestType,
   CandidateUpdateRequestType,
   CandidateUpdateStatusRequestType,
@@ -64,6 +65,14 @@ class CandidateService extends BaseService {
     return this.patch<OperationStatusResponseType, { status: CandidateUpdateStatusRequestType['status'] }>({
       url: `/api/candidate/${id}/status`,
       data: { status },
+      responseSchema: OperationStatusResponseSchema,
+    });
+  }
+
+  async updateDocuments(id: number, data: CandidateUpdateDocumentsRequestType): Promise<OperationStatusResponseType> {
+    return this.patch<OperationStatusResponseType, CandidateUpdateDocumentsRequestType>({
+      url: `/api/candidate/${id}/documents`,
+      data,
       responseSchema: OperationStatusResponseSchema,
     });
   }

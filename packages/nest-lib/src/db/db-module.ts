@@ -4,6 +4,7 @@ import { CommonLoggerService } from '../logger/logger.service.js';
 import {
   CandidateDao,
   CandidateHasMediaDao,
+  CandidateHasFeedbackDao,
   MediaDao,
   PolicyDao,
   PolicyHasMediaDao,
@@ -27,6 +28,7 @@ import { UserForgotPasswordDao } from './dao/user-forgot-password.dao.js';
     MediaDao,
     CandidateDao,
     CandidateHasMediaDao,
+    CandidateHasFeedbackDao,
     PolicyDao,
     PolicyHasMediaDao,
     CommonLoggerService,
@@ -43,6 +45,7 @@ import { UserForgotPasswordDao } from './dao/user-forgot-password.dao.js';
     MediaDao,
     CandidateDao,
     CandidateHasMediaDao,
+    CandidateHasFeedbackDao,
     PolicyDao,
     PolicyHasMediaDao,
     CommonLoggerService,
