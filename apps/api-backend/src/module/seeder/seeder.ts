@@ -14,7 +14,25 @@ export class Seeder {
   async seed() {
     this.logger.i('Seeding data start');
     await this.runMigration('create-test-users', () => this.createTestUsers());
+    await this.runMigration('create-leave-config', () => this.createLeaveConfig());
     this.logger.i('Seeding data complete');
+  }
+
+  private async createLeaveConfig() {
+    const existing = await this.prisma.leaveConfig.findFirst();
+    if (existing) {
+      this.logger.i('LeaveConfig already exists, skipping');
+      return;
+    }
+    await this.prisma.leaveConfig.create({
+      data: {
+        maxLeaves: 24,
+        maxEarnedLeaves: 10,
+        maxSickLeaves: 7,
+        maxCasualLeaves: 7,
+      },
+    });
+    this.logger.i('LeaveConfig created');
   }
 
   private async runMigration(key: string, migration: () => Promise<void>) {

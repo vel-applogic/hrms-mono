@@ -84,6 +84,10 @@ export const SearchParamsSchema = z.object({
     .string()
     .optional()
     .transform((val) => (val ? val.split(',').map((s) => s.trim()).filter(Boolean) : undefined)),
+  leaveStatus: z
+    .string()
+    .optional()
+    .transform((val) => (val ? val.split(',').map((s) => s.trim()).filter(Boolean) : undefined)),
 });
 
 export type SearchParamsType = z.infer<typeof SearchParamsSchema>;

@@ -8,6 +8,7 @@ const tabs = [
   { label: 'POLICIES', href: '/policy' },
   { label: 'CANDIDATES', href: '/candidate' },
   { label: 'EMPLOYEES', href: '/employee' },
+  { label: 'LEAVES', href: '/leaves' },
 ];
 
 export function NavTabs() {

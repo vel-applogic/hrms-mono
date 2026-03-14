@@ -73,6 +73,7 @@ model Media {
   candidateHasMedias    CandidateHasMedia[]
   policyHasMedias       PolicyHasMedia[]
   userEmployeeHasMedias UserEmployeeHasMedia[]
+  leaveHasMedias        LeaveHasMedia[]
 
   @@map("media")
 }
@@ -101,6 +102,7 @@ model User {
   userEmployeeCompensations      UserEmployeeCompensation[] @relation("EmployeeCompensationUser")
   userEmployeeFeedbacksCreatedBy UserEmployeeFeedback[]     @relation("EmployeeFeedbackCreatedBy")
   userEmployeeFeedbacks          UserEmployeeFeedback[]     @relation("EmployeeFeedbackUser")
+  leaves                         Leave[]
 
   @@map("users")
 }
@@ -238,6 +240,70 @@ model UserEmployeeFeedback {
 
   @@index([userId])
   @@map("user_employee_feedback")
+}
+
+// LEAVES
+
+enum LeaveTypeEnum {
+  casual
+  sick
+  medical
+  earned
+
+  @@map("leaveTypeEnum")
+}
+
+enum LeaveStatusEnum {
+  pending
+  approved
+  rejected
+  cancelled
+
+  @@map("leaveStatusEnum")
+}
+
+model LeaveConfig {
+  id              Int      @id @default(autoincrement())
+  maxLeaves       Int      @map("max_leaves")
+  maxSickLeaves   Int      @map("max_sick_leaves")
+  maxEarnedLeaves Int      @map("max_earned_leaves")
+  maxCasualLeaves Int      @map("max_casual_leaves")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("leave_config")
+}
+
+model Leave {
+  id             Int             @id @default(autoincrement())
+  userId         Int             @map("user_id")
+  user           User            @relation(fields: [userId], references: [id])
+  leaveType      LeaveTypeEnum   @map("leave_type")
+  startDate      DateTime        @map("start_date")
+  endDate        DateTime        @map("end_date")
+  numberOfDays   Int             @map("number_of_days")
+  reason         String          @map("reason")
+  status         LeaveStatusEnum @default(pending) @map("status")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  leaveHasMedias LeaveHasMedia[]
+
+  @@index([userId])
+  @@map("leave")
+}
+
+model LeaveHasMedia {
+  id        Int      @id @default(autoincrement())
+  leaveId   Int      @map("leave_id")
+  leave     Leave    @relation(fields: [leaveId], references: [id])
+  mediaId   Int      @map("media_id")
+  media     Media    @relation(fields: [mediaId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([leaveId])
+  @@index([mediaId])
+  @@map("leave_has_media")
 }
 
 // CANDIDATE

@@ -12,6 +12,8 @@ export {
   UserEmployeeHasMediaDao,
   UserEmployeeCompensationDao,
   UserEmployeeFeedbackDao,
+  LeaveDao,
+  LeaveConfigDao,
   PolicyDao,
   PolicyHasMediaDao,
 } from './dao/index.js';
@@ -27,6 +29,7 @@ export type {
   EmployeeDetailRecordType,
   UserEmployeeHasMediaWithMediaType,
   UserEmployeeFeedbackWithCreatedByType,
+  LeaveWithUserType,
 } from './dao/index.js';
 export { CommonDbModule } from './db-module.js';
 export { PrismaService } from './prisma/prisma.service.js';
