@@ -121,12 +121,7 @@ export function CandidateViewFeedbacks({ candidateId, initialPage }: Props) {
                       <Button variant='ghost' size='icon' className='h-6 w-6' onClick={() => setEditingFeedback(feedback)}>
                         <Pencil className='h-3 w-3' />
                       </Button>
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        className='h-6 w-6 text-destructive hover:text-destructive'
-                        onClick={() => setDeletingFeedback(feedback)}
-                      >
+                      <Button variant='ghost' size='icon' className='h-6 w-6 text-destructive hover:text-destructive' onClick={() => setDeletingFeedback(feedback)}>
                         <Trash2 className='h-3 w-3' />
                       </Button>
                     </div>

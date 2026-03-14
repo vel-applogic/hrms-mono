@@ -5,12 +5,13 @@ import { Button } from '@repo/ui/component/ui/button';
 import { Label } from '@repo/ui/component/ui/label';
 import { FileText, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { CandidateDocumentsEditDialog } from './container/candidate-documents-edit.dialog';
+import { getCandidateById } from '@/lib/action/candidate.actions';
 
 interface Props {
-  candidate: CandidateDetailResponseType;
+  candidateId: number;
 }
 
 function DocumentItem({ doc }: { doc: { id: number; name: string; urlFull: string } }) {
@@ -42,14 +43,35 @@ function DocumentSection({ label, items, emptyText }: { label: string; items: Ar
   );
 }
 
-export function CandidateViewDocuments({ candidate }: Props) {
+export function CandidateViewDocuments({ candidateId }: Props) {
   const router = useRouter();
+  const [candidate, setCandidate] = useState<CandidateDetailResponseType | null>(null);
+  const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
+
+  const fetchCandidate = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await getCandidateById(candidateId);
+      setCandidate(data);
+    } finally {
+      setLoading(false);
+    }
+  }, [candidateId]);
+
+  useEffect(() => {
+    void fetchCandidate();
+  }, [fetchCandidate]);
 
   const handleSuccess = () => {
     setEditOpen(false);
+    void fetchCandidate();
     router.refresh();
   };
+
+  if (loading || !candidate) {
+    return <p className='text-sm text-muted-foreground'>Loading...</p>;
+  }
 
   return (
     <div className='flex flex-col gap-6'>
