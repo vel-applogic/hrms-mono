@@ -69,8 +69,9 @@ model Media {
   createdAt    DateTime        @default(now()) @map("created_at")
   updatedAt    DateTime        @updatedAt @map("updated_at")
 
-  candidateHasMedias CandidateHasMedia[]
-  policyHasMedias    PolicyHasMedia[]
+  candidateHasMedias    CandidateHasMedia[]
+  policyHasMedias       PolicyHasMedia[]
+  userEmployeeHasMedias UserEmployeeHasMedia[]
 
   @@map("media")
 }
@@ -88,11 +89,17 @@ model User {
   createdAt      DateTime       @default(now()) @map("created_at")
   updatedAt      DateTime       @updatedAt @map("updated_at")
 
-  userPlanHistory       UserPlanHistory[]
-  auditActivities       AuditActivity[]
-  userForgotPasswords   UserForgotPassword[]
-  userVerifyEmails      UserVerifyEmail[]
-  candidateHasFeedbacks CandidateHasFeedback[]
+  userPlanHistory                UserPlanHistory[]
+  auditActivities                AuditActivity[]
+  userForgotPasswords            UserForgotPassword[]
+  userVerifyEmails               UserVerifyEmail[]
+  candidateHasFeedbacks          CandidateHasFeedback[]
+  reportTo                       UserEmployeeDetail[]       @relation("EmployeeReportTo")
+  employees                      UserEmployeeDetail[]       @relation("EmployeeUser")
+  userEmployeeHasMedias          UserEmployeeHasMedia[]     @relation("EmployeeHasMediaUser")
+  userEmployeeCompensations      UserEmployeeCompensation[] @relation("EmployeeCompensationUser")
+  userEmployeeFeedbacksCreatedBy UserEmployeeFeedback[]     @relation("EmployeeFeedbackCreatedBy")
+  userEmployeeFeedbacks          UserEmployeeFeedback[]     @relation("EmployeeFeedbackUser")
 
   @@map("users")
 }
@@ -129,6 +136,96 @@ model UserPlanHistory {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("user_plan_history")
+}
+
+// EMPLOYEE
+
+enum EmployeeStatusEnum {
+  active
+  resigned
+  onLeave
+  terminated
+
+  @@map("employeeStatusEnum")
+}
+
+model UserEmployeeDetail {
+  id            Int                @id @default(autoincrement())
+  userId        Int                @map("user_id")
+  user          User               @relation("EmployeeUser", fields: [userId], references: [id])
+  personalEmail String?            @map("personal_email")
+  dob           DateTime
+  pan           String             @unique
+  aadhaar       String             @unique
+  designation   String
+  dateOfJoining DateTime           @map("date_of_joining")
+  dateOfLeaving DateTime?          @map("date_of_leaving")
+  status        EmployeeStatusEnum @map("status")
+  reportToId    Int?               @map("report_to_id")
+  reportTo      User?              @relation("EmployeeReportTo", fields: [reportToId], references: [id])
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+
+  @@map("user_employee_detail")
+}
+
+enum EmployeeMediaType {
+  photo
+  document
+
+  @@map("employeeMediaType")
+}
+
+model UserEmployeeHasMedia {
+  id        Int               @id @default(autoincrement())
+  userId    Int               @map("user_id")
+  user      User              @relation("EmployeeHasMediaUser", fields: [userId], references: [id])
+  mediaId   Int               @map("media_id")
+  media     Media             @relation(fields: [mediaId], references: [id])
+  type      EmployeeMediaType
+  title     String
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
+
+  @@map("employee_has_media")
+}
+
+model UserEmployeeCompensation {
+  id              Int       @id @default(autoincrement())
+  userId          Int       @map("user_id")
+  user            User      @relation("EmployeeCompensationUser", fields: [userId], references: [id])
+  basic           Float     @map("basic")
+  hra             Float
+  otherAllowances Float     @map("other_allowances")
+  gross           Float
+  effectiveFrom   DateTime  @default(now()) @map("effective_from")
+  effectiveTill   DateTime? @map("effective_till")
+  isActive        Boolean   @default(true) @map("is_active")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@map("employee_salary")
+}
+
+enum EmployeeFeedbackTrend {
+  positive
+  negative
+  neutral
+
+  @@map("employeeFeedbackTrend")
+}
+
+model UserEmployeeFeedback {
+  id          Int                   @id @default(autoincrement())
+  userId      Int                   @map("user_id")
+  user        User                  @relation("EmployeeFeedbackUser", fields: [userId], references: [id])
+  trend       EmployeeFeedbackTrend @map("trend")
+  point       Int?                  @default(0) @map("point")
+  feedback    String                @map("feedback")
+  createdById Int                   @map("created_by_id")
+  createdBy   User                  @relation("EmployeeFeedbackCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime              @default(now()) @map("created_at")
+  updatedAt   DateTime              @updatedAt @map("updated_at")
 }
 
 // CANDIDATE
@@ -218,14 +315,14 @@ model Candidate {
 }
 
 model CandidateHasFeedback {
-  id           Int       @id @default(autoincrement())
-  candidateId  Int       @map("candidate_id")
-  createdById  Int       @map("created_by_id")
-  feedback     String
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-  candidate    Candidate @relation(fields: [candidateId], references: [id])
-  createdBy    User      @relation(fields: [createdById], references: [id])
+  id          Int       @id @default(autoincrement())
+  candidateId Int       @map("candidate_id")
+  createdById Int       @map("created_by_id")
+  feedback    String
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  createdBy   User      @relation(fields: [createdById], references: [id])
 
   @@index([candidateId])
   @@map("candidate_has_feedback")
