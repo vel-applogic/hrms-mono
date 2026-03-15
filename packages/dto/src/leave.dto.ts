@@ -18,11 +18,32 @@ export enum LeaveStatusDtoEnum {
 
 export const LeaveFilterRequestSchema = FilterRequestSchema.extend({
   status: z.array(z.nativeEnum(LeaveStatusDtoEnum)).optional(),
+  userId: z.array(z.number()).optional(),
+  financialYear: z.string().optional(),
 });
 export type LeaveFilterRequestType = z.infer<typeof LeaveFilterRequestSchema>;
 
+export const LeaveCounterResponseSchema = z.object({
+  id: z.number(),
+  userId: z.number(),
+  financialYear: z.string(),
+  casualLeaves: z.number(),
+  sickLeaves: z.number(),
+  earnedLeaves: z.number(),
+  totalLeavesUsed: z.number(),
+  totalLeavesAvailable: z.number(),
+  user: z.object({
+    id: z.number(),
+    firstname: z.string(),
+    lastname: z.string(),
+    email: z.string(),
+  }),
+});
+export type LeaveCounterResponseType = z.infer<typeof LeaveCounterResponseSchema>;
+
 export const LeaveCreateRequestSchema = z
   .object({
+    userId: z.number().min(1, 'Select an employee'),
     leaveType: z.nativeEnum(LeaveTypeDtoEnum),
     startDate: z.string().min(1),
     endDate: z.string().min(1),

@@ -6,6 +6,7 @@ import type {
 } from '@repo/dto';
 import { LeaveDao, CommonLoggerService, CurrentUserType, IUseCase, PrismaService } from '@repo/nest-lib';
 import type { Prisma } from '@repo/db';
+import { getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
   currentUser: CurrentUserType;
@@ -27,9 +28,17 @@ export class LeaveListUc implements IUseCase<Params, PaginatedResponseType<Leave
     if (params.filterDto.status?.length) {
       where.status = { in: params.filterDto.status as ('pending' | 'approved' | 'rejected' | 'cancelled')[] };
     }
+    if (params.filterDto.userId?.length) {
+      where.userId = { in: params.filterDto.userId };
+    }
+    if (params.filterDto.financialYear) {
+      const { start, end } = getFinancialYearDateRange(params.filterDto.financialYear);
+      where.startDate = { gte: start, lte: end };
+    }
     if (params.filterDto.search?.trim()) {
       const q = params.filterDto.search.trim();
       where.user = {
+        ...(where.user as object),
         OR: [
           { firstname: { contains: q, mode: 'insensitive' } },
           { lastname: { contains: q, mode: 'insensitive' } },

@@ -18,6 +18,25 @@ export function getFinancialYearCode(date: Date): string {
 }
 
 /**
+ * Get last N financial year codes including current.
+ * E.g. getLastFinancialYearCodes(3) -> ['FY2526', 'FY2425', 'FY2324'] when current is FY2526
+ */
+export function getLastFinancialYearCodes(count: number): string[] {
+  const current = getFinancialYearCode(new Date());
+  const match = current.match(/^FY(\d{2})(\d{2})$/);
+  if (!match) return [current];
+  const codes: string[] = [];
+  let startYY = parseInt(match[1]!, 10);
+  let endYY = parseInt(match[2]!, 10);
+  for (let i = 0; i < count; i++) {
+    codes.push(`FY${String(startYY).padStart(2, '0')}${String(endYY).padStart(2, '0')}`);
+    startYY -= 1;
+    endYY -= 1;
+  }
+  return codes;
+}
+
+/**
  * Get date range for a financial year code.
  * FY2526 -> April 1, 2025 to March 31, 2026
  */

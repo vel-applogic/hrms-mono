@@ -13,9 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Drawer } from '@repo/ui/container/drawer/drawer';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useSession } from 'next-auth/react';
 import { z } from 'zod';
 
 import { createLeave, updateLeave } from '@/lib/action/leave.actions';
+
+import { EmployeeSelect } from './employee-select';
 
 const CreateFormSchema = LeaveCreateRequestSchema;
 type CreateFormType = z.infer<typeof CreateFormSchema>;
@@ -30,6 +33,9 @@ interface Props {
 const FORM_ID = 'leave-apply-form';
 
 export function LeaveApplyDrawer({ open, onOpenChange, leave, onSuccess }: Props) {
+  const { data: session } = useSession();
+  const currentUserId = session?.user?.id ? Number(session.user.id) : null;
+  const isAdmin = session?.user?.role === 'admin';
   const isEditing = !!leave;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -37,6 +43,7 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, onSuccess }: Props
   const form = useForm<CreateFormType>({
     resolver: zodResolver(CreateFormSchema),
     defaultValues: {
+      userId: 0,
       leaveType: LeaveTypeDtoEnum.casual,
       startDate: '',
       endDate: '',
@@ -48,6 +55,7 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, onSuccess }: Props
     if (open) {
       if (leave) {
         form.reset({
+          userId: leave.userId,
           leaveType: leave.leaveType as LeaveTypeDtoEnum,
           startDate: leave.startDate,
           endDate: leave.endDate,
@@ -55,6 +63,7 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, onSuccess }: Props
         });
       } else {
         form.reset({
+          userId: currentUserId ?? 0,
           leaveType: LeaveTypeDtoEnum.casual,
           startDate: '',
           endDate: '',
@@ -63,7 +72,7 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, onSuccess }: Props
       }
       setError('');
     }
-  }, [open, leave, form]);
+  }, [open, leave, currentUserId, form]);
 
   const handleSubmit = async (data: CreateFormType) => {
     setLoading(true);
@@ -78,6 +87,7 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, onSuccess }: Props
         });
       } else {
         await createLeave({
+          userId: data.userId,
           leaveType: data.leaveType,
           startDate: data.startDate,
           endDate: data.endDate,
@@ -112,6 +122,17 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, onSuccess }: Props
     >
       <form id={FORM_ID} onSubmit={form.handleSubmit(handleSubmit)} className='flex flex-col gap-6 p-6'>
         {error && <p className='text-sm text-destructive'>{error}</p>}
+
+        <EmployeeSelect
+          value={form.watch('userId') && form.watch('userId') > 0 ? form.watch('userId') : undefined}
+          onChange={(userId) => form.setValue('userId', userId)}
+          disabled={isEditing}
+          currentUserId={currentUserId}
+          isAdmin={isAdmin}
+        />
+        {form.formState.errors.userId && (
+          <p className='text-sm text-destructive'>{form.formState.errors.userId.message}</p>
+        )}
 
         <div className='flex flex-col gap-2'>
           <Label>Leave type</Label>

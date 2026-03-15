@@ -16,7 +16,7 @@ const tabs = [
   { label: 'Policies', href: '/policy' },
   { label: 'Candidates', href: '/candidate' },
   { label: 'Employees', href: '/employee' },
-  { label: 'Leaves', href: '/leaves' },
+  { label: 'Leaves', href: '/leaves/counter' },
 ];
 
 interface Props {

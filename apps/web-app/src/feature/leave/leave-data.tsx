@@ -1,12 +1,20 @@
 'use client';
 
-import {
+import type {
   LeaveFilterRequestType,
   LeaveResponseType,
   PaginatedResponseType,
   SearchParamsType,
 } from '@repo/dto';
 import { Button } from '@repo/ui/component/ui/button';
+import { SelectSearchMulti } from '@repo/ui/component/select-search-multiple';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@repo/ui/component/shadcn/select';
 import { CalendarPlus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -17,12 +25,23 @@ import { LeaveStatusFilter } from '@/app/lib/container/leave-status-filter';
 import { LeaveApplyDrawer } from './container/leave-apply.drawer';
 import { LeaveDataTableClient } from './leave.datatable';
 
+type SelectOption = { value: string; label: string };
+
 interface Props {
   data: PaginatedResponseType<LeaveResponseType>;
+  employees: { id: number; label: string; value: string }[];
+  defaultFinancialYear: string;
+  financialYearOptions: SelectOption[];
   searchParams: SearchParamsType;
 }
 
-export const LeaveData = ({ data, searchParams }: Props) => {
+export const LeaveData = ({
+  data,
+  employees,
+  defaultFinancialYear,
+  financialYearOptions,
+  searchParams,
+}: Props) => {
   const { data: session } = useSession();
   const currentUserId = session?.user?.id ? Number(session.user.id) : null;
   const isAdmin = session?.user?.role === 'admin';
@@ -81,20 +100,49 @@ export const LeaveData = ({ data, searchParams }: Props) => {
     replace(`${pathname}?${params.toString()}`);
   };
 
+  const handleFinancialYearChange = (value: string) => {
+    const params = new URLSearchParams(currentSearchParams.toString());
+    params.set('financialYear', value);
+    params.set('page', '1');
+    replace(`${pathname}?${params.toString()}`);
+  };
+
+  const handleEmployeeChange = (values: string[]) => {
+    const params = new URLSearchParams(currentSearchParams.toString());
+    if (values.length > 0) {
+      params.set('userId', values.join(','));
+    } else {
+      params.delete('userId');
+    }
+    params.set('page', '1');
+    replace(`${pathname}?${params.toString()}`);
+  };
+
   const handleClearAll = () => {
     setSearchText('');
-    replace(pathname);
+    const params = new URLSearchParams();
+    params.set('financialYear', defaultFinancialYear);
+    replace(`${pathname}?${params.toString()}`);
   };
+
+  const currentFinancialYear = searchParams.financialYear ?? defaultFinancialYear;
+  const employeeValues = searchParams.userId?.map(String) ?? [];
 
   const hasActiveFilters =
     searchText.trim().length > 0 ||
     (searchParams.search?.trim().length ?? 0) > 0 ||
-    (searchParams.leaveStatus?.length ?? 0) > 0;
+    (searchParams.leaveStatus?.length ?? 0) > 0 ||
+    (searchParams.userId?.length ?? 0) > 0 ||
+    currentFinancialYear !== defaultFinancialYear;
+
+  const employeeSelectOptions = employees.map((e) => ({ value: e.value, label: e.label }));
 
   return (
     <div className='flex h-full flex-col gap-4 pt-4'>
       <div className='center-container flex items-center justify-between'>
-        <span className='text-xl font-medium tracking-tight text-white'>Leaves</span>
+        <span className='text-xl font-medium tracking-tight text-white'>
+          Leave Details for {currentFinancialYear}
+        </span>
         <Button className='shrink-0 rounded-[40px]' onClick={handleApplyLeave}>
           <CalendarPlus className='h-4 w-4' />
           Apply leave
@@ -114,7 +162,27 @@ export const LeaveData = ({ data, searchParams }: Props) => {
               Clear
             </Button>
           )}
+          <Select value={currentFinancialYear} onValueChange={handleFinancialYearChange}>
+            <SelectTrigger className='h-10 w-[140px]'>
+              <SelectValue placeholder='Financial Year' />
+            </SelectTrigger>
+            <SelectContent>
+              {financialYearOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <LeaveStatusFilter values={searchParams.leaveStatus} onChange={handleStatusChange} />
+          <SelectSearchMulti
+            values={employeeValues}
+            options={employeeSelectOptions}
+            placeholder='Employee'
+            searchPlaceholder='Search employee...'
+            onChange={handleEmployeeChange}
+            className='w-[180px]'
+          />
           <div className='flex h-10 w-[298px] shrink-0 items-center gap-3 rounded-[40px] border border-border bg-background px-4'>
             <svg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'>
               <path
@@ -142,6 +210,7 @@ export const LeaveData = ({ data, searchParams }: Props) => {
           currentUserId={currentUserId}
           isAdmin={isAdmin}
           onEdit={handleEdit}
+          onView={(leave) => replace(`${pathname}?userId=${leave.userId}&financialYear=${currentFinancialYear}`)}
           onRefresh={() => refresh()}
         />
       </div>

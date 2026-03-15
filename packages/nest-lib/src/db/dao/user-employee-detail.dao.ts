@@ -12,6 +12,14 @@ export class UserEmployeeDetailDao extends BaseDao {
     super(prisma);
   }
 
+  async findAllWithUser(params?: { tx?: Prisma.TransactionClient }): Promise<EmployeeListRecordType[]> {
+    const pc = this.getPrismaClient(params?.tx);
+    return pc.userEmployeeDetail.findMany({
+      include: { user: true },
+      orderBy: { user: { firstname: 'asc' } },
+    });
+  }
+
   async getByUserId(params: { userId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeDetailRecordType | null> {
     const pc = this.getPrismaClient(params.tx);
     return pc.userEmployeeDetail.findUnique({

@@ -1,4 +1,5 @@
 import type {
+  LeaveCounterResponseType,
   LeaveCreateRequestType,
   LeaveFilterRequestType,
   LeaveResponseType,
@@ -6,9 +7,11 @@ import type {
   PaginatedResponseType,
 } from '@repo/dto';
 import {
+  LeaveCounterResponseSchema,
   LeaveResponseSchema,
   PaginatedResponseSchema,
 } from '@repo/dto';
+import { z } from 'zod';
 import { CreateAxiosInstance } from '@repo/ui/lib/axios/axios-instance';
 
 import { BaseService } from './_base.service';
@@ -16,6 +19,13 @@ import { BaseService } from './_base.service';
 class LeaveService extends BaseService {
   constructor() {
     super(CreateAxiosInstance(process.env.NEXT_PUBLIC_API_URL_ADMIN!));
+  }
+
+  async getCounters(financialYear: string): Promise<LeaveCounterResponseType[]> {
+    return this.get<LeaveCounterResponseType[]>({
+      url: `/api/leave/counters?financialYear=${encodeURIComponent(financialYear)}`,
+      responseSchema: z.array(LeaveCounterResponseSchema),
+    });
   }
 
   async search(params: LeaveFilterRequestType): Promise<PaginatedResponseType<LeaveResponseType>> {

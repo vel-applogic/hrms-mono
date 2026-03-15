@@ -88,6 +88,13 @@ export const SearchParamsSchema = z.object({
     .string()
     .optional()
     .transform((val) => (val ? val.split(',').map((s) => s.trim()).filter(Boolean) : undefined)),
+  financialYear: z.string().optional(),
+  userId: z
+    .string()
+    .optional()
+    .transform((val) =>
+      val ? val.split(',').map((s) => Number(s.trim())).filter((n) => !isNaN(n) && n > 0) : undefined,
+    ),
 });
 
 export type SearchParamsType = z.infer<typeof SearchParamsSchema>;

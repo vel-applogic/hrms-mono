@@ -7,7 +7,7 @@ import {
 import { DataTableSimple } from '@repo/ui/container/datatable/datatable';
 import { ActionOption, ActionsIconCellRenderer } from '@repo/ui/container/datatable/datatable-cell-renderer';
 import { ColDef } from 'ag-grid-community';
-import { CheckCircle, Pencil, ThumbsDown, X, XCircle } from 'lucide-react';
+import { CheckCircle, Eye, Pencil, ThumbsDown, X, XCircle } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
 import { approveLeave, cancelLeave, rejectLeave } from '@/lib/action/leave.actions';
@@ -17,11 +17,20 @@ interface Props {
   currentUserId: number | null;
   isAdmin?: boolean;
   onEdit: (leave: LeaveResponseType) => void;
+  onView?: (leave: LeaveResponseType) => void;
   onRefresh?: () => void;
 }
 
-function getActions(currentUserId: number | null, isAdmin: boolean, leave: LeaveResponseType): ActionOption[] {
+function getActions(
+  currentUserId: number | null,
+  isAdmin: boolean,
+  leave: LeaveResponseType,
+  onView?: (leave: LeaveResponseType) => void,
+): ActionOption[] {
   const actions: ActionOption[] = [];
+  if (onView) {
+    actions.push({ name: 'View', icon: Eye, variant: 'outline' });
+  }
   if (leave.status !== 'approved') {
     actions.push({ name: 'Approve', icon: CheckCircle, variant: 'outline' });
   }
@@ -43,11 +52,12 @@ function LeaveActionsCellRenderer(
     context?: { onClickActions: (action: string, data: LeaveResponseType) => void };
     currentUserId?: number | null;
     isAdmin?: boolean;
+    onView?: (leave: LeaveResponseType) => void;
   },
 ) {
-  const { data, context, currentUserId, isAdmin } = props;
+  const { data, context, currentUserId, isAdmin, onView } = props;
   if (!data || !context) return <span className='text-muted-foreground'>—</span>;
-  const options = getActions(currentUserId ?? null, isAdmin ?? false, data);
+  const options = getActions(currentUserId ?? null, isAdmin ?? false, data, onView);
   if (options.length === 0) return <span className='text-muted-foreground'>—</span>;
   return (
     <ActionsIconCellRenderer<LeaveResponseType>
@@ -161,10 +171,14 @@ export const LeaveDataTableClient = (props: Props) => {
         width: 180,
         cellClass: '!flex items-center !justify-center',
         cellRenderer: LeaveActionsCellRenderer,
-        cellRendererParams: { currentUserId: props.currentUserId, isAdmin: props.isAdmin },
+        cellRendererParams: {
+          currentUserId: props.currentUserId,
+          isAdmin: props.isAdmin,
+          onView: props.onView,
+        },
       },
     ] satisfies ColDef<LeaveResponseType>[];
-  }, [props.currentUserId, props.isAdmin]);
+  }, [props.currentUserId, props.isAdmin, props.onView]);
 
   const getConfirmMessage = (action: ConfirmAction, leave: LeaveResponseType) => {
     const name = `${leave.user.firstname} ${leave.user.lastname}`;
@@ -193,6 +207,9 @@ export const LeaveDataTableClient = (props: Props) => {
   const onActionClick = useCallback(
     (action: string, data: LeaveResponseType) => {
       switch (action) {
+        case 'View':
+          props.onView?.(data);
+          break;
         case 'Approve':
           openConfirm('approve', data);
           break;

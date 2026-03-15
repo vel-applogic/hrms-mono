@@ -1,5 +1,6 @@
-import { Body, Controller, Param, ParseIntPipe, Patch, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put, Query } from '@nestjs/common';
 import type {
+  LeaveCounterResponseType,
   LeaveCreateRequestType,
   LeaveFilterRequestType,
   LeaveResponseType,
@@ -12,6 +13,7 @@ import { CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
 
 import { LeaveApproveUc } from './uc/leave-approve.uc.js';
 import { LeaveCancelUc } from './uc/leave-cancel.uc.js';
+import { LeaveCountersListUc } from './uc/leave-counters-list.uc.js';
 import { LeaveRejectUc } from './uc/leave-reject.uc.js';
 import { LeaveCreateUc } from './uc/leave-create.uc.js';
 import { LeaveListUc } from './uc/leave-list.uc.js';
@@ -21,12 +23,21 @@ import { LeaveUpdateUc } from './uc/leave-update.uc.js';
 export class LeaveController {
   constructor(
     private readonly listUc: LeaveListUc,
+    private readonly countersListUc: LeaveCountersListUc,
     private readonly createUc: LeaveCreateUc,
     private readonly updateUc: LeaveUpdateUc,
     private readonly cancelUc: LeaveCancelUc,
     private readonly approveUc: LeaveApproveUc,
     private readonly rejectUc: LeaveRejectUc,
   ) {}
+
+  @Get('/counters')
+  async getCounters(
+    @Query('financialYear') financialYear: string,
+    @CurrentUser() currentUser: CurrentUserType,
+  ): Promise<LeaveCounterResponseType[]> {
+    return this.countersListUc.execute({ currentUser, financialYear });
+  }
 
   @Patch('/search')
   async search(

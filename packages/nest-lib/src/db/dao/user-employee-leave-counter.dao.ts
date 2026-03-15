@@ -10,6 +10,18 @@ export class UserEmployeeLeaveCounterDao extends BaseDao {
     super(prisma);
   }
 
+  async findManyByFinancialYear(params: {
+    financialYear: string;
+    tx?: Prisma.TransactionClient;
+  }): Promise<(UserEmployeeLeaveCounter & { user: { id: number; firstname: string; lastname: string; email: string } })[]> {
+    const pc = this.getPrismaClient(params.tx);
+    return pc.userEmployeeLeaveCounter.findMany({
+      where: { financialYear: params.financialYear },
+      include: { user: { select: { id: true, firstname: true, lastname: true, email: true } } },
+      orderBy: { user: { firstname: 'asc' } },
+    });
+  }
+
   async findByUserIdAndFinancialYear(params: {
     userId: number;
     financialYear: string;

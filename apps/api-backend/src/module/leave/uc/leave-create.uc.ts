@@ -48,11 +48,16 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
   ) {}
 
   async execute(params: Params): Promise<LeaveResponseType> {
-    this.logger.i('Creating leave request', { userId: params.currentUser.id });
+    const targetUserId = params.dto.userId;
+    this.logger.i('Creating leave request', { userId: targetUserId, requestedBy: params.currentUser.id });
 
-    const employee = await this.userEmployeeDetailDao.getByUserId({ userId: params.currentUser.id });
+    if (params.currentUser.role !== 'admin' && targetUserId !== params.currentUser.id) {
+      throw new ApiError('You can only apply for leave on your own behalf', 403);
+    }
+
+    const employee = await this.userEmployeeDetailDao.getByUserId({ userId: targetUserId });
     if (!employee) {
-      // throw new ApiError('Only employees can apply for leave.', 403); // FIXME: enable this when test over
+      throw new ApiError('Selected user is not an employee', 403);
     }
 
     const config = await this.leaveConfigDao.getLatest();
@@ -74,12 +79,12 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
 
     const countStatuses = ['pending', 'approved'];
     const existingByType = await this.leaveDao.sumDaysByUserIdAndStatus({
-      userId: params.currentUser.id,
+      userId: targetUserId,
       statuses: countStatuses,
       leaveType: params.dto.leaveType,
     });
     const existingTotal = await this.leaveDao.sumDaysByUserIdAndStatus({
-      userId: params.currentUser.id,
+      userId: targetUserId,
       statuses: countStatuses,
     });
 
@@ -93,7 +98,7 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
 
     const created = await this.leaveDao.create({
       data: {
-        user: { connect: { id: params.currentUser.id } },
+        user: { connect: { id: targetUserId } },
         leaveType: params.dto.leaveType as 'casual' | 'sick' | 'medical' | 'earned',
         startDate,
         endDate,
