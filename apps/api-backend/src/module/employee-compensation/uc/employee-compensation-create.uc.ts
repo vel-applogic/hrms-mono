@@ -3,7 +3,7 @@ import type { EmployeeCompensationCreateRequestType, EmployeeCompensationRespons
 import { CommonLoggerService, CurrentUserType, IUseCase, PrismaService, UserEmployeeCompensationDao, UserEmployeeDetailDao } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
-import { validateEffectiveFromNoOverlap } from './_employee-compensation-validation.helper.js';
+import { parseDateOnly, validateEffectiveFromNoOverlap } from './_employee-compensation-validation.helper.js';
 
 type Params = {
   currentUser: CurrentUserType;
@@ -32,18 +32,15 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
     const created = await this.prisma.$transaction(async (tx) => {
       if (mostRecent) {
         const mostRecentFrom = new Date(mostRecent.effectiveFrom);
-        mostRecentFrom.setHours(0, 0, 0, 0);
+        mostRecentFrom.setUTCHours(0, 0, 0, 0);
         if (newEffectiveFrom >= mostRecentFrom) {
           const oneDayBefore = new Date(newEffectiveFrom);
-          oneDayBefore.setDate(oneDayBefore.getDate() - 1);
-          const prevTill = mostRecent.effectiveTill ? new Date(mostRecent.effectiveTill) : null;
-          if (!prevTill || prevTill > oneDayBefore) {
-            await this.userEmployeeCompensationDao.update({
-              id: mostRecent.id,
-              data: { effectiveTill: oneDayBefore, isActive: false },
-              tx,
-            });
-          }
+          oneDayBefore.setUTCDate(oneDayBefore.getUTCDate() - 1);
+          await this.userEmployeeCompensationDao.update({
+            id: mostRecent.id,
+            data: { effectiveTill: oneDayBefore, isActive: false },
+            tx,
+          });
         }
       }
 
@@ -61,7 +58,7 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
           otherAllowances: params.dto.otherAllowances,
           gross: params.dto.gross,
           effectiveFrom: newEffectiveFrom,
-          effectiveTill: params.dto.effectiveTill ? new Date(params.dto.effectiveTill) : undefined,
+          effectiveTill: params.dto.effectiveTill ? parseDateOnly(params.dto.effectiveTill) : undefined,
           isActive: true,
         },
         tx,
@@ -89,8 +86,7 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
       throw new ApiError('Employee not found', 404);
     }
 
-    const newEffectiveFrom = new Date(params.dto.effectiveFrom);
-    newEffectiveFrom.setHours(0, 0, 0, 0);
+    const newEffectiveFrom = parseDateOnly(params.dto.effectiveFrom);
 
     const existing = await this.userEmployeeCompensationDao.findByUserIdOrderedByEffectiveFromDesc({
       userId: params.dto.employeeId,

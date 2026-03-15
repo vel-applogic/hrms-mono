@@ -7,7 +7,11 @@ import type { Prisma } from '@repo/db';
 import { CommonLoggerService, CurrentUserType, IUseCase, PrismaService, UserEmployeeCompensationDao } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
-import { validateEffectiveFromNoOverlap } from './_employee-compensation-validation.helper.js';
+import {
+  parseDateOnly,
+  validateEffectiveFromBeforeTill,
+  validateEffectiveRangeNoOverlap,
+} from './_employee-compensation-validation.helper.js';
 
 type Params = {
   currentUser: CurrentUserType;
@@ -40,17 +44,17 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
         hra: params.dto.hra,
         otherAllowances: params.dto.otherAllowances,
         gross: params.dto.gross,
-        effectiveFrom: params.dto.effectiveFrom ? new Date(params.dto.effectiveFrom) : undefined,
-        effectiveTill: params.dto.effectiveTill !== undefined ? (params.dto.effectiveTill ? new Date(params.dto.effectiveTill) : null) : undefined,
+        effectiveFrom: params.dto.effectiveFrom ? parseDateOnly(params.dto.effectiveFrom) : undefined,
+        effectiveTill: params.dto.effectiveTill !== undefined ? (params.dto.effectiveTill ? parseDateOnly(params.dto.effectiveTill) : null) : undefined,
         isActive: params.dto.isActive,
       };
 
       if (effectiveFromChanged && mostRecent) {
         const mostRecentFrom = new Date(mostRecent.effectiveFrom);
-        mostRecentFrom.setHours(0, 0, 0, 0);
+        mostRecentFrom.setUTCHours(0, 0, 0, 0);
         if (newEffectiveFrom >= mostRecentFrom) {
           const oneDayBefore = new Date(newEffectiveFrom);
-          oneDayBefore.setDate(oneDayBefore.getDate() - 1);
+          oneDayBefore.setUTCDate(oneDayBefore.getUTCDate() - 1);
           const prevTill = mostRecent.effectiveTill ? new Date(mostRecent.effectiveTill) : null;
           if (!prevTill || prevTill > oneDayBefore) {
             await this.userEmployeeCompensationDao.update({
@@ -94,25 +98,27 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
       throw new ApiError('Compensation not found', 404);
     }
 
-    const newEffectiveFrom = params.dto.effectiveFrom ? new Date(params.dto.effectiveFrom) : undefined;
-    if (newEffectiveFrom) newEffectiveFrom.setHours(0, 0, 0, 0);
+    const newEffectiveFrom = params.dto.effectiveFrom ? parseDateOnly(params.dto.effectiveFrom) : existing.effectiveFrom;
+    const newEffectiveTill =
+      params.dto.effectiveTill !== undefined
+        ? params.dto.effectiveTill
+          ? parseDateOnly(params.dto.effectiveTill)
+          : null
+        : existing.effectiveTill;
+
+    validateEffectiveFromBeforeTill(newEffectiveFrom, newEffectiveTill);
 
     const allForUser = await this.userEmployeeCompensationDao.findByUserIdOrderedByEffectiveFromDesc({
       userId: existing.userId,
     });
-
     const others = allForUser.filter((c) => c.id !== params.id);
     const mostRecent = others[0];
-    const compsToCheck = mostRecent ? others.slice(1) : others;
 
-    const resolvedEffectiveFrom = newEffectiveFrom ?? existing.effectiveFrom;
-    if (newEffectiveFrom) {
-      validateEffectiveFromNoOverlap(newEffectiveFrom, compsToCheck);
-    }
+    validateEffectiveRangeNoOverlap(newEffectiveFrom, newEffectiveTill, others);
 
     return {
-      newEffectiveFrom: resolvedEffectiveFrom,
-      effectiveFromChanged: !!newEffectiveFrom,
+      newEffectiveFrom,
+      effectiveFromChanged: !!params.dto.effectiveFrom,
       mostRecent: mostRecent
         ? { id: mostRecent.id, effectiveFrom: mostRecent.effectiveFrom, effectiveTill: mostRecent.effectiveTill }
         : undefined,

@@ -7,6 +7,7 @@ import {
   ActionsIconCellRenderer,
   ActionsIconCellRendererParams,
   BadgeRenderer,
+  DateTimeRenderer,
 } from '@repo/ui/container/datatable/datatable-cell-renderer';
 import { Button } from '@repo/ui/component/ui/button';
 import { Label } from '@repo/ui/component/ui/label';
@@ -163,12 +164,23 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
     return () => obs.disconnect();
   }, [hasMore, loadingMore, loadMore]);
 
-  const handleAddSuccess = (newCompensation: EmployeeCompensationResponseType) => {
-    setCompensations((prev) => [newCompensation, ...prev]);
-    setTotalRecords((prev) => prev + 1);
-    setAddDialogOpen(false);
-    router.refresh();
-  };
+  const handleAddSuccess = useCallback(
+    async (_newCompensation: EmployeeCompensationResponseType) => {
+      setAddDialogOpen(false);
+      try {
+        const fresh = await searchEmployeeCompensations({
+          employeeId,
+          pagination: { page: 1, limit: Math.max(PAGE_SIZE, totalRecords + 10) },
+        });
+        setCompensations(fresh.results);
+        setPage(fresh.page);
+        setTotalRecords(fresh.totalRecords);
+      } catch {
+        router.refresh();
+      }
+    },
+    [employeeId, totalRecords],
+  );
 
   const handleEditSuccess = (updated: EmployeeCompensationResponseType) => {
     setCompensations((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
@@ -195,6 +207,7 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
 
   const colDefs = useMemo<ColDef<EmployeeCompensationResponseType>[]>(
     () => [
+      { headerName: 'Created at', field: 'createdAt', width: 150, cellRenderer: DateTimeRenderer },
       { headerName: 'Gross', field: 'gross', width: 120, valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : '') },
       { headerName: 'Basic', field: 'basic', width: 120, valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : '') },
       { headerName: 'HRA', field: 'hra', width: 120, valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : '') },
@@ -218,7 +231,7 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
         sortable: false,
         resizable: false,
         pinned: 'right',
-        width: 60,
+        width: 90,
         cellClass: '!flex items-center !justify-center',
         cellRenderer: ActionsIconCellRenderer<EmployeeCompensationResponseType>,
         cellRendererParams: {

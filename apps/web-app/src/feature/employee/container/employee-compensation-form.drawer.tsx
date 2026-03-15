@@ -22,6 +22,12 @@ interface Props {
   onSuccess: (compensation: EmployeeCompensationResponseType) => void;
 }
 
+type FieldErrors = {
+  gross?: string;
+  effectiveFrom?: string;
+  effectiveTill?: string;
+};
+
 export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId, compensation, onSuccess }: Props) {
   const isEditing = !!compensation;
   const [gross, setGross] = useState(compensation?.gross?.toString() ?? '');
@@ -29,6 +35,7 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
   const [effectiveTill, setEffectiveTill] = useState(compensation?.effectiveTill ?? '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   useEffect(() => {
     if (open) {
@@ -36,6 +43,7 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
       setEffectiveFrom(compensation?.effectiveFrom ?? '');
       setEffectiveTill(compensation?.effectiveTill ?? '');
       setError('');
+      setFieldErrors({});
     }
   }, [open, compensation]);
 
@@ -55,15 +63,22 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
   }, [gross]);
 
   const handleSubmit = async () => {
+    const errors: FieldErrors = {};
     const grossNum = parseFloat(gross);
-    if (isNaN(grossNum) || grossNum < 0) {
-      setError('Gross is required and must be a valid number');
-      return;
+    if (!gross.trim()) {
+      errors.gross = 'Gross is required';
+    } else if (isNaN(grossNum) || grossNum < 0) {
+      errors.gross = 'Gross must be a valid positive number';
     }
     if (!isEditing && !effectiveFrom) {
-      setError('Effective from is required');
+      errors.effectiveFrom = 'Effective from is required';
+    }
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setError('');
       return;
     }
+    setFieldErrors({});
     setLoading(true);
     setError('');
     try {
@@ -95,7 +110,14 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
       setEffectiveTill('');
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const message = err instanceof Error ? err.message : 'An error occurred';
+      if (message.toLowerCase().includes('effective from')) {
+        setFieldErrors({ effectiveFrom: message });
+        setError('');
+      } else {
+        setFieldErrors({});
+        setError(message);
+      }
     } finally {
       setLoading(false);
     }
@@ -107,9 +129,12 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
       setEffectiveFrom(compensation?.effectiveFrom ?? '');
       setEffectiveTill(compensation?.effectiveTill ?? '');
       setError('');
+      setFieldErrors({});
     }
     onOpenChange(next);
   };
+
+  const hasFieldErrors = Object.keys(fieldErrors).length > 0;
 
   return (
     <Drawer
@@ -128,7 +153,12 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
       }
     >
       <div className='flex flex-col gap-6 p-6'>
-        {error && <p className='text-sm text-destructive'>{error}</p>}
+        {hasFieldErrors && (
+          <p className='rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive'>
+            Please check the below errors to proceed
+          </p>
+        )}
+        {error && !hasFieldErrors && <p className='text-sm text-destructive'>{error}</p>}
 
         <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
           <div className='flex flex-col gap-2'>
@@ -139,9 +169,14 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
               min={0}
               step={1}
               value={gross}
-              onChange={(e) => setGross(e.target.value)}
+              onChange={(e) => {
+                setGross(e.target.value);
+                if (fieldErrors.gross) setFieldErrors((prev) => ({ ...prev, gross: undefined }));
+              }}
               placeholder='0'
+              className={cn(fieldErrors.gross && 'border-destructive')}
             />
+            {fieldErrors.gross && <p className='text-sm text-destructive'>{fieldErrors.gross}</p>}
           </div>
           <div className='flex flex-col gap-2'>
             <Label htmlFor='effectiveFrom'>Effective from</Label>
@@ -149,9 +184,13 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
               id='effectiveFrom'
               type='date'
               value={effectiveFrom}
-              onChange={(e) => setEffectiveFrom(e.target.value)}
-              className={cn(!effectiveFrom && 'text-muted-foreground')}
+              onChange={(e) => {
+                setEffectiveFrom(e.target.value);
+                if (fieldErrors.effectiveFrom) setFieldErrors((prev) => ({ ...prev, effectiveFrom: undefined }));
+              }}
+              className={cn(!effectiveFrom && 'text-muted-foreground', fieldErrors.effectiveFrom && 'border-destructive')}
             />
+            {fieldErrors.effectiveFrom && <p className='text-sm text-destructive'>{fieldErrors.effectiveFrom}</p>}
           </div>
           <div className='flex flex-col gap-2'>
             <Label htmlFor='effectiveTill'>Effective till</Label>
@@ -159,9 +198,13 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
               id='effectiveTill'
               type='date'
               value={effectiveTill}
-              onChange={(e) => setEffectiveTill(e.target.value)}
-              className={cn(!effectiveTill && 'text-muted-foreground')}
+              onChange={(e) => {
+                setEffectiveTill(e.target.value);
+                if (fieldErrors.effectiveTill) setFieldErrors((prev) => ({ ...prev, effectiveTill: undefined }));
+              }}
+              className={cn(!effectiveTill && 'text-muted-foreground', fieldErrors.effectiveTill && 'border-destructive')}
             />
+            {fieldErrors.effectiveTill && <p className='text-sm text-destructive'>{fieldErrors.effectiveTill}</p>}
           </div>
         </div>
 
