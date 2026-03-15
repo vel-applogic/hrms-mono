@@ -1,9 +1,10 @@
-import { Body, Controller, Param, ParseIntPipe, Patch, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Param, ParseIntPipe, Patch, Post, Put } from '@nestjs/common';
 import type {
   EmployeeCompensationCreateRequestType,
   EmployeeCompensationFilterRequestType,
   EmployeeCompensationResponseType,
   EmployeeCompensationUpdateRequestType,
+  OperationStatusResponseType,
   PaginatedResponseType,
 } from '@repo/dto';
 import {
@@ -15,6 +16,7 @@ import type { CurrentUserType } from '@repo/nest-lib';
 import { CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
 
 import { EmployeeCompensationCreateUc } from './uc/employee-compensation-create.uc.js';
+import { EmployeeCompensationDeleteUc } from './uc/employee-compensation-delete.uc.js';
 import { EmployeeCompensationListUc } from './uc/employee-compensation-list.uc.js';
 import { EmployeeCompensationUpdateUc } from './uc/employee-compensation-update.uc.js';
 
@@ -24,6 +26,7 @@ export class EmployeeCompensationController {
     private readonly listUc: EmployeeCompensationListUc,
     private readonly createUc: EmployeeCompensationCreateUc,
     private readonly updateUc: EmployeeCompensationUpdateUc,
+    private readonly deleteUc: EmployeeCompensationDeleteUc,
   ) {}
 
   @Patch('/search')
@@ -49,5 +52,13 @@ export class EmployeeCompensationController {
     @CurrentUser() currentUser: CurrentUserType,
   ): Promise<EmployeeCompensationResponseType> {
     return this.updateUc.execute({ currentUser, id, dto: body });
+  }
+
+  @Delete(':id')
+  async delete(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() currentUser: CurrentUserType,
+  ): Promise<OperationStatusResponseType> {
+    return this.deleteUc.execute({ currentUser, id });
   }
 }

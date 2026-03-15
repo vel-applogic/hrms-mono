@@ -3,8 +3,11 @@ import type {
   EmployeeCompensationResponseType,
   EmployeeCompensationUpdateRequestType,
 } from '@repo/dto';
-import { UserEmployeeCompensationDao, CommonLoggerService, CurrentUserType, IUseCase, PrismaService } from '@repo/nest-lib';
+import type { Prisma } from '@repo/db';
+import { CommonLoggerService, CurrentUserType, IUseCase, PrismaService, UserEmployeeCompensationDao } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
+
+import { validateEffectiveFromNoOverlap } from './_employee-compensation-validation.helper.js';
 
 type Params = {
   currentUser: CurrentUserType;
@@ -12,10 +15,16 @@ type Params = {
   dto: EmployeeCompensationUpdateRequestType;
 };
 
+type ValidateResult = {
+  newEffectiveFrom: Date;
+  effectiveFromChanged: boolean;
+  mostRecent: { id: number; effectiveFrom: Date; effectiveTill: Date | null } | undefined;
+};
+
 @Injectable()
 export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCompensationResponseType> {
   constructor(
-    prisma: PrismaService,
+    private readonly prisma: PrismaService,
     private readonly logger: CommonLoggerService,
     private readonly userEmployeeCompensationDao: UserEmployeeCompensationDao,
   ) {}
@@ -23,25 +32,45 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
   async execute(params: Params): Promise<EmployeeCompensationResponseType> {
     this.logger.i('Updating employee compensation', { id: params.id });
 
-    const existing = await this.userEmployeeCompensationDao.getById({ id: params.id });
-    if (!existing) {
-      throw new ApiError('Compensation not found', 404);
-    }
+    const { newEffectiveFrom, effectiveFromChanged, mostRecent } = await this.validate(params);
 
-    await this.userEmployeeCompensationDao.update({
-      id: params.id,
-      data: {
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const updateData: Prisma.UserEmployeeCompensationUpdateInput = {
         basic: params.dto.basic,
         hra: params.dto.hra,
         otherAllowances: params.dto.otherAllowances,
         gross: params.dto.gross,
         effectiveFrom: params.dto.effectiveFrom ? new Date(params.dto.effectiveFrom) : undefined,
-        effectiveTill: params.dto.effectiveTill ? new Date(params.dto.effectiveTill) : undefined,
+        effectiveTill: params.dto.effectiveTill !== undefined ? (params.dto.effectiveTill ? new Date(params.dto.effectiveTill) : null) : undefined,
         isActive: params.dto.isActive,
-      },
+      };
+
+      if (effectiveFromChanged && mostRecent) {
+        const mostRecentFrom = new Date(mostRecent.effectiveFrom);
+        mostRecentFrom.setHours(0, 0, 0, 0);
+        if (newEffectiveFrom >= mostRecentFrom) {
+          const oneDayBefore = new Date(newEffectiveFrom);
+          oneDayBefore.setDate(oneDayBefore.getDate() - 1);
+          const prevTill = mostRecent.effectiveTill ? new Date(mostRecent.effectiveTill) : null;
+          if (!prevTill || prevTill > oneDayBefore) {
+            await this.userEmployeeCompensationDao.update({
+              id: mostRecent.id,
+              data: { effectiveTill: oneDayBefore, isActive: false },
+              tx,
+            });
+          }
+        }
+      }
+
+      await this.userEmployeeCompensationDao.update({
+        id: params.id,
+        data: updateData,
+        tx,
+      });
+
+      return this.userEmployeeCompensationDao.getById({ id: params.id, tx });
     });
 
-    const updated = await this.userEmployeeCompensationDao.getById({ id: params.id });
     if (!updated) throw new ApiError('Failed to fetch updated compensation', 500);
 
     return {
@@ -56,6 +85,37 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
       isActive: updated.isActive,
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
+    };
+  }
+
+  private async validate(params: Params): Promise<ValidateResult> {
+    const existing = await this.userEmployeeCompensationDao.getById({ id: params.id });
+    if (!existing) {
+      throw new ApiError('Compensation not found', 404);
+    }
+
+    const newEffectiveFrom = params.dto.effectiveFrom ? new Date(params.dto.effectiveFrom) : undefined;
+    if (newEffectiveFrom) newEffectiveFrom.setHours(0, 0, 0, 0);
+
+    const allForUser = await this.userEmployeeCompensationDao.findByUserIdOrderedByEffectiveFromDesc({
+      userId: existing.userId,
+    });
+
+    const others = allForUser.filter((c) => c.id !== params.id);
+    const mostRecent = others[0];
+    const compsToCheck = mostRecent ? others.slice(1) : others;
+
+    const resolvedEffectiveFrom = newEffectiveFrom ?? existing.effectiveFrom;
+    if (newEffectiveFrom) {
+      validateEffectiveFromNoOverlap(newEffectiveFrom, compsToCheck);
+    }
+
+    return {
+      newEffectiveFrom: resolvedEffectiveFrom,
+      effectiveFromChanged: !!newEffectiveFrom,
+      mostRecent: mostRecent
+        ? { id: mostRecent.id, effectiveFrom: mostRecent.effectiveFrom, effectiveTill: mostRecent.effectiveTill }
+        : undefined,
     };
   }
 }

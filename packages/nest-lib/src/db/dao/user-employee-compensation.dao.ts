@@ -32,6 +32,22 @@ export class UserEmployeeCompensationDao extends BaseDao {
     return pc.userEmployeeCompensation.findUnique({ where: { id: params.id } });
   }
 
+  async deleteById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<UserEmployeeCompensation> {
+    const pc = this.getPrismaClient(params.tx);
+    return pc.userEmployeeCompensation.delete({ where: { id: params.id } });
+  }
+
+  async findByUserIdOrderedByEffectiveFromDesc(params: {
+    userId: number;
+    tx?: Prisma.TransactionClient;
+  }): Promise<UserEmployeeCompensation[]> {
+    const pc = this.getPrismaClient(params.tx);
+    return pc.userEmployeeCompensation.findMany({
+      where: { userId: params.userId },
+      orderBy: { effectiveFrom: 'desc' },
+    });
+  }
+
   async updateManyByUserId(params: {
     userId: number;
     data: Prisma.UserEmployeeCompensationUpdateInput;

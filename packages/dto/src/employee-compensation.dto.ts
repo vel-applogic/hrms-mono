@@ -13,7 +13,7 @@ export const EmployeeCompensationCreateRequestSchema = z.object({
   hra: z.number().min(0),
   otherAllowances: z.number().min(0),
   gross: z.number().min(0),
-  effectiveFrom: z.string().optional(),
+  effectiveFrom: z.string(),
   effectiveTill: z.string().optional().nullable(),
 });
 export type EmployeeCompensationCreateRequestType = z.infer<typeof EmployeeCompensationCreateRequestSchema>;

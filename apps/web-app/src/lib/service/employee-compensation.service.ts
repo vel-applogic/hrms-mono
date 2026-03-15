@@ -7,6 +7,7 @@ import type {
 } from '@repo/dto';
 import {
   EmployeeCompensationResponseSchema,
+  OperationStatusResponseSchema,
   PaginatedResponseSchema,
 } from '@repo/dto';
 import { CreateAxiosInstance } from '@repo/ui/lib/axios/axios-instance';
@@ -39,6 +40,13 @@ class EmployeeCompensationService extends BaseService {
       url: `/api/employee-compensation/${id}`,
       data,
       responseSchema: EmployeeCompensationResponseSchema,
+    });
+  }
+
+  async remove(id: number) {
+    return this.delete<{ success: boolean }>({
+      url: `/api/employee-compensation/${id}`,
+      responseSchema: OperationStatusResponseSchema,
     });
   }
 }

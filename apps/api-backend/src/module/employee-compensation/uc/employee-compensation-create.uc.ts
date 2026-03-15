@@ -3,9 +3,16 @@ import type { EmployeeCompensationCreateRequestType, EmployeeCompensationRespons
 import { CommonLoggerService, CurrentUserType, IUseCase, PrismaService, UserEmployeeCompensationDao, UserEmployeeDetailDao } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
+import { validateEffectiveFromNoOverlap } from './_employee-compensation-validation.helper.js';
+
 type Params = {
   currentUser: CurrentUserType;
   dto: EmployeeCompensationCreateRequestType;
+};
+
+type ValidateResult = {
+  newEffectiveFrom: Date;
+  mostRecent: { id: number; effectiveFrom: Date; effectiveTill: Date | null } | undefined;
 };
 
 @Injectable()
@@ -20,17 +27,32 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
   async execute(params: Params): Promise<EmployeeCompensationResponseType> {
     this.logger.i('Creating employee compensation', { employeeId: params.dto.employeeId });
 
-    const employee = await this.userEmployeeDetailDao.getByUserId({ userId: params.dto.employeeId });
-    if (!employee) {
-      throw new ApiError('Employee not found', 404);
-    }
+    const { newEffectiveFrom, mostRecent } = await this.validate(params);
 
     const created = await this.prisma.$transaction(async (tx) => {
+      if (mostRecent) {
+        const mostRecentFrom = new Date(mostRecent.effectiveFrom);
+        mostRecentFrom.setHours(0, 0, 0, 0);
+        if (newEffectiveFrom >= mostRecentFrom) {
+          const oneDayBefore = new Date(newEffectiveFrom);
+          oneDayBefore.setDate(oneDayBefore.getDate() - 1);
+          const prevTill = mostRecent.effectiveTill ? new Date(mostRecent.effectiveTill) : null;
+          if (!prevTill || prevTill > oneDayBefore) {
+            await this.userEmployeeCompensationDao.update({
+              id: mostRecent.id,
+              data: { effectiveTill: oneDayBefore, isActive: false },
+              tx,
+            });
+          }
+        }
+      }
+
       await this.userEmployeeCompensationDao.updateManyByUserId({
         userId: params.dto.employeeId,
         data: { isActive: false },
         tx,
       });
+
       return this.userEmployeeCompensationDao.create({
         data: {
           user: { connect: { id: params.dto.employeeId } },
@@ -38,7 +60,7 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
           hra: params.dto.hra,
           otherAllowances: params.dto.otherAllowances,
           gross: params.dto.gross,
-          effectiveFrom: params.dto.effectiveFrom ? new Date(params.dto.effectiveFrom) : undefined,
+          effectiveFrom: newEffectiveFrom,
           effectiveTill: params.dto.effectiveTill ? new Date(params.dto.effectiveTill) : undefined,
           isActive: true,
         },
@@ -58,6 +80,30 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
       isActive: created.isActive,
       createdAt: created.createdAt.toISOString(),
       updatedAt: created.updatedAt.toISOString(),
+    };
+  }
+
+  private async validate(params: Params): Promise<ValidateResult> {
+    const employee = await this.userEmployeeDetailDao.getByUserId({ userId: params.dto.employeeId });
+    if (!employee) {
+      throw new ApiError('Employee not found', 404);
+    }
+
+    const newEffectiveFrom = new Date(params.dto.effectiveFrom);
+    newEffectiveFrom.setHours(0, 0, 0, 0);
+
+    const existing = await this.userEmployeeCompensationDao.findByUserIdOrderedByEffectiveFromDesc({
+      userId: params.dto.employeeId,
+    });
+
+    const mostRecent = existing[0];
+    const compsToCheck = mostRecent ? existing.slice(1) : existing;
+
+    validateEffectiveFromNoOverlap(newEffectiveFrom, compsToCheck);
+
+    return {
+      newEffectiveFrom,
+      mostRecent: mostRecent ? { id: mostRecent.id, effectiveFrom: mostRecent.effectiveFrom, effectiveTill: mostRecent.effectiveTill } : undefined,
     };
   }
 }

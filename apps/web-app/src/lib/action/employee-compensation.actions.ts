@@ -5,8 +5,10 @@ import type {
   EmployeeCompensationFilterRequestType,
   EmployeeCompensationResponseType,
   EmployeeCompensationUpdateRequestType,
+  OperationStatusResponseType,
   PaginatedResponseType,
 } from '@repo/dto';
+import { revalidatePath } from 'next/cache';
 
 import { employeeCompensationService } from '@/lib/service/employee-compensation.service';
 
@@ -27,4 +29,11 @@ export async function updateEmployeeCompensation(
   data: EmployeeCompensationUpdateRequestType,
 ): Promise<EmployeeCompensationResponseType> {
   return employeeCompensationService.update(id, data);
+}
+
+export async function deleteEmployeeCompensation(id: number, employeeId: number): Promise<OperationStatusResponseType> {
+  const result = await employeeCompensationService.remove(id);
+  revalidatePath('/employee');
+  revalidatePath(`/employee/${employeeId}/compensation`);
+  return result;
 }

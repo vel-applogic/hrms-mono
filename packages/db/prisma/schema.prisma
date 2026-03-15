@@ -207,7 +207,7 @@ model UserEmployeeCompensation {
   hra             Float
   otherAllowances Float     @map("other_allowances")
   gross           Float
-  effectiveFrom   DateTime  @default(now()) @map("effective_from")
+  effectiveFrom   DateTime  @map("effective_from")
   effectiveTill   DateTime? @map("effective_till")
   isActive        Boolean   @default(true) @map("is_active")
   createdAt       DateTime  @default(now()) @map("created_at")

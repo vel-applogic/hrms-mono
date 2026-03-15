@@ -10,14 +10,15 @@ import {
 } from '@repo/ui/container/datatable/datatable-cell-renderer';
 import { Button } from '@repo/ui/component/ui/button';
 import { Label } from '@repo/ui/component/ui/label';
-import { Pencil, Plus } from 'lucide-react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ColDef } from 'ag-grid-community';
 
 import { searchEmployeeCompensations } from '@/lib/action/employee-compensation.actions';
 
-import { EmployeeCompensationFormDialog } from './container/employee-compensation-form.dialog';
+import { EmployeeCompensationDeleteDialog } from './container/employee-compensation-delete.dialog';
+import { EmployeeCompensationFormDrawer } from './container/employee-compensation-form.drawer';
 
 const PAGE_SIZE = 10;
 const TABLE_PAGE_SIZE = 10;
@@ -29,11 +30,15 @@ function formatAmount(value: number) {
 function CompensationWidget({
   title,
   compensation,
+  employeeId,
   onEdit,
+  onDelete,
 }: {
   title: string;
   compensation: EmployeeCompensationResponseType | null;
+  employeeId: number;
   onEdit?: (compensation: EmployeeCompensationResponseType) => void;
+  onDelete?: (compensation: EmployeeCompensationResponseType) => void;
 }) {
   if (!compensation) return null;
   return (
@@ -42,6 +47,16 @@ function CompensationWidget({
         {onEdit && (
           <Button variant='ghost' size='icon' className='h-7 w-7' onClick={() => onEdit(compensation)}>
             <Pencil className='h-3.5 w-3.5' />
+          </Button>
+        )}
+        {onDelete && (
+          <Button
+            variant='ghost'
+            size='icon'
+            className='h-7 w-7 text-destructive hover:text-destructive'
+            onClick={() => onDelete(compensation)}
+          >
+            <Trash2 className='h-3.5 w-3.5' />
           </Button>
         )}
         {compensation.isActive ? (
@@ -81,7 +96,10 @@ function CompensationWidget({
   );
 }
 
-const actionOptions: ActionOption[] = [{ name: 'Edit', icon: Pencil, variant: 'outline' }];
+const actionOptions: ActionOption[] = [
+  { name: 'Edit', icon: Pencil, variant: 'outline' },
+  { name: 'Delete', icon: Trash2, variant: 'outline-danger' },
+];
 
 export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
   const router = useRouter();
@@ -92,6 +110,7 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editingCompensation, setEditingCompensation] = useState<EmployeeCompensationResponseType | null>(null);
+  const [deletingCompensation, setDeletingCompensation] = useState<EmployeeCompensationResponseType | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const hasMore = compensations.length < totalRecords;
@@ -157,9 +176,19 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
     router.refresh();
   };
 
+  const handleDeleteSuccess = () => {
+    if (deletingCompensation) {
+      setCompensations((prev) => prev.filter((c) => c.id !== deletingCompensation.id));
+      setTotalRecords((prev) => Math.max(0, prev - 1));
+      setDeletingCompensation(null);
+    }
+    router.refresh();
+  };
+
   const handleActionClick = useCallback(
     (action: string, data: EmployeeCompensationResponseType) => {
       if (action === 'Edit') setEditingCompensation(data);
+      if (action === 'Delete') setDeletingCompensation(data);
     },
     [],
   );
@@ -215,7 +244,9 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
           <CompensationWidget
             title='Recent compensation'
             compensation={recentCompensation}
+            employeeId={employeeId}
             onEdit={(c) => setEditingCompensation(c)}
+            onDelete={(c) => setDeletingCompensation(c)}
           />
         </div>
       )}
@@ -250,20 +281,25 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
         </div>
       )}
 
-      <EmployeeCompensationFormDialog
+      <EmployeeCompensationFormDrawer
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
         employeeId={employeeId}
-        minEffectiveFrom={recentCompensation?.effectiveFrom}
         onSuccess={handleAddSuccess}
       />
-      <EmployeeCompensationFormDialog
+      <EmployeeCompensationFormDrawer
         open={!!editingCompensation}
         onOpenChange={(open) => !open && setEditingCompensation(null)}
         employeeId={employeeId}
         compensation={editingCompensation ?? undefined}
-        minEffectiveFrom={editingCompensation?.effectiveFrom}
         onSuccess={handleEditSuccess}
+      />
+      <EmployeeCompensationDeleteDialog
+        open={!!deletingCompensation}
+        onOpenChange={(open) => !open && setDeletingCompensation(null)}
+        compensation={deletingCompensation}
+        employeeId={employeeId}
+        onSuccess={handleDeleteSuccess}
       />
     </div>
   );
