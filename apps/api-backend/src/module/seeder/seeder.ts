@@ -15,7 +15,37 @@ export class Seeder {
     this.logger.i('Seeding data start');
     await this.runMigration('create-test-users', () => this.createTestUsers());
     await this.runMigration('create-leave-config', () => this.createLeaveConfig());
+    await this.runMigration('init-employee-leave-counters', () => this.initEmployeeLeaveCounters());
     this.logger.i('Seeding data complete');
+  }
+
+  private async initEmployeeLeaveCounters() {
+    const { getFinancialYearCode } = await import('@repo/shared');
+    const config = await this.prisma.leaveConfig.findFirst({ orderBy: { createdAt: 'desc' } });
+    const totalLeavesAvailable = config?.maxLeaves ?? 24;
+    const employees = await this.prisma.userEmployeeDetail.findMany({ select: { userId: true, dateOfJoining: true } });
+    let created = 0;
+    for (const emp of employees) {
+      const financialYear = getFinancialYearCode(emp.dateOfJoining);
+      const existing = await this.prisma.userEmployeeLeaveCounter.findUnique({
+        where: { userId_financialYear: { userId: emp.userId, financialYear } },
+      });
+      if (!existing) {
+        await this.prisma.userEmployeeLeaveCounter.create({
+          data: {
+            userId: emp.userId,
+            financialYear,
+            casualLeaves: 0,
+            sickLeaves: 0,
+            earnedLeaves: 0,
+            totalLeavesUsed: 0,
+            totalLeavesAvailable,
+          },
+        });
+        created++;
+      }
+    }
+    this.logger.i(`Employee leave counters initialized: ${created} created`);
   }
 
   private async createLeaveConfig() {

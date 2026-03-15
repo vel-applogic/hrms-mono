@@ -64,6 +64,35 @@ export class LeaveDao extends BaseDao {
     return { leaves, totalRecords };
   }
 
+  async getApprovedLeaveTotalsByUserIdAndDateRange(params: {
+    userId: number;
+    startDate: Date;
+    endDate: Date;
+    tx?: Prisma.TransactionClient;
+  }): Promise<{ casualLeaves: number; sickLeaves: number; earnedLeaves: number; totalLeavesUsed: number }> {
+    const pc = this.getPrismaClient(params.tx);
+    const leaves = await pc.leave.findMany({
+      where: {
+        userId: params.userId,
+        status: 'approved',
+        startDate: { gte: params.startDate, lte: params.endDate },
+      },
+      select: { leaveType: true, numberOfDays: true },
+    });
+
+    const totals = { casualLeaves: 0, sickLeaves: 0, earnedLeaves: 0 };
+    for (const l of leaves) {
+      const days = l.numberOfDays;
+      if (l.leaveType === 'casual') totals.casualLeaves += days;
+      else if (l.leaveType === 'sick' || l.leaveType === 'medical') totals.sickLeaves += days;
+      else if (l.leaveType === 'earned') totals.earnedLeaves += days;
+    }
+    return {
+      ...totals,
+      totalLeavesUsed: totals.casualLeaves + totals.sickLeaves + totals.earnedLeaves,
+    };
+  }
+
   async sumDaysByUserIdAndStatus(params: {
     userId: number;
     statuses: string[];

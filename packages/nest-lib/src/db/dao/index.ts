@@ -28,3 +28,4 @@ export {
 } from './user-employee-feedback.dao.js';
 export { LeaveDao, type LeaveWithUserType } from './leave.dao.js';
 export { LeaveConfigDao } from './leave-config.dao.js';
+export { UserEmployeeLeaveCounterDao } from './user-employee-leave-counter.dao.js';

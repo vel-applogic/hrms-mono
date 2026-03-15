@@ -66,7 +66,8 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
       throw new ApiError('End date must be on or after start date', 400);
     }
 
-    const numberOfDays = getBusinessDays(startDate, endDate);
+    const isSameDay = params.dto.startDate === params.dto.endDate;
+    const numberOfDays = isSameDay ? 1 : getBusinessDays(startDate, endDate);
     if (numberOfDays < 1) {
       throw new ApiError('At least one business day is required', 400);
     }

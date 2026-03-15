@@ -1,7 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import type { LeaveResponseType, OperationStatusResponseType } from '@repo/dto';
-import { LeaveDao, UserEmployeeDetailDao, CommonLoggerService, CurrentUserType, IUseCase, PrismaService } from '@repo/nest-lib';
-import { ApiError } from '@repo/shared';
+import type { LeaveResponseType } from '@repo/dto';
+import {
+  LeaveConfigDao,
+  LeaveDao,
+  UserEmployeeDetailDao,
+  UserEmployeeLeaveCounterDao,
+  CommonLoggerService,
+  CurrentUserType,
+  IUseCase,
+  PrismaService,
+} from '@repo/nest-lib';
+import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
   currentUser: CurrentUserType;
@@ -15,6 +24,8 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
     private readonly logger: CommonLoggerService,
     private readonly userEmployeeDetailDao: UserEmployeeDetailDao,
     private readonly leaveDao: LeaveDao,
+    private readonly leaveConfigDao: LeaveConfigDao,
+    private readonly userEmployeeLeaveCounterDao: UserEmployeeLeaveCounterDao,
   ) {}
 
   async execute(params: Params): Promise<LeaveResponseType> {
@@ -45,6 +56,28 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
       id: params.id,
       data: { status: 'cancelled' },
     });
+
+    if (existing.status === 'approved') {
+      const financialYear = getFinancialYearCode(existing.startDate);
+      const { start, end } = getFinancialYearDateRange(financialYear);
+      const totals = await this.leaveDao.getApprovedLeaveTotalsByUserIdAndDateRange({
+        userId: existing.userId,
+        startDate: start,
+        endDate: end,
+      });
+      const leaveConfig = await this.leaveConfigDao.getLatest();
+      const maxLeaves = leaveConfig?.maxLeaves ?? 24;
+      try {
+        await this.userEmployeeLeaveCounterDao.syncFromActualLeaves({
+          userId: existing.userId,
+          financialYear,
+          ...totals,
+          maxLeaves,
+        });
+      } catch {
+        this.logger.w('Failed to sync leave counter', { leaveId: params.id });
+      }
+    }
 
     const updated = await this.leaveDao.getById({ id: params.id });
     if (!updated) throw new ApiError('Failed to fetch updated leave', 500);

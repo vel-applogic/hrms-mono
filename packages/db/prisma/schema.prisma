@@ -103,6 +103,7 @@ model User {
   userEmployeeFeedbacksCreatedBy UserEmployeeFeedback[]     @relation("EmployeeFeedbackCreatedBy")
   userEmployeeFeedbacks          UserEmployeeFeedback[]     @relation("EmployeeFeedbackUser")
   leaves                         Leave[]
+  userEmployeeLeaveCounters      UserEmployeeLeaveCounter[]
 
   @@map("users")
 }
@@ -240,6 +241,24 @@ model UserEmployeeFeedback {
 
   @@index([userId])
   @@map("user_employee_feedback")
+}
+
+model UserEmployeeLeaveCounter {
+  id                   Int      @id @default(autoincrement())
+  userId               Int      @map("user_id")
+  user                 User     @relation(fields: [userId], references: [id])
+  casualLeaves         Int      @map("casual_leaves")
+  sickLeaves           Int      @map("sick_leaves")
+  earnedLeaves         Int      @map("earned_leaves")
+  totalLeavesUsed      Int      @map("total_leaves_used")
+  totalLeavesAvailable Int      @map("total_leaves_available")
+  financialYear        String   @map("financial_year")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, financialYear])
+  @@index([userId])
+  @@map("user_employee_leave_counter")
 }
 
 // LEAVES

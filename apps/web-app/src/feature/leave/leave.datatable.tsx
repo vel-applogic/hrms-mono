@@ -126,14 +126,14 @@ export const LeaveDataTableClient = (props: Props) => {
           params.value ? String(params.value).replace(/([A-Z])/g, ' $1').trim() : '',
       },
       {
-        headerName: 'Start',
-        field: 'startDate',
-        width: 130,
-      },
-      {
-        headerName: 'End',
-        field: 'endDate',
-        width: 130,
+        headerName: 'Date',
+        colId: 'date',
+        width: 180,
+        valueGetter: (params) => {
+          if (!params.data) return '';
+          const { startDate, endDate } = params.data;
+          return startDate === endDate ? startDate : `${startDate} – ${endDate}`;
+        },
       },
       {
         headerName: 'Days',
@@ -168,7 +168,7 @@ export const LeaveDataTableClient = (props: Props) => {
 
   const getConfirmMessage = (action: ConfirmAction, leave: LeaveResponseType) => {
     const name = `${leave.user.firstname} ${leave.user.lastname}`;
-    const dates = `${leave.startDate} - ${leave.endDate}`;
+    const dates = leave.startDate === leave.endDate ? leave.startDate : `${leave.startDate} – ${leave.endDate}`;
     switch (action) {
       case 'approve':
         return `Approve leave request for ${name} (${dates})?`;

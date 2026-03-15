@@ -14,6 +14,7 @@ export {
   UserEmployeeFeedbackDao,
   LeaveDao,
   LeaveConfigDao,
+  UserEmployeeLeaveCounterDao,
   PolicyDao,
   PolicyHasMediaDao,
 } from './dao/index.js';

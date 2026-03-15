@@ -15,13 +15,15 @@ import {
   CommonLoggerService,
   CurrentUserType,
   IUseCase,
+  LeaveConfigDao,
   MediaDao,
   PrismaService,
   UserDao,
   UserEmployeeDetailDao,
   UserEmployeeHasMediaDao,
+  UserEmployeeLeaveCounterDao,
 } from '@repo/nest-lib';
-import { ApiFieldValidationError } from '@repo/shared';
+import { ApiFieldValidationError, getFinancialYearCode } from '@repo/shared';
 import type { Prisma } from '@repo/db';
 
 import { S3Service } from '#src/external-service/s3.service.js';
@@ -48,6 +50,8 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
     private readonly mediaService: MediaService,
     private readonly passwordService: PasswordService,
     private readonly auditService: AuditService,
+    private readonly leaveConfigDao: LeaveConfigDao,
+    private readonly userEmployeeLeaveCounterDao: UserEmployeeLeaveCounterDao,
   ) {
     super(prisma, logger, userEmployeeDetailDao, userEmployeeHasMediaDao, s3Service);
   }
@@ -71,6 +75,7 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
         tx,
       });
 
+      const dateOfJoining = new Date(params.dto.dateOfJoining);
       await this.userEmployeeDetailDao.create({
         data: {
           user: { connect: { id: user.id } },
@@ -79,10 +84,26 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
           pan: params.dto.pan,
           aadhaar: params.dto.aadhaar,
           designation: params.dto.designation,
-          dateOfJoining: new Date(params.dto.dateOfJoining),
+          dateOfJoining,
           dateOfLeaving: params.dto.dateOfLeaving ? new Date(params.dto.dateOfLeaving) : undefined,
           status: params.dto.status,
           reportTo: params.dto.reportToId ? { connect: { id: params.dto.reportToId } } : undefined,
+        },
+        tx,
+      });
+
+      const financialYear = getFinancialYearCode(dateOfJoining);
+      const leaveConfig = await this.leaveConfigDao.getLatest({ tx });
+      const totalLeavesAvailable = leaveConfig?.maxLeaves ?? 24;
+      await this.userEmployeeLeaveCounterDao.create({
+        data: {
+          user: { connect: { id: user.id } },
+          financialYear,
+          casualLeaves: 0,
+          sickLeaves: 0,
+          earnedLeaves: 0,
+          totalLeavesUsed: 0,
+          totalLeavesAvailable,
         },
         tx,
       });
