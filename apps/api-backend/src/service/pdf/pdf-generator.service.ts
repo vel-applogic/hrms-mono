@@ -1,36 +1,9 @@
 import { existsSync } from 'node:fs';
 
 import { Injectable } from '@nestjs/common';
-import handlebars from 'handlebars';
+import type { PayslipTemplateData } from '@repo/shared';
+import { renderPayslipHtml } from '@repo/shared';
 import puppeteer from 'puppeteer-core';
-
-import { PAYSLIP_HTML_TEMPLATE } from './html-templates/payslip.partial.js';
-
-export interface PayslipPdfTableRow {
-  earningTitle: string;
-  earningAmount: string;
-  deductionTitle: string;
-  deductionAmount: string;
-}
-
-export interface PayslipPdfData {
-  companyName: string;
-  companyAddress: string;
-  monthLabel: string;
-  year: number;
-  employeeFirstname: string;
-  employeeLastname: string;
-  employeeEmail: string;
-  employeeId: number;
-  employeeDesignation: string;
-  netAmountFormatted: string;
-  paidDays: number;
-  lopDays: number;
-  grossAmountFormatted: string;
-  deductionAmountFormatted: string;
-  netAmountWordsFormatted: string;
-  tableRows: PayslipPdfTableRow[];
-}
 
 const CHROME_EXECUTABLE_PATHS = [
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
@@ -42,16 +15,10 @@ const CHROME_EXECUTABLE_PATHS = [
 
 @Injectable()
 export class PdfGeneratorService {
-  private readonly compiledPayslipTemplate: HandlebarsTemplateDelegate<PayslipPdfData>;
-
-  constructor() {
-    this.compiledPayslipTemplate = handlebars.compile(PAYSLIP_HTML_TEMPLATE);
-  }
-
-  async generatePayslipPdf(data: PayslipPdfData): Promise<Buffer> {
-    const html = this.compiledPayslipTemplate(data);
-
+  async generatePayslipPdf(data: PayslipTemplateData): Promise<Buffer> {
+    const html = renderPayslipHtml(data);
     const executablePath = this.getChromePath();
+
     const browser = await puppeteer.launch({
       executablePath,
       headless: true,
@@ -80,6 +47,8 @@ export class PdfGeneratorService {
       if (existsSync(p)) return p;
     }
 
-    throw new Error('Chrome/Chromium executable not found. Set CHROME_EXECUTABLE_PATH env variable or install Chrome.');
+    throw new Error(
+      'Chrome/Chromium executable not found. Set CHROME_EXECUTABLE_PATH env variable or install Chrome.',
+    );
   }
 }

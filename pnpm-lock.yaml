@@ -7,6 +7,8 @@ settings:
 overrides:
   pino: 10.3.1
 
+packageExtensionsChecksum: sha256-UxnQP3sNqb5CdmqHxgeit6M1nBmsM6spqTvIVDsLJKI=
+
 importers:
 
   .:
@@ -402,6 +404,9 @@ importers:
       '@repo/dto':
         specifier: workspace:*
         version: link:../dto
+      handlebars:
+        specifier: ^4.7.8
+        version: 4.7.8
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -409,6 +414,9 @@ importers:
       '@repo/config-typescript':
         specifier: workspace:*
         version: link:../config/typescript
+      '@types/handlebars':
+        specifier: ^4.1.0
+        version: 4.1.0
       tsup:
         specifier: ^8.5.1
         version: 8.5.1(jiti@2.6.1)(postcss@8.5.6)(typescript@5.9.3)
@@ -3074,6 +3082,10 @@ packages:
 
   '@types/express@5.0.6':
     resolution: {integrity: sha512-sKYVuV7Sv9fbPIt/442koC7+IIwK5olP1KWeD88e/idgoJqDm3JV/YUiPwkoKK92ylff2MGxSz1CSjsXelx0YA==}
+
+  '@types/handlebars@4.1.0':
+    resolution: {integrity: sha512-gq9YweFKNNB1uFK71eRqsd4niVkXrxHugqWFQkeLRJvGjnxsLr16bYtcsG4tOFwmYi0Bax+wCkbf1reUfdl4kA==}
+    deprecated: This is a stub types definition. handlebars provides its own type definitions, so you do not need this installed.
 
   '@types/http-errors@2.0.5':
     resolution: {integrity: sha512-r8Tayk8HJnX0FztbZN7oVqGccWgw98T/0neJphO91KkmOzug1KkofZURD4UaD5uH8AqcFLfdPErnBod0u71/qg==}
@@ -7343,6 +7355,7 @@ snapshots:
     dependencies:
       '@standard-schema/utils': 0.3.0
       react-hook-form: 7.71.1(react@19.2.4)
+      zod: 4.3.6
 
   '@humanfs/core@0.19.1': {}
 
@@ -9371,6 +9384,10 @@ snapshots:
       '@types/body-parser': 1.19.6
       '@types/express-serve-static-core': 5.1.1
       '@types/serve-static': 2.2.0
+
+  '@types/handlebars@4.1.0':
+    dependencies:
+      handlebars: 4.7.8
 
   '@types/http-errors@2.0.5': {}
 

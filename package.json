@@ -23,6 +23,13 @@
     "overrides": {
       "pino": "10.3.1"
     },
+    "packageExtensions": {
+      "@hookform/resolvers": {
+        "dependencies": {
+          "zod": "^4.3.6"
+        }
+      }
+    },
     "onlyBuiltDependencies": [
       "@nestjs/core",
       "@prisma/client",
