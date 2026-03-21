@@ -3,7 +3,7 @@ import type { UserEmployeeCompensation, UserEmployeeDeduction } from '@repo/db';
 import type { PayslipGenerateRequestType, PayslipGenerateResponseType, PayslipListResponseType } from '@repo/dto';
 import type { PayslipWithUserType } from '@repo/nest-lib';
 import { CommonLoggerService, CurrentUserType, IUseCase, LeaveDao, PayslipDao, UserEmployeeCompensationDao, UserEmployeeDeductionDao, UserEmployeeDetailDao } from '@repo/nest-lib';
-import { DAYS_IN_MONTH } from '@repo/shared';
+import { ApiBadRequestError } from '@repo/shared';
 
 type Params = {
   currentUser: CurrentUserType;
@@ -78,23 +78,31 @@ export class PayslipGenerateUc implements IUseCase<Params, PayslipGenerateRespon
     let generated = 0;
     let skipped = 0;
 
+    const totalDaysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+
     for (const userId of targetUserIds) {
-      // Get all compensations for employee, find one valid for target month
-      const compensations = await this.userEmployeeCompensationDao.findByUserIdOrderedByEffectiveFromDesc({ userId });
-      const activeComp = compensations.find((c: UserEmployeeCompensation) => {
+      // Get all compensations for employee overlapping with target month (ignore isActive)
+      const allCompensations = await this.userEmployeeCompensationDao.findByUserIdOrderedByEffectiveFromDesc({ userId });
+      const overlappingComps = allCompensations.filter((c: UserEmployeeCompensation) => {
         const compFrom = new Date(c.effectiveFrom);
         compFrom.setUTCHours(0, 0, 0, 0);
         const compTill = c.effectiveTill ? new Date(c.effectiveTill) : null;
         if (compTill) compTill.setUTCHours(23, 59, 59, 999);
 
-        const startsBeforeOrOnLastDay = compFrom <= lastDay;
-        const endsAfterOrOnFirstDay = !compTill || compTill >= firstDay;
-        return startsBeforeOrOnLastDay && endsAfterOrOnFirstDay;
+        return compFrom <= lastDay && (!compTill || compTill >= firstDay);
       });
 
-      if (!activeComp) {
+      if (overlappingComps.length === 0) {
         skipped++;
         continue;
+      }
+
+      // Only the latest compensation (the one open-ended) may have no effectiveTill
+      const openEndedComps = overlappingComps.filter((c: UserEmployeeCompensation) => !c.effectiveTill);
+      if (openEndedComps.length > 1) {
+        throw new ApiBadRequestError(
+          `Employee ${userId} has ${openEndedComps.length} compensations with no end date. Only the latest compensation can have no end date.`,
+        );
       }
 
       // Get active deductions for this employee applicable for target month
@@ -129,11 +137,42 @@ export class PayslipGenerateUc implements IUseCase<Params, PayslipGenerateRespon
         return hasStarted && hasNotEnded;
       });
 
-      // Build earnings line items from compensation
+      // Calculate pro-rated earnings from each overlapping compensation
+      // Values in DB are yearly; monthly = value / 12, then pro-rated by active calendar days
+      let totalBasic = 0;
+      let totalHra = 0;
+      let totalOtherAllowances = 0;
+      let totalGross = 0;
+
+      for (const comp of overlappingComps) {
+        const compFrom = new Date(comp.effectiveFrom);
+        compFrom.setUTCHours(0, 0, 0, 0);
+
+        const startDay = compFrom < firstDay ? 1 : compFrom.getUTCDate();
+
+        let endDay: number;
+        if (!comp.effectiveTill) {
+          endDay = totalDaysInMonth;
+        } else {
+          const compTill = new Date(comp.effectiveTill);
+          const tillYear = compTill.getUTCFullYear();
+          const tillMonth = compTill.getUTCMonth() + 1;
+          endDay = tillYear > year || (tillYear === year && tillMonth > month) ? totalDaysInMonth : compTill.getUTCDate();
+        }
+
+        const prorataFactor = (endDay - startDay + 1) / totalDaysInMonth;
+
+        totalBasic += Math.round((comp.basic / 12) * prorataFactor);
+        totalHra += Math.round((comp.hra / 12) * prorataFactor);
+        totalOtherAllowances += Math.round((comp.otherAllowances / 12) * prorataFactor);
+        totalGross += Math.round((comp.gross / 12) * prorataFactor);
+      }
+
+      // Build earnings line items from pro-rated compensation totals
       const earningLineItems = [
-        { type: 'earning' as const, title: 'Basic', amount: activeComp.basic },
-        { type: 'earning' as const, title: 'HRA', amount: activeComp.hra },
-        { type: 'earning' as const, title: 'Other Allowances', amount: activeComp.otherAllowances },
+        { type: 'earning' as const, title: 'Basic', amount: totalBasic },
+        { type: 'earning' as const, title: 'HRA', amount: totalHra },
+        { type: 'earning' as const, title: 'Other Allowances', amount: totalOtherAllowances },
       ].filter((e) => e.amount > 0);
 
       // Build deduction line items
@@ -149,7 +188,7 @@ export class PayslipGenerateUc implements IUseCase<Params, PayslipGenerateRespon
         startDate: firstDay,
         endDate: lastDay,
       });
-      const lopAmount = lopDaysCount > 0 ? Math.round((activeComp.gross / DAYS_IN_MONTH) * lopDaysCount) : 0;
+      const lopAmount = lopDaysCount > 0 ? Math.round((totalGross / totalDaysInMonth) * lopDaysCount) : 0;
       deductionLineItems.push({ type: 'deduction' as const, title: 'Loss of Pay', amount: lopAmount });
 
       const grossAmount = earningLineItems.reduce((s, e) => s + e.amount, 0);
