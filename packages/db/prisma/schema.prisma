@@ -375,18 +375,20 @@ model LeaveConfig {
 }
 
 model Leave {
-  id             Int             @id @default(autoincrement())
-  userId         Int             @map("user_id")
-  user           User            @relation(fields: [userId], references: [id])
-  leaveType      LeaveTypeEnum   @map("leave_type")
-  startDate      DateTime        @map("start_date") @db.Date
-  endDate        DateTime        @map("end_date") @db.Date
-  numberOfDays   Int             @map("number_of_days")
-  reason         String          @map("reason")
-  status         LeaveStatusEnum @default(pending) @map("status")
-  createdAt      DateTime        @default(now()) @map("created_at")
-  updatedAt      DateTime        @updatedAt @map("updated_at")
-  leaveHasMedias LeaveHasMedia[]
+  id              Int             @id @default(autoincrement())
+  userId          Int             @map("user_id")
+  user            User            @relation(fields: [userId], references: [id])
+  leaveType       LeaveTypeEnum   @map("leave_type")
+  startDate       DateTime        @map("start_date") @db.Date
+  endDate         DateTime        @map("end_date") @db.Date
+  numberOfDays    Int             @map("number_of_days")
+  numberOfLopDays Int             @default(0) @map("number_of_lop_days")
+  isConsumed      Boolean         @default(false) @map("is_consumed")
+  reason          String          @map("reason")
+  status          LeaveStatusEnum @default(pending) @map("status")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  leaveHasMedias  LeaveHasMedia[]
 
   @@index([userId])
   @@map("leave")

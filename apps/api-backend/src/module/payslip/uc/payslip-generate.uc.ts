@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import type { UserEmployeeCompensation, UserEmployeeDeduction } from '@repo/db';
 import type { PayslipGenerateRequestType, PayslipGenerateResponseType, PayslipListResponseType } from '@repo/dto';
 import type { PayslipWithUserType } from '@repo/nest-lib';
-import { CommonLoggerService, CurrentUserType, IUseCase, PayslipDao, UserEmployeeCompensationDao, UserEmployeeDeductionDao, UserEmployeeDetailDao } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, LeaveDao, PayslipDao, UserEmployeeCompensationDao, UserEmployeeDeductionDao, UserEmployeeDetailDao } from '@repo/nest-lib';
+import { DAYS_IN_MONTH } from '@repo/shared';
 
 type Params = {
   currentUser: CurrentUserType;
@@ -17,6 +18,7 @@ export class PayslipGenerateUc implements IUseCase<Params, PayslipGenerateRespon
     private readonly userEmployeeDetailDao: UserEmployeeDetailDao,
     private readonly userEmployeeCompensationDao: UserEmployeeCompensationDao,
     private readonly userEmployeeDeductionDao: UserEmployeeDeductionDao,
+    private readonly leaveDao: LeaveDao,
   ) {}
 
   async execute(params: Params): Promise<PayslipGenerateResponseType> {
@@ -140,6 +142,15 @@ export class PayslipGenerateUc implements IUseCase<Params, PayslipGenerateRespon
         title: d.type === 'other' ? (d.otherTitle ?? 'Other') : this.getDeductionLabel(d.type),
         amount: d.amount,
       }));
+
+      // Add LOP deduction based on approved leaves with numberOfLopDays in the target month
+      const lopDaysCount = await this.leaveDao.sumLopDaysByUserIdAndDateRange({
+        userId,
+        startDate: firstDay,
+        endDate: lastDay,
+      });
+      const lopAmount = lopDaysCount > 0 ? Math.round((activeComp.gross / DAYS_IN_MONTH) * lopDaysCount) : 0;
+      deductionLineItems.push({ type: 'deduction' as const, title: 'Loss of Pay', amount: lopAmount });
 
       const grossAmount = earningLineItems.reduce((s, e) => s + e.amount, 0);
       const deductionAmount = deductionLineItems.reduce((s, d) => s + d.amount, 0);

@@ -177,7 +177,7 @@ export function PayslipViewDrawer({ open, onOpenChange, payslipId }: Props) {
                 </div>
 
                 {/* Net Pay Summary */}
-                <div className='rounded-lg border border-primary/40 bg-primary/10 p-5'>
+                <div className='rounded-lg border border-green-500/40 bg-green-500/10 p-5'>
                   <div className='flex items-center justify-between'>
                     <div>
                       <p className='text-sm text-muted-foreground'>Net Pay</p>
@@ -186,7 +186,7 @@ export function PayslipViewDrawer({ open, onOpenChange, payslipId }: Props) {
                         {formatAmount(payslip.deductionAmount)})
                       </p>
                     </div>
-                    <p className='text-2xl font-bold text-primary'>{formatAmount(payslip.netAmount)}</p>
+                    <p className='text-2xl font-bold text-green-400'>{formatAmount(payslip.netAmount)}</p>
                   </div>
                 </div>
               </>
