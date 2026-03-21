@@ -4,11 +4,14 @@ import type {
   EmployeeCompensationResponseType,
   EmployeeCompensationUpdateRequestType,
   PaginatedResponseType,
+  PayrollActiveCompensationFilterRequestType,
+  PayrollActiveCompensationResponseType,
 } from '@repo/dto';
 import {
   EmployeeCompensationResponseSchema,
   OperationStatusResponseSchema,
   PaginatedResponseSchema,
+  PayrollActiveCompensationResponseSchema,
 } from '@repo/dto';
 import { CreateAxiosInstance } from '@repo/ui/lib/axios/axios-instance';
 
@@ -24,6 +27,19 @@ class EmployeeCompensationService extends BaseService {
       url: '/api/employee-compensation/search',
       data: params,
       responseSchema: PaginatedResponseSchema(EmployeeCompensationResponseSchema),
+    });
+  }
+
+  async searchActiveAll(
+    params: PayrollActiveCompensationFilterRequestType,
+  ): Promise<PaginatedResponseType<PayrollActiveCompensationResponseType>> {
+    return this.patch<
+      PaginatedResponseType<PayrollActiveCompensationResponseType>,
+      PayrollActiveCompensationFilterRequestType
+    >({
+      url: '/api/employee-compensation/search-active-all',
+      data: params,
+      responseSchema: PaginatedResponseSchema(PayrollActiveCompensationResponseSchema),
     });
   }
 

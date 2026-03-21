@@ -85,4 +85,29 @@ export class UserEmployeeCompensationDao extends BaseDao {
 
     return { compensations, totalRecords };
   }
+
+  async findActiveWithEmployeeInfo(params: {
+    page: number;
+    limit: number;
+    tx?: Prisma.TransactionClient;
+  }): Promise<{ compensations: (UserEmployeeCompensation & { user: { firstname: string; lastname: string; email: string } })[]; totalRecords: number }> {
+    const pc = this.getPrismaClient(params.tx);
+    const { take, skip } = this.getPagination({
+      pageNo: params.page,
+      pageSize: params.limit,
+    });
+
+    const [totalRecords, compensations] = await Promise.all([
+      pc.userEmployeeCompensation.count({ where: { isActive: true } }),
+      pc.userEmployeeCompensation.findMany({
+        where: { isActive: true },
+        include: { user: { select: { firstname: true, lastname: true, email: true } } },
+        orderBy: { user: { firstname: 'asc' } },
+        take,
+        skip,
+      }),
+    ]);
+
+    return { compensations, totalRecords };
+  }
 }

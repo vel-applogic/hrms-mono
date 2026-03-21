@@ -16,6 +16,7 @@ const tabs = [
   { label: 'Policies', href: '/policy' },
   { label: 'Candidates', href: '/candidate' },
   { label: 'Employees', href: '/employee' },
+  { label: 'Payroll', href: '/payroll/compensation' },
   { label: 'Leaves', href: '/leaves/counter' },
 ];
 

@@ -5,9 +5,16 @@ import { EmployeeCompensationCreateUc } from './uc/employee-compensation-create.
 import { EmployeeCompensationDeleteUc } from './uc/employee-compensation-delete.uc.js';
 import { EmployeeCompensationListUc } from './uc/employee-compensation-list.uc.js';
 import { EmployeeCompensationUpdateUc } from './uc/employee-compensation-update.uc.js';
+import { PayrollActiveCompensationListUc } from './uc/payroll-active-compensation-list.uc.js';
 
 @Module({
   controllers: [EmployeeCompensationController],
-  providers: [EmployeeCompensationListUc, EmployeeCompensationCreateUc, EmployeeCompensationUpdateUc, EmployeeCompensationDeleteUc],
+  providers: [
+    EmployeeCompensationListUc,
+    PayrollActiveCompensationListUc,
+    EmployeeCompensationCreateUc,
+    EmployeeCompensationUpdateUc,
+    EmployeeCompensationDeleteUc,
+  ],
 })
 export class EmployeeCompensationModule {}

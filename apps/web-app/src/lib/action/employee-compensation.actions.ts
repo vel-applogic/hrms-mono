@@ -7,6 +7,8 @@ import type {
   EmployeeCompensationUpdateRequestType,
   OperationStatusResponseType,
   PaginatedResponseType,
+  PayrollActiveCompensationFilterRequestType,
+  PayrollActiveCompensationResponseType,
 } from '@repo/dto';
 import { revalidatePath } from 'next/cache';
 
@@ -16,6 +18,12 @@ export async function searchEmployeeCompensations(
   params: EmployeeCompensationFilterRequestType,
 ): Promise<PaginatedResponseType<EmployeeCompensationResponseType>> {
   return employeeCompensationService.search(params);
+}
+
+export async function searchPayrollActiveCompensations(
+  params: PayrollActiveCompensationFilterRequestType,
+): Promise<PaginatedResponseType<PayrollActiveCompensationResponseType>> {
+  return employeeCompensationService.searchActiveAll(params);
 }
 
 export async function createEmployeeCompensation(

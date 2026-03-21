@@ -43,3 +43,13 @@ export const EmployeeCompensationResponseSchema = z.object({
   updatedAt: z.string(),
 });
 export type EmployeeCompensationResponseType = z.infer<typeof EmployeeCompensationResponseSchema>;
+
+export const PayrollActiveCompensationFilterRequestSchema = FilterRequestSchema;
+export type PayrollActiveCompensationFilterRequestType = z.infer<typeof PayrollActiveCompensationFilterRequestSchema>;
+
+export const PayrollActiveCompensationResponseSchema = EmployeeCompensationResponseSchema.extend({
+  employeeFirstname: z.string(),
+  employeeLastname: z.string(),
+  employeeEmail: z.string(),
+});
+export type PayrollActiveCompensationResponseType = z.infer<typeof PayrollActiveCompensationResponseSchema>;
