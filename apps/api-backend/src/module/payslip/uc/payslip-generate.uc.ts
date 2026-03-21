@@ -100,9 +100,7 @@ export class PayslipGenerateUc implements IUseCase<Params, PayslipGenerateRespon
       // Only the latest compensation (the one open-ended) may have no effectiveTill
       const openEndedComps = overlappingComps.filter((c: UserEmployeeCompensation) => !c.effectiveTill);
       if (openEndedComps.length > 1) {
-        throw new ApiBadRequestError(
-          `Employee ${userId} has ${openEndedComps.length} compensations with no end date. Only the latest compensation can have no end date.`,
-        );
+        throw new ApiBadRequestError(`Employee ${userId} has ${openEndedComps.length} compensations with no end date. Only the latest compensation can have no end date.`);
       }
 
       // Get active deductions for this employee applicable for target month

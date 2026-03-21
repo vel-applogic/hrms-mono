@@ -2,13 +2,7 @@
 
 import type { EmployeeCompensationResponseType, PaginatedResponseType } from '@repo/dto';
 import { DataTableSimple } from '@repo/ui/container/datatable/datatable';
-import {
-  ActionOption,
-  ActionsIconCellRenderer,
-  ActionsIconCellRendererParams,
-  BadgeRenderer,
-  DateTimeRenderer,
-} from '@repo/ui/container/datatable/datatable-cell-renderer';
+import { ActionOption, ActionsIconCellRenderer, ActionsIconCellRendererParams, BadgeRenderer, DateTimeRenderer } from '@repo/ui/container/datatable/datatable-cell-renderer';
 import { Button } from '@repo/ui/component/ui/button';
 import { Label } from '@repo/ui/component/ui/label';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
@@ -51,23 +45,14 @@ function CompensationWidget({
           </Button>
         )}
         {onDelete && (
-          <Button
-            variant='ghost'
-            size='icon'
-            className='h-7 w-7 text-destructive hover:text-destructive'
-            onClick={() => onDelete(compensation)}
-          >
+          <Button variant='ghost' size='icon' className='h-7 w-7 text-destructive hover:text-destructive' onClick={() => onDelete(compensation)}>
             <Trash2 className='h-3.5 w-3.5' />
           </Button>
         )}
         {compensation.isActive ? (
-          <span className='rounded-md border border-green-500/30 bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-400'>
-            Active
-          </span>
+          <span className='rounded-md border border-green-500/30 bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-400'>Active</span>
         ) : (
-          <span className='rounded-md border border-muted-foreground/30 bg-muted/50 px-2 py-0.5 text-xs font-medium text-muted-foreground'>
-            Inactive
-          </span>
+          <span className='rounded-md border border-muted-foreground/30 bg-muted/50 px-2 py-0.5 text-xs font-medium text-muted-foreground'>Inactive</span>
         )}
       </div>
       <h3 className='mb-3 text-sm font-medium text-muted-foreground'>{title}</h3>
@@ -125,10 +110,7 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
     return sorted[0]!;
   }, [compensations]);
 
-  const tableRows = useMemo(
-    () => compensations.filter((c) => c.id !== recentCompensation?.id),
-    [compensations, recentCompensation?.id],
-  );
+  const tableRows = useMemo(() => compensations.filter((c) => c.id !== recentCompensation?.id), [compensations, recentCompensation?.id]);
 
   const paginatedRows = useMemo(() => {
     const start = (tablePage - 1) * tablePageSize;
@@ -197,13 +179,10 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
     router.refresh();
   };
 
-  const handleActionClick = useCallback(
-    (action: string, data: EmployeeCompensationResponseType) => {
-      if (action === 'Edit') setEditingCompensation(data);
-      if (action === 'Delete') setDeletingCompensation(data);
-    },
-    [],
-  );
+  const handleActionClick = useCallback((action: string, data: EmployeeCompensationResponseType) => {
+    if (action === 'Edit') setEditingCompensation(data);
+    if (action === 'Delete') setDeletingCompensation(data);
+  }, []);
 
   const colDefs = useMemo<ColDef<EmployeeCompensationResponseType>[]>(
     () => [
@@ -213,7 +192,7 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
       { headerName: 'HRA', field: 'hra', width: 120, valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : '') },
       { headerName: 'Other Allowance', field: 'otherAllowances', width: 140, valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : '') },
       { headerName: 'Effective from', field: 'effectiveFrom', width: 130 },
-      { headerName: 'Effective till', field: 'effectiveTill', width: 130, valueFormatter: (p) => (p.value ?? '—') },
+      { headerName: 'Effective till', field: 'effectiveTill', width: 130, valueFormatter: (p) => p.value ?? '—' },
       {
         headerName: 'Status',
         field: 'isActive',
@@ -285,21 +264,14 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
       )}
 
       {compensations.length === 0 && <p className='py-4 text-sm text-muted-foreground'>No compensation records yet.</p>}
-      {tableRows.length === 0 && compensations.length > 0 && (
-        <p className='py-4 text-sm text-muted-foreground'>No additional compensation entries beyond the recent one.</p>
-      )}
+      {tableRows.length === 0 && compensations.length > 0 && <p className='py-4 text-sm text-muted-foreground'>No additional compensation entries beyond the recent one.</p>}
       {hasMore && (
         <div ref={sentinelRef} className='flex justify-center py-4'>
           {loadingMore && <span className='text-sm text-muted-foreground'>Loading...</span>}
         </div>
       )}
 
-      <EmployeeCompensationFormDrawer
-        open={addDialogOpen}
-        onOpenChange={setAddDialogOpen}
-        employeeId={employeeId}
-        onSuccess={handleAddSuccess}
-      />
+      <EmployeeCompensationFormDrawer open={addDialogOpen} onOpenChange={setAddDialogOpen} employeeId={employeeId} onSuccess={handleAddSuccess} />
       <EmployeeCompensationFormDrawer
         open={!!editingCompensation}
         onOpenChange={(open) => !open && setEditingCompensation(null)}

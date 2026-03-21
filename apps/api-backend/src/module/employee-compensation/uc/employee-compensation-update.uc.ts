@@ -1,17 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import type {
-  EmployeeCompensationResponseType,
-  EmployeeCompensationUpdateRequestType,
-} from '@repo/dto';
+import type { EmployeeCompensationResponseType, EmployeeCompensationUpdateRequestType } from '@repo/dto';
 import type { Prisma } from '@repo/db';
 import { CommonLoggerService, CurrentUserType, IUseCase, PrismaService, UserEmployeeCompensationDao } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
-import {
-  parseDateOnly,
-  validateEffectiveFromBeforeTill,
-  validateEffectiveRangeNoOverlap,
-} from './_employee-compensation-validation.helper.js';
+import { parseDateOnly, validateEffectiveFromBeforeTill, validateEffectiveRangeNoOverlap } from './_employee-compensation-validation.helper.js';
 
 type Params = {
   currentUser: CurrentUserType;
@@ -99,12 +92,7 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
     }
 
     const newEffectiveFrom = params.dto.effectiveFrom ? parseDateOnly(params.dto.effectiveFrom) : existing.effectiveFrom;
-    const newEffectiveTill =
-      params.dto.effectiveTill !== undefined
-        ? params.dto.effectiveTill
-          ? parseDateOnly(params.dto.effectiveTill)
-          : null
-        : existing.effectiveTill;
+    const newEffectiveTill = params.dto.effectiveTill !== undefined ? (params.dto.effectiveTill ? parseDateOnly(params.dto.effectiveTill) : null) : existing.effectiveTill;
 
     validateEffectiveFromBeforeTill(newEffectiveFrom, newEffectiveTill);
 
@@ -119,9 +107,7 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
     return {
       newEffectiveFrom,
       effectiveFromChanged: !!params.dto.effectiveFrom,
-      mostRecent: mostRecent
-        ? { id: mostRecent.id, effectiveFrom: mostRecent.effectiveFrom, effectiveTill: mostRecent.effectiveTill }
-        : undefined,
+      mostRecent: mostRecent ? { id: mostRecent.id, effectiveFrom: mostRecent.effectiveFrom, effectiveTill: mostRecent.effectiveTill } : undefined,
     };
   }
 }

@@ -19,10 +19,7 @@ type CompensationWithDates = {
  * Validates that newEffectiveFrom is not between effectiveFrom and effectiveTill of any compensation in compsToCheck.
  * @throws ApiError if overlap is detected
  */
-export function validateEffectiveFromNoOverlap(
-  newEffectiveFrom: Date,
-  compsToCheck: CompensationWithDates[],
-): void {
+export function validateEffectiveFromNoOverlap(newEffectiveFrom: Date, compsToCheck: CompensationWithDates[]): void {
   const normalized = new Date(newEffectiveFrom);
   normalized.setUTCHours(0, 0, 0, 0);
 
@@ -32,9 +29,7 @@ export function validateEffectiveFromNoOverlap(
     const compTill = comp.effectiveTill ? new Date(comp.effectiveTill) : null;
     if (compTill) compTill.setUTCHours(23, 59, 59, 999);
 
-    const isBetween = compTill
-      ? normalized >= compFrom && normalized <= compTill
-      : normalized >= compFrom;
+    const isBetween = compTill ? normalized >= compFrom && normalized <= compTill : normalized >= compFrom;
 
     if (isBetween) {
       throw new ApiError(
@@ -50,27 +45,27 @@ export function validateEffectiveFromNoOverlap(
  * null effectiveTill means "ongoing" (range extends indefinitely).
  * @throws ApiError if overlap is detected
  */
-export function validateEffectiveRangeNoOverlap(
-  newFrom: Date,
-  newTill: Date | null,
-  compsToCheck: CompensationWithDates[],
-): void {
+export function validateEffectiveRangeNoOverlap(newFrom: Date, newTill: Date | null, compsToCheck: CompensationWithDates[]): void {
   const from = new Date(newFrom);
   from.setUTCHours(0, 0, 0, 0);
-  const till = newTill ? (() => {
-    const d = new Date(newTill);
-    d.setUTCHours(23, 59, 59, 999);
-    return d;
-  })() : null;
+  const till = newTill
+    ? (() => {
+        const d = new Date(newTill);
+        d.setUTCHours(23, 59, 59, 999);
+        return d;
+      })()
+    : null;
 
   for (const comp of compsToCheck) {
     const compFrom = new Date(comp.effectiveFrom);
     compFrom.setUTCHours(0, 0, 0, 0);
-    const compTill = comp.effectiveTill ? (() => {
-      const d = new Date(comp.effectiveTill!);
-      d.setUTCHours(23, 59, 59, 999);
-      return d;
-    })() : null;
+    const compTill = comp.effectiveTill
+      ? (() => {
+          const d = new Date(comp.effectiveTill!);
+          d.setUTCHours(23, 59, 59, 999);
+          return d;
+        })()
+      : null;
 
     // Ranges [from, till] and [compFrom, compTill] overlap iff from <= compTill && compFrom <= till
     // When till/compTill is null, treat as "no end" - use far future for comparison
@@ -85,7 +80,6 @@ export function validateEffectiveRangeNoOverlap(
     }
   }
 }
-
 /** Ensures effectiveFrom <= effectiveTill when both are set. */
 export function validateEffectiveFromBeforeTill(from: Date, till: Date | null): void {
   if (!till) return;
@@ -97,4 +91,3 @@ export function validateEffectiveFromBeforeTill(from: Date, till: Date | null): 
     throw new ApiError('Effective from must be on or before effective till', 400);
   }
 }
-

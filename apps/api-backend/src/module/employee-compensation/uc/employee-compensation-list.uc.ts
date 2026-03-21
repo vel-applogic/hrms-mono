@@ -1,9 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type {
-  EmployeeCompensationFilterRequestType,
-  EmployeeCompensationResponseType,
-  PaginatedResponseType,
-} from '@repo/dto';
+import type { EmployeeCompensationFilterRequestType, EmployeeCompensationResponseType, PaginatedResponseType } from '@repo/dto';
 import { UserEmployeeCompensationDao, UserEmployeeDetailDao, CommonLoggerService, CurrentUserType, IUseCase, PrismaService } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 

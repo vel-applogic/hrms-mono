@@ -153,11 +153,7 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
       }
     >
       <div className='flex flex-col gap-6 p-6'>
-        {hasFieldErrors && (
-          <p className='rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive'>
-            Please check the below errors to proceed
-          </p>
-        )}
+        {hasFieldErrors && <p className='rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive'>Please check the below errors to proceed</p>}
         {error && !hasFieldErrors && <p className='text-sm text-destructive'>{error}</p>}
 
         <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
