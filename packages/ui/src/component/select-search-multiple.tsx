@@ -1,10 +1,10 @@
 'use client';
 
-import { Check, ChevronsUpDown, X } from 'lucide-react';
+import { ChevronsUpDown, X } from 'lucide-react';
 import * as React from 'react';
 
 import { cn } from '../lib/utils';
-import { Badge } from './ui/badge';
+import { Checkbox } from './shadcn/checkbox';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { SelectOption } from './select-search';
@@ -33,6 +33,7 @@ export const SelectSearchMulti = (props: SelectSearchMultiProps) => {
   };
 
   const selectedLabels = options.filter((o) => values.includes(o.value)).map((o) => o.label);
+  const triggerText = selectedLabels.join(', ');
 
   return (
     <Popover modal open={open} onOpenChange={setOpen}>
@@ -47,24 +48,12 @@ export const SelectSearchMulti = (props: SelectSearchMultiProps) => {
             'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
             'disabled:cursor-not-allowed disabled:opacity-50',
             values.length === 0 && 'text-muted-foreground',
-            values.length > 0 && 'text-white',
             className,
           )}
         >
-          {values.length === 0 ? (
-            <span className='truncate'>{placeholder}</span>
-          ) : (
-            <div className='flex min-w-0 flex-1 items-center gap-1 overflow-hidden'>
-              {selectedLabels.slice(0, 2).map((label) => (
-                <Badge key={label} variant='secondary' className='shrink-0 truncate max-w-[80px] text-xs'>
-                  {label}
-                </Badge>
-              ))}
-              {selectedLabels.length > 2 && (
-                <span className='shrink-0 text-xs text-muted-foreground'>+{selectedLabels.length - 2}</span>
-              )}
-            </div>
-          )}
+          <span className='truncate min-w-0 flex-1 text-left'>
+            {values.length === 0 ? placeholder : triggerText}
+          </span>
           {values.length > 0 ? (
             <span
               role='button'
@@ -97,7 +86,7 @@ export const SelectSearchMulti = (props: SelectSearchMultiProps) => {
                     keywords={option.keywords}
                     onSelect={() => toggle(option.value)}
                   >
-                    <Check className={cn('mr-2 h-4 w-4', selected ? 'opacity-100' : 'opacity-0')} />
+                    <Checkbox checked={selected} className='mr-2 pointer-events-none' />
                     {option.label}
                   </CommandItem>
                 );

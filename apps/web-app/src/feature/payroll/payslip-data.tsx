@@ -25,7 +25,7 @@ function formatAmount(value: number) {
 
 export function PayslipData() {
   const now = new Date();
-  const [month, setMonth] = useState<string>(String(now.getMonth() + 1));
+  const [month, setMonth] = useState<string>('');
   const [year, setYear] = useState<string>(String(now.getFullYear()));
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([]);
   const [employeeOptions, setEmployeeOptions] = useState<{ value: string; label: string }[]>([]);
