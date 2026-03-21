@@ -15,6 +15,7 @@ import { CandidateFeedbackModule } from './module/candidate-feedback/candidate-f
 import { EmployeeModule } from './module/employee/employee.module.js';
 import { EmployeeFeedbackModule } from './module/employee-feedback/employee-feedback.module.js';
 import { EmployeeCompensationModule } from './module/employee-compensation/employee-compensation.module.js';
+import { EmployeeDeductionModule } from './module/employee-deduction/employee-deduction.module.js';
 import { LeaveModule } from './module/leave/leave.module.js';
 import { MediaModule } from './module/media/media.module.js';
 import { SeederModule } from './module/seeder/seeder.module.js';
@@ -36,6 +37,7 @@ import { ServiceModule } from './service/service.module.js';
     EmployeeModule,
     EmployeeFeedbackModule,
     EmployeeCompensationModule,
+    EmployeeDeductionModule,
     LeaveModule,
     PolicyModule,
     SeederModule,

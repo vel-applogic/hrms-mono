@@ -22,6 +22,7 @@ export {
   type UserEmployeeHasMediaWithMediaType,
 } from './user-employee-has-media.dao.js';
 export { UserEmployeeCompensationDao } from './user-employee-compensation.dao.js';
+export { UserEmployeeDeductionDao } from './user-employee-deduction.dao.js';
 export {
   UserEmployeeFeedbackDao,
   type UserEmployeeFeedbackWithCreatedByType,

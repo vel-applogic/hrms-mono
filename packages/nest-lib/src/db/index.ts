@@ -11,6 +11,7 @@ export {
   UserEmployeeDetailDao,
   UserEmployeeHasMediaDao,
   UserEmployeeCompensationDao,
+  UserEmployeeDeductionDao,
   UserEmployeeFeedbackDao,
   LeaveDao,
   LeaveConfigDao,

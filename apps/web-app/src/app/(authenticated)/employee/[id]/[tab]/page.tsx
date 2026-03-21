@@ -4,8 +4,9 @@ import { EmployeeView } from '@/feature/employee/employee-view';
 import { getEmployeeById } from '@/lib/action/employee.actions';
 import { searchEmployeeFeedbacks } from '@/lib/action/employee-feedback.actions';
 import { searchEmployeeCompensations } from '@/lib/action/employee-compensation.actions';
+import { searchEmployeeDeductions } from '@/lib/action/employee-deduction.actions';
 
-const TABS = ['details', 'documents', 'feedbacks', 'compensation'] as const;
+const TABS = ['details', 'documents', 'feedbacks', 'compensation', 'deduction'] as const;
 type Tab = (typeof TABS)[number];
 
 function isTab(tab: string): tab is Tab {
@@ -23,11 +24,12 @@ export default async function EmployeeViewPage(props: Props) {
     notFound();
   }
 
-  const [employee, feedbackPage, compensationPage] = await Promise.all([
+  const [employee, feedbackPage, compensationPage, deductionPage] = await Promise.all([
     getEmployeeById(employeeId),
     searchEmployeeFeedbacks({ employeeId, pagination: { page: 1, limit: 10 } }),
     searchEmployeeCompensations({ employeeId, pagination: { page: 1, limit: 10 } }),
-  ]).catch(() => [null, null, null]);
+    searchEmployeeDeductions({ employeeId, pagination: { page: 1, limit: 10 } }),
+  ]).catch(() => [null, null, null, null]);
 
   if (!employee) {
     notFound();
@@ -39,6 +41,7 @@ export default async function EmployeeViewPage(props: Props) {
         employee={employee}
         initialFeedbackPage={feedbackPage ?? { results: [], totalRecords: 0, page: 1, limit: 10 }}
         initialCompensationPage={compensationPage ?? { results: [], totalRecords: 0, page: 1, limit: 10 }}
+        initialDeductionPage={deductionPage ?? { results: [], totalRecords: 0, page: 1, limit: 10 }}
         activeTab={tab}
       />
     </div>

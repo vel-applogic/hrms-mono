@@ -3,6 +3,7 @@
 import type {
   EmployeeDetailResponseType,
   EmployeeCompensationResponseType,
+  EmployeeDeductionResponseType,
   EmployeeFeedbackResponseType,
   PaginatedResponseType,
 } from '@repo/dto';
@@ -12,6 +13,7 @@ import Link from 'next/link';
 
 import { EmployeeViewBasicDetails } from './employee-view-basic-details';
 import { EmployeeViewCompensation } from './employee-view-compensation';
+import { EmployeeViewDeduction } from './employee-view-deduction';
 import { EmployeeViewDocuments } from './employee-view-documents';
 import { EmployeeViewFeedbacks } from './employee-view-feedbacks';
 
@@ -20,16 +22,18 @@ const TABS = [
   { id: 'documents' as const, label: 'Documents' },
   { id: 'feedbacks' as const, label: 'Feedbacks' },
   { id: 'compensation' as const, label: 'Compensation' },
+  { id: 'deduction' as const, label: 'Deduction' },
 ] as const;
 
 interface Props {
   employee: EmployeeDetailResponseType;
   initialFeedbackPage: PaginatedResponseType<EmployeeFeedbackResponseType>;
   initialCompensationPage: PaginatedResponseType<EmployeeCompensationResponseType>;
-  activeTab: 'details' | 'documents' | 'feedbacks' | 'compensation';
+  initialDeductionPage: PaginatedResponseType<EmployeeDeductionResponseType>;
+  activeTab: 'details' | 'documents' | 'feedbacks' | 'compensation' | 'deduction';
 }
 
-export function EmployeeView({ employee, initialFeedbackPage, initialCompensationPage, activeTab }: Props) {
+export function EmployeeView({ employee, initialFeedbackPage, initialCompensationPage, initialDeductionPage, activeTab }: Props) {
   return (
     <div className='flex h-full flex-col gap-4 pt-4'>
       <div className='center-container flex items-center justify-between'>
@@ -71,6 +75,9 @@ export function EmployeeView({ employee, initialFeedbackPage, initialCompensatio
           )}
           {activeTab === 'compensation' && (
             <EmployeeViewCompensation employeeId={employee.id} initialPage={initialCompensationPage} />
+          )}
+          {activeTab === 'deduction' && (
+            <EmployeeViewDeduction employeeId={employee.id} initialPage={initialDeductionPage} />
           )}
         </div>
       </div>

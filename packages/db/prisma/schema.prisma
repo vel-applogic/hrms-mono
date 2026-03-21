@@ -104,6 +104,7 @@ model User {
   userEmployeeFeedbacks          UserEmployeeFeedback[]     @relation("EmployeeFeedbackUser")
   leaves                         Leave[]
   userEmployeeLeaveCounters      UserEmployeeLeaveCounter[]
+  userEmployeeDeductions         UserEmployeeDeduction[]
 
   @@map("users")
 }
@@ -204,10 +205,10 @@ model UserEmployeeCompensation {
   id              Int       @id @default(autoincrement())
   userId          Int       @map("user_id")
   user            User      @relation("EmployeeCompensationUser", fields: [userId], references: [id])
-  basic           Float     @map("basic")
-  hra             Float
-  otherAllowances Float     @map("other_allowances")
-  gross           Float
+  basic           Int       @map("basic")
+  hra             Int
+  otherAllowances Int       @map("other_allowances")
+  gross           Int
   effectiveFrom   DateTime  @map("effective_from") @db.Date
   effectiveTill   DateTime? @map("effective_till") @db.Date
   isActive        Boolean   @default(true) @map("is_active")
@@ -216,6 +217,44 @@ model UserEmployeeCompensation {
 
   @@index([userId])
   @@map("employee_compensation")
+}
+
+enum UserEmployeeDeductionType {
+  providentFund
+  incomeTax
+  insurance
+  professionalTax
+  loan
+  other
+
+  @@map("userEmployeeDeductionType")
+}
+
+enum UserEmployeeDeductionFrequency {
+  monthly
+  yearly
+  specificMonth
+
+  @@map("userEmployeeDeductionFrequency")
+}
+
+model UserEmployeeDeduction {
+  id            Int                            @id @default(autoincrement())
+  userId        Int                            @map("user_id")
+  user          User                           @relation(fields: [userId], references: [id])
+  type          UserEmployeeDeductionType      @map("type")
+  frequency     UserEmployeeDeductionFrequency @map("frequency")
+  amount        Int                            @map("amount")
+  otherTitle    String?                        @map("other_title")
+  effectiveFrom DateTime                       @map("effective_from") @db.Date
+  effectiveTill DateTime?                      @map("effective_till") @db.Date
+  specificMonth DateTime?                      @map("specific_month") @db.Date
+  isActive      Boolean                        @default(true) @map("is_active")
+  createdAt     DateTime                       @default(now()) @map("created_at")
+  updatedAt     DateTime                       @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("user_employee_deduction")
 }
 
 enum EmployeeFeedbackTrend {
