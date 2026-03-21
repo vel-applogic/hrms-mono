@@ -8,7 +8,8 @@ export type PayslipWithUserType = Payslip & {
   user: { firstname: string; lastname: string; email: string };
 };
 
-export type PayslipWithDetailsType = PayslipWithUserType & {
+export type PayslipWithDetailsType = Payslip & {
+  user: { firstname: string; lastname: string; email: string; employees?: { designation: string }[] };
   payslipLineItems: PayslipLineItem[];
 };
 
@@ -37,7 +38,14 @@ export class PayslipDao extends BaseDao {
     return pc.payslip.findUnique({
       where: { id: params.id },
       include: {
-        user: { select: { firstname: true, lastname: true, email: true } },
+        user: {
+          select: {
+            firstname: true,
+            lastname: true,
+            email: true,
+            employees: { select: { designation: true }, take: 1 },
+          },
+        },
         payslipLineItems: { orderBy: { type: 'asc' } },
       },
     });

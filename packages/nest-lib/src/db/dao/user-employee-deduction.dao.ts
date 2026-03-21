@@ -37,6 +37,22 @@ export class UserEmployeeDeductionDao extends BaseDao {
     return pc.userEmployeeDeduction.delete({ where: { id: params.id } });
   }
 
+  async findActiveByUserIdAndType(params: {
+    userId: number;
+    type: string;
+    tx?: Prisma.TransactionClient;
+  }): Promise<UserEmployeeDeduction[]> {
+    const pc = this.getPrismaClient(params.tx);
+    return pc.userEmployeeDeduction.findMany({
+      where: {
+        userId: params.userId,
+        type: params.type as UserEmployeeDeduction['type'],
+        isActive: true,
+      },
+      orderBy: { effectiveFrom: 'asc' },
+    });
+  }
+
   async findByUserIdWithPagination(params: {
     userId: number;
     page: number;

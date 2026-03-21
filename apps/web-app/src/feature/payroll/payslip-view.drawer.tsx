@@ -7,17 +7,34 @@ import { useEffect, useState } from 'react';
 
 import { getPayslipById } from '@/lib/action/payslip.actions';
 
-const MONTH_LABELS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
+const MONTH_LABELS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 function formatAmount(value: number): string {
   return `₹${value.toLocaleString('en-IN')}`;
 }
 
-const ONES = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
-  'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+const ONES = [
+  '',
+  'One',
+  'Two',
+  'Three',
+  'Four',
+  'Five',
+  'Six',
+  'Seven',
+  'Eight',
+  'Nine',
+  'Ten',
+  'Eleven',
+  'Twelve',
+  'Thirteen',
+  'Fourteen',
+  'Fifteen',
+  'Sixteen',
+  'Seventeen',
+  'Eighteen',
+  'Nineteen',
+];
 const TENS = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
 
 function toWords(n: number): string {
@@ -67,29 +84,27 @@ export function PayslipViewDrawer({ open, onOpenChange, payslipId }: Props) {
   const lopItem = deductions.find((li) => li.title === 'Loss of Pay');
   const maxRows = Math.max(earnings.length, deductions.length);
 
+  const calendarDays = payslip ? new Date(payslip.year, payslip.month, 0).getDate() : 0;
+  const lopDays = payslip && lopItem && payslip.grossAmount > 0 ? Math.round((lopItem.amount * 30) / payslip.grossAmount) : 0;
+  const paidDays = calendarDays - lopDays;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='max-w-3xl p-0 bg-white text-gray-900'>
         <ScrollArea className='max-h-[90vh]'>
-
           {loading && (
             <div className='flex items-center justify-center py-16'>
               <p className='text-sm text-gray-500'>Loading payslip…</p>
             </div>
           )}
 
-          {error && (
-            <p className='m-6 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600'>{error}</p>
-          )}
+          {error && <p className='m-6 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600'>{error}</p>}
 
           {payslip && (
             <div className='flex flex-col text-sm text-gray-800'>
-
               {/* Company Header */}
               <div className='flex items-start gap-4 border-b border-gray-200 px-6 py-5'>
-                <div className='flex h-16 w-16 shrink-0 items-center justify-center rounded border border-gray-300 bg-gray-100 text-xs text-gray-400'>
-                  Logo
-                </div>
+                <div className='flex h-16 w-16 shrink-0 items-center justify-center rounded border border-gray-300 bg-gray-100 text-xs text-gray-400'>Logo</div>
                 <div>
                   <p className='text-base font-bold text-gray-900'>Company Name</p>
                   <p className='text-xs text-gray-500'>Company Address</p>
@@ -105,19 +120,15 @@ export function PayslipViewDrawer({ open, onOpenChange, payslipId }: Props) {
                 <div className='border-r border-gray-200 px-6 py-4'>
                   <table className='w-full text-xs'>
                     <tbody>
-                      <InfoRow label='Employee Name' value={`${payslip.employeeFirstname} ${payslip.employeeLastname}`} bold />
+                      <InfoRow label='Employee Name' value={`${payslip.employeeFirstname} ${payslip.employeeLastname} (${payslip.employeeEmail})`} bold />
                       <InfoRow label='Employee ID' value={String(payslip.employeeId)} />
+                      <InfoRow label='Designation' value={payslip.employeeDesignation} />
                       <InfoRow label='Pay Period' value={`${MONTH_LABELS[payslip.month - 1]} ${payslip.year}`} />
-                      <InfoRow
-                        label='Pay Date'
-                        value={new Date(payslip.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                      />
-                      <InfoRow label='Email' value={payslip.employeeEmail} />
                     </tbody>
                   </table>
                 </div>
 
-                {/* Right — Net pay + LOP */}
+                {/* Right — Net pay + days */}
                 <div className='px-6 py-4'>
                   <div className='mb-3 rounded border border-green-200 bg-green-50 px-4 py-3'>
                     <p className='text-xl font-bold text-green-600'>{formatAmount(payslip.netAmount)}</p>
@@ -125,9 +136,8 @@ export function PayslipViewDrawer({ open, onOpenChange, payslipId }: Props) {
                   </div>
                   <table className='w-full text-xs'>
                     <tbody>
-                      <InfoRow label='Gross Earnings' value={formatAmount(payslip.grossAmount)} />
-                      <InfoRow label='Total Deductions' value={formatAmount(payslip.deductionAmount)} />
-                      {lopItem && <InfoRow label='LOP Deduction' value={formatAmount(lopItem.amount)} />}
+                      <InfoRow label='Paid Days' value={String(paidDays)} />
+                      <InfoRow label='LOP Days' value={String(lopDays)} />
                     </tbody>
                   </table>
                 </div>
@@ -206,7 +216,6 @@ export function PayslipViewDrawer({ open, onOpenChange, payslipId }: Props) {
               <div className='border-t border-gray-200 px-6 py-3 text-center'>
                 <p className='text-xs text-gray-400'>– This is a system-generated document. –</p>
               </div>
-
             </div>
           )}
         </ScrollArea>

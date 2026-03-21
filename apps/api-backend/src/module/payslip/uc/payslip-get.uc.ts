@@ -34,6 +34,7 @@ export class PayslipGetUc implements IUseCase<Params, PayslipDetailResponseType>
       employeeFirstname: p.user.firstname,
       employeeLastname: p.user.lastname,
       employeeEmail: p.user.email,
+      employeeDesignation: p.user.employees?.[0]?.designation ?? '',
       month: p.month,
       year: p.year,
       grossAmount: p.grossAmount,

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { EmployeeDeductionCreateRequestType, EmployeeDeductionResponseType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, UserEmployeeDeductionDao, UserEmployeeDetailDao } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, PrismaService, UserEmployeeDeductionDao, UserEmployeeDetailDao } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 import { parseDateOnly, parseMonthYearToFirstDay, validateEffectiveFromBeforeTill } from './_employee-deduction-validation.helper.js';
@@ -14,6 +14,7 @@ type Params = {
 export class EmployeeDeductionCreateUc implements IUseCase<Params, EmployeeDeductionResponseType> {
   constructor(
     private readonly logger: CommonLoggerService,
+    private readonly prisma: PrismaService,
     private readonly userEmployeeDetailDao: UserEmployeeDetailDao,
     private readonly userEmployeeDeductionDao: UserEmployeeDeductionDao,
   ) {}
@@ -41,20 +42,59 @@ export class EmployeeDeductionCreateUc implements IUseCase<Params, EmployeeDeduc
       }
     }
 
-    const specificMonth = params.dto.frequency === 'specificMonth' && params.dto.specificMonth ? parseMonthYearToFirstDay(params.dto.specificMonth) : undefined;
+    // Check for existing active deductions of the same type
+    const existingActive = await this.userEmployeeDeductionDao.findActiveByUserIdAndType({
+      userId: params.dto.employeeId,
+      type: params.dto.type,
+    });
 
-    const created = await this.userEmployeeDeductionDao.create({
-      data: {
-        user: { connect: { id: params.dto.employeeId } },
-        type: params.dto.type,
-        frequency: params.dto.frequency,
-        amount: params.dto.amount,
-        otherTitle: params.dto.type === 'other' ? (params.dto.otherTitle ?? undefined) : undefined,
-        specificMonth,
-        effectiveFrom,
-        effectiveTill: effectiveTill ?? undefined,
-        isActive: params.dto.isActive ?? true,
-      },
+    for (const existing of existingActive) {
+      const existingFrom = new Date(existing.effectiveFrom);
+      existingFrom.setUTCHours(0, 0, 0, 0);
+      const newFrom = new Date(effectiveFrom);
+      newFrom.setUTCHours(0, 0, 0, 0);
+
+      if (newFrom <= existingFrom) {
+        throw new ApiError(
+          `A ${params.dto.type} deduction already exists effective from ${existingFrom.toISOString().split('T')[0]}. New effective from must be after that date.`,
+          400,
+        );
+      }
+    }
+
+    const specificMonth =
+      params.dto.frequency === 'specificMonth' && params.dto.specificMonth
+        ? parseMonthYearToFirstDay(params.dto.specificMonth)
+        : undefined;
+
+    // One day before new effectiveFrom
+    const prevEffectiveTill = new Date(effectiveFrom);
+    prevEffectiveTill.setUTCDate(prevEffectiveTill.getUTCDate() - 1);
+
+    const created = await this.prisma.$transaction(async (tx) => {
+      // Deactivate all previous active deductions of same type
+      for (const existing of existingActive) {
+        await this.userEmployeeDeductionDao.update({
+          id: existing.id,
+          data: { isActive: false, effectiveTill: prevEffectiveTill },
+          tx,
+        });
+      }
+
+      return this.userEmployeeDeductionDao.create({
+        data: {
+          user: { connect: { id: params.dto.employeeId } },
+          type: params.dto.type,
+          frequency: params.dto.frequency,
+          amount: params.dto.amount,
+          otherTitle: params.dto.type === 'other' ? (params.dto.otherTitle ?? undefined) : undefined,
+          specificMonth,
+          effectiveFrom,
+          effectiveTill: effectiveTill ?? undefined,
+          isActive: params.dto.isActive ?? true,
+        },
+        tx,
+      });
     });
 
     return {

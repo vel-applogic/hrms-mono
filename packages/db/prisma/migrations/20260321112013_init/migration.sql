@@ -5,10 +5,25 @@ CREATE TYPE "auditEntityTypeDbEnum" AS ENUM ('user', 'user_admin', 'candidate', 
 CREATE TYPE "employeeStatusEnum" AS ENUM ('active', 'resigned', 'onLeave', 'terminated');
 
 -- CreateEnum
-CREATE TYPE "employeeMediaType" AS ENUM ('photo', 'document');
+CREATE TYPE "employeeMediaType" AS ENUM ('photo', 'resume', 'offerLetter', 'otherDocuments');
+
+-- CreateEnum
+CREATE TYPE "userEmployeeDeductionType" AS ENUM ('providentFund', 'incomeTax', 'insurance', 'professionalTax', 'loan', 'lop', 'other');
+
+-- CreateEnum
+CREATE TYPE "userEmployeeDeductionFrequency" AS ENUM ('monthly', 'yearly', 'specificMonth');
+
+-- CreateEnum
+CREATE TYPE "PayslipLineItemType" AS ENUM ('earning', 'deduction');
 
 -- CreateEnum
 CREATE TYPE "employeeFeedbackTrend" AS ENUM ('positive', 'negative', 'neutral');
+
+-- CreateEnum
+CREATE TYPE "leaveTypeEnum" AS ENUM ('casual', 'sick', 'medical', 'earned');
+
+-- CreateEnum
+CREATE TYPE "leaveStatusEnum" AS ENUM ('pending', 'approved', 'rejected', 'cancelled');
 
 -- CreateEnum
 CREATE TYPE "candidateSource" AS ENUM ('email', 'googleSearch', 'lead', 'linkedin', 'referral', 'websiteForm');
@@ -178,20 +193,67 @@ CREATE TABLE "employee_has_media" (
 );
 
 -- CreateTable
-CREATE TABLE "employee_salary" (
+CREATE TABLE "employee_compensation" (
     "id" SERIAL NOT NULL,
     "user_id" INTEGER NOT NULL,
-    "basic" DOUBLE PRECISION NOT NULL,
-    "hra" DOUBLE PRECISION NOT NULL,
-    "other_allowances" DOUBLE PRECISION NOT NULL,
-    "gross" DOUBLE PRECISION NOT NULL,
-    "effective_from" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "effective_till" TIMESTAMP(3),
+    "basic" INTEGER NOT NULL,
+    "hra" INTEGER NOT NULL,
+    "other_allowances" INTEGER NOT NULL,
+    "gross" INTEGER NOT NULL,
+    "effective_from" DATE NOT NULL,
+    "effective_till" DATE,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "employee_salary_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "employee_compensation_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "user_employee_deduction" (
+    "id" SERIAL NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "type" "userEmployeeDeductionType" NOT NULL,
+    "frequency" "userEmployeeDeductionFrequency" NOT NULL,
+    "amount" INTEGER NOT NULL,
+    "other_title" TEXT,
+    "effective_from" DATE NOT NULL,
+    "effective_till" DATE,
+    "specific_month" DATE,
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "user_employee_deduction_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "payslip" (
+    "id" SERIAL NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "month" INTEGER NOT NULL,
+    "year" INTEGER NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "gross_amount" INTEGER NOT NULL,
+    "net_amount" INTEGER NOT NULL,
+    "deduction_amount" INTEGER NOT NULL,
+
+    CONSTRAINT "payslip_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "payslip_line_item" (
+    "id" SERIAL NOT NULL,
+    "payslip_id" INTEGER NOT NULL,
+    "type" "PayslipLineItemType" NOT NULL,
+    "amount" INTEGER NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "payslip_line_item_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -207,6 +269,64 @@ CREATE TABLE "user_employee_feedback" (
     "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "user_employee_feedback_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "user_employee_leave_counter" (
+    "id" SERIAL NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "casual_leaves" INTEGER NOT NULL,
+    "sick_leaves" INTEGER NOT NULL,
+    "earned_leaves" INTEGER NOT NULL,
+    "total_leaves_used" INTEGER NOT NULL,
+    "total_leaves_available" INTEGER NOT NULL,
+    "financial_year" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "user_employee_leave_counter_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "leave_config" (
+    "id" SERIAL NOT NULL,
+    "max_leaves" INTEGER NOT NULL,
+    "max_sick_leaves" INTEGER NOT NULL,
+    "max_earned_leaves" INTEGER NOT NULL,
+    "max_casual_leaves" INTEGER NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "leave_config_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "leave" (
+    "id" SERIAL NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "leave_type" "leaveTypeEnum" NOT NULL,
+    "start_date" DATE NOT NULL,
+    "end_date" DATE NOT NULL,
+    "number_of_days" INTEGER NOT NULL,
+    "number_of_lop_days" INTEGER NOT NULL DEFAULT 0,
+    "is_consumed" BOOLEAN NOT NULL DEFAULT false,
+    "reason" TEXT NOT NULL,
+    "status" "leaveStatusEnum" NOT NULL DEFAULT 'pending',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "leave_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "leave_has_media" (
+    "id" SERIAL NOT NULL,
+    "leave_id" INTEGER NOT NULL,
+    "media_id" INTEGER NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "leave_has_media_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -326,10 +446,37 @@ CREATE INDEX "user_employee_detail_status_idx" ON "user_employee_detail"("status
 CREATE INDEX "employee_has_media_user_id_idx" ON "employee_has_media"("user_id");
 
 -- CreateIndex
-CREATE INDEX "employee_salary_user_id_idx" ON "employee_salary"("user_id");
+CREATE INDEX "employee_compensation_user_id_idx" ON "employee_compensation"("user_id");
+
+-- CreateIndex
+CREATE INDEX "user_employee_deduction_user_id_idx" ON "user_employee_deduction"("user_id");
+
+-- CreateIndex
+CREATE INDEX "payslip_user_id_idx" ON "payslip"("user_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "payslip_user_id_month_year_key" ON "payslip"("user_id", "month", "year");
+
+-- CreateIndex
+CREATE INDEX "payslip_line_item_payslip_id_idx" ON "payslip_line_item"("payslip_id");
 
 -- CreateIndex
 CREATE INDEX "user_employee_feedback_user_id_idx" ON "user_employee_feedback"("user_id");
+
+-- CreateIndex
+CREATE INDEX "user_employee_leave_counter_user_id_idx" ON "user_employee_leave_counter"("user_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "user_employee_leave_counter_user_id_financial_year_key" ON "user_employee_leave_counter"("user_id", "financial_year");
+
+-- CreateIndex
+CREATE INDEX "leave_user_id_idx" ON "leave"("user_id");
+
+-- CreateIndex
+CREATE INDEX "leave_has_media_leave_id_idx" ON "leave_has_media"("leave_id");
+
+-- CreateIndex
+CREATE INDEX "leave_has_media_media_id_idx" ON "leave_has_media"("media_id");
 
 -- CreateIndex
 CREATE INDEX "candidate_has_feedback_candidate_id_idx" ON "candidate_has_feedback"("candidate_id");
@@ -362,13 +509,34 @@ ALTER TABLE "employee_has_media" ADD CONSTRAINT "employee_has_media_user_id_fkey
 ALTER TABLE "employee_has_media" ADD CONSTRAINT "employee_has_media_media_id_fkey" FOREIGN KEY ("media_id") REFERENCES "media"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "employee_salary" ADD CONSTRAINT "employee_salary_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "employee_compensation" ADD CONSTRAINT "employee_compensation_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_employee_deduction" ADD CONSTRAINT "user_employee_deduction_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "payslip" ADD CONSTRAINT "payslip_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "payslip_line_item" ADD CONSTRAINT "payslip_line_item_payslip_id_fkey" FOREIGN KEY ("payslip_id") REFERENCES "payslip"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "user_employee_feedback" ADD CONSTRAINT "user_employee_feedback_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "user_employee_feedback" ADD CONSTRAINT "user_employee_feedback_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_employee_leave_counter" ADD CONSTRAINT "user_employee_leave_counter_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "leave" ADD CONSTRAINT "leave_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "leave_has_media" ADD CONSTRAINT "leave_has_media_leave_id_fkey" FOREIGN KEY ("leave_id") REFERENCES "leave"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "leave_has_media" ADD CONSTRAINT "leave_has_media_media_id_fkey" FOREIGN KEY ("media_id") REFERENCES "media"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "CandidateHasMedia" ADD CONSTRAINT "CandidateHasMedia_media_id_fkey" FOREIGN KEY ("media_id") REFERENCES "media"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -48,6 +48,7 @@ export const PayslipListResponseSchema = z.object({
 export type PayslipListResponseType = z.infer<typeof PayslipListResponseSchema>;
 
 export const PayslipDetailResponseSchema = PayslipListResponseSchema.extend({
+  employeeDesignation: z.string(),
   lineItems: z.array(PayslipLineItemResponseSchema),
 });
 export type PayslipDetailResponseType = z.infer<typeof PayslipDetailResponseSchema>;
