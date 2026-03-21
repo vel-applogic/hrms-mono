@@ -1,19 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import type { EmployeeDeductionCreateRequestType, EmployeeDeductionResponseType } from '@repo/dto';
-import {
-  CommonLoggerService,
-  CurrentUserType,
-  IUseCase,
-  UserEmployeeDetailDao,
-  UserEmployeeDeductionDao,
-} from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, UserEmployeeDeductionDao, UserEmployeeDetailDao } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
-import {
-  parseDateOnly,
-  parseMonthYearToFirstDay,
-  validateEffectiveFromBeforeTill,
-} from './_employee-deduction-validation.helper.js';
+import { parseDateOnly, parseMonthYearToFirstDay, validateEffectiveFromBeforeTill } from './_employee-deduction-validation.helper.js';
 
 type Params = {
   currentUser: CurrentUserType;
@@ -51,10 +41,7 @@ export class EmployeeDeductionCreateUc implements IUseCase<Params, EmployeeDeduc
       }
     }
 
-    const specificMonth =
-      params.dto.frequency === 'specificMonth' && params.dto.specificMonth
-        ? parseMonthYearToFirstDay(params.dto.specificMonth)
-        : undefined;
+    const specificMonth = params.dto.frequency === 'specificMonth' && params.dto.specificMonth ? parseMonthYearToFirstDay(params.dto.specificMonth) : undefined;
 
     const created = await this.userEmployeeDeductionDao.create({
       data: {
@@ -62,7 +49,7 @@ export class EmployeeDeductionCreateUc implements IUseCase<Params, EmployeeDeduc
         type: params.dto.type,
         frequency: params.dto.frequency,
         amount: params.dto.amount,
-        otherTitle: params.dto.type === 'other' ? params.dto.otherTitle ?? undefined : undefined,
+        otherTitle: params.dto.type === 'other' ? (params.dto.otherTitle ?? undefined) : undefined,
         specificMonth,
         effectiveFrom,
         effectiveTill: effectiveTill ?? undefined,

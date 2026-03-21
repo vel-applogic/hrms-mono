@@ -18,7 +18,8 @@ export function NavTabs() {
   return (
     <div className='hidden h-[52px] items-center gap-2.5 lg:flex'>
       {tabs.map((tab) => {
-        const isActive = pathname.startsWith(tab.href);
+        const baseSegment = '/' + tab.href.split('/')[1];
+        const isActive = pathname.startsWith(baseSegment);
         return (
           <Link key={tab.href} href={tab.href} className='group relative flex h-[52px] items-center px-3 pb-2 pt-3'>
             <span className={`text-sm font-bold tracking-widest transition-colors group-hover:text-white ${isActive ? 'text-white' : 'text-muted-foreground'}`}>{tab.label}</span>
