@@ -8,11 +8,12 @@ import { EmailService } from '#src/service/email/email.service.js';
 
 import { MediaService } from './media.service.js';
 import { PasswordService } from './password.service.js';
+import { PdfGeneratorService } from './pdf/pdf-generator.service.js';
 
 @Module({
   imports: [CommonDbModule, ExternalServiceModule],
   controllers: [],
-  providers: [ConfigService, AppConfigService, EmailService, PasswordService, CommonLoggerService, MediaService],
-  exports: [EmailService, PasswordService, MediaService],
+  providers: [ConfigService, AppConfigService, EmailService, PasswordService, CommonLoggerService, MediaService, PdfGeneratorService],
+  exports: [EmailService, PasswordService, MediaService, PdfGeneratorService],
 })
 export class ServiceModule {}

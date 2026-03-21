@@ -52,6 +52,15 @@ class PayslipService extends BaseService {
       responseSchema: PayslipDetailResponseSchema,
     });
   }
+
+  async downloadPdfBuffer(id: number): Promise<Buffer> {
+    const { userId } = await this.getAuthHeaderInfo();
+    const response = await this.apiService.get(`/api/payslip/${id}/pdf`, {
+      headers: { 'x-user-id': userId },
+      responseType: 'arraybuffer',
+    });
+    return Buffer.from(response.data as ArrayBuffer);
+  }
 }
 
 export const payslipService = new PayslipService();

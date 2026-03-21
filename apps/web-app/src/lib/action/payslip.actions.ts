@@ -37,3 +37,8 @@ export async function updatePayslipLineItems(
   revalidatePath('/payroll/payslip');
   return result;
 }
+
+export async function downloadPayslipPdf(id: number): Promise<string> {
+  const buffer = await payslipService.downloadPdfBuffer(id);
+  return buffer.toString('base64');
+}

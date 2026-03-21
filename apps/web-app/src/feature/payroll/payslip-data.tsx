@@ -7,11 +7,11 @@ import { Button } from '@repo/ui/component/ui/button';
 import { Input } from '@repo/ui/component/ui/input';
 import { DataTableSimple } from '@repo/ui/container/datatable/datatable';
 import { ColDef } from 'ag-grid-community';
-import { Eye, Pencil, Plus } from 'lucide-react';
+import { Download, Eye, Pencil, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { getEmployeesList } from '@/lib/action/employee.actions';
-import { searchPayslips } from '@/lib/action/payslip.actions';
+import { downloadPayslipPdf, searchPayslips } from '@/lib/action/payslip.actions';
 
 import { PayslipEditLineItemsDrawer } from './payslip-edit-line-items.drawer';
 import { PayslipGenerateDrawer } from './payslip-generate.drawer';
@@ -73,6 +73,24 @@ export function PayslipData() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDownloadPdf = async (payslipId: number) => {
+    const base64 = await downloadPayslipPdf(payslipId);
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `payslip-${payslipId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handleEditSuccess = (updated: PayslipDetailResponseType) => {
@@ -142,7 +160,7 @@ export function PayslipData() {
       sortable: false,
       resizable: false,
       pinned: 'right',
-      width: 90,
+      width: 120,
       cellRenderer: (params: { data?: PayslipListResponseType }) => {
         if (!params.data) return null;
         const payslipId = params.data.id;
@@ -161,6 +179,13 @@ export function PayslipData() {
               title='Edit line items'
             >
               <Pencil className='h-4 w-4' />
+            </button>
+            <button
+              onClick={() => handleDownloadPdf(payslipId)}
+              className='inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-white'
+              title='Download PDF'
+            >
+              <Download className='h-4 w-4' />
             </button>
           </div>
         );
