@@ -18,6 +18,7 @@ export {
   UserEmployeeLeaveCounterDao,
   PolicyDao,
   PolicyHasMediaDao,
+  PayslipDao,
 } from './dao/index.js';
 export type {
   OrderByParam,
@@ -32,6 +33,8 @@ export type {
   UserEmployeeHasMediaWithMediaType,
   UserEmployeeFeedbackWithCreatedByType,
   LeaveWithUserType,
+  PayslipWithUserType,
+  PayslipWithDetailsType,
 } from './dao/index.js';
 export { CommonDbModule } from './db-module.js';
 export { PrismaService } from './prisma/prisma.service.js';

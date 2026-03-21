@@ -105,6 +105,7 @@ model User {
   leaves                         Leave[]
   userEmployeeLeaveCounters      UserEmployeeLeaveCounter[]
   userEmployeeDeductions         UserEmployeeDeduction[]
+  payslips                       Payslip[]
 
   @@map("users")
 }
@@ -255,6 +256,46 @@ model UserEmployeeDeduction {
 
   @@index([userId])
   @@map("user_employee_deduction")
+}
+
+// PAYSLIP
+
+model Payslip {
+  id               Int               @id @default(autoincrement())
+  userId           Int               @map("user_id")
+  user             User              @relation(fields: [userId], references: [id])
+  month            Int               @map("month")
+  year             Int               @map("year")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  grossAmount      Int               @map("gross_amount")
+  netAmount        Int               @map("net_amount")
+  deductionAmount  Int               @map("deduction_amount")
+  payslipLineItems PayslipLineItem[]
+
+  @@unique([userId, month, year])
+  @@index([userId])
+  @@map("payslip")
+}
+
+enum PayslipLineItemType {
+  earning
+  deduction
+}
+
+model PayslipLineItem {
+  id          Int                 @id @default(autoincrement())
+  payslipId   Int                 @map("payslip_id")
+  payslip     Payslip             @relation(fields: [payslipId], references: [id])
+  type        PayslipLineItemType @map("type")
+  amount      Int                 @map("amount")
+  title       String              @map("title")
+  description String?             @map("description")
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+
+  @@index([payslipId])
+  @@map("payslip_line_item")
 }
 
 enum EmployeeFeedbackTrend {
