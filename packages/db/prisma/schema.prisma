@@ -226,6 +226,7 @@ enum UserEmployeeDeductionType {
   insurance
   professionalTax
   loan
+  lop
   other
 
   @@map("userEmployeeDeductionType")

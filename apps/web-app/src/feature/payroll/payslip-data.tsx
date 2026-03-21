@@ -16,10 +16,7 @@ import { PayslipGenerateDrawer } from './payslip-generate.drawer';
 import { PayslipViewDrawer } from './payslip-view.drawer';
 import { PayslipEditLineItemsDrawer } from './payslip-edit-line-items.drawer';
 
-const MONTH_LABELS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
+const MONTH_LABELS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 function formatAmount(value: number) {
   return `₹${value.toLocaleString('en-IN')}`;
@@ -101,8 +98,7 @@ export function PayslipData() {
     {
       headerName: 'Employee',
       flex: 2,
-      valueGetter: (params) =>
-        params.data ? `${params.data.employeeFirstname} ${params.data.employeeLastname}` : '',
+      valueGetter: (params) => (params.data ? `${params.data.employeeFirstname} ${params.data.employeeLastname}` : ''),
     },
     {
       headerName: 'Email',
@@ -177,7 +173,13 @@ export function PayslipData() {
       <div className='flex flex-wrap items-end gap-3'>
         <div className='flex flex-col gap-1 min-w-[130px]'>
           <span className='text-xs text-muted-foreground'>Month</span>
-          <Select value={month || 'all'} onValueChange={(v) => { setMonth(v === 'all' ? '' : v); setPage(1); }}>
+          <Select
+            value={month || 'all'}
+            onValueChange={(v) => {
+              setMonth(v === 'all' ? '' : v);
+              setPage(1);
+            }}
+          >
             <SelectTrigger>
               <SelectValue placeholder='All months' />
             </SelectTrigger>
@@ -197,7 +199,10 @@ export function PayslipData() {
           <Input
             type='number'
             value={year}
-            onChange={(e) => { setYear(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setYear(e.target.value);
+              setPage(1);
+            }}
             placeholder='Any'
             min={2000}
             max={2100}
@@ -211,7 +216,10 @@ export function PayslipData() {
             options={employeeOptions}
             placeholder='All employees'
             searchPlaceholder='Search employees...'
-            onChange={(vals) => { setSelectedEmployeeIds(vals); setPage(1); }}
+            onChange={(vals) => {
+              setSelectedEmployeeIds(vals);
+              setPage(1);
+            }}
           />
         </div>
 
@@ -249,21 +257,21 @@ export function PayslipData() {
       </div>
 
       {/* Drawers */}
-      <PayslipGenerateDrawer
-        open={generateOpen}
-        onOpenChange={setGenerateOpen}
-        onSuccess={fetchData}
-      />
+      <PayslipGenerateDrawer open={generateOpen} onOpenChange={setGenerateOpen} onSuccess={fetchData} />
 
       <PayslipViewDrawer
         open={viewPayslipId != null}
-        onOpenChange={(open) => { if (!open) setViewPayslipId(null); }}
+        onOpenChange={(open) => {
+          if (!open) setViewPayslipId(null);
+        }}
         payslipId={viewPayslipId}
       />
 
       <PayslipEditLineItemsDrawer
         open={editPayslipId != null}
-        onOpenChange={(open) => { if (!open) setEditPayslipId(null); }}
+        onOpenChange={(open) => {
+          if (!open) setEditPayslipId(null);
+        }}
         payslipId={editPayslipId}
         onSuccess={handleEditSuccess}
       />
