@@ -103,10 +103,7 @@ export const MonthYearPicker = React.forwardRef<HTMLDivElement, MonthYearPickerP
         onChange?.(`${raw}-${month}`);
       } else {
         const year = parseInt(raw, 10);
-        const err =
-          year < MIN_YEAR || year > MAX_YEAR
-            ? `Year must be between ${MIN_YEAR} and ${MAX_YEAR}`
-            : 'Year must be a 4-digit number';
+        const err = year < MIN_YEAR || year > MAX_YEAR ? `Year must be between ${MIN_YEAR} and ${MAX_YEAR}` : 'Year must be a 4-digit number';
         updateYearError(err);
       }
     };
@@ -119,10 +116,7 @@ export const MonthYearPicker = React.forwardRef<HTMLDivElement, MonthYearPickerP
         onChange?.(`${CURRENT_YEAR}-${month}`);
       } else if (yearInput.length === 4 && !isValidYear(yearInput)) {
         const year = parseInt(yearInput, 10);
-        const err =
-          year < MIN_YEAR || year > MAX_YEAR
-            ? `Year must be between ${MIN_YEAR} and ${MAX_YEAR}`
-            : 'Invalid year';
+        const err = year < MIN_YEAR || year > MAX_YEAR ? `Year must be between ${MIN_YEAR} and ${MAX_YEAR}` : 'Invalid year';
         updateYearError(err);
       }
     };
