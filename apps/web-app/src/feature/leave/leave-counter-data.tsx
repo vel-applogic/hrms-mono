@@ -1,7 +1,6 @@
 'use client';
 
 import type { LeaveCounterResponseType } from '@repo/dto';
-import { Button } from '@repo/ui/component/ui/button';
 import { DataTableSimple } from '@repo/ui/container/datatable/datatable';
 import {
   Select,
@@ -11,10 +10,9 @@ import {
   SelectValue,
 } from '@repo/ui/component/shadcn/select';
 import { ColDef } from 'ag-grid-community';
-import { CalendarDays } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 type SelectOption = { value: string; label: string };
 
@@ -27,10 +25,21 @@ interface Props {
 export const LeaveCounterData = ({ counters, financialYear, financialYearOptions }: Props) => {
   const pathname = usePathname();
   const { replace } = useRouter();
+  const [searchText, setSearchText] = useState('');
 
   const handleFinancialYearChange = (value: string) => {
     replace(`${pathname}?financialYear=${value}`);
   };
+
+  const filteredCounters = useMemo(() => {
+    const q = searchText.trim().toLowerCase();
+    if (!q) return counters;
+    return counters.filter((c) => {
+      const fullName = `${c.user.firstname} ${c.user.lastname}`.toLowerCase();
+      const email = (c.user.email ?? '').toLowerCase();
+      return fullName.includes(q) || email.includes(q);
+    });
+  }, [counters, searchText]);
 
   const colDefs = useMemo<ColDef<LeaveCounterResponseType>[]>(
     () => [
@@ -89,7 +98,7 @@ export const LeaveCounterData = ({ counters, financialYear, financialYearOptions
           if (!params.data) return null;
           return (
             <Link
-              href={`/leaves/details?userId=${params.data.userId}&financialYear=${params.data.financialYear}`}
+              href={`/employee/${params.data.userId}/leave?financialYear=${params.data.financialYear}`}
               className='text-primary hover:underline'
             >
               View
@@ -105,25 +114,37 @@ export const LeaveCounterData = ({ counters, financialYear, financialYearOptions
     <div className='flex h-full flex-col gap-4 pt-4'>
       <div className='center-container flex items-center justify-between'>
         <span className='text-xl font-medium tracking-tight text-white'>Leave Counters</span>
-        <div className='flex items-center gap-2'>
-          <Button variant='outline' className='shrink-0 rounded-[40px]' asChild>
-            <Link href={`/leaves/details?financialYear=${financialYear}`} className='flex items-center gap-2'>
-              <CalendarDays className='h-4 w-4' />
-              Leave Details
-            </Link>
-          </Button>
+        <div className='flex items-center gap-3'>
+          <div className='flex h-10 w-[260px] items-center gap-3 rounded-[40px] border border-border bg-background px-4'>
+            <svg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'>
+              <path
+                d='M7.33 12.67A5.33 5.33 0 1 0 7.33 2a5.33 5.33 0 0 0 0 10.67ZM14 14l-2.9-2.9'
+                stroke='#848A91'
+                strokeWidth='1.33'
+                strokeLinecap='round'
+                strokeLinejoin='round'
+              />
+            </svg>
+            <input
+              type='text'
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder='Search by name or email...'
+              className='w-full bg-transparent text-sm font-medium text-white placeholder:text-muted-foreground focus:outline-none'
+            />
+          </div>
           <Select value={financialYear} onValueChange={handleFinancialYearChange}>
-          <SelectTrigger className='h-10 w-[140px]'>
-            <SelectValue placeholder='Financial Year' />
-          </SelectTrigger>
-          <SelectContent>
-            {financialYearOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+            <SelectTrigger className='h-10 w-[140px]'>
+              <SelectValue placeholder='Financial Year' />
+            </SelectTrigger>
+            <SelectContent>
+              {financialYearOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -132,10 +153,10 @@ export const LeaveCounterData = ({ counters, financialYear, financialYearOptions
           colDefs={colDefs}
           pagination={{
             page: 1,
-            pageSize: counters.length || 50,
-            total: counters.length,
+            pageSize: filteredCounters.length || 50,
+            total: filteredCounters.length,
           }}
-          rowData={counters}
+          rowData={filteredCounters}
           tableKey='leave-counter-table'
         />
       </div>

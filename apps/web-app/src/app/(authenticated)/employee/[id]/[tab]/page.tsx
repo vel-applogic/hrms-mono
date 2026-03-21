@@ -1,12 +1,14 @@
 import { notFound } from 'next/navigation';
+import { getFinancialYearCode } from '@repo/shared';
 
 import { EmployeeView } from '@/feature/employee/employee-view';
 import { getEmployeeById } from '@/lib/action/employee.actions';
 import { searchEmployeeFeedbacks } from '@/lib/action/employee-feedback.actions';
 import { searchEmployeeCompensations } from '@/lib/action/employee-compensation.actions';
 import { searchEmployeeDeductions } from '@/lib/action/employee-deduction.actions';
+import { searchLeaves } from '@/lib/action/leave.actions';
 
-const TABS = ['details', 'documents', 'feedbacks', 'compensation', 'deduction'] as const;
+const TABS = ['details', 'documents', 'feedbacks', 'compensation', 'deduction', 'leave'] as const;
 type Tab = (typeof TABS)[number];
 
 function isTab(tab: string): tab is Tab {
@@ -24,12 +26,19 @@ export default async function EmployeeViewPage(props: Props) {
     notFound();
   }
 
-  const [employee, feedbackPage, compensationPage, deductionPage] = await Promise.all([
+  const defaultFinancialYear = getFinancialYearCode(new Date());
+
+  const [employee, feedbackPage, compensationPage, deductionPage, leavePage] = await Promise.all([
     getEmployeeById(employeeId),
     searchEmployeeFeedbacks({ employeeId, pagination: { page: 1, limit: 10 } }),
     searchEmployeeCompensations({ employeeId, pagination: { page: 1, limit: 10 } }),
     searchEmployeeDeductions({ employeeId, pagination: { page: 1, limit: 10 } }),
-  ]).catch(() => [null, null, null, null]);
+    searchLeaves({
+      pagination: { page: 1, limit: 50 },
+      userId: [employeeId],
+      financialYear: defaultFinancialYear,
+    }),
+  ]).catch(() => [null, null, null, null, null]);
 
   if (!employee) {
     notFound();
@@ -42,6 +51,8 @@ export default async function EmployeeViewPage(props: Props) {
         initialFeedbackPage={feedbackPage ?? { results: [], totalRecords: 0, page: 1, limit: 10 }}
         initialCompensationPage={compensationPage ?? { results: [], totalRecords: 0, page: 1, limit: 10 }}
         initialDeductionPage={deductionPage ?? { results: [], totalRecords: 0, page: 1, limit: 10 }}
+        initialLeavePage={leavePage ?? { results: [], totalRecords: 0, page: 1, limit: 50 }}
+        initialLeaveFinancialYear={defaultFinancialYear}
         activeTab={tab}
       />
     </div>

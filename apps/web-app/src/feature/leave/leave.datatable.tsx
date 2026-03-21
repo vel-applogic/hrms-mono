@@ -19,6 +19,7 @@ interface Props {
   onEdit: (leave: LeaveResponseType) => void;
   onView?: (leave: LeaveResponseType) => void;
   onRefresh?: () => void;
+  autoHeight?: boolean;
 }
 
 function getActions(
@@ -232,6 +233,7 @@ export const LeaveDataTableClient = (props: Props) => {
       <DataTableSimple<LeaveResponseType>
         colDefs={colDefs}
         onActionClick={onActionClick}
+        autoHeight={props.autoHeight}
         pagination={{
           page: props.data.page,
           pageSize: props.data.limit,

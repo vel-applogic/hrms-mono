@@ -28,6 +28,7 @@ const DEDUCTION_TYPE_LABELS: Record<UserEmployeeDeductionTypeDtoEnum, string> = 
   insurance: 'Insurance',
   professionalTax: 'Professional Tax',
   loan: 'Loan',
+  lop: 'LOP',
   other: 'Other',
 };
 

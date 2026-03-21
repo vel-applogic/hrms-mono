@@ -5,6 +5,7 @@ import type {
   EmployeeCompensationResponseType,
   EmployeeDeductionResponseType,
   EmployeeFeedbackResponseType,
+  LeaveResponseType,
   PaginatedResponseType,
 } from '@repo/dto';
 import { Button } from '@repo/ui/component/ui/button';
@@ -16,6 +17,7 @@ import { EmployeeViewCompensation } from './employee-view-compensation';
 import { EmployeeViewDeduction } from './employee-view-deduction';
 import { EmployeeViewDocuments } from './employee-view-documents';
 import { EmployeeViewFeedbacks } from './employee-view-feedbacks';
+import { EmployeeViewLeave } from './employee-view-leave';
 
 const TABS = [
   { id: 'details' as const, label: 'Employee Details' },
@@ -23,6 +25,7 @@ const TABS = [
   { id: 'feedbacks' as const, label: 'Feedbacks' },
   { id: 'compensation' as const, label: 'Compensation' },
   { id: 'deduction' as const, label: 'Deduction' },
+  { id: 'leave' as const, label: 'Leave' },
 ] as const;
 
 interface Props {
@@ -30,10 +33,20 @@ interface Props {
   initialFeedbackPage: PaginatedResponseType<EmployeeFeedbackResponseType>;
   initialCompensationPage: PaginatedResponseType<EmployeeCompensationResponseType>;
   initialDeductionPage: PaginatedResponseType<EmployeeDeductionResponseType>;
-  activeTab: 'details' | 'documents' | 'feedbacks' | 'compensation' | 'deduction';
+  initialLeavePage: PaginatedResponseType<LeaveResponseType>;
+  initialLeaveFinancialYear: string;
+  activeTab: 'details' | 'documents' | 'feedbacks' | 'compensation' | 'deduction' | 'leave';
 }
 
-export function EmployeeView({ employee, initialFeedbackPage, initialCompensationPage, initialDeductionPage, activeTab }: Props) {
+export function EmployeeView({
+  employee,
+  initialFeedbackPage,
+  initialCompensationPage,
+  initialDeductionPage,
+  initialLeavePage,
+  initialLeaveFinancialYear,
+  activeTab,
+}: Props) {
   return (
     <div className='flex h-full flex-col gap-4 pt-4'>
       <div className='center-container flex items-center justify-between'>
@@ -61,7 +74,7 @@ export function EmployeeView({ employee, initialFeedbackPage, initialCompensatio
                 <span className={`text-sm font-bold tracking-widest transition-colors group-hover:text-white ${isActive ? 'text-white' : 'text-muted-foreground'}`}>
                   {tab.label}
                 </span>
-                {isActive && <span className='absolute bottom-[-1px] left-0 right-0 h-[3px] bg-primary' />}
+                {isActive && <span className='absolute -bottom-px left-0 right-0 h-[3px] bg-primary' />}
               </Link>
             );
           })}
@@ -78,6 +91,13 @@ export function EmployeeView({ employee, initialFeedbackPage, initialCompensatio
           )}
           {activeTab === 'deduction' && (
             <EmployeeViewDeduction employeeId={employee.id} initialPage={initialDeductionPage} />
+          )}
+          {activeTab === 'leave' && (
+            <EmployeeViewLeave
+              employeeId={employee.id}
+              initialData={initialLeavePage}
+              initialFinancialYear={initialLeaveFinancialYear}
+            />
           )}
         </div>
       </div>

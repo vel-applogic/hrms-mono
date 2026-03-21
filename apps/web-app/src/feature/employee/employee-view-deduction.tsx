@@ -29,6 +29,7 @@ const DEDUCTION_TYPE_LABELS: Record<string, string> = {
   insurance: 'Insurance',
   professionalTax: 'Professional Tax',
   loan: 'Loan',
+  lop: 'LOP',
   other: 'Other',
 };
 

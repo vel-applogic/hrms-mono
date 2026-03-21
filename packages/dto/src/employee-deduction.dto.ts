@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { FilterRequestSchema } from './pagination-filter.dto.js';
 
-export const UserEmployeeDeductionTypeDtoEnum = ['providentFund', 'incomeTax', 'insurance', 'professionalTax', 'loan', 'other'] as const;
+export const UserEmployeeDeductionTypeDtoEnum = ['providentFund', 'incomeTax', 'insurance', 'professionalTax', 'loan', 'lop', 'other'] as const;
 export type UserEmployeeDeductionTypeDtoEnum = (typeof UserEmployeeDeductionTypeDtoEnum)[number];
 
 export const UserEmployeeDeductionFrequencyDtoEnum = ['monthly', 'yearly', 'specificMonth'] as const;

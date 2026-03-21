@@ -9,7 +9,7 @@ const tabs = [
   { label: 'CANDIDATES', href: '/candidate' },
   { label: 'EMPLOYEES', href: '/employee' },
   { label: 'PAYROLL', href: '/payroll/compensation' },
-  { label: 'LEAVES', href: '/leaves/counter' },
+  { label: 'LEAVES', href: '/leaves' },
 ];
 
 export function NavTabs() {
