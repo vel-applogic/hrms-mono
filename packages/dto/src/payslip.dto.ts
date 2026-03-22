@@ -42,6 +42,7 @@ export const PayslipListResponseSchema = z.object({
   grossAmount: z.number(),
   netAmount: z.number(),
   deductionAmount: z.number(),
+  pdfSignedUrl: z.string().nullable().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

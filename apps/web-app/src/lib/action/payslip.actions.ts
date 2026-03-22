@@ -38,7 +38,6 @@ export async function updatePayslipLineItems(
   return result;
 }
 
-export async function downloadPayslipPdf(id: number): Promise<string> {
-  const buffer = await payslipService.downloadPdfBuffer(id);
-  return buffer.toString('base64');
+export async function getPayslipPdfSignedUrl(id: number): Promise<string> {
+  return payslipService.getPdfSignedUrl(id);
 }

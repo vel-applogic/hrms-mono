@@ -14,6 +14,6 @@ import { PdfGeneratorService } from './pdf/pdf-generator.service.js';
   imports: [CommonDbModule, ExternalServiceModule],
   controllers: [],
   providers: [ConfigService, AppConfigService, EmailService, PasswordService, CommonLoggerService, MediaService, PdfGeneratorService],
-  exports: [EmailService, PasswordService, MediaService, PdfGeneratorService],
+  exports: [EmailService, PasswordService, MediaService, PdfGeneratorService, ExternalServiceModule],
 })
 export class ServiceModule {}

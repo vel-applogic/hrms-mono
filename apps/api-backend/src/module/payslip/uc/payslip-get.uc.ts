@@ -4,6 +4,8 @@ import { CommonLoggerService, CurrentUserType, IUseCase, PayslipDao } from '@rep
 import type { PayslipWithDetailsType } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
+import { S3Service } from '../../../external-service/s3.service.js';
+
 type Params = {
   currentUser: CurrentUserType;
   id: number;
@@ -14,6 +16,7 @@ export class PayslipGetUc implements IUseCase<Params, PayslipDetailResponseType>
   constructor(
     private readonly logger: CommonLoggerService,
     private readonly payslipDao: PayslipDao,
+    private readonly s3Service: S3Service,
   ) {}
 
   async execute(params: Params): Promise<PayslipDetailResponseType> {
@@ -24,10 +27,12 @@ export class PayslipGetUc implements IUseCase<Params, PayslipDetailResponseType>
       throw new ApiError('Payslip not found', 404);
     }
 
-    return this.mapToDetail(payslip);
+    const pdfSignedUrl = payslip.pdfS3Key ? await this.s3Service.getSignedUrl(payslip.pdfS3Key) : null;
+
+    return this.mapToDetail(payslip, pdfSignedUrl);
   }
 
-  private mapToDetail(p: PayslipWithDetailsType): PayslipDetailResponseType {
+  private mapToDetail(p: PayslipWithDetailsType, pdfSignedUrl: string | null): PayslipDetailResponseType {
     return {
       id: p.id,
       employeeId: p.userId,
@@ -40,6 +45,7 @@ export class PayslipGetUc implements IUseCase<Params, PayslipDetailResponseType>
       grossAmount: p.grossAmount,
       netAmount: p.netAmount,
       deductionAmount: p.deductionAmount,
+      pdfSignedUrl,
       createdAt: p.createdAt.toISOString(),
       updatedAt: p.updatedAt.toISOString(),
       lineItems: p.payslipLineItems.map((li) => ({

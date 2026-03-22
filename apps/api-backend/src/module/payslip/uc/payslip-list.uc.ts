@@ -3,6 +3,8 @@ import type { PayslipFilterRequestType, PayslipListResponseType, PaginatedRespon
 import { CommonLoggerService, CurrentUserType, IUseCase, PayslipDao } from '@repo/nest-lib';
 import type { PayslipWithUserType } from '@repo/nest-lib';
 
+import { S3Service } from '../../../external-service/s3.service.js';
+
 type Params = {
   currentUser: CurrentUserType;
   filterDto: PayslipFilterRequestType;
@@ -13,6 +15,7 @@ export class PayslipListUc implements IUseCase<Params, PaginatedResponseType<Pay
   constructor(
     private readonly logger: CommonLoggerService,
     private readonly payslipDao: PayslipDao,
+    private readonly s3Service: S3Service,
   ) {}
 
   async execute(params: Params): Promise<PaginatedResponseType<PayslipListResponseType>> {
@@ -26,7 +29,11 @@ export class PayslipListUc implements IUseCase<Params, PaginatedResponseType<Pay
       employeeIds: params.filterDto.employeeIds,
     });
 
-    const results: PayslipListResponseType[] = payslips.map((p: PayslipWithUserType) => ({
+    const signedUrls = await Promise.all(
+      payslips.map((p: PayslipWithUserType) => (p.pdfS3Key ? this.s3Service.getSignedUrl(p.pdfS3Key) : Promise.resolve(null))),
+    );
+
+    const results: PayslipListResponseType[] = payslips.map((p: PayslipWithUserType, i: number) => ({
       id: p.id,
       employeeId: p.userId,
       employeeFirstname: p.user.firstname,
@@ -37,6 +44,7 @@ export class PayslipListUc implements IUseCase<Params, PaginatedResponseType<Pay
       grossAmount: p.grossAmount,
       netAmount: p.netAmount,
       deductionAmount: p.deductionAmount,
+      pdfSignedUrl: signedUrls[i],
       createdAt: p.createdAt.toISOString(),
       updatedAt: p.updatedAt.toISOString(),
     }));

@@ -53,13 +53,12 @@ class PayslipService extends BaseService {
     });
   }
 
-  async downloadPdfBuffer(id: number): Promise<Buffer> {
+  async getPdfSignedUrl(id: number): Promise<string> {
     const { userId } = await this.getAuthHeaderInfo();
-    const response = await this.apiService.get(`/api/payslip/${id}/pdf`, {
+    const response = await this.apiService.get<{ signedUrl: string }>(`/api/payslip/${id}/pdf`, {
       headers: { 'x-user-id': userId },
-      responseType: 'arraybuffer',
     });
-    return Buffer.from(response.data as ArrayBuffer);
+    return (response.data as { signedUrl: string }).signedUrl;
   }
 }
 

@@ -46,4 +46,14 @@ export class S3Service extends BaseS3Service {
     const url = await getSignedUrl(this.s3, command, { expiresIn: 3600 });
     return url;
   }
+
+  public async uploadBuffer(params: { s3Key: string; buffer: Buffer; contentType: string }): Promise<void> {
+    const command = new PutObjectCommand({
+      Bucket: this.appConfigService.awsS3BucketName,
+      Key: params.s3Key,
+      Body: params.buffer,
+      ContentType: params.contentType,
+    });
+    await this.s3.send(command);
+  }
 }

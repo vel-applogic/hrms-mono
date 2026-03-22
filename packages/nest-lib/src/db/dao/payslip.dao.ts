@@ -117,6 +117,14 @@ export class PayslipDao extends BaseDao {
     await pc.payslip.delete({ where: { id: params.id } });
   }
 
+  async updatePdfS3Key(params: { id: number; s3Key: string; tx?: Prisma.TransactionClient }): Promise<void> {
+    const pc = this.getPrismaClient(params.tx);
+    await pc.payslip.update({
+      where: { id: params.id },
+      data: { pdfS3Key: params.s3Key },
+    });
+  }
+
   async replaceLineItems(params: {
     payslipId: number;
     lineItems: Array<{ type: string; title: string; amount: number }>;

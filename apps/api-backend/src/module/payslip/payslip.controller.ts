@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put } from '@nestjs/common';
 import type {
   PaginatedResponseType,
   PayslipDetailResponseType,
@@ -11,7 +11,6 @@ import type {
 import { PayslipFilterRequestSchema, PayslipGenerateRequestSchema, PayslipUpdateLineItemsRequestSchema } from '@repo/dto';
 import type { CurrentUserType } from '@repo/nest-lib';
 import { CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
-import type { Response } from 'express';
 
 import { PayslipDownloadUc } from './uc/payslip-download.uc.js';
 import { PayslipGenerateUc } from './uc/payslip-generate.uc.js';
@@ -46,14 +45,9 @@ export class PayslipController {
   }
 
   @Get(':id/pdf')
-  async downloadPdf(@Param('id', ParseIntPipe) id: number, @CurrentUser() currentUser: CurrentUserType, @Res() res: Response): Promise<void> {
-    const pdf = await this.downloadUc.execute({ currentUser, id });
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="payslip-${id}.pdf"`,
-      'Content-Length': String(pdf.length),
-    });
-    res.end(pdf);
+  async downloadPdf(@Param('id', ParseIntPipe) id: number, @CurrentUser() currentUser: CurrentUserType): Promise<{ signedUrl: string }> {
+    const signedUrl = await this.downloadUc.execute({ currentUser, id });
+    return { signedUrl };
   }
 
   @Get(':id')

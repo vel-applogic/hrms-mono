@@ -11,7 +11,7 @@ import { Download, Eye, Loader2, Pencil, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { getEmployeesList } from '@/lib/action/employee.actions';
-import { downloadPayslipPdf, searchPayslips } from '@/lib/action/payslip.actions';
+import { getPayslipPdfSignedUrl, searchPayslips } from '@/lib/action/payslip.actions';
 
 import { PayslipEditLineItemsDrawer } from './payslip-edit-line-items.drawer';
 import { PayslipGenerateDrawer } from './payslip-generate.drawer';
@@ -101,21 +101,8 @@ export function PayslipData() {
   };
 
   const handleDownloadPdf = async (payslipId: number) => {
-    const base64 = await downloadPayslipPdf(payslipId);
-    const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-    const blob = new Blob([bytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `payslip-${payslipId}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const signedUrl = await getPayslipPdfSignedUrl(payslipId);
+    window.open(signedUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleEditSuccess = (updated: PayslipDetailResponseType) => {

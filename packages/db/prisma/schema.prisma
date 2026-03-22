@@ -272,6 +272,7 @@ model Payslip {
   grossAmount      Int               @map("gross_amount")
   netAmount        Int               @map("net_amount")
   deductionAmount  Int               @map("deduction_amount")
+  pdfS3Key         String            @map("pdf_s3_key")
   payslipLineItems PayslipLineItem[]
 
   @@unique([userId, month, year])
