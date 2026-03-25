@@ -15,17 +15,22 @@ import {
   AuditService,
   CommonLoggerService,
   CurrentUserType,
-  IUseCase,
-  LeaveConfigDao,
-  MediaDao,
-  PrismaService,
-  UserDao,
   EmployeeDao,
   EmployeeHasMediaDao,
   EmployeeLeaveCounterDao,
+  IUseCase,
+  LeaveConfigDao,
+  MediaDao,
+  OrganizationDao,
+  OrganizationHasUserDao,
+  PrismaService,
+  UserDao,
+  UserInviteDao,
 } from '@repo/nest-lib';
-import { ApiFieldValidationError, getFinancialYearCode } from '@repo/shared';
+import { ApiBadRequestError, ApiFieldValidationError, getFinancialYearCode } from '@repo/shared';
 
+import { AppConfigService } from '#src/config/app-config.service.js';
+import { EmailService } from '#src/service/email/email.service.js';
 import { S3Service } from '#src/external-service/s3.service.js';
 import { MediaService } from '#src/service/media.service.js';
 import { PasswordService } from '#src/service/password.service.js';
@@ -52,6 +57,11 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
     private readonly auditService: AuditService,
     private readonly leaveConfigDao: LeaveConfigDao,
     private readonly employeeLeaveCounterDao: EmployeeLeaveCounterDao,
+    private readonly organizationHasUserDao: OrganizationHasUserDao,
+    private readonly organizationDao: OrganizationDao,
+    private readonly userInviteDao: UserInviteDao,
+    private readonly emailService: EmailService,
+    private readonly appConfigService: AppConfigService,
   ) {
     super(prisma, logger, employeeDao, employeeHasMediaDao, s3Service);
   }
@@ -59,71 +69,132 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
   async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Creating employee', { email: params.dto.email });
 
-    await this.validate(params);
+    if (params.currentUser.organizationId <= 0) {
+      throw new ApiBadRequestError('Organization context is required to create employees');
+    }
 
-    const userId = await this.transaction(async (tx) => {
-      const hashedPassword = await this.passwordService.hash(params.dto.password);
-      const user = await this.userDao.create({
-        data: {
-          email: params.dto.email,
-          firstname: params.dto.firstname,
-          lastname: params.dto.lastname,
-          password: hashedPassword,
-          isActive: true,
-        },
-        tx,
-      });
+    const org = await this.organizationDao.findById({ id: params.currentUser.organizationId });
+    if (!org) {
+      throw new ApiBadRequestError('Organization not found');
+    }
 
-      const dateOfJoining = new Date(params.dto.dateOfJoining);
-      await this.employeeDao.create({
-        data: {
-          user: { connect: { id: user.id } },
-          personalEmail: params.dto.personalEmail ?? undefined,
-          dob: new Date(params.dto.dob),
-          pan: params.dto.pan,
-          aadhaar: params.dto.aadhaar,
-          designation: params.dto.designation,
-          dateOfJoining,
-          dateOfLeaving: params.dto.dateOfLeaving ? new Date(params.dto.dateOfLeaving) : undefined,
-          status: params.dto.status,
-          reportTo: params.dto.reportToId ? { connect: { id: params.dto.reportToId } } : undefined,
-        },
-        tx,
-      });
+    const existingUser = await this.userDao.getByEmail({ email: params.dto.email });
 
-      const financialYear = getFinancialYearCode(dateOfJoining);
-      const leaveConfig = await this.leaveConfigDao.getLatest({ tx });
-      const totalLeavesAvailable = leaveConfig?.maxLeaves ?? 24;
-      await this.employeeLeaveCounterDao.create({
-        data: {
-          user: { connect: { id: user.id } },
-          financialYear,
-          casualLeaves: 0,
-          sickLeaves: 0,
-          earnedLeaves: 0,
-          totalLeavesUsed: 0,
-          totalLeavesAvailable,
-        },
-        tx,
-      });
+    const [duplicateCode, duplicatePan, duplicateAadhaar] = await Promise.all([
+      this.employeeDao.findByEmployeeCode({ employeeCode: params.dto.employeeCode, organizationId: params.currentUser.organizationId }),
+      this.employeeDao.findByPan({ pan: params.dto.pan, organizationId: params.currentUser.organizationId }),
+      this.employeeDao.findByAadhaar({ aadhaar: params.dto.aadhaar, organizationId: params.currentUser.organizationId }),
+    ]);
+    if (duplicateCode) throw new ApiFieldValidationError('employeeCode', 'Employee code already exists in this organisation');
+    if (duplicatePan) throw new ApiFieldValidationError('pan', 'PAN already registered in this organisation');
+    if (duplicateAadhaar) throw new ApiFieldValidationError('aadhaar', 'Aadhaar already registered in this organisation');
 
-      if (params.dto.photo?.key?.startsWith('temp/')) {
-        await this.createAndLinkMedia({ media: params.dto.photo, userId: user.id, type: EmployeeMediaType.photo, tx });
+    const { userId, inviteKey } = await this.transaction(async (tx) => {
+      let userId: number;
+
+      if (existingUser) {
+        // User already exists — just link to org and send invite
+        userId = existingUser.id;
+      } else {
+        // New user — create with isActive: false
+        const randomPassword = this.passwordService.makeRandomKey();
+        const hashedPassword = await this.passwordService.hash(randomPassword);
+
+        const user = await this.userDao.create({
+          data: {
+            email: params.dto.email,
+            firstname: params.dto.firstname,
+            lastname: params.dto.lastname,
+            password: hashedPassword,
+            isActive: false,
+          },
+          tx,
+        });
+        userId = user.id;
+
+        const dateOfJoining = new Date(params.dto.dateOfJoining);
+        await this.employeeDao.create({
+          data: {
+            user: { connect: { id: userId } },
+            organization: { connect: { id: params.currentUser.organizationId } },
+            employeeCode: params.dto.employeeCode,
+            personalEmail: params.dto.personalEmail ?? undefined,
+            dob: new Date(params.dto.dob),
+            pan: params.dto.pan,
+            aadhaar: params.dto.aadhaar,
+            designation: params.dto.designation,
+            dateOfJoining,
+            dateOfLeaving: params.dto.dateOfLeaving ? new Date(params.dto.dateOfLeaving) : undefined,
+            status: params.dto.status,
+            reportTo: params.dto.reportToId ? { connect: { id: params.dto.reportToId } } : undefined,
+          },
+          tx,
+        });
+
+        const financialYear = getFinancialYearCode(dateOfJoining);
+        const leaveConfig = await this.leaveConfigDao.getLatest({ tx });
+        const totalLeavesAvailable = leaveConfig?.maxLeaves ?? 24;
+        await this.employeeLeaveCounterDao.create({
+          data: {
+            user: { connect: { id: userId } },
+            financialYear,
+            casualLeaves: 0,
+            sickLeaves: 0,
+            earnedLeaves: 0,
+            totalLeavesUsed: 0,
+            totalLeavesAvailable,
+          },
+          tx,
+        });
+
+        if (params.dto.photo?.key?.startsWith('temp/')) {
+          await this.createAndLinkMedia({ media: params.dto.photo, userId, type: EmployeeMediaType.photo, tx });
+        }
       }
 
-      return user.id;
+      // Always upsert org membership with employee role
+      await this.organizationHasUserDao.upsert({
+        organizationId: params.currentUser.organizationId,
+        userId,
+        roles: [UserRoleDbEnum.employee],
+        tx,
+      });
+
+      // Always create a fresh invite
+      const inviteKey = this.passwordService.makeRandomKey();
+      await this.userInviteDao.create({
+        data: {
+          user: { connect: { id: userId } },
+          organization: { connect: { id: params.currentUser.organizationId } },
+          invitedBy: { connect: { id: params.currentUser.id } },
+          inviteKey,
+        },
+        tx,
+      });
+
+      return { userId, inviteKey };
     });
 
-    const employee = await this.getByIdOrThrow(userId);
-    void this.recordActivity(params, employee);
-    return { success: true, message: 'Employee created successfully' };
+    void this.sendInviteEmail({ userId, email: params.dto.email, inviteKey, organizationName: org.name });
+
+    if (!existingUser) {
+      const employee = await this.getById(userId);
+      void this.recordActivity(params, employee ?? null);
+    }
+
+    return { success: true, message: 'Employee added and invitation sent' };
   }
 
-  private async validate(params: Params): Promise<void> {
-    const existing = await this.userDao.getByEmail({ email: params.dto.email });
-    if (existing) {
-      throw new ApiFieldValidationError('email', 'User with this email already exists');
-    }
+  private async sendInviteEmail(params: { userId: number; email: string; inviteKey: string; organizationName: string }): Promise<void> {
+    await this.emailService.sendUserInvite({
+      userId: params.userId,
+      email: params.email,
+      emailData: {
+        userDisplayName: params.email,
+        organizationName: params.organizationName,
+        link: `${this.appConfigService.webAppBaseUrl}/auth/accept-invite/${params.userId}/${params.inviteKey}`,
+      },
+    });
   }
 
   private async createAndLinkMedia(params: { media: MediaUpsertType; userId: number; type: EmployeeMediaType; tx: Prisma.TransactionClient }): Promise<void> {
@@ -146,7 +217,7 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
     });
   }
 
-  private async recordActivity(params: Params, created: Awaited<ReturnType<BaseEmployeeUc['getById']>>): Promise<void> {
+  private async recordActivity(params: Params, created: Awaited<ReturnType<BaseEmployeeUc['getById']>> | null): Promise<void> {
     if (!created) return;
     const changes = this.computeChanges({
       oldValues: {},

@@ -3,15 +3,30 @@
 import {
   EmployeeListResponseType,
   EmployeeSortableColumns,
+  EmployeeStatusDtoEnum,
   PaginatedResponseType,
 } from '@repo/dto';
 import { DataTableSimple, DummySort, getSort } from '@repo/ui/container/datatable/datatable';
-import { ActionOption, ActionsIconCellRenderer, ActionsIconCellRendererParams, DateTimeRenderer } from '@repo/ui/container/datatable/datatable-cell-renderer';
+import { ActionOption, ActionsIconCellRenderer, ActionsIconCellRendererParams, BadgeRenderer, DateTimeRenderer } from '@repo/ui/container/datatable/datatable-cell-renderer';
 import { isSortable } from '@repo/ui/lib/utils';
 import { ColDef } from 'ag-grid-community';
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
+
+const STATUS_BADGE_CLASS: Record<string, string> = {
+  [EmployeeStatusDtoEnum.active]: 'bg-success/20 text-success',
+  [EmployeeStatusDtoEnum.resigned]: 'bg-warning/20 text-warning',
+  [EmployeeStatusDtoEnum.onLeave]: 'bg-blue-500/20 text-blue-500',
+  [EmployeeStatusDtoEnum.terminated]: 'bg-destructive/20 text-destructive',
+};
+
+const EmployeeStatusRenderer = (props: { value?: string }) => (
+  <BadgeRenderer
+    text={props.value ?? '-'}
+    className={`text-xs ${STATUS_BADGE_CLASS[props.value ?? ''] ?? ''}`}
+  />
+);
 
 interface Props {
   data: PaginatedResponseType<EmployeeListResponseType>;
@@ -39,6 +54,12 @@ export const EmployeeDataTableClient = (props: Props) => {
         sortable: false,
         comparator: DummySort,
         width: 80,
+      },
+      {
+        headerName: 'Emp Code',
+        field: 'employeeCode',
+        sortable: false,
+        width: 120,
       },
       {
         headerName: 'Name',
@@ -71,14 +92,21 @@ export const EmployeeDataTableClient = (props: Props) => {
         sort: getSort('status', props.sort.sKey, props.sort.sVal),
         sortable: isSortable('status', EmployeeSortableColumns),
         comparator: DummySort,
+        cellRenderer: EmployeeStatusRenderer,
       },
       {
-        headerName: 'Date of Joining',
+        headerName: 'Joining Date',
         field: 'dateOfJoining',
-        width: 140,
+        width: 130,
         sort: getSort('dateOfJoining', props.sort.sKey, props.sort.sVal),
         sortable: isSortable('dateOfJoining', EmployeeSortableColumns),
         comparator: DummySort,
+      },
+      {
+        headerName: 'Relieving Date',
+        field: 'dateOfLeaving',
+        width: 130,
+        sortable: false,
       },
       {
         headerName: 'Created At',

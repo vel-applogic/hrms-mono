@@ -11,18 +11,27 @@ import type {
 import { revalidatePath } from 'next/cache';
 
 import { employeeService } from '@/lib/service/employee.service';
+import { ActionResult, extractActionError } from '@/lib/util/action-result';
 
-export async function createEmployee(data: EmployeeCreateRequestType): Promise<OperationStatusResponseType> {
-  const result = await employeeService.create(data);
-  revalidatePath('/employee');
-  return result;
+export async function createEmployee(data: EmployeeCreateRequestType): Promise<ActionResult<OperationStatusResponseType>> {
+  try {
+    const result = await employeeService.create(data);
+    revalidatePath('/employee');
+    return { ok: true, data: result };
+  } catch (err) {
+    return { ok: false, error: extractActionError(err, 'Failed to create employee') };
+  }
 }
 
-export async function updateEmployee(id: number, data: EmployeeUpdateRequestType): Promise<OperationStatusResponseType> {
-  const result = await employeeService.update(id, data);
-  revalidatePath('/employee');
-  revalidatePath(`/employee/${id}/details`);
-  return result;
+export async function updateEmployee(id: number, data: EmployeeUpdateRequestType): Promise<ActionResult<OperationStatusResponseType>> {
+  try {
+    const result = await employeeService.update(id, data);
+    revalidatePath('/employee');
+    revalidatePath(`/employee/${id}/details`);
+    return { ok: true, data: result };
+  } catch (err) {
+    return { ok: false, error: extractActionError(err, 'Failed to update employee') };
+  }
 }
 
 export async function updateEmployeeDocuments(

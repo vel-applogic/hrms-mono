@@ -22,24 +22,24 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  auditActivities                AuditActivity[]
-  userForgotPasswords            UserForgotPassword[]
-  userVerifyEmails               UserVerifyEmail[]
-  userInvites                    UserInvite[]          @relation("UserInviteUser")
-  sentInvites                    UserInvite[]          @relation("UserInviteInvitedBy")
-  candidateHasFeedbacks          CandidateHasFeedback[]
-  reportTo                    Employee[]            @relation("EmployeeReportTo")
-  employees                   Employee[]            @relation("EmployeeUser")
-  employeeHasMedias           EmployeeHasMedia[]    @relation("EmployeeHasMediaUser")
-  payrollCompensations        PayrollCompensation[] @relation("EmployeeCompensationUser")
-  employeeFeedbacksCreatedBy  EmployeeFeedback[]    @relation("EmployeeFeedbackCreatedBy")
-  employeeFeedbacks           EmployeeFeedback[]    @relation("EmployeeFeedbackUser")
-  leaves                      Leave[]
-  employeeLeaveCounters       EmployeeLeaveCounter[]
-  payrollDeductions           PayrollDeduction[]
-  payrollPayslips             PayrollPayslip[]
-  organizationHasUsers        OrganizationHasUser[]
-  userInBranches              UserInBranch[]
+  auditActivities            AuditActivity[]
+  userForgotPasswords        UserForgotPassword[]
+  userVerifyEmails           UserVerifyEmail[]
+  userInvites                UserInvite[]           @relation("UserInviteUser")
+  sentInvites                UserInvite[]           @relation("UserInviteInvitedBy")
+  candidateHasFeedbacks      CandidateHasFeedback[]
+  reportTo                   Employee[]             @relation("EmployeeReportTo")
+  employees                  Employee[]             @relation("EmployeeUser")
+  employeeHasMedias          EmployeeHasMedia[]     @relation("EmployeeHasMediaUser")
+  payrollCompensations       PayrollCompensation[]  @relation("EmployeeCompensationUser")
+  employeeFeedbacksCreatedBy EmployeeFeedback[]     @relation("EmployeeFeedbackCreatedBy")
+  employeeFeedbacks          EmployeeFeedback[]     @relation("EmployeeFeedbackUser")
+  leaves                     Leave[]
+  employeeLeaveCounters      EmployeeLeaveCounter[]
+  payrollDeductions          PayrollDeduction[]
+  payrollPayslips            PayrollPayslip[]
+  organizationHasUsers       OrganizationHasUser[]
+  userInBranches             UserInBranch[]
 
   @@map("users")
 }
@@ -78,6 +78,7 @@ model Organization {
   branches             Branch[]
   userInBranches       UserInBranch[]
   userInvites          UserInvite[]
+  employees            Employee[]
 
   @@map("organization")
 }
@@ -149,22 +150,29 @@ model UserInvite {
 // EMPLOYEE
 
 model Employee {
-  id            Int                @id @default(autoincrement())
-  userId        Int                @unique @map("user_id")
-  user          User               @relation("EmployeeUser", fields: [userId], references: [id])
-  personalEmail String?            @map("personal_email")
-  dob           DateTime
-  pan           String             @unique
-  aadhaar       String             @unique
-  designation   String
-  dateOfJoining DateTime           @map("date_of_joining")
-  dateOfLeaving DateTime?          @map("date_of_leaving")
-  status        EmployeeStatusEnum @map("status")
-  reportToId    Int?               @map("report_to_id")
-  reportTo      User?              @relation("EmployeeReportTo", fields: [reportToId], references: [id])
-  createdAt     DateTime           @default(now()) @map("created_at")
-  updatedAt     DateTime           @updatedAt @map("updated_at")
+  id             Int                @id @default(autoincrement())
+  userId         Int                @map("user_id")
+  user           User               @relation("EmployeeUser", fields: [userId], references: [id])
+  organizationId Int                @map("organization_id")
+  organization   Organization       @relation(fields: [organizationId], references: [id])
+  employeeCode   String             @map("employee_code")
+  personalEmail  String?            @map("personal_email")
+  dob            DateTime
+  pan            String
+  aadhaar        String
+  designation    String
+  dateOfJoining  DateTime           @map("date_of_joining")
+  dateOfLeaving  DateTime?          @map("date_of_leaving")
+  status         EmployeeStatusEnum @map("status")
+  reportToId     Int?               @map("report_to_id")
+  reportTo       User?              @relation("EmployeeReportTo", fields: [reportToId], references: [id])
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
 
+  @@unique([userId, organizationId])
+  @@unique([employeeCode, organizationId])
+  @@unique([pan, organizationId])
+  @@unique([aadhaar, organizationId])
   @@index([userId])
   @@index([reportToId])
   @@index([status])
@@ -205,19 +213,19 @@ model PayrollCompensation {
 }
 
 model PayrollDeduction {
-  id            Int                      @id @default(autoincrement())
-  userId        Int                      @map("user_id")
-  user          User                     @relation(fields: [userId], references: [id])
-  type          PayrollDeductionType     @map("type")
+  id            Int                       @id @default(autoincrement())
+  userId        Int                       @map("user_id")
+  user          User                      @relation(fields: [userId], references: [id])
+  type          PayrollDeductionType      @map("type")
   frequency     PayrollDeductionFrequency @map("frequency")
-  amount        Int                      @map("amount")
-  otherTitle    String?                  @map("other_title")
-  effectiveFrom DateTime                 @map("effective_from") @db.Date
-  effectiveTill DateTime?                @map("effective_till") @db.Date
-  specificMonth DateTime?                @map("specific_month") @db.Date
-  isActive      Boolean                  @default(true) @map("is_active")
-  createdAt     DateTime                 @default(now()) @map("created_at")
-  updatedAt     DateTime                 @updatedAt @map("updated_at")
+  amount        Int                       @map("amount")
+  otherTitle    String?                   @map("other_title")
+  effectiveFrom DateTime                  @map("effective_from") @db.Date
+  effectiveTill DateTime?                 @map("effective_till") @db.Date
+  specificMonth DateTime?                 @map("specific_month") @db.Date
+  isActive      Boolean                   @default(true) @map("is_active")
+  createdAt     DateTime                  @default(now()) @map("created_at")
+  updatedAt     DateTime                  @updatedAt @map("updated_at")
 
   @@index([userId])
   @@map("user_employee_deduction")
@@ -226,17 +234,17 @@ model PayrollDeduction {
 // PAYSLIP
 
 model PayrollPayslip {
-  id                   Int                    @id @default(autoincrement())
-  userId               Int                    @map("user_id")
-  user                 User                   @relation(fields: [userId], references: [id])
-  month                Int                    @map("month")
-  year                 Int                    @map("year")
-  createdAt            DateTime               @default(now()) @map("created_at")
-  updatedAt            DateTime               @updatedAt @map("updated_at")
-  grossAmount          Int                    @map("gross_amount")
-  netAmount            Int                    @map("net_amount")
-  deductionAmount      Int                    @map("deduction_amount")
-  pdfS3Key             String                 @map("pdf_s3_key")
+  id                      Int                      @id @default(autoincrement())
+  userId                  Int                      @map("user_id")
+  user                    User                     @relation(fields: [userId], references: [id])
+  month                   Int                      @map("month")
+  year                    Int                      @map("year")
+  createdAt               DateTime                 @default(now()) @map("created_at")
+  updatedAt               DateTime                 @updatedAt @map("updated_at")
+  grossAmount             Int                      @map("gross_amount")
+  netAmount               Int                      @map("net_amount")
+  deductionAmount         Int                      @map("deduction_amount")
+  pdfS3Key                String                   @map("pdf_s3_key")
   payrollPayslipLineItems PayrollPayslipLineItem[]
 
   @@unique([userId, month, year])

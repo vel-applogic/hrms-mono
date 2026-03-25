@@ -19,6 +19,7 @@ import {
   EmployeeDao,
   EmployeeHasMediaDao,
 } from '@repo/nest-lib';
+import { ApiFieldValidationError } from '@repo/shared';
 import type { Prisma } from '@repo/db';
 
 import { S3Service } from '#src/external-service/s3.service.js';
@@ -53,6 +54,15 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
 
     const oldEmployee = await this.getByIdOrThrow(params.id);
 
+    const [duplicateCode, duplicatePan, duplicateAadhaar] = await Promise.all([
+      this.employeeDao.findByEmployeeCode({ employeeCode: params.dto.employeeCode, organizationId: params.currentUser.organizationId, excludeUserId: params.id }),
+      this.employeeDao.findByPan({ pan: params.dto.pan, organizationId: params.currentUser.organizationId, excludeUserId: params.id }),
+      this.employeeDao.findByAadhaar({ aadhaar: params.dto.aadhaar, organizationId: params.currentUser.organizationId, excludeUserId: params.id }),
+    ]);
+    if (duplicateCode) throw new ApiFieldValidationError('employeeCode', 'Employee code already exists in this organisation');
+    if (duplicatePan) throw new ApiFieldValidationError('pan', 'PAN already registered in this organisation');
+    if (duplicateAadhaar) throw new ApiFieldValidationError('aadhaar', 'Aadhaar already registered in this organisation');
+
     await this.transaction(async (tx) => {
       await this.userDao.update({
         id: params.id,
@@ -67,6 +77,7 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
       await this.employeeDao.update({
         userId: params.id,
         data: {
+          employeeCode: params.dto.employeeCode,
           personalEmail: params.dto.personalEmail ?? undefined,
           dob: new Date(params.dto.dob),
           pan: params.dto.pan,

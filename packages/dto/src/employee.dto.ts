@@ -5,22 +5,22 @@ import { MediaResponseSchema, MediaUpsertSchema } from './media.dto.js';
 import { FilterRequestSchema } from './pagination-filter.dto.js';
 
 export const EmployeeBaseFieldsSchema = z.object({
+  employeeCode: z.string().min(1),
   firstname: z.string().min(1),
   lastname: z.string().min(1),
   email: z.string().email(),
   personalEmail: z.string().email().optional().nullable(),
-  dob: z.string(),
-  pan: z.string().min(1),
-  aadhaar: z.string().min(1),
-  designation: z.string().min(1),
-  dateOfJoining: z.string(),
+  dob: z.string().min(1, 'Date of birth is required'),
+  pan: z.string().min(1, 'PAN is required'),
+  aadhaar: z.string().min(1, 'Aadhaar is required'),
+  designation: z.string().min(1, 'Designation is required'),
+  dateOfJoining: z.string().min(1, 'Date of joining is required'),
   dateOfLeaving: z.string().optional().nullable(),
   status: z.nativeEnum(EmployeeStatusDtoEnum),
   reportToId: z.number().optional().nullable(),
 });
 
 export const EmployeeCreateRequestSchema = EmployeeBaseFieldsSchema.extend({
-  password: z.string().min(1),
   photo: MediaUpsertSchema.optional(),
 });
 export type EmployeeCreateRequestType = z.infer<typeof EmployeeCreateRequestSchema>;
@@ -39,12 +39,14 @@ export type EmployeeUpdateDocumentsRequestType = z.infer<typeof EmployeeUpdateDo
 
 export const EmployeeListResponseSchema = z.object({
   id: z.number(),
+  employeeCode: z.string(),
   firstname: z.string(),
   lastname: z.string(),
   email: z.string(),
   designation: z.string(),
   status: z.nativeEnum(EmployeeStatusDtoEnum),
   dateOfJoining: z.string(),
+  dateOfLeaving: z.string().optional().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -55,7 +57,6 @@ export const EmployeeDetailResponseSchema = EmployeeListResponseSchema.extend({
   dob: z.string(),
   pan: z.string(),
   aadhaar: z.string(),
-  dateOfLeaving: z.string().optional().nullable(),
   reportToId: z.number().optional().nullable(),
   reportTo: z
     .object({

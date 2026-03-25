@@ -5,13 +5,13 @@ import {
   AuditService,
   CommonLoggerService,
   CurrentUserType,
-  IUseCase,
-  PrismaService,
-  UserDao,
-  PayrollCompensationDao,
   EmployeeDao,
   EmployeeFeedbackDao,
   EmployeeHasMediaDao,
+  IUseCase,
+  PayrollCompensationDao,
+  PrismaService,
+  UserDao,
 } from '@repo/nest-lib';
 
 import { S3Service } from '#src/external-service/s3.service.js';
@@ -49,7 +49,7 @@ export class EmployeeDeleteUc extends BaseEmployeeUc implements IUseCase<Params,
       await pc.employeeFeedback.deleteMany({ where: { userId: params.id } });
       await pc.payrollCompensation.deleteMany({ where: { userId: params.id } });
       await pc.employeeHasMedia.deleteMany({ where: { userId: params.id } });
-      await pc.employee.delete({ where: { userId: params.id } });
+      await pc.employee.delete({ where: { userId_organizationId: { userId: params.id, organizationId: params.currentUser.organizationId } } });
       await this.userDao.delete({ id: params.id, tx });
     });
 

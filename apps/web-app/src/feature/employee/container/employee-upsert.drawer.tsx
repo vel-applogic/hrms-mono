@@ -19,7 +19,7 @@ import { ImageUpload } from '@/container/s3-file-upload/s3-file-upload';
 import { createEmployee, updateEmployee } from '@/lib/action/employee.actions';
 
 const CreateFormSchema = EmployeeCreateRequestSchema;
-const UpdateFormSchema = CreateFormSchema.omit({ password: true });
+const UpdateFormSchema = EmployeeCreateRequestSchema;
 type CreateFormType = z.infer<typeof CreateFormSchema>;
 type UpdateFormType = z.infer<typeof UpdateFormSchema>;
 type FormType = CreateFormType | UpdateFormType;
@@ -41,6 +41,7 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
   const form = useForm<FormType>({
     resolver: zodResolver(isEditing ? UpdateFormSchema : CreateFormSchema),
     defaultValues: {
+      employeeCode: '',
       firstname: '',
       lastname: '',
       email: '',
@@ -60,6 +61,7 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
     if (open) {
       if (employee) {
         form.reset({
+          employeeCode: employee.employeeCode,
           firstname: employee.firstname,
           lastname: employee.lastname,
           email: employee.email,
@@ -76,6 +78,7 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
         });
       } else {
         form.reset({
+          employeeCode: '',
           firstname: '',
           lastname: '',
           email: '',
@@ -88,19 +91,30 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
           dateOfLeaving: undefined,
           status: EmployeeStatusDtoEnum.active,
           reportToId: undefined,
-          password: '',
         });
       }
       setError('');
     }
   }, [open, employee, form]);
 
+  const applyActionError = (error: { message: string; fieldErrors?: { field: string; message: string }[] }) => {
+    if (error.fieldErrors?.length) {
+      error.fieldErrors.forEach(({ field, message }) => {
+        form.setError(field as keyof FormType, { type: 'server', message });
+      });
+    } else {
+      setError(error.message);
+    }
+  };
+
   const handleSubmit = async (data: FormType) => {
     setLoading(true);
     setError('');
     try {
+      let result;
       if (isEditing && employee) {
-        await updateEmployee(employee.id, {
+        result = await updateEmployee(employee.id, {
+          employeeCode: data.employeeCode,
           firstname: data.firstname,
           lastname: data.lastname,
           email: data.email,
@@ -116,9 +130,8 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
           photo: data.photo,
         });
       } else {
-        await createEmployee({
-          ...data,
-          password: (data as CreateFormType).password,
+        result = await createEmployee({
+          employeeCode: data.employeeCode,
           firstname: data.firstname,
           lastname: data.lastname,
           email: data.email,
@@ -134,11 +147,16 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
           photo: data.photo,
         });
       }
+
+      if (!result.ok) {
+        applyActionError(result.error);
+        return;
+      }
+
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'An error occurred';
-      setError(message);
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -165,6 +183,12 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
       <form id={FORM_ID} onSubmit={form.handleSubmit(handleSubmit)} className='flex flex-col gap-6 p-6'>
         {error && <p className='text-sm text-destructive'>{error}</p>}
 
+        <div className='flex flex-col gap-2'>
+          <Label htmlFor='employeeCode'>Employee code</Label>
+          <Input id='employeeCode' placeholder='e.g. EMP001' {...form.register('employeeCode')} />
+          {form.formState.errors.employeeCode && <p className='text-sm text-destructive'>{form.formState.errors.employeeCode.message}</p>}
+        </div>
+
         <div className='grid grid-cols-2 gap-4'>
           <div className='flex flex-col gap-2'>
             <Label htmlFor='firstname'>First name</Label>
@@ -183,14 +207,6 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
           <Input id='email' type='email' placeholder='employee@example.com' {...form.register('email')} />
           {form.formState.errors.email && <p className='text-sm text-destructive'>{form.formState.errors.email.message}</p>}
         </div>
-
-        {!isEditing && (
-          <div className='flex flex-col gap-2'>
-            <Label htmlFor='password'>Password</Label>
-            <Input id='password' type='password' placeholder='••••••••' {...form.register('password')} />
-            {form.formState.errors.password && <p className='text-sm text-destructive'>{form.formState.errors.password.message}</p>}
-          </div>
-        )}
 
         <div className='flex flex-col gap-2'>
           <Label htmlFor='personalEmail'>Personal email</Label>

@@ -22,11 +22,59 @@ export class EmployeeDao extends BaseDao {
 
   async getByUserId(params: { userId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeDetailRecordType | null> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.employee.findUnique({
+    return pc.employee.findFirst({
       where: { userId: params.userId },
       include: {
         user: true,
         reportTo: { select: { id: true, firstname: true, lastname: true, email: true } },
+      },
+    });
+  }
+
+  async findByEmployeeCode(params: {
+    employeeCode: string;
+    organizationId: number;
+    excludeUserId?: number;
+    tx?: Prisma.TransactionClient;
+  }): Promise<Employee | null> {
+    const pc = this.getPrismaClient(params.tx);
+    return pc.employee.findFirst({
+      where: {
+        employeeCode: params.employeeCode,
+        organizationId: params.organizationId,
+        ...(params.excludeUserId !== undefined ? { userId: { not: params.excludeUserId } } : {}),
+      },
+    });
+  }
+
+  async findByPan(params: {
+    pan: string;
+    organizationId: number;
+    excludeUserId?: number;
+    tx?: Prisma.TransactionClient;
+  }): Promise<Employee | null> {
+    const pc = this.getPrismaClient(params.tx);
+    return pc.employee.findFirst({
+      where: {
+        pan: params.pan,
+        organizationId: params.organizationId,
+        ...(params.excludeUserId !== undefined ? { userId: { not: params.excludeUserId } } : {}),
+      },
+    });
+  }
+
+  async findByAadhaar(params: {
+    aadhaar: string;
+    organizationId: number;
+    excludeUserId?: number;
+    tx?: Prisma.TransactionClient;
+  }): Promise<Employee | null> {
+    const pc = this.getPrismaClient(params.tx);
+    return pc.employee.findFirst({
+      where: {
+        aadhaar: params.aadhaar,
+        organizationId: params.organizationId,
+        ...(params.excludeUserId !== undefined ? { userId: { not: params.excludeUserId } } : {}),
       },
     });
   }
@@ -42,7 +90,9 @@ export class EmployeeDao extends BaseDao {
     tx?: Prisma.TransactionClient;
   }): Promise<Employee> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.employee.update({ where: { userId: params.userId }, data: params.data });
+    const existing = await pc.employee.findFirst({ where: { userId: params.userId } });
+    if (!existing) throw new Error(`Employee with userId ${params.userId} not found`);
+    return pc.employee.update({ where: { id: existing.id }, data: params.data });
   }
 
   async search(params: {
@@ -59,13 +109,18 @@ export class EmployeeDao extends BaseDao {
     const where: Prisma.EmployeeWhereInput = {};
 
     if (params.filterDto.search) {
-      where.user = {
-        OR: [
-          { firstname: { contains: params.filterDto.search, mode: 'insensitive' } },
-          { lastname: { contains: params.filterDto.search, mode: 'insensitive' } },
-          { email: { contains: params.filterDto.search, mode: 'insensitive' } },
-        ],
-      };
+      where.OR = [
+        { employeeCode: { contains: params.filterDto.search, mode: 'insensitive' } },
+        {
+          user: {
+            OR: [
+              { firstname: { contains: params.filterDto.search, mode: 'insensitive' } },
+              { lastname: { contains: params.filterDto.search, mode: 'insensitive' } },
+              { email: { contains: params.filterDto.search, mode: 'insensitive' } },
+            ],
+          },
+        },
+      ];
     }
 
     if (params.filterDto.status?.length) {

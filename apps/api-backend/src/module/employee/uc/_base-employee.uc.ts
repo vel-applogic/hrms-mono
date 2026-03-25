@@ -48,6 +48,7 @@ export class BaseEmployeeUc extends BaseUc {
 
     return {
       id: employee.userId,
+      employeeCode: employee.employeeCode,
       firstname: employee.user.firstname,
       lastname: employee.user.lastname,
       email: employee.user.email,
@@ -86,12 +87,14 @@ export class BaseEmployeeUc extends BaseUc {
   protected dbToEmployeeListResponse(dbRec: EmployeeListRecordType): EmployeeListResponseType {
     return {
       id: dbRec.userId,
+      employeeCode: dbRec.employeeCode,
       firstname: dbRec.user.firstname,
       lastname: dbRec.user.lastname,
       email: dbRec.user.email,
       designation: dbRec.designation,
       status: dbRec.status as unknown as EmployeeStatusDtoEnum,
       dateOfJoining: dbRec.dateOfJoining.toISOString().split('T')[0]!,
+      dateOfLeaving: dbRec.dateOfLeaving?.toISOString().split('T')[0] ?? null,
       createdAt: dbRec.createdAt.toISOString(),
       updatedAt: dbRec.updatedAt.toISOString(),
     };
