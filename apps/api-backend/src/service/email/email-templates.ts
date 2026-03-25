@@ -302,6 +302,37 @@ const EMAIL_CONTENT_MAP = {
     </tr>
 </table>`,
 
+  SEND_USER_INVITE: `
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+        <td class="bodycopy">
+            <p>
+            You have been invited to join <strong>{{organizationName}}</strong> as an admin. Click below to accept the invitation and set up your account.
+            </p>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 20px 0 0 0;">
+            <table class="buttonwrapper" bgcolor="#F4DA6F" border="0"
+                cellspacing="0" cellpadding="0">
+                <tr>
+                    <td class="button" height="45">
+                        <a href="{{link}}">Accept Invitation</a>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding-top: 10px">
+            <p>
+            Alternatively you can copy and paste this URL into your web browser<br />
+            {{ link }}
+            </p>
+        </td>
+    </tr>
+</table>`,
+
   ACCOUNT_PASSWORD_UPDATED: `
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
     <tr>
@@ -342,6 +373,7 @@ function composeEmailTemplate(contentKey: keyof typeof EMAIL_CONTENT_MAP): (data
 export const EMAIL_TEMPLATE_MAP = {
   SEND_FORGOT_PASSWORD_LINK_TEMPLATE: composeEmailTemplate('SEND_FORGOT_PASSWORD_LINK'),
   SEND_USER_EMAIL_VERIFY_TEMPLATE: composeEmailTemplate('SEND_USER_EMAIL_VERIFY'),
+  SEND_USER_INVITE_TEMPLATE: composeEmailTemplate('SEND_USER_INVITE'),
   ACCOUNT_PASSWORD_UPDATED_TEMPLATE: composeEmailTemplate('ACCOUNT_PASSWORD_UPDATED'),
 } as const;
 

@@ -4,7 +4,7 @@ import { createTransport, SentMessageInfo, Transporter } from 'nodemailer';
 
 import { AppConfigService } from '#src/config/app-config.service.js';
 
-import { ForgotPasswordRequestEmailDto, UserActivationRequestEmailDto } from './email.dto.js';
+import { ForgotPasswordRequestEmailDto, UserActivationRequestEmailDto, UserInviteEmailDto } from './email.dto.js';
 import { EMAIL_TEMPLATE_MAP, EmailTemplateName } from './email-templates.js';
 
 @Injectable()
@@ -50,6 +50,16 @@ export class EmailService {
       email: params.email,
       emailData: params.emailData,
       emailTemplateName: 'SEND_FORGOT_PASSWORD_LINK_TEMPLATE',
+    });
+  }
+
+  public async sendUserInvite(params: { userId: number; email: string; emailData: UserInviteEmailDto }): Promise<void> {
+    await this.sendEmail<UserInviteEmailDto>({
+      userId: params.userId,
+      subject: `You've been invited to ${params.emailData.organizationName}`,
+      email: params.email,
+      emailData: params.emailData,
+      emailTemplateName: 'SEND_USER_INVITE_TEMPLATE',
     });
   }
 

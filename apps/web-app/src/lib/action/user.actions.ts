@@ -16,3 +16,9 @@ export async function updateUser(id: number, data: Parameters<typeof userService
   revalidatePath('/user');
   return result;
 }
+
+export async function deleteUser(id: number): Promise<OperationStatusResponseType> {
+  const result = await userService.remove(id);
+  revalidatePath('/user');
+  return result;
+}

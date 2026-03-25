@@ -1,19 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma, User } from '@repo/db';
 import type { AdminUserCreateRequestType, OperationStatusResponseType } from '@repo/dto';
-import { AuditActivityStatusDtoEnum, AuditEntityTypeDtoEnum, AuditEventGroupDtoEnum, AuditEventTypeDtoEnum } from '@repo/dto';
+import { AuditActivityStatusDtoEnum, AuditEntityTypeDtoEnum, AuditEventGroupDtoEnum, AuditEventTypeDtoEnum, UserRoleDtoEnum } from '@repo/dto';
 import {
   AuditService,
   CommonLoggerService,
   CurrentUserType,
   IUseCase,
+  OrganizationDao,
   OrganizationHasUserDao,
   PrismaService,
   UserDao,
+  UserInviteDao,
   userRoleDtoEnumToDbEnum,
-  UserVerifyEmailDao,
 } from '@repo/nest-lib';
-import { ApiFieldValidationError } from '@repo/shared';
+import { ApiBadRequestError } from '@repo/shared';
 
 import { AppConfigService } from '#src/config/app-config.service.js';
 import { EmailService } from '#src/service/email/email.service.js';
@@ -33,7 +34,8 @@ export class AdminUserCreateUc extends BaseAdminUserUc implements IUseCase<Param
     logger: CommonLoggerService,
     userDao: UserDao,
     organizationHasUserDao: OrganizationHasUserDao,
-    private readonly userVerifyEmailDao: UserVerifyEmailDao,
+    private readonly userInviteDao: UserInviteDao,
+    private readonly organizationDao: OrganizationDao,
     private readonly passwordService: PasswordService,
     private readonly emailService: EmailService,
     private readonly appConfigService: AppConfigService,
@@ -43,38 +45,54 @@ export class AdminUserCreateUc extends BaseAdminUserUc implements IUseCase<Param
   }
 
   async execute(params: Params): Promise<OperationStatusResponseType> {
-    this.logger.i('Creating user', { email: params.dto.email });
+    this.logger.i('Inviting user', { email: params.dto.email });
 
-    await this.validate(params);
+    if (params.currentUser.organizationId <= 0) {
+      throw new ApiBadRequestError('Organization context is required to invite users');
+    }
 
-    const { createdUser, verifyKey } = await this.transaction(async (tx) => {
-      const createdUser = await this.create({ dto: params.dto, tx });
-      const verifyKey = await this.createVerifyEmailKey({ userId: createdUser.id, tx });
-      await this.createOrgMembership({ dto: params.dto, userId: createdUser.id, currentUser: params.currentUser, tx });
-      return { createdUser, verifyKey };
+    const org = await this.organizationDao.findById({ id: params.currentUser.organizationId });
+    if (!org) {
+      throw new ApiBadRequestError('Organization not found');
+    }
+
+    const { user, inviteKey, isNew } = await this.transaction(async (tx) => {
+      let user = await this.userDao.getByEmail({ email: params.dto.email });
+      let isNew = false;
+
+      if (!user) {
+        user = await this.createUser({ email: params.dto.email, tx });
+        isNew = true;
+      }
+
+      await this.createOrgMembership({ userId: user.id, currentUser: params.currentUser, tx });
+
+      const inviteKey = await this.createInvite({
+        userId: user.id,
+        organizationId: params.currentUser.organizationId,
+        invitedById: params.currentUser.id,
+        tx,
+      });
+
+      return { user, inviteKey, isNew };
     });
 
-    void this.sendVerifyEmail({ user: createdUser, key: verifyKey });
-    void this.recordActivity(params, createdUser);
-
-    return { success: true, message: 'User created successfully' };
-  }
-
-  async validate(params: Params): Promise<void> {
-    const existing = await this.userDao.getByEmail({ email: params.dto.email });
-    if (existing) {
-      throw new ApiFieldValidationError('email', 'User with this email already exists');
+    void this.sendInviteEmail({ user, inviteKey, organizationName: org.name });
+    if (isNew) {
+      void this.recordActivity(params, user);
     }
+
+    return { success: true, message: 'Invitation sent successfully' };
   }
 
-  async create(params: { dto: AdminUserCreateRequestType; tx: Prisma.TransactionClient }): Promise<User> {
-    const hashedPassword = await this.passwordService.hash(params.dto.password);
-
+  private async createUser(params: { email: string; tx: Prisma.TransactionClient }): Promise<User> {
+    const randomPassword = this.passwordService.makeRandomKey();
+    const hashedPassword = await this.passwordService.hash(randomPassword);
     return this.userDao.create({
       data: {
-        email: params.dto.email,
-        firstname: params.dto.firstname,
-        lastname: params.dto.lastname,
+        email: params.email,
+        firstname: '',
+        lastname: '',
         password: hashedPassword,
         isActive: false,
       },
@@ -82,33 +100,47 @@ export class AdminUserCreateUc extends BaseAdminUserUc implements IUseCase<Param
     });
   }
 
-  private async createOrgMembership(params: { dto: AdminUserCreateRequestType; userId: number; currentUser: CurrentUserType; tx: Prisma.TransactionClient }): Promise<void> {
-    if (params.currentUser.organizationId <= 0 || !this.organizationHasUserDao) return;
-
+  private async createOrgMembership(params: {
+    userId: number;
+    currentUser: CurrentUserType;
+    tx: Prisma.TransactionClient;
+  }): Promise<void> {
+    if (!this.organizationHasUserDao) return;
     await this.organizationHasUserDao.upsert({
       organizationId: params.currentUser.organizationId,
       userId: params.userId,
-      roles: params.dto.roles.map((r) => userRoleDtoEnumToDbEnum(r)),
+      roles: [userRoleDtoEnumToDbEnum(UserRoleDtoEnum.admin)],
       tx: params.tx,
     });
   }
 
-  private async createVerifyEmailKey(params: { userId: number; tx: Prisma.TransactionClient }): Promise<string> {
-    const key = this.passwordService.makeRandomKey();
-    await this.userVerifyEmailDao.create({
-      data: { user: { connect: { id: params.userId } }, verifyEmailKey: key },
+  private async createInvite(params: {
+    userId: number;
+    organizationId: number;
+    invitedById: number;
+    tx: Prisma.TransactionClient;
+  }): Promise<string> {
+    const inviteKey = this.passwordService.makeRandomKey();
+    await this.userInviteDao.create({
+      data: {
+        user: { connect: { id: params.userId } },
+        organization: { connect: { id: params.organizationId } },
+        invitedBy: { connect: { id: params.invitedById } },
+        inviteKey,
+      },
       tx: params.tx,
     });
-    return key;
+    return inviteKey;
   }
 
-  private async sendVerifyEmail(params: { user: User; key: string }): Promise<void> {
-    await this.emailService.sendUserEmailVerifyRequest({
+  private async sendInviteEmail(params: { user: User; inviteKey: string; organizationName: string }): Promise<void> {
+    await this.emailService.sendUserInvite({
       userId: params.user.id,
       email: params.user.email!,
       emailData: {
-        userDisplayName: `${params.user.firstname} ${params.user.lastname}`,
-        link: `${this.appConfigService.webAppBaseUrl}/auth/verify-email/${params.user.id}/${params.key}`,
+        userDisplayName: params.user.email!,
+        organizationName: params.organizationName,
+        link: `${this.appConfigService.webAppBaseUrl}/auth/accept-invite/${params.user.id}/${params.inviteKey}`,
       },
     });
   }
@@ -116,11 +148,7 @@ export class AdminUserCreateUc extends BaseAdminUserUc implements IUseCase<Param
   private async recordActivity(params: Params, createdUser: User): Promise<void> {
     const changes = this.computeChanges({
       oldValues: {},
-      newValues: {
-        email: createdUser.email,
-        firstname: createdUser.firstname,
-        lastname: createdUser.lastname,
-      },
+      newValues: { email: createdUser.email },
     });
 
     await this.auditService.recordActivity({
@@ -128,7 +156,7 @@ export class AdminUserCreateUc extends BaseAdminUserUc implements IUseCase<Param
       eventType: AuditEventTypeDtoEnum.create,
       status: AuditActivityStatusDtoEnum.success,
       currentUser: params.currentUser,
-      description: 'User created',
+      description: 'User invited',
       data: { changes },
       relatedEntities: [{ entityType: AuditEntityTypeDtoEnum.user, entityId: createdUser.id }],
     });

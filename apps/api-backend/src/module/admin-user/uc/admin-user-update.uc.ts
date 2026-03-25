@@ -1,11 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma, User, UserRoleDbEnum } from '@repo/db';
+import type { Prisma, User } from '@repo/db'; // Prisma used for TransactionClient
 import type { AdminUserUpdateRequestType, OperationStatusResponseType } from '@repo/dto';
 import { AuditActivityStatusDtoEnum, AuditEntityTypeDtoEnum, AuditEventGroupDtoEnum, AuditEventTypeDtoEnum } from '@repo/dto';
 import { AuditService, CommonLoggerService, CurrentUserType, IUseCase, PrismaService, UserDao } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
-
-import { PasswordService } from '#src/service/password.service.js';
 
 import { BaseAdminUserUc } from './_base-admin-user.uc.js';
 
@@ -21,7 +19,6 @@ export class AdminUserUpdateUc extends BaseAdminUserUc implements IUseCase<Param
     prisma: PrismaService,
     logger: CommonLoggerService,
     userDao: UserDao,
-    private readonly passwordService: PasswordService,
     private readonly auditService: AuditService,
   ) {
     super(prisma, logger, userDao);
@@ -32,7 +29,10 @@ export class AdminUserUpdateUc extends BaseAdminUserUc implements IUseCase<Param
 
     const existingUser = await this.validate(params);
 
-    const updatedUser = await this.update(params);
+    const updatedUser = await this.transaction(async (tx) => {
+      return this.update({ params, tx });
+    });
+
     void this.recordActivity(params, existingUser, updatedUser);
 
     return { success: true, message: 'User updated successfully' };
@@ -46,16 +46,12 @@ export class AdminUserUpdateUc extends BaseAdminUserUc implements IUseCase<Param
     return existing;
   }
 
-  async update(params: Params): Promise<User> {
+  async update(params: { params: Params; tx: Prisma.TransactionClient }): Promise<User> {
     const updateData: Prisma.UserUpdateInput = {};
-    if (params.dto.email !== undefined) updateData.email = params.dto.email;
-    if (params.dto.firstname !== undefined) updateData.firstname = params.dto.firstname;
-    if (params.dto.lastname !== undefined) updateData.lastname = params.dto.lastname;
-    if (params.dto.isActive !== undefined) updateData.isActive = params.dto.isActive;
-    if (params.dto.password !== undefined) {
-      updateData.password = await this.passwordService.hash(params.dto.password);
-    }
-    return this.userDao.update({ id: params.id, data: updateData });
+    if (params.params.dto.firstname !== undefined) updateData.firstname = params.params.dto.firstname;
+    if (params.params.dto.lastname !== undefined) updateData.lastname = params.params.dto.lastname;
+    if (params.params.dto.isActive !== undefined) updateData.isActive = params.params.dto.isActive;
+    return this.userDao.update({ id: params.params.id, data: updateData, tx: params.tx });
   }
 
   private async recordActivity(params: Params, oldUser: User, updatedUser: User): Promise<void> {

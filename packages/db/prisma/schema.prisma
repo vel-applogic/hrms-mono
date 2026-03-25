@@ -25,6 +25,8 @@ model User {
   auditActivities                AuditActivity[]
   userForgotPasswords            UserForgotPassword[]
   userVerifyEmails               UserVerifyEmail[]
+  userInvites                    UserInvite[]          @relation("UserInviteUser")
+  sentInvites                    UserInvite[]          @relation("UserInviteInvitedBy")
   candidateHasFeedbacks          CandidateHasFeedback[]
   reportTo                    Employee[]            @relation("EmployeeReportTo")
   employees                   Employee[]            @relation("EmployeeUser")
@@ -75,6 +77,7 @@ model Organization {
   organizationHasUsers OrganizationHasUser[]
   branches             Branch[]
   userInBranches       UserInBranch[]
+  userInvites          UserInvite[]
 
   @@map("organization")
 }
@@ -123,6 +126,24 @@ model UserInBranch {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@unique([userId, branchId])
+}
+
+model UserInvite {
+  id             Int          @id @default(autoincrement())
+  userId         Int          @map("user_id")
+  user           User         @relation("UserInviteUser", fields: [userId], references: [id])
+  organizationId Int          @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  inviteKey      String       @map("invite_key")
+  invitedById    Int          @map("invited_by_id")
+  invitedBy      User         @relation("UserInviteInvitedBy", fields: [invitedById], references: [id])
+  acceptedAt     DateTime?    @map("accepted_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([organizationId])
+  @@map("user_invite")
 }
 
 // EMPLOYEE

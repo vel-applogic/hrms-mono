@@ -34,3 +34,4 @@ export { LeaveDao, type LeaveWithUserType } from './leave.dao.js';
 export { LeaveConfigDao } from './leave-config.dao.js';
 export { EmployeeLeaveCounterDao } from './employee-leave-counter.dao.js';
 export { PayrollPayslipDao, type PayrollPayslipWithUserType, type PayrollPayslipWithDetailsType } from './payroll-payslip.dao.js';
+export { UserInviteDao } from './user-invite.dao.js';

@@ -1,5 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import type {
+  AuthAcceptInviteRequestType,
   AuthForgotPasswordRequestType,
   AuthLoginRequestType,
   AuthLoginResponseType,
@@ -7,9 +8,16 @@ import type {
   AuthVerifyEmailRequestType,
   OperationStatusResponseType,
 } from '@repo/dto';
-import { AuthForgotPasswordRequestSchema, AuthLoginRequestSchema, AuthResetPasswordRequestSchema, AuthVerifyEmailRequestSchema } from '@repo/dto';
+import {
+  AuthAcceptInviteRequestSchema,
+  AuthForgotPasswordRequestSchema,
+  AuthLoginRequestSchema,
+  AuthResetPasswordRequestSchema,
+  AuthVerifyEmailRequestSchema,
+} from '@repo/dto';
 import { ZodValidationPipe } from '@repo/nest-lib';
 
+import { AuthAcceptInviteUc } from './uc/auth-accept-invite.uc.js';
 import { AuthForgotPasswordUseCase } from './uc/auth-forgot-password.uc.js';
 import { AuthLoginUc } from './uc/auth-login.uc.js';
 import { AuthResetPasswordUseCase } from './uc/auth-reset-password.uc.js';
@@ -22,6 +30,7 @@ export class AuthController {
     private readonly authForgotPasswordUc: AuthForgotPasswordUseCase,
     private readonly authResetPasswordUc: AuthResetPasswordUseCase,
     private readonly authVerifyEmailUc: AuthVerifyEmailUseCase,
+    private readonly authAcceptInviteUc: AuthAcceptInviteUc,
   ) {}
 
   @Post('login')
@@ -42,5 +51,10 @@ export class AuthController {
   @Post('/verify-email')
   public async verifyEmail(@Body(new ZodValidationPipe(AuthVerifyEmailRequestSchema)) dto: AuthVerifyEmailRequestType): Promise<OperationStatusResponseType> {
     return await this.authVerifyEmailUc.execute({ dto });
+  }
+
+  @Post('/accept-invite')
+  public async acceptInvite(@Body(new ZodValidationPipe(AuthAcceptInviteRequestSchema)) dto: AuthAcceptInviteRequestType): Promise<OperationStatusResponseType> {
+    return await this.authAcceptInviteUc.execute({ dto });
   }
 }

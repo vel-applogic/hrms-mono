@@ -12,7 +12,7 @@ type Params = {
 };
 
 @Injectable()
-export class AdminUserSearchPublicUsersUc extends BaseAdminUserUc implements IUseCase<Params, PaginatedResponseType<AdminUserListResponseType>> {
+export class AdminUserSearchUc extends BaseAdminUserUc implements IUseCase<Params, PaginatedResponseType<AdminUserListResponseType>> {
   constructor(
     prisma: PrismaService,
     logger: CommonLoggerService,
@@ -48,7 +48,6 @@ export class AdminUserSearchPublicUsersUc extends BaseAdminUserUc implements IUs
       filterDto,
       orderBy: params.orderBy,
       organizationId: params.organizationId,
-      includeSuperAdmins: true,
     });
 
     const orgRoles = params.organizationId && this.organizationHasUserDao
@@ -61,7 +60,7 @@ export class AdminUserSearchPublicUsersUc extends BaseAdminUserUc implements IUs
     const orgRolesMap = new Map(orgRoles.map((o) => [o.userId, o.roles.map((r) => userRoleDbEnumToDtoEnum(r))]));
 
     const results: AdminUserListResponseType[] = dbRecords.map((u) =>
-      this.dbToAdminUserDetailResponse(u, orgRolesMap.get(u.id) ?? (u.isSuperAdmin ? [UserRoleDtoEnum.admin] : [])),
+      this.dbToAdminUserDetailResponse(u, orgRolesMap.get(u.id) ?? []),
     );
     return { totalRecords, results };
   }

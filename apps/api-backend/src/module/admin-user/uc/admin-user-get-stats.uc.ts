@@ -24,17 +24,12 @@ export class AdminUserGetStatsUc extends BaseAdminUserUc implements IUseCase<Par
     this.logger.i('Get admin user stats');
     const totalUsers = await this.userDao.getCount({
       where: {
-        OR: [
-          { isSuperAdmin: true },
-          {
-            organizationHasUsers: {
-              some: {
-                organizationId: params.currentUser.organizationId,
-                roles: { has: userRoleDtoEnumToDbEnum(UserRoleDtoEnum.admin) },
-              },
-            },
+        organizationHasUsers: {
+          some: {
+            organizationId: params.currentUser.organizationId,
+            roles: { has: userRoleDtoEnumToDbEnum(UserRoleDtoEnum.admin) },
           },
-        ],
+        },
       },
     });
     return { totalUsers };

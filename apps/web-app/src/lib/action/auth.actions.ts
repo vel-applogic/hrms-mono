@@ -1,6 +1,6 @@
 'use server';
 
-import type { AuthForgotPasswordRequestType, AuthResetPasswordRequestType, AuthVerifyEmailRequestType, OperationStatusResponseType } from '@repo/dto';
+import type { AuthAcceptInviteRequestType, AuthForgotPasswordRequestType, AuthResetPasswordRequestType, AuthVerifyEmailRequestType, OperationStatusResponseType } from '@repo/dto';
 import axios, { AxiosError } from 'axios';
 
 export type ActionError = { message: string; field?: string; fieldErrors?: Record<string, string[]> };
@@ -52,5 +52,17 @@ export async function verifyEmail(dto: AuthVerifyEmailRequestType): Promise<Acti
     return { ok: true, data: response.data };
   } catch (err) {
     return { ok: false, error: extractApiError(err, 'Invalid or expired verification link.') };
+  }
+}
+
+export async function acceptInvite(dto: AuthAcceptInviteRequestType): Promise<ActionResult<OperationStatusResponseType>> {
+  try {
+    const response = await axios.post<OperationStatusResponseType>(
+      `${process.env.BACKEND_API_URL}/auth/accept-invite`,
+      dto,
+    );
+    return { ok: true, data: response.data };
+  } catch (err) {
+    return { ok: false, error: extractApiError(err, 'Invalid or expired invite link. Please ask to be re-invited.') };
   }
 }

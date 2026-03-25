@@ -71,3 +71,12 @@ export const AuthVerifyEmailRequestSchema = z.object({
   key: z.string(),
 });
 export type AuthVerifyEmailRequestType = z.infer<typeof AuthVerifyEmailRequestSchema>;
+
+export const AuthAcceptInviteRequestSchema = z.object({
+  userId: z.number(),
+  inviteKey: z.string(),
+  firstname: z.string().min(1),
+  lastname: z.string().min(1),
+  password: AuthPasswordValidationSchema('Password'),
+});
+export type AuthAcceptInviteRequestType = z.infer<typeof AuthAcceptInviteRequestSchema>;

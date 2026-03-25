@@ -22,6 +22,7 @@ export {
   PolicyDao,
   PolicyHasMediaDao,
   PayrollPayslipDao,
+  UserInviteDao,
 } from './dao/index.js';
 export type {
   OrderByParam,

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put } from '@nestjs/common';
 import type {
   AdminUserCreateRequestType,
   AdminUserDetailResponseType,
@@ -14,19 +14,21 @@ import type { CurrentUserType } from '@repo/nest-lib';
 import { CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
 
 import { AdminUserCreateUc } from './uc/admin-user-create.uc.js';
+import { AdminUserDeleteUc } from './uc/admin-user-delete.uc.js';
 import { AdminUserGetUc } from './uc/admin-user-get.uc.js';
 import { AdminUserGetStatsUc } from './uc/admin-user-get-stats.uc.js';
-import { AdminUserSearchPublicUsersUc } from './uc/admin-user-search-public-users.uc.js';
+import { AdminUserSearchUc } from './uc/admin-user-search.uc.js';
 import { AdminUserUpdateUc } from './uc/admin-user-update.uc.js';
 
 @Controller('api/admin-user')
 export class AdminUserController {
   constructor(
-    private readonly searchUc: AdminUserSearchPublicUsersUc,
+    private readonly searchUc: AdminUserSearchUc,
     private readonly getUc: AdminUserGetUc,
     private readonly getStatsUc: AdminUserGetStatsUc,
     private readonly createUc: AdminUserCreateUc,
     private readonly updateUc: AdminUserUpdateUc,
+    private readonly deleteUc: AdminUserDeleteUc,
   ) {}
 
   @Post()
@@ -62,5 +64,10 @@ export class AdminUserController {
   @Get(':id')
   async get(@Param('id', ParseIntPipe) id: number, @CurrentUser() currentUser: CurrentUserType): Promise<AdminUserDetailResponseType> {
     return this.getUc.execute({ currentUser, id });
+  }
+
+  @Delete(':id')
+  async delete(@Param('id', ParseIntPipe) id: number, @CurrentUser() currentUser: CurrentUserType): Promise<OperationStatusResponseType> {
+    return this.deleteUc.execute({ id, currentUser });
   }
 }

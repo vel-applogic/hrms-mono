@@ -10,13 +10,14 @@ export const UserBaseFieldsSchema = z.object({
   roles: z.array(z.nativeEnum(UserRoleDtoEnum)),
 });
 
-export const AdminUserCreateRequestSchema = UserBaseFieldsSchema.extend({
-  password: z.string().min(8),
+export const AdminUserCreateRequestSchema = z.object({
+  email: z.string().email(),
 });
 export type AdminUserCreateRequestType = z.infer<typeof AdminUserCreateRequestSchema>;
 
-export const AdminUserUpdateRequestSchema = AdminUserCreateRequestSchema.extend({
-  password: z.string().min(8).optional(),
+export const AdminUserUpdateRequestSchema = z.object({
+  firstname: z.string().min(1).optional(),
+  lastname: z.string().min(1).optional(),
   isActive: z.boolean().optional(),
 });
 export type AdminUserUpdateRequestType = z.infer<typeof AdminUserUpdateRequestSchema>;

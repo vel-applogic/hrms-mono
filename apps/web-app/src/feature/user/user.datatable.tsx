@@ -5,8 +5,8 @@ import { DataTableSimple, DummySort, getSort } from '@repo/ui/container/datatabl
 import { ActionOption, ActionsIconCellRenderer, ActionsIconCellRendererParams, BadgeRenderer, DateTimeRenderer } from '@repo/ui/container/datatable/datatable-cell-renderer';
 import { isSortable } from '@repo/ui/lib/utils';
 import { ColDef, RowClassParams } from 'ag-grid-community';
-import { useRouter } from 'next/navigation';
-import { useCallback, useMemo, useState } from 'react';
+import { Pencil, Trash2 } from 'lucide-react';
+import { useCallback, useMemo } from 'react';
 
 interface Props {
   data: PaginatedResponseType<AdminUserListResponseType>;
@@ -14,16 +14,18 @@ interface Props {
     sKey?: string;
     sVal?: string;
   };
+  onEdit: (user: AdminUserListResponseType) => void;
+  onDelete: (user: AdminUserListResponseType) => void;
   additionalActions?: ActionOption[];
   onAdditionalActionClick?: (action: string, data: AdminUserListResponseType) => void;
 }
 
 export const UserDataTableClient = (props: Props) => {
-  const router = useRouter();
-  const [detailDrawer, setDetailDrawer] = useState<{ open: boolean; userId?: number }>({ open: false });
-
   const colDefs = useMemo<ColDef<AdminUserListResponseType>[]>(() => {
-    const standardActions: ActionOption[] = [];
+    const standardActions: ActionOption[] = [
+      { name: 'Edit', icon: Pencil },
+      { name: 'Delete', icon: Trash2, variant: 'outline-danger' },
+    ];
     const actionsToShow = props.additionalActions ? [...standardActions, ...props.additionalActions] : standardActions;
     const visibleSlots = Math.max(actionsToShow.length, 1);
 
@@ -34,7 +36,7 @@ export const UserDataTableClient = (props: Props) => {
         sort: getSort('id', props.sort.sKey, props.sort.sVal),
         sortable: false,
         comparator: DummySort,
-        width: 100,
+        width: 80,
       },
       {
         headerName: 'Firstname',
@@ -43,6 +45,8 @@ export const UserDataTableClient = (props: Props) => {
         sort: getSort('firstname', props.sort.sKey, props.sort.sVal),
         sortable: isSortable('firstname', AdminUsersSortableColumns),
         comparator: DummySort,
+        cellRenderer: (params: { value: string }) =>
+          params.value ? params.value : <span className='text-muted-foreground text-xs italic'>Pending</span>,
       },
       {
         headerName: 'Lastname',
@@ -51,6 +55,8 @@ export const UserDataTableClient = (props: Props) => {
         sort: getSort('lastname', props.sort.sKey, props.sort.sVal),
         sortable: isSortable('lastname', AdminUsersSortableColumns),
         comparator: DummySort,
+        cellRenderer: (params: { value: string }) =>
+          params.value ? params.value : <span className='text-muted-foreground text-xs italic'>Pending</span>,
       },
       {
         headerName: 'Email',
@@ -66,21 +72,23 @@ export const UserDataTableClient = (props: Props) => {
         flex: 1,
         sortable: false,
         cellRenderer: (params: { value: string[] }) => (
-          <div className="flex flex-wrap gap-1 items-center h-full">
-            {params.value?.length
-              ? params.value.map((role) => (
-                  <span
-                    key={role}
-                    className={
-                      role === 'admin'
-                        ? 'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-primary/15 text-primary'
-                        : 'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground'
-                    }
-                  >
-                    {role}
-                  </span>
-                ))
-              : <span className="text-xs text-muted-foreground">—</span>}
+          <div className='flex flex-wrap gap-1 items-center h-full'>
+            {params.value?.length ? (
+              params.value.map((role) => (
+                <span
+                  key={role}
+                  className={
+                    role === 'admin'
+                      ? 'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-primary/15 text-primary'
+                      : 'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground'
+                  }
+                >
+                  {role}
+                </span>
+              ))
+            ) : (
+              <span className='text-xs text-muted-foreground'>—</span>
+            )}
           </div>
         ),
       },
@@ -121,57 +129,33 @@ export const UserDataTableClient = (props: Props) => {
 
   const onActionClick = useCallback(
     (action: string, data: AdminUserListResponseType) => {
-      switch (action) {
-        case 'Details':
-          router.push(`/admin/user/${data.id}/detail`);
-          break;
-        case 'Edit':
-          router.push(`/admin/user/${data.id}/edit`);
-          break;
-        default:
-          if (props.onAdditionalActionClick) {
-            props.onAdditionalActionClick(action, data);
-          }
-          break;
+      if (action === 'Edit') {
+        props.onEdit(data);
+      } else if (action === 'Delete') {
+        props.onDelete(data);
+      } else if (props.onAdditionalActionClick) {
+        props.onAdditionalActionClick(action, data);
       }
     },
-    [router, props.onAdditionalActionClick],
+    [props],
   );
-
-  const onCellClick = useCallback((data: AdminUserListResponseType) => {
-    setDetailDrawer({ open: true, userId: data.id });
-  }, []);
 
   const getRowClass = useCallback((params: RowClassParams<AdminUserListResponseType>) => {
     return `user-row-${params.data?.id}`;
   }, []);
 
   return (
-    <>
-      {detailDrawer.userId && detailDrawer.open && (
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
-              .user-row-${CSS.escape(detailDrawer.userId.toString())} {
-                background-color: var(--row-highlight) !important;
-              }
-            `,
-          }}
-        />
-      )}
-      <DataTableSimple<AdminUserListResponseType>
-        colDefs={colDefs}
-        onActionClick={onActionClick}
-        onCellClick={onCellClick}
-        getRowClass={getRowClass}
-        pagination={{
-          page: props.data.page,
-          pageSize: props.data.limit,
-          total: props.data.totalRecords,
-        }}
-        rowData={props.data.results}
-        tableKey='user-table'
-      />
-    </>
+    <DataTableSimple<AdminUserListResponseType>
+      colDefs={colDefs}
+      onActionClick={onActionClick}
+      getRowClass={getRowClass}
+      pagination={{
+        page: props.data.page,
+        pageSize: props.data.limit,
+        total: props.data.totalRecords,
+      }}
+      rowData={props.data.results}
+      tableKey='user-table'
+    />
   );
 };

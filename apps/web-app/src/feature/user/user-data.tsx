@@ -1,28 +1,32 @@
 'use client';
 
 import { AdminUserListResponseType, AdminUserStatsResponseType, PaginatedResponseType, SearchParamsType } from '@repo/dto';
-import { ActionOption } from '@repo/ui/container/datatable/datatable-cell-renderer';
+import { Button } from '@repo/ui/component/ui/button';
 import { SelectOption, SelectSearchSingle } from '@repo/ui/component/select-search';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+import { UserDeleteDialog } from './user-delete-dialog';
+import { UserEditDrawer } from './user-edit-drawer';
+import { UserInviteDrawer } from './user-invite-drawer';
 import { UserDataTableClient } from './user.datatable';
-// import { UserFilterControl } from './user-filter-control';
 
 interface Props {
   data: PaginatedResponseType<AdminUserListResponseType>;
   searchParams: SearchParamsType;
   stats: AdminUserStatsResponseType;
-  additionalActions?: ActionOption[];
-  onAdditionalActionClick?: (action: string, data: AdminUserListResponseType) => void;
 }
 
-export const UserData = ({ data, searchParams, stats, additionalActions, onAdditionalActionClick }: Props) => {
+export const UserData = ({ data, searchParams, stats }: Props) => {
   const pathname = usePathname();
   const currentSearchParams = useSearchParams();
-  const { replace } = useRouter();
+  const { replace, refresh } = useRouter();
   const [searchText, setSearchText] = useState(searchParams.search ?? '');
   const prevSearchTextRef = useRef(searchText);
+
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [editUser, setEditUser] = useState<AdminUserListResponseType | null>(null);
+  const [deleteUser, setDeleteUser] = useState<AdminUserListResponseType | null>(null);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -68,7 +72,7 @@ export const UserData = ({ data, searchParams, stats, additionalActions, onAddit
 
   const statusOptions: SelectOption[] = [
     { label: 'Active', value: 'active' },
-    { label: 'Blocked', value: 'inactive' },
+    { label: 'Inactive', value: 'inactive' },
   ];
 
   const statCards = [
@@ -92,11 +96,6 @@ export const UserData = ({ data, searchParams, stats, additionalActions, onAddit
         ))}
       </div>
 
-      <div className='flex items-center justify-between rounded-md bg-warning px-4 py-2'>
-        , <span className='text-sm font-medium text-background'>12 items flagged</span>
-        <button className='rounded bg-white px-6 py-1.5 text-sm font-medium text-background'>Review</button>
-      </div>
-
       <div className='flex items-center justify-between'>
         <span className='text-xl font-medium tracking-tight text-white'>Users</span>
         <div className='flex items-center gap-3'>
@@ -113,7 +112,7 @@ export const UserData = ({ data, searchParams, stats, additionalActions, onAddit
             }}
             className='w-[140px]'
           />
-          <div className='flex h-10 w-[298px] items-center gap-3 rounded-[40px] border border-border bg-background px-4'>
+          <div className='flex h-10 w-[260px] items-center gap-3 rounded-[40px] border border-border bg-background px-4'>
             <svg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'>
               <path
                 d='M7.33 12.67A5.33 5.33 0 1 0 7.33 2a5.33 5.33 0 0 0 0 10.67ZM14 14l-2.9-2.9'
@@ -133,18 +132,40 @@ export const UserData = ({ data, searchParams, stats, additionalActions, onAddit
               className='w-full bg-transparent text-sm font-medium text-white placeholder:text-muted-foreground focus:outline-none'
             />
           </div>
+          <Button onClick={() => setInviteOpen(true)}>
+            Invite User
+          </Button>
         </div>
       </div>
 
       <div className='flex-1 flex flex-col min-h-0'>
-        {/* <UserFilterControl totalRecords={data.totalRecords} /> */}
         <UserDataTableClient
           data={data}
           sort={sort}
-          additionalActions={additionalActions}
-          onAdditionalActionClick={onAdditionalActionClick}
+          onEdit={(user) => setEditUser(user)}
+          onDelete={(user) => setDeleteUser(user)}
         />
       </div>
+
+      <UserInviteDrawer
+        open={inviteOpen}
+        onOpenChange={setInviteOpen}
+        onSuccess={() => refresh()}
+      />
+
+      <UserEditDrawer
+        open={!!editUser}
+        onOpenChange={(open) => { if (!open) setEditUser(null); }}
+        user={editUser}
+        onSuccess={() => { setEditUser(null); refresh(); }}
+      />
+
+      <UserDeleteDialog
+        open={!!deleteUser}
+        onOpenChange={(open) => { if (!open) setDeleteUser(null); }}
+        user={deleteUser}
+        onSuccess={() => { setDeleteUser(null); refresh(); }}
+      />
     </div>
   );
 };

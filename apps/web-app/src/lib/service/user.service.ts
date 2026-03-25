@@ -59,6 +59,13 @@ class UserService extends BaseService {
       responseSchema: OperationStatusResponseSchema,
     });
   }
+
+  async remove(id: number): Promise<OperationStatusResponseType> {
+    return this.delete<OperationStatusResponseType>({
+      url: `/api/admin-user/${id}`,
+      responseSchema: OperationStatusResponseSchema,
+    });
+  }
 }
 
 export const userService = new UserService();

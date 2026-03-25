@@ -23,35 +23,27 @@ export class AdminUserDeleteUc extends BaseAdminUserUc implements IUseCase<Param
   }
 
   async execute(params: Params): Promise<OperationStatusResponseType> {
-    this.logger.i('Deleting user (soft)', { id: params.id });
+    this.logger.i('Deleting user', { id: params.id });
 
-    await this.validate(params);
-
-    await this.delete(params.id);
-    void this.recordActivity(params);
-
-    return { success: true, message: 'User deleted successfully' };
-  }
-
-  async validate(params: Params): Promise<void> {
     const existing = await this.userDao.getById({ id: params.id });
     if (!existing) {
       throw new ApiError('User not found', 404);
     }
-  }
 
-  async delete(id: number): Promise<void> {
-    await this.userDao.delete({ id });
-  }
+    await this.userDao.update({
+      id: params.id,
+      data: { isActive: false },
+    });
 
-  private async recordActivity(params: Params): Promise<void> {
-    await this.auditService.recordActivity({
+    void this.auditService.recordActivity({
       eventGroup: AuditEventGroupDtoEnum.operation,
       eventType: AuditEventTypeDtoEnum.delete,
       status: AuditActivityStatusDtoEnum.success,
       currentUser: params.currentUser,
-      description: 'User deleted',
+      description: 'User deactivated',
       relatedEntities: [{ entityType: AuditEntityTypeDtoEnum.user, entityId: params.id }],
     });
+
+    return { success: true, message: 'User removed successfully' };
   }
 }
