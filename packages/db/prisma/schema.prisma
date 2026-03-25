@@ -7,76 +7,7 @@ datasource db {
   provider = "postgresql"
 }
 
-model AppMigration {
-  id        Int      @id @default(autoincrement())
-  key       String   @unique
-  createdAt DateTime @default(now())
-
-  @@map("app_migrations")
-}
-
-enum AuditEntityTypeDbEnum {
-  user
-  user_admin
-  candidate
-  employee
-  policy
-
-  @@map("auditEntityTypeDbEnum")
-}
-
-model AuditActivity {
-  id          Int                       @id @default(autoincrement())
-  eventGroup  AuditEventGroupDbEnum     @map("event_group")
-  eventType   AuditEventTypeDbEnum      @map("event_type")
-  status      AuditActivityStatusDbEnum
-  actorId     Int?                      @map("actor_id")
-  description String?
-  data        Json?
-  createdAt   DateTime                  @default(now()) @map("created_at")
-  actor       User?                     @relation(fields: [actorId], references: [id])
-  entities    AuditActivityHasEntity[]
-
-  @@index([eventGroup, eventType])
-  @@index([actorId])
-  @@index([createdAt])
-  @@index([status])
-  @@map("audit_activity")
-}
-
-model AuditActivityHasEntity {
-  id             Int                   @id @default(autoincrement())
-  auditId        Int                   @map("audit_id")
-  entityType     AuditEntityTypeDbEnum @map("entity_type")
-  entityId       Int                   @map("entity_id")
-  message        String?
-  isSourceEntity Boolean               @default(false) @map("is_source_entity")
-  createdAt      DateTime              @default(now()) @map("created_at")
-  audit          AuditActivity         @relation(fields: [auditId], references: [id])
-
-  @@index([auditId])
-  @@index([entityType, entityId])
-  @@map("audit_activity_has_entity")
-}
-
-model Media {
-  id           Int             @id @default(autoincrement())
-  key          String
-  thumbnailKey String?         @map("thumbnail_key")
-  type         MediaTypeDbEnum
-  name         String
-  size         Int
-  ext          String
-  createdAt    DateTime        @default(now()) @map("created_at")
-  updatedAt    DateTime        @updatedAt @map("updated_at")
-
-  candidateHasMedias    CandidateHasMedia[]
-  policyHasMedias       PolicyHasMedia[]
-  userEmployeeHasMedias UserEmployeeHasMedia[]
-  leaveHasMedias        LeaveHasMedia[]
-
-  @@map("media")
-}
+// USER
 
 model User {
   id             Int       @id @default(autoincrement())
@@ -87,8 +18,9 @@ model User {
   isSuperAdmin   Boolean   @default(false) @map("is_super_admin")
   isActive       Boolean   @default(true) @map("is_active")
   lastLoggedInAt DateTime? @map("last_logged_in_at")
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   auditActivities                AuditActivity[]
   userForgotPasswords            UserForgotPassword[]
@@ -113,10 +45,10 @@ model User {
 model UserForgotPassword {
   id                         Int       @id @default(autoincrement())
   userId                     Int       @map("user_id")
+  user                       User      @relation(fields: [userId], references: [id])
   forgotPasswordKey          String?   @map("forgot_password_key")
   forgotPasswordKeyCreatedAt DateTime  @default(now()) @map("forgot_password_key_created_at")
   resetAt                    DateTime? @map("reset_at")
-  user                       User      @relation(fields: [userId], references: [id])
 
   @@map("user_forgot_password")
 }
@@ -124,10 +56,10 @@ model UserForgotPassword {
 model UserVerifyEmail {
   id                      Int       @id @default(autoincrement())
   userId                  Int       @map("user_id")
+  user                    User      @relation(fields: [userId], references: [id])
   verifyEmailKey          String?   @map("verify_email_key")
   verifyEmailKeyCreatedAt DateTime  @default(now()) @map("verify_email_key_created_at")
   verifiedAt              DateTime? @map("verified_at")
-  user                    User      @relation(fields: [userId], references: [id])
 
   @@map("user_verify_email")
 }
@@ -148,15 +80,16 @@ model Organization {
 }
 
 model OrganizationHasUser {
-  id             Int              @id @default(autoincrement())
-  organizationId Int              @map("organization_id")
-  organization   Organization     @relation(fields: [organizationId], references: [id])
-  userId         Int              @map("user_id")
-  user           User             @relation(fields: [userId], references: [id])
-  roles          UserRoleDbEnum[]
+  id             Int          @id @default(autoincrement())
+  organizationId Int          @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  userId         Int          @map("user_id")
+  user           User         @relation(fields: [userId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+
+  roles UserRoleDbEnum[]
 
   @@unique([organizationId, userId])
   @@map("organization_has_user")
@@ -169,8 +102,9 @@ model Branch {
   organizationId Int          @map("organization_id")
   organization   Organization @relation(fields: [organizationId], references: [id])
 
-  createdAt      DateTime       @default(now()) @map("created_at")
-  updatedAt      DateTime       @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   userInBranches UserInBranch[]
 
   @@map("branche")
@@ -193,15 +127,6 @@ model UserInBranch {
 
 // EMPLOYEE
 
-enum EmployeeStatusEnum {
-  active
-  resigned
-  onLeave
-  terminated
-
-  @@map("employeeStatusEnum")
-}
-
 model UserEmployeeDetail {
   id            Int                @id @default(autoincrement())
   userId        Int                @unique @map("user_id")
@@ -223,15 +148,6 @@ model UserEmployeeDetail {
   @@index([reportToId])
   @@index([status])
   @@map("user_employee_detail")
-}
-
-enum EmployeeMediaType {
-  photo
-  resume
-  offerLetter
-  otherDocuments
-
-  @@map("employeeMediaType")
 }
 
 model UserEmployeeHasMedia {
@@ -581,6 +497,82 @@ model PolicyHasMedia {
   @@map("policy_has_media")
 }
 
+// MEDIA
+model Media {
+  id           Int             @id @default(autoincrement())
+  key          String
+  thumbnailKey String?         @map("thumbnail_key")
+  type         MediaTypeDbEnum
+  name         String
+  size         Int
+  ext          String
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
+
+  candidateHasMedias    CandidateHasMedia[]
+  policyHasMedias       PolicyHasMedia[]
+  userEmployeeHasMedias UserEmployeeHasMedia[]
+  leaveHasMedias        LeaveHasMedia[]
+
+  @@map("media")
+}
+
+// AUDIT
+
+enum AuditEntityTypeDbEnum {
+  user
+  user_admin
+  candidate
+  employee
+  policy
+
+  @@map("auditEntityTypeDbEnum")
+}
+
+model AuditActivity {
+  id          Int                       @id @default(autoincrement())
+  eventGroup  AuditEventGroupDbEnum     @map("event_group")
+  eventType   AuditEventTypeDbEnum      @map("event_type")
+  status      AuditActivityStatusDbEnum
+  actorId     Int?                      @map("actor_id")
+  description String?
+  data        Json?
+  createdAt   DateTime                  @default(now()) @map("created_at")
+  actor       User?                     @relation(fields: [actorId], references: [id])
+  entities    AuditActivityHasEntity[]
+
+  @@index([eventGroup, eventType])
+  @@index([actorId])
+  @@index([createdAt])
+  @@index([status])
+  @@map("audit_activity")
+}
+
+model AuditActivityHasEntity {
+  id             Int                   @id @default(autoincrement())
+  auditId        Int                   @map("audit_id")
+  entityType     AuditEntityTypeDbEnum @map("entity_type")
+  entityId       Int                   @map("entity_id")
+  message        String?
+  isSourceEntity Boolean               @default(false) @map("is_source_entity")
+  createdAt      DateTime              @default(now()) @map("created_at")
+  audit          AuditActivity         @relation(fields: [auditId], references: [id])
+
+  @@index([auditId])
+  @@index([entityType, entityId])
+  @@map("audit_activity_has_entity")
+}
+
+// APP MIGRATIONS
+
+model AppMigration {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("app_migrations")
+}
+
 // ENUMS
 
 enum UserRoleDbEnum {
@@ -588,6 +580,24 @@ enum UserRoleDbEnum {
   employee
 
   @@map("userRoleDbEnum")
+}
+
+enum EmployeeStatusEnum {
+  active
+  resigned
+  onLeave
+  terminated
+
+  @@map("employeeStatusEnum")
+}
+
+enum EmployeeMediaType {
+  photo
+  resume
+  offerLetter
+  otherDocuments
+
+  @@map("employeeMediaType")
 }
 
 enum MediaTypeDbEnum {
