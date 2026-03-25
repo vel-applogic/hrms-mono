@@ -27,7 +27,7 @@ interface Props {
 export const LeaveData = ({ data, employees, defaultFinancialYear, financialYearOptions, searchParams }: Props) => {
   const { data: session } = useSession();
   const currentUserId = session?.user?.id ? Number(session.user.id) : null;
-  const isAdmin = session?.user?.role === 'admin';
+  const isAdmin = session?.user?.roles?.includes('admin') ?? false;
   const pathname = usePathname();
   const currentSearchParams = useSearchParams();
   const { replace, refresh } = useRouter();

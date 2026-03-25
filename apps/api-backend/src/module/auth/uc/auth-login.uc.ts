@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import type { AuthLoginRequestType, AuthLoginResponseType, UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, IUseCase, UserDao, UserVerifyEmailDao } from '@repo/nest-lib';
+import type { AuthLoginRequestType, AuthLoginResponseType } from '@repo/dto';
+import { CommonLoggerService, IUseCase, OrganizationHasUserDao, UserDao, UserVerifyEmailDao, userRoleDbEnumToDtoEnum } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 import { PasswordService } from '../../../service/password.service.js';
@@ -14,15 +14,14 @@ export class AuthLoginUc implements IUseCase<Params, AuthLoginResponseType> {
   constructor(
     private readonly userDao: UserDao,
     private readonly userVerifyEmailDao: UserVerifyEmailDao,
+    private readonly organizationHasUserDao: OrganizationHasUserDao,
     private readonly passwordService: PasswordService,
     private readonly logger: CommonLoggerService,
   ) {}
 
   async execute(params: Params): Promise<AuthLoginResponseType> {
     this.logger.i('Login attempt', { email: params.dto.email });
-
-    const user = await this.validate(params);
-    return user;
+    return this.validate(params);
   }
 
   async validate(params: Params): Promise<AuthLoginResponseType> {
@@ -44,12 +43,17 @@ export class AuthLoginUc implements IUseCase<Params, AuthLoginResponseType> {
       throw new ApiError('Account is disabled', 403);
     }
 
+    const orgMemberships = await this.organizationHasUserDao.findAllByUser({ userId: user.id });
+    const primaryMembership = orgMemberships[0];
+    const roles = primaryMembership?.roles.map((r) => userRoleDbEnumToDtoEnum(r)) ?? [];
+
     return {
       id: user.id,
       email: user.email,
       firstname: user.firstname,
       lastname: user.lastname,
-      role: 'admin' as UserRoleDtoEnum,
+      organizationIds: orgMemberships.map((m) => m.organizationId),
+      roles,
     };
   }
 }

@@ -1,6 +1,6 @@
 import { User } from '@repo/db';
-import { AdminUserDetailResponseType } from '@repo/dto';
-import { BaseUc, CommonLoggerService, PrismaService, UserDao } from '@repo/nest-lib';
+import { AdminUserDetailResponseType, UserRoleDtoEnum } from '@repo/dto';
+import { BaseUc, CommonLoggerService, OrganizationHasUserDao, PrismaService, UserDao, userRoleDbEnumToDtoEnum } from '@repo/nest-lib';
 import { ApiBadRequestError } from '@repo/shared';
 
 export class BaseAdminUserUc extends BaseUc {
@@ -8,24 +8,34 @@ export class BaseAdminUserUc extends BaseUc {
     prisma: PrismaService,
     logger: CommonLoggerService,
     protected readonly userDao: UserDao,
+    protected readonly organizationHasUserDao?: OrganizationHasUserDao,
   ) {
     super(prisma, logger);
   }
 
-  async getById(id: number): Promise<AdminUserDetailResponseType | undefined> {
+  async getById(id: number, organizationId?: number): Promise<AdminUserDetailResponseType | undefined> {
     const user = await this.userDao.getById({ id });
     if (!user) {
       return undefined;
     }
 
-    return this.dbToAdminUserDetailResponse(user);
+    const roles = await this.fetchOrgRoles(user.id, organizationId);
+    return this.dbToAdminUserDetailResponse(user, roles);
   }
 
-  async getByIdOrThrow(id: number): Promise<AdminUserDetailResponseType> {
-    const user = await this.getById(id);
+  async getByIdOrThrow(id: number, organizationId?: number): Promise<AdminUserDetailResponseType> {
+    const user = await this.getById(id, organizationId);
     if (!user) {
       throw new ApiBadRequestError('User not found', { userId: id });
     }
     return user;
+  }
+
+  protected async fetchOrgRoles(userId: number, organizationId?: number): Promise<UserRoleDtoEnum[]> {
+    if (!organizationId || organizationId <= 0 || !this.organizationHasUserDao) {
+      return [];
+    }
+    const orgHasUser = await this.organizationHasUserDao.findByUserAndOrg({ userId, organizationId });
+    return orgHasUser?.roles.map((r) => userRoleDbEnumToDtoEnum(r)) ?? [];
   }
 }

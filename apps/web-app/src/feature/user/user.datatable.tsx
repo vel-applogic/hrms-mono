@@ -5,11 +5,8 @@ import { DataTableSimple, DummySort, getSort } from '@repo/ui/container/datatabl
 import { ActionOption, ActionsIconCellRenderer, ActionsIconCellRendererParams, BadgeRenderer, DateTimeRenderer } from '@repo/ui/container/datatable/datatable-cell-renderer';
 import { isSortable } from '@repo/ui/lib/utils';
 import { ColDef, RowClassParams } from 'ag-grid-community';
-import { Ban, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
-
-import { UserBlockDialog } from './user-block-dialog';
 
 interface Props {
   data: PaginatedResponseType<AdminUserListResponseType>;
@@ -24,15 +21,11 @@ interface Props {
 export const UserDataTableClient = (props: Props) => {
   const router = useRouter();
   const [detailDrawer, setDetailDrawer] = useState<{ open: boolean; userId?: number }>({ open: false });
-  const [blockDialog, setBlockDialog] = useState<{ open: boolean; user: AdminUserListResponseType | null }>({ open: false, user: null });
 
   const colDefs = useMemo<ColDef<AdminUserListResponseType>[]>(() => {
-    const standardActions: ActionOption[] = [
-      { name: 'Block', icon: Ban },
-    ];
-
+    const standardActions: ActionOption[] = [];
     const actionsToShow = props.additionalActions ? [...standardActions, ...props.additionalActions] : standardActions;
-    const visibleSlots = Math.min(actionsToShow.length, 4);
+    const visibleSlots = Math.max(actionsToShow.length, 1);
 
     return [
       {
@@ -68,12 +61,28 @@ export const UserDataTableClient = (props: Props) => {
         comparator: DummySort,
       },
       {
-        headerName: 'Role',
-        field: 'role',
+        headerName: 'Roles',
+        field: 'roles',
         flex: 1,
-        sort: getSort('role', props.sort.sKey, props.sort.sVal),
-        sortable: isSortable('role', AdminUsersSortableColumns),
-        comparator: DummySort,
+        sortable: false,
+        cellRenderer: (params: { value: string[] }) => (
+          <div className="flex flex-wrap gap-1 items-center h-full">
+            {params.value?.length
+              ? params.value.map((role) => (
+                  <span
+                    key={role}
+                    className={
+                      role === 'admin'
+                        ? 'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-primary/15 text-primary'
+                        : 'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground'
+                    }
+                  >
+                    {role}
+                  </span>
+                ))
+              : <span className="text-xs text-muted-foreground">—</span>}
+          </div>
+        ),
       },
       {
         headerName: 'Status',
@@ -84,7 +93,7 @@ export const UserDataTableClient = (props: Props) => {
         comparator: DummySort,
         cellRenderer: (params: { value: boolean }) =>
           BadgeRenderer({
-            text: params.value ? 'Active' : 'Blocked',
+            text: params.value ? 'Active' : 'Inactive',
             className: params.value ? 'bg-online/20 text-online' : 'bg-destructive/20 text-destructive',
           }),
       },
@@ -104,14 +113,7 @@ export const UserDataTableClient = (props: Props) => {
         cellClass: '!flex items-center !justify-center',
         cellRenderer: ActionsIconCellRenderer<AdminUserListResponseType>,
         cellRendererParams: (cellParams: { data: AdminUserListResponseType }) => ({
-          options: actionsToShow.map((action) => {
-            if (action.name === 'Block') {
-              return cellParams.data?.isActive
-                ? { name: 'Block', icon: Ban }
-                : { name: 'Unblock', icon: ShieldCheck };
-            }
-            return action;
-          }),
+          options: actionsToShow,
         }) satisfies Partial<ActionsIconCellRendererParams<AdminUserListResponseType>>,
       },
     ] satisfies ColDef<AdminUserListResponseType>[];
@@ -120,10 +122,6 @@ export const UserDataTableClient = (props: Props) => {
   const onActionClick = useCallback(
     (action: string, data: AdminUserListResponseType) => {
       switch (action) {
-        case 'Block':
-        case 'Unblock':
-          setBlockDialog({ open: true, user: data });
-          break;
         case 'Details':
           router.push(`/admin/user/${data.id}/detail`);
           break;
@@ -173,12 +171,6 @@ export const UserDataTableClient = (props: Props) => {
         }}
         rowData={props.data.results}
         tableKey='user-table'
-      />
-      <UserBlockDialog
-        open={blockDialog.open}
-        onOpenChange={(open) => setBlockDialog((prev) => ({ ...prev, open }))}
-        user={blockDialog.user}
-        onSuccess={() => setBlockDialog({ open: false, user: null })}
       />
     </>
   );

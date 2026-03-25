@@ -4,6 +4,7 @@ import type { Prisma, User } from '@repo/db';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { OrderByParam } from '../index.js';
 import { UserFilterRequestType } from '@repo/dto';
+import { userRoleDtoEnumToDbEnum } from '../../util/enum.util.js';
 import { BaseDao } from './_base.dao.js';
 
 @Injectable()
@@ -42,7 +43,7 @@ export class UserDao extends BaseDao {
     return pc.user.count({ where: params.where });
   }
 
-  public async search(params: { filterDto: UserFilterRequestType; orderBy?: OrderByParam; tx?: Prisma.TransactionClient }): Promise<{ totalRecords: number; dbRecords: User[] }> {
+  public async search(params: { filterDto: UserFilterRequestType; orderBy?: OrderByParam; organizationId?: number; includeSuperAdmins?: boolean; tx?: Prisma.TransactionClient }): Promise<{ totalRecords: number; dbRecords: User[] }> {
     const pc = this.getPrismaClient(params.tx);
     const pagination = {
       pageNo: params.filterDto.pagination.page,
@@ -54,30 +55,25 @@ export class UserDao extends BaseDao {
 
     if (params.filterDto.search) {
       where.OR = [
-        {
-          email: {
-            contains: params.filterDto.search,
-            mode: 'insensitive',
-          },
-        },
-        {
-          firstname: {
-            contains: params.filterDto.search,
-            mode: 'insensitive',
-          },
-        },
-        {
-          lastname: {
-            contains: params.filterDto.search,
-            mode: 'insensitive',
-          },
-        },
+        { email: { contains: params.filterDto.search, mode: 'insensitive' } },
+        { firstname: { contains: params.filterDto.search, mode: 'insensitive' } },
+        { lastname: { contains: params.filterDto.search, mode: 'insensitive' } },
       ];
     }
 
-    // if (params.filterDto.role) {
-    //   where.role = params.filterDto.role;
-    // }
+    if (params.filterDto.role && params.organizationId) {
+      const orgRoleFilter: Prisma.UserWhereInput = {
+        organizationHasUsers: {
+          some: {
+            organizationId: params.organizationId,
+            roles: { has: userRoleDtoEnumToDbEnum(params.filterDto.role) },
+          },
+        },
+      };
+      where.AND = params.includeSuperAdmins
+        ? [{ OR: [{ isSuperAdmin: true }, orgRoleFilter] }]
+        : [orgRoleFilter];
+    }
 
     if (params.filterDto.isActive !== undefined) {
       where.isActive = params.filterDto.isActive;
@@ -87,12 +83,7 @@ export class UserDao extends BaseDao {
 
     const [totalRecords, dbRecords] = await Promise.all([
       pc.user.count({ where }),
-      pc.user.findMany({
-        where,
-        take: take,
-        skip: skip,
-        orderBy,
-      }),
+      pc.user.findMany({ where, take, skip, orderBy }),
     ]);
 
     return { dbRecords, totalRecords };

@@ -1,8 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma, User, UserRoleDbEnum } from '@repo/db';
+import type { Prisma, User } from '@repo/db';
 import type { AdminUserCreateRequestType, OperationStatusResponseType } from '@repo/dto';
 import { AuditActivityStatusDtoEnum, AuditEntityTypeDtoEnum, AuditEventGroupDtoEnum, AuditEventTypeDtoEnum } from '@repo/dto';
-import { AuditService, CommonLoggerService, CurrentUserType, IUseCase, PrismaService, UserDao, UserVerifyEmailDao } from '@repo/nest-lib';
+import {
+  AuditService,
+  CommonLoggerService,
+  CurrentUserType,
+  IUseCase,
+  OrganizationHasUserDao,
+  PrismaService,
+  UserDao,
+  userRoleDtoEnumToDbEnum,
+  UserVerifyEmailDao,
+} from '@repo/nest-lib';
 import { ApiFieldValidationError } from '@repo/shared';
 
 import { AppConfigService } from '#src/config/app-config.service.js';
@@ -22,13 +32,14 @@ export class AdminUserCreateUc extends BaseAdminUserUc implements IUseCase<Param
     prisma: PrismaService,
     logger: CommonLoggerService,
     userDao: UserDao,
+    organizationHasUserDao: OrganizationHasUserDao,
     private readonly userVerifyEmailDao: UserVerifyEmailDao,
     private readonly passwordService: PasswordService,
     private readonly emailService: EmailService,
     private readonly appConfigService: AppConfigService,
     private readonly auditService: AuditService,
   ) {
-    super(prisma, logger, userDao);
+    super(prisma, logger, userDao, organizationHasUserDao);
   }
 
   async execute(params: Params): Promise<OperationStatusResponseType> {
@@ -39,6 +50,7 @@ export class AdminUserCreateUc extends BaseAdminUserUc implements IUseCase<Param
     const { createdUser, verifyKey } = await this.transaction(async (tx) => {
       const createdUser = await this.create({ dto: params.dto, tx });
       const verifyKey = await this.createVerifyEmailKey({ userId: createdUser.id, tx });
+      await this.createOrgMembership({ dto: params.dto, userId: createdUser.id, currentUser: params.currentUser, tx });
       return { createdUser, verifyKey };
     });
 
@@ -66,6 +78,17 @@ export class AdminUserCreateUc extends BaseAdminUserUc implements IUseCase<Param
         password: hashedPassword,
         isActive: false,
       },
+      tx: params.tx,
+    });
+  }
+
+  private async createOrgMembership(params: { dto: AdminUserCreateRequestType; userId: number; currentUser: CurrentUserType; tx: Prisma.TransactionClient }): Promise<void> {
+    if (params.currentUser.organizationId <= 0 || !this.organizationHasUserDao) return;
+
+    await this.organizationHasUserDao.upsert({
+      organizationId: params.currentUser.organizationId,
+      userId: params.userId,
+      roles: params.dto.roles.map((r) => userRoleDtoEnumToDbEnum(r)),
       tx: params.tx,
     });
   }

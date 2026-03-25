@@ -1,6 +1,10 @@
 export {
   BaseDao,
   UserDao,
+  OrganizationDao,
+  OrganizationHasUserDao,
+  BranchDao,
+  UserInBranchDao,
   MediaDao,
   UserForgotPasswordDao,
   UserVerifyEmailDao,

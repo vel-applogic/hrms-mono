@@ -24,7 +24,7 @@ interface Props {
 export function EmployeeViewLeave({ employeeId, initialData, initialFinancialYear }: Props) {
   const { data: session } = useSession();
   const currentUserId = session?.user?.id ? Number(session.user.id) : null;
-  const isAdmin = session?.user?.role === 'admin';
+  const isAdmin = session?.user?.roles?.includes('admin') ?? false;
 
   const [financialYear, setFinancialYear] = useState(initialFinancialYear);
   const [statusFilter, setStatusFilter] = useState<string[]>([]);

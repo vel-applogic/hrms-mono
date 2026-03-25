@@ -35,7 +35,7 @@ export default async function UserPage(props: Props) {
     filterRequest.isActive = validatedParams.status === 'active';
   }
 
-  const data = await userService.searchPublicUsers(filterRequest);
+  const data = await userService.search(filterRequest);
   const stats = await userService.getStats();
 
   return (

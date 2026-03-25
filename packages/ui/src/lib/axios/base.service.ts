@@ -10,7 +10,7 @@ export abstract class BaseAxiosService {
     this.isDevMode = process.env.APP_ENV !== 'prod';
   }
 
-  abstract getAuthHeaderInfo(): Promise<{ userId: number }>;
+  abstract getAuthHeaderInfo(): Promise<{ userId: number; organizationId: number }>;
 
   private formatError(method: string, url: string, error: any): Error {
     // If it's already an APIError, re-throw it as-is to preserve validation errors
@@ -74,10 +74,15 @@ export abstract class BaseAxiosService {
     throw this.formatError(method, url, error);
   }
 
+  private async getAuthHeaders(): Promise<Record<string, number>> {
+    const { userId, organizationId } = await this.getAuthHeaderInfo();
+    return { 'x-user-id': userId, 'x-organization-id': organizationId };
+  }
+
   protected async get<Result = [Error, 'Specify the Result type parameter'], R extends Result = Result>(params: { url: string; responseSchema: ZodSchema }): Promise<NoInfer<R>> {
     try {
-      const { userId } = await this.getAuthHeaderInfo();
-      const response = await this.apiService.get(params.url, { headers: { 'x-user-id': userId } });
+      const headers = await this.getAuthHeaders();
+      const response = await this.apiService.get(params.url, { headers });
       return this.handleResponse<NoInfer<R>>(response, params.responseSchema, 'GET', params.url);
     } catch (error: unknown) {
       this.handleError(error, 'GET', params.url);
@@ -86,8 +91,8 @@ export abstract class BaseAxiosService {
 
   protected async post<R = never, D = never>(params: { url: string; data: D; responseSchema: ZodSchema }): Promise<NoInfer<R>> {
     try {
-      const { userId } = await this.getAuthHeaderInfo();
-      const response = await this.apiService.post(params.url, params.data, { headers: { 'x-user-id': userId } });
+      const headers = await this.getAuthHeaders();
+      const response = await this.apiService.post(params.url, params.data, { headers });
       return this.handleResponse<NoInfer<R>>(response, params.responseSchema, 'POST', params.url);
     } catch (error: unknown) {
       this.handleError(error, 'POST', params.url);
@@ -96,8 +101,8 @@ export abstract class BaseAxiosService {
 
   protected async postFormData<R = never, D = never>(params: { url: string; data: NoInfer<D>; responseSchema: ZodSchema }): Promise<NoInfer<R>> {
     try {
-      const { userId } = await this.getAuthHeaderInfo();
-      const response = await this.apiService.postForm(params.url, params.data, { headers: { 'x-user-id': userId } });
+      const headers = await this.getAuthHeaders();
+      const response = await this.apiService.postForm(params.url, params.data, { headers });
       return this.handleResponse<NoInfer<R>>(response, params.responseSchema, 'POST FORM', params.url);
     } catch (error: unknown) {
       this.handleError(error, 'POST FORM', params.url);
@@ -106,8 +111,8 @@ export abstract class BaseAxiosService {
 
   protected async put<R = never, D = never>(params: { url: string; data: NoInfer<D>; responseSchema: ZodSchema }): Promise<NoInfer<R>> {
     try {
-      const { userId } = await this.getAuthHeaderInfo();
-      const response = await this.apiService.put(params.url, params.data, { headers: { 'x-user-id': userId } });
+      const headers = await this.getAuthHeaders();
+      const response = await this.apiService.put(params.url, params.data, { headers });
       return this.handleResponse<NoInfer<R>>(response, params.responseSchema, 'PUT', params.url);
     } catch (error: unknown) {
       this.handleError(error, 'PUT', params.url);
@@ -116,8 +121,8 @@ export abstract class BaseAxiosService {
 
   protected async patch<R = never, D = never>(params: { url: string; data: NoInfer<D>; responseSchema: ZodSchema }): Promise<NoInfer<R>> {
     try {
-      const { userId } = await this.getAuthHeaderInfo();
-      const response = await this.apiService.patch(params.url, params.data, { headers: { 'x-user-id': userId } });
+      const headers = await this.getAuthHeaders();
+      const response = await this.apiService.patch(params.url, params.data, { headers });
       return this.handleResponse<NoInfer<R>>(response, params.responseSchema, 'PATCH', params.url);
     } catch (error: unknown) {
       this.handleError(error, 'PATCH', params.url);
@@ -126,8 +131,8 @@ export abstract class BaseAxiosService {
 
   protected async putFormData<R = never, D = never>(params: { url: string; data: NoInfer<D>; responseSchema: ZodSchema }): Promise<NoInfer<R>> {
     try {
-      const { userId } = await this.getAuthHeaderInfo();
-      const response = await this.apiService.putForm(params.url, params.data, { headers: { 'x-user-id': userId } });
+      const headers = await this.getAuthHeaders();
+      const response = await this.apiService.putForm(params.url, params.data, { headers });
       return this.handleResponse<NoInfer<R>>(response, params.responseSchema, 'PUT FORM', params.url);
     } catch (error: unknown) {
       this.handleError(error, 'PUT FORM', params.url);
@@ -136,8 +141,8 @@ export abstract class BaseAxiosService {
 
   protected async delete<R = never>(params: { url: string; responseSchema: ZodSchema }): Promise<NoInfer<R>> {
     try {
-      const { userId } = await this.getAuthHeaderInfo();
-      const response = await this.apiService.delete(params.url, { headers: { 'x-user-id': userId } });
+      const headers = await this.getAuthHeaders();
+      const response = await this.apiService.delete(params.url, { headers });
       return this.handleResponse<NoInfer<R>>(response, params.responseSchema, 'DELETE', params.url);
     } catch (error: unknown) {
       this.handleError(error, 'DELETE', params.url);

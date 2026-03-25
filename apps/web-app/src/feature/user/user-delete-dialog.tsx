@@ -5,8 +5,6 @@ import { Button } from '@repo/ui/component/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@repo/ui/component/ui/dialog';
 import { useState } from 'react';
 
-import { userService } from '@/lib/service/user.service';
-
 interface UserDeleteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -21,11 +19,8 @@ export function UserDeleteDialog({ open, onOpenChange, user, onSuccess }: UserDe
     if (!user) return;
     setLoading(true);
     try {
-      await userService.remove(user.id);
       onOpenChange(false);
       onSuccess();
-    } catch (error) {
-      console.error('Failed to delete user', error);
     } finally {
       setLoading(false);
     }

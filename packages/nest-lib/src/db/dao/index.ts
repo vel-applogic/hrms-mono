@@ -1,6 +1,10 @@
 export { BaseDao } from './_base.dao.js';
 export type { OrderByParam } from './_base.dao.js';
 export { UserDao } from './user.dao.js';
+export { OrganizationDao } from './organization.dao.js';
+export { OrganizationHasUserDao } from './organization-has-user.dao.js';
+export { BranchDao } from './branch.dao.js';
+export { UserInBranchDao } from './user-in-branch.dao.js';
 export { MediaDao } from './media.dao.js';
 export { AuditActivityDao } from './audit-activity.dao.js';
 export { AuditActivityHasEntityDao } from './audit-activity-has-entity.dao.js';

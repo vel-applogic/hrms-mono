@@ -7,7 +7,8 @@ interface LoginResponse {
   email: string;
   firstname: string;
   lastname: string;
-  role: string;
+  organizationIds: number[];
+  roles: string[];
 }
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
@@ -34,7 +35,9 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
               id: String(user.id),
               email: user.email,
               name: `${user.firstname} ${user.lastname}`,
-              role: user.role,
+              organizationIds: user.organizationIds,
+              organizationId: user.organizationIds[0] ?? 0,
+              roles: user.roles,
             };
           }
           return null;
@@ -48,14 +51,18 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     jwt({ token, user }) {
       if (user) {
         token.userId = user.id ?? '';
-        token.role = user.role;
+        token.organizationIds = user.organizationIds;
+        token.organizationId = user.organizationId;
+        token.roles = user.roles;
       }
       return token;
     },
     session({ session, token }) {
       if (session.user) {
         session.user.id = String(token.userId);
-        session.user.role = String(token.role);
+        session.user.organizationIds = token.organizationIds as number[];
+        session.user.organizationId = token.organizationId as number;
+        session.user.roles = token.roles as string[];
       }
       return session;
     },

@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { Prisma, User } from '@repo/db';
 import type { OrderByParam } from '../dao/_base.dao.js';
 import type { FilterSortRequestType, AuditActivityFieldChangeType, AdminUserDetailResponseType } from '@repo/dto';
+import { UserRoleDtoEnum } from '@repo/dto';
 import deepDiff from 'deep-diff';
 import { userRoleDbEnumToDtoEnum } from '../../util/enum.util.js';
 
@@ -125,13 +126,13 @@ export abstract class BaseUc {
     return 'object';
   }
 
-  protected dbToAdminUserDetailResponse(dbRec: User): AdminUserDetailResponseType {
+  protected dbToAdminUserDetailResponse(dbRec: User, roles: UserRoleDtoEnum[] = []): AdminUserDetailResponseType {
     return {
       id: dbRec.id,
       email: dbRec.email,
       firstname: dbRec.firstname,
       lastname: dbRec.lastname,
-      roles: [],
+      roles,
       isActive: dbRec.isActive,
       createdAt: dbRec.createdAt.toISOString(),
       updatedAt: dbRec.updatedAt.toISOString(),

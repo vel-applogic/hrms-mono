@@ -13,7 +13,8 @@ export const AuthLoginResponseSchema = z.object({
   email: z.string(),
   firstname: z.string(),
   lastname: z.string(),
-  role: z.nativeEnum(UserRoleDtoEnum),
+  organizationIds: z.array(z.number()),
+  roles: z.array(z.nativeEnum(UserRoleDtoEnum)),
 });
 export type AuthLoginResponseType = z.infer<typeof AuthLoginResponseSchema>;
 
@@ -30,7 +31,8 @@ export const AuthRegisterResponseSchema = z.object({
   email: z.string(),
   firstname: z.string(),
   lastname: z.string(),
-  role: z.nativeEnum(UserRoleDtoEnum),
+  organizationIds: z.array(z.number()),
+  roles: z.array(z.nativeEnum(UserRoleDtoEnum)),
 });
 export type AuthRegisterResponseType = z.infer<typeof AuthRegisterResponseSchema>;
 

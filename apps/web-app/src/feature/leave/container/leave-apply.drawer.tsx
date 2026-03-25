@@ -35,7 +35,7 @@ const FORM_ID = 'leave-apply-form';
 export function LeaveApplyDrawer({ open, onOpenChange, leave, onSuccess }: Props) {
   const { data: session } = useSession();
   const currentUserId = session?.user?.id ? Number(session.user.id) : null;
-  const isAdmin = session?.user?.role === 'admin';
+  const isAdmin = session?.user?.roles?.includes('admin') ?? false;
   const isEditing = !!leave;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

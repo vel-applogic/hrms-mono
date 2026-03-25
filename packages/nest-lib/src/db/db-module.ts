@@ -18,6 +18,10 @@ import {
   EmployeeFeedbackDao,
   EmployeeHasMediaDao,
   EmployeeLeaveCounterDao,
+  OrganizationDao,
+  OrganizationHasUserDao,
+  BranchDao,
+  UserInBranchDao,
 } from './dao/index.js';
 import { PrismaService } from './prisma/prisma.service.js';
 import { AuditService } from '../service/audit.service.js';
@@ -32,6 +36,10 @@ import { UserForgotPasswordDao } from './dao/user-forgot-password.dao.js';
     PrismaService,
     AuditService,
     UserDao,
+    OrganizationDao,
+    OrganizationHasUserDao,
+    BranchDao,
+    UserInBranchDao,
     MediaDao,
     CandidateDao,
     CandidateHasMediaDao,
@@ -57,6 +65,10 @@ import { UserForgotPasswordDao } from './dao/user-forgot-password.dao.js';
     PrismaService,
     AuditService,
     UserDao,
+    OrganizationDao,
+    OrganizationHasUserDao,
+    BranchDao,
+    UserInBranchDao,
     MediaDao,
     CandidateDao,
     CandidateHasMediaDao,
