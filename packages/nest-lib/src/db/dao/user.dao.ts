@@ -75,13 +75,9 @@ export class UserDao extends BaseDao {
       ];
     }
 
-    if (params.filterDto.role) {
-      where.role = params.filterDto.role;
-    }
-
-    if (params.filterDto.plan) {
-      where.plan = params.filterDto.plan;
-    }
+    // if (params.filterDto.role) {
+    //   where.role = params.filterDto.role;
+    // }
 
     if (params.filterDto.isActive !== undefined) {
       where.isActive = params.filterDto.isActive;

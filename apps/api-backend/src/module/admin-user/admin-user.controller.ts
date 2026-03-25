@@ -16,14 +16,12 @@ import { CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
 import { AdminUserBlockUc } from './uc/admin-user-block.uc.js';
 import { AdminUserCreateUc } from './uc/admin-user-create.uc.js';
 import { AdminUserDeleteUc } from './uc/admin-user-delete.uc.js';
-import { AdminUserDowngradePlanUc } from './uc/admin-user-downgrade-plan.uc.js';
 import { AdminUserGetUc } from './uc/admin-user-get.uc.js';
 import { AdminUserGetStatsUc } from './uc/admin-user-get-stats.uc.js';
 import { AdminUserSearchUc } from './uc/admin-user-search.uc.js';
 import { AdminUserSearchPublicUsersUc } from './uc/admin-user-search-public-users.uc.js';
 import { AdminUserUnblockUc } from './uc/admin-user-unblock.uc.js';
 import { AdminUserUpdateUc } from './uc/admin-user-update.uc.js';
-import { AdminUserUpgradePlanUc } from './uc/admin-user-upgrade-plan.uc.js';
 
 @Controller('api/admin/user')
 export class AdminUserController {
@@ -37,8 +35,6 @@ export class AdminUserController {
     private readonly deleteUc: AdminUserDeleteUc,
     private readonly blockUc: AdminUserBlockUc,
     private readonly unblockUc: AdminUserUnblockUc,
-    private readonly upgradePlanUc: AdminUserUpgradePlanUc,
-    private readonly downgradePlanUc: AdminUserDowngradePlanUc,
   ) {}
 
   @Post()
@@ -97,15 +93,5 @@ export class AdminUserController {
   @Put('/unblock/:id')
   async unblock(@Param('id', ParseIntPipe) id: number, @CurrentUser() currentUser: CurrentUserType): Promise<OperationStatusResponseType> {
     return this.unblockUc.execute({ currentUser, id });
-  }
-
-  @Put('/upgrade-plan/:id')
-  async upgradePlan(@Param('id', ParseIntPipe) id: number, @CurrentUser() currentUser: CurrentUserType): Promise<OperationStatusResponseType> {
-    return this.upgradePlanUc.execute({ currentUser, id });
-  }
-
-  @Put('/downgrade-plan/:id')
-  async downgradePlan(@Param('id', ParseIntPipe) id: number, @CurrentUser() currentUser: CurrentUserType): Promise<OperationStatusResponseType> {
-    return this.downgradePlanUc.execute({ currentUser, id });
   }
 }

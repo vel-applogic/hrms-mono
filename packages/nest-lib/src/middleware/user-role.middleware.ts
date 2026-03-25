@@ -3,6 +3,7 @@ import { ApiError } from '@repo/shared';
 import type { NextFunction, Request, Response } from 'express';
 
 import type { RequestWithUser } from '../type/request.type.js';
+import { UserRoleDtoEnum } from '@repo/dto';
 
 @Injectable()
 export class CommonAdminUserMiddleware implements NestMiddleware {
@@ -13,7 +14,7 @@ export class CommonAdminUserMiddleware implements NestMiddleware {
       throw new ApiError('Unauthorized', HttpStatus.UNAUTHORIZED);
     }
 
-    if (user.role !== 'admin') {
+    if (!user.roles.includes(UserRoleDtoEnum.admin)) {
       throw new ApiError('Forbidden: admin role required', HttpStatus.FORBIDDEN);
     }
 

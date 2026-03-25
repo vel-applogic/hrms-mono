@@ -51,7 +51,6 @@ export class AdminUserUpdateUc extends BaseAdminUserUc implements IUseCase<Param
     if (params.dto.email !== undefined) updateData.email = params.dto.email;
     if (params.dto.firstname !== undefined) updateData.firstname = params.dto.firstname;
     if (params.dto.lastname !== undefined) updateData.lastname = params.dto.lastname;
-    if (params.dto.role !== undefined) updateData.role = params.dto.role as UserRoleDbEnum;
     if (params.dto.isActive !== undefined) updateData.isActive = params.dto.isActive;
     if (params.dto.password !== undefined) {
       updateData.password = await this.passwordService.hash(params.dto.password);
@@ -65,14 +64,12 @@ export class AdminUserUpdateUc extends BaseAdminUserUc implements IUseCase<Param
         email: oldUser.email,
         firstname: oldUser.firstname,
         lastname: oldUser.lastname,
-        role: oldUser.role,
         isActive: oldUser.isActive,
       },
       newValues: {
         email: updatedUser.email,
         firstname: updatedUser.firstname,
         lastname: updatedUser.lastname,
-        role: updatedUser.role,
         isActive: updatedUser.isActive,
       },
     });

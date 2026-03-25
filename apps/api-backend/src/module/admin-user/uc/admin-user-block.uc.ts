@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { UserRoleDbEnum } from '@repo/db';
 import type { OperationStatusResponseType } from '@repo/dto';
-import { AuditActivityStatusDtoEnum, AuditEntityTypeDtoEnum, AuditEventGroupDtoEnum, AuditEventTypeDtoEnum } from '@repo/dto';
+import { AuditActivityStatusDtoEnum, AuditEntityTypeDtoEnum, AuditEventGroupDtoEnum, AuditEventTypeDtoEnum, UserRoleDtoEnum } from '@repo/dto';
 import { AuditService, CommonLoggerService, CurrentUserType, IUseCase, PrismaService, UserDao } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
@@ -40,9 +39,9 @@ export class AdminUserBlockUc extends BaseAdminUserUc implements IUseCase<Params
       throw new ApiError('User not found', 404);
     }
 
-    if (existing.role === UserRoleDbEnum.admin) {
-      throw new ApiError('Admin users cannot be blocked', 400);
-    }
+    // if (existing.roles.includes(UserRoleDtoEnum.admin)) {
+    //   throw new ApiError('Admin users cannot be blocked', 400);
+    // }
   }
 
   async block(id: number): Promise<void> {

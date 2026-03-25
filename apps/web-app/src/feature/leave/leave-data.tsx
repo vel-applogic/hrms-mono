@@ -1,23 +1,12 @@
 'use client';
 
-import type {
-  LeaveFilterRequestType,
-  LeaveResponseType,
-  PaginatedResponseType,
-  SearchParamsType,
-} from '@repo/dto';
-import { Button } from '@repo/ui/component/ui/button';
+import type { LeaveFilterRequestType, LeaveResponseType, PaginatedResponseType, SearchParamsType } from '@repo/dto';
 import { SelectSearchMulti } from '@repo/ui/component/select-search-multiple';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/ui/component/shadcn/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/shadcn/select';
+import { Button } from '@repo/ui/component/ui/button';
 import { CalendarPlus, X } from 'lucide-react';
-import { useSession } from 'next-auth/react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useEffect, useRef, useState } from 'react';
 
 import { LeaveStatusFilter } from '@/app/lib/container/leave-status-filter';
@@ -35,13 +24,7 @@ interface Props {
   searchParams: SearchParamsType;
 }
 
-export const LeaveData = ({
-  data,
-  employees,
-  defaultFinancialYear,
-  financialYearOptions,
-  searchParams,
-}: Props) => {
+export const LeaveData = ({ data, employees, defaultFinancialYear, financialYearOptions, searchParams }: Props) => {
   const { data: session } = useSession();
   const currentUserId = session?.user?.id ? Number(session.user.id) : null;
   const isAdmin = session?.user?.role === 'admin';
@@ -140,9 +123,7 @@ export const LeaveData = ({
   return (
     <div className='flex h-full flex-col gap-4 pt-4'>
       <div className='center-container flex items-center justify-between'>
-        <span className='text-xl font-medium tracking-tight text-white'>
-          Leave Details for {currentFinancialYear}
-        </span>
+        <span className='text-xl font-medium tracking-tight text-white'>Leave Details for {currentFinancialYear}</span>
         <Button className='shrink-0 rounded-[40px]' onClick={handleApplyLeave}>
           <CalendarPlus className='h-4 w-4' />
           Apply leave
@@ -215,12 +196,7 @@ export const LeaveData = ({
         />
       </div>
 
-      <LeaveApplyDrawer
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
-        leave={editingLeave}
-        onSuccess={() => refresh()}
-      />
+      <LeaveApplyDrawer open={drawerOpen} onOpenChange={setDrawerOpen} leave={editingLeave} onSuccess={() => refresh()} />
     </div>
   );
 };

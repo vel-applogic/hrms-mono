@@ -129,7 +129,8 @@ export class AuthResetPasswordUseCase extends BaseAuthUseCase implements IUseCas
       status: AuditActivityStatusDtoEnum.success,
       currentUser: {
         id: params.user.id,
-        role: UserRoleDtoEnum[params.user.role],
+        roles: params.user.roles,
+        organizationId: 0,
         email: params.user.email!,
         firstname: params.user.firstname,
         lastname: params.user.lastname,

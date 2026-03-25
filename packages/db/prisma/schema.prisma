@@ -79,19 +79,17 @@ model Media {
 }
 
 model User {
-  id             Int            @id @default(autoincrement())
-  email          String         @unique
+  id             Int       @id @default(autoincrement())
+  email          String    @unique
   firstname      String
   lastname       String
-  role           UserRoleDbEnum @default(user)
-  plan           PlanEnum       @default(free)
   password       String
-  isActive       Boolean        @default(true) @map("is_active")
-  lastLoggedInAt DateTime?      @map("last_logged_in_at")
-  createdAt      DateTime       @default(now()) @map("created_at")
-  updatedAt      DateTime       @updatedAt @map("updated_at")
+  isSuperAdmin   Boolean   @default(false) @map("is_super_admin")
+  isActive       Boolean   @default(true) @map("is_active")
+  lastLoggedInAt DateTime? @map("last_logged_in_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  userPlanHistory                UserPlanHistory[]
   auditActivities                AuditActivity[]
   userForgotPasswords            UserForgotPassword[]
   userVerifyEmails               UserVerifyEmail[]
@@ -106,6 +104,8 @@ model User {
   userEmployeeLeaveCounters      UserEmployeeLeaveCounter[]
   userEmployeeDeductions         UserEmployeeDeduction[]
   payslips                       Payslip[]
+  organizationHasUsers           OrganizationHasUser[]
+  userInBranches                 UserInBranch[]
 
   @@map("users")
 }
@@ -132,16 +132,63 @@ model UserVerifyEmail {
   @@map("user_verify_email")
 }
 
-model UserPlanHistory {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @map("user_id")
-  user      User     @relation(fields: [userId], references: [id])
-  plan      PlanEnum @map("plan")
-  expiresAt DateTime @map("expires_at")
+// ORGANIZATION
+model Organization {
+  id   Int    @id @default(autoincrement())
+  name String
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("user_plan_history")
+  organizationHasUsers OrganizationHasUser[]
+  branches             Branch[]
+  userInBranches       UserInBranch[]
+
+  @@map("organization")
+}
+
+model OrganizationHasUser {
+  id             Int              @id @default(autoincrement())
+  organizationId Int              @map("organization_id")
+  organization   Organization     @relation(fields: [organizationId], references: [id])
+  userId         Int              @map("user_id")
+  user           User             @relation(fields: [userId], references: [id])
+  roles          UserRoleDbEnum[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([organizationId, userId])
+  @@map("organization_has_user")
+}
+
+// BRANCH
+model Branch {
+  id             Int          @id @default(autoincrement())
+  name           String
+  organizationId Int          @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+  userInBranches UserInBranch[]
+
+  @@map("branche")
+}
+
+model UserInBranch {
+  id             Int          @id @default(autoincrement())
+  userId         Int          @map("user_id")
+  user           User         @relation(fields: [userId], references: [id])
+  branchId       Int          @map("branch_id")
+  branch         Branch       @relation(fields: [branchId], references: [id])
+  organizationId Int          @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, branchId])
 }
 
 // EMPLOYEE
@@ -538,14 +585,9 @@ model PolicyHasMedia {
 
 enum UserRoleDbEnum {
   admin
-  user
+  employee
 
   @@map("userRoleDbEnum")
-}
-
-enum PlanEnum {
-  free
-  premium
 }
 
 enum MediaTypeDbEnum {
@@ -577,8 +619,6 @@ enum AuditEventTypeDbEnum {
   email_verify
   account_activate
   confirm
-  upgrade_plan
-  downgrade_plan
   block_user
   unblock_user
 

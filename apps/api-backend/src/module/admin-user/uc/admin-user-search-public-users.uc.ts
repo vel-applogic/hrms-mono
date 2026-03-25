@@ -37,7 +37,7 @@ export class AdminUserSearchPublicUsersUc extends BaseAdminUserUc implements IUs
   public async search(params: { filterDto: UserFilterRequestType; orderBy?: OrderByParam }): Promise<{ totalRecords: number; results: AdminUserListResponseType[] }> {
     const filterDto: UserFilterRequestType = {
       ...params.filterDto,
-      role: UserRoleDtoEnum.user,
+      role: UserRoleDtoEnum.admin,
     };
     const { dbRecords, totalRecords } = await this.userDao.search({
       filterDto,

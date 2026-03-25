@@ -41,10 +41,7 @@ CREATE TYPE "CandidateProgress" AS ENUM ('new', 'infoCollected', 'lev1InterviewS
 CREATE TYPE "candidateMediaType" AS ENUM ('resume', 'offerLetter', 'otherDocuments');
 
 -- CreateEnum
-CREATE TYPE "userRoleDbEnum" AS ENUM ('admin', 'user');
-
--- CreateEnum
-CREATE TYPE "PlanEnum" AS ENUM ('free', 'premium');
+CREATE TYPE "userRoleDbEnum" AS ENUM ('admin', 'employee');
 
 -- CreateEnum
 CREATE TYPE "mediaTypeDbEnum" AS ENUM ('doc', 'image', 'zip', 'video');
@@ -53,7 +50,7 @@ CREATE TYPE "mediaTypeDbEnum" AS ENUM ('doc', 'image', 'zip', 'video');
 CREATE TYPE "auditEventGroupDbEnum" AS ENUM ('authentication', 'operation');
 
 -- CreateEnum
-CREATE TYPE "auditEventTypeDbEnum" AS ENUM ('login_success', 'login_failure', 'create', 'update', 'delete', 'password_reset', 'password_reset_request', 'otp_request', 'register', 'email_verify', 'account_activate', 'confirm', 'upgrade_plan', 'downgrade_plan', 'block_user', 'unblock_user');
+CREATE TYPE "auditEventTypeDbEnum" AS ENUM ('login_success', 'login_failure', 'create', 'update', 'delete', 'password_reset', 'password_reset_request', 'otp_request', 'register', 'email_verify', 'account_activate', 'confirm', 'block_user', 'unblock_user');
 
 -- CreateEnum
 CREATE TYPE "auditActivityStatusDbEnum" AS ENUM ('success', 'failure');
@@ -115,9 +112,8 @@ CREATE TABLE "users" (
     "email" TEXT NOT NULL,
     "firstname" TEXT NOT NULL,
     "lastname" TEXT NOT NULL,
-    "role" "userRoleDbEnum" NOT NULL DEFAULT 'user',
-    "plan" "PlanEnum" NOT NULL DEFAULT 'free',
     "password" TEXT NOT NULL,
+    "is_super_admin" BOOLEAN NOT NULL DEFAULT false,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "last_logged_in_at" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -149,15 +145,48 @@ CREATE TABLE "user_verify_email" (
 );
 
 -- CreateTable
-CREATE TABLE "user_plan_history" (
+CREATE TABLE "organization" (
     "id" SERIAL NOT NULL,
-    "user_id" INTEGER NOT NULL,
-    "plan" "PlanEnum" NOT NULL,
-    "expires_at" TIMESTAMP(3) NOT NULL,
+    "name" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "user_plan_history_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "organization_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "organization_has_user" (
+    "id" SERIAL NOT NULL,
+    "organization_id" INTEGER NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "roles" "userRoleDbEnum"[],
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "organization_has_user_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "branche" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "organization_id" INTEGER NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "branche_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "UserInBranch" (
+    "id" SERIAL NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "branch_id" INTEGER NOT NULL,
+    "organization_id" INTEGER NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "UserInBranch_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -238,6 +267,7 @@ CREATE TABLE "payslip" (
     "gross_amount" INTEGER NOT NULL,
     "net_amount" INTEGER NOT NULL,
     "deduction_amount" INTEGER NOT NULL,
+    "pdf_s3_key" TEXT NOT NULL,
 
     CONSTRAINT "payslip_pkey" PRIMARY KEY ("id")
 );
@@ -425,6 +455,12 @@ CREATE INDEX "audit_activity_has_entity_entity_type_entity_id_idx" ON "audit_act
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "organization_has_user_organization_id_user_id_key" ON "organization_has_user"("organization_id", "user_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UserInBranch_user_id_branch_id_key" ON "UserInBranch"("user_id", "branch_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "user_employee_detail_user_id_key" ON "user_employee_detail"("user_id");
 
 -- CreateIndex
@@ -494,7 +530,22 @@ ALTER TABLE "user_forgot_password" ADD CONSTRAINT "user_forgot_password_user_id_
 ALTER TABLE "user_verify_email" ADD CONSTRAINT "user_verify_email_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "user_plan_history" ADD CONSTRAINT "user_plan_history_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "organization_has_user" ADD CONSTRAINT "organization_has_user_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "organization_has_user" ADD CONSTRAINT "organization_has_user_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "branche" ADD CONSTRAINT "branche_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserInBranch" ADD CONSTRAINT "UserInBranch_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserInBranch" ADD CONSTRAINT "UserInBranch_branch_id_fkey" FOREIGN KEY ("branch_id") REFERENCES "branche"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserInBranch" ADD CONSTRAINT "UserInBranch_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "user_employee_detail" ADD CONSTRAINT "user_employee_detail_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

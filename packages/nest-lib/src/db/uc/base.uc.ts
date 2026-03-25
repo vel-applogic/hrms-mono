@@ -4,7 +4,7 @@ import { Prisma, User } from '@repo/db';
 import type { OrderByParam } from '../dao/_base.dao.js';
 import type { FilterSortRequestType, AuditActivityFieldChangeType, AdminUserDetailResponseType } from '@repo/dto';
 import deepDiff from 'deep-diff';
-import { planDbEnumToDtoEnum, userRoleDbEnumToDtoEnum } from '../../util/enum.util.js';
+import { userRoleDbEnumToDtoEnum } from '../../util/enum.util.js';
 
 const { diff } = deepDiff;
 
@@ -131,8 +131,7 @@ export abstract class BaseUc {
       email: dbRec.email,
       firstname: dbRec.firstname,
       lastname: dbRec.lastname,
-      role: userRoleDbEnumToDtoEnum(dbRec.role),
-      plan: planDbEnumToDtoEnum(dbRec.plan),
+      roles: [],
       isActive: dbRec.isActive,
       createdAt: dbRec.createdAt.toISOString(),
       updatedAt: dbRec.updatedAt.toISOString(),

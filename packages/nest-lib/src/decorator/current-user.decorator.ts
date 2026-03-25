@@ -16,6 +16,7 @@ export const CurrentUser = createParamDecorator((data: unknown, context: Executi
     firstname: request.user.firstname!,
     lastname: request.user.lastname!,
     isActive: request.user.isActive!,
-    role: request.user.role,
+    roles: request.user.roles,
+    organizationId: request.user.organizationId,
   };
 });

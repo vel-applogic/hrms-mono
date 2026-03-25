@@ -66,27 +66,13 @@ export const UserData = ({ data, searchParams, stats, additionalActions, onAddit
     replace(`${pathname}?${params.toString()}`);
   };
 
-  const handlePlanChange = (value: string) => {
-    const params = new URLSearchParams(currentSearchParams.toString());
-    params.set('plan', value);
-    params.set('page', '1');
-    replace(`${pathname}?${params.toString()}`);
-  };
-
   const statusOptions: SelectOption[] = [
     { label: 'Active', value: 'active' },
     { label: 'Blocked', value: 'inactive' },
   ];
 
-  const planOptions: SelectOption[] = [
-    { label: 'Free', value: 'free' },
-    { label: 'Premium', value: 'premium' },
-  ];
-
   const statCards = [
     { label: 'Total users', value: stats.totalUsers.toLocaleString() },
-    { label: 'Premium users', value: stats.premiumUsers.toLocaleString() },
-    { label: 'Free users', value: stats.freeUsers.toLocaleString() },
     { label: 'Online users', value: '24' },
     { label: 'Ave. time spent / user / day', value: '1h 13m' },
   ];
@@ -122,19 +108,6 @@ export const UserData = ({ data, searchParams, stats, additionalActions, onAddit
             onClear={() => {
               const params = new URLSearchParams(currentSearchParams.toString());
               params.delete('status');
-              params.set('page', '1');
-              replace(params.toString() ? `${pathname}?${params.toString()}` : pathname);
-            }}
-            className='w-[140px]'
-          />
-          <SelectSearchSingle
-            value={searchParams.plan}
-            options={planOptions}
-            placeholder='Plan'
-            onChange={handlePlanChange}
-            onClear={() => {
-              const params = new URLSearchParams(currentSearchParams.toString());
-              params.delete('plan');
               params.set('page', '1');
               replace(params.toString() ? `${pathname}?${params.toString()}` : pathname);
             }}

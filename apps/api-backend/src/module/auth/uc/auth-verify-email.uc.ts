@@ -72,7 +72,8 @@ export class AuthVerifyEmailUseCase extends BaseAuthUseCase implements IUseCase<
       status: AuditActivityStatusDtoEnum.success,
       currentUser: {
         id: user.id,
-        role: UserRoleDtoEnum[user.role],
+        roles: user.roles,
+        organizationId: 0,
         email: user.email,
         firstname: user.firstname,
         lastname: user.lastname,

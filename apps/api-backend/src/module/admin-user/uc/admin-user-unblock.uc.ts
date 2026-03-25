@@ -40,9 +40,9 @@ export class AdminUserUnblockUc extends BaseAdminUserUc implements IUseCase<Para
       throw new ApiError('User not found', 404);
     }
 
-    if (existing.role === UserRoleDbEnum.admin) {
-      throw new ApiError('Admin users cannot be unblocked', 400);
-    }
+    // if (existing.role === UserRoleDbEnum.admin) {
+    //   throw new ApiError('Admin users cannot be unblocked', 400);
+    // }
   }
 
   async unblock(id: number): Promise<void> {

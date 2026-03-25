@@ -3,6 +3,7 @@ import type { NextFunction, Request, Response } from 'express';
 
 import { UserDao } from '../db/dao/user.dao.js';
 import type { RequestWithUser } from '../type/request.type.js';
+import { userRoleDbEnumToDtoEnum } from '../util/enum.util.js';
 
 @Injectable()
 export class CommonAuthenticateMiddleware implements NestMiddleware {
@@ -10,6 +11,7 @@ export class CommonAuthenticateMiddleware implements NestMiddleware {
 
   async use(req: Request, _res: Response, next: NextFunction) {
     const userId = req.headers['x-user-id'] as string;
+    const organizationId = (req.headers['x-organization-id'] as string) || '0';
 
     if (userId) {
       const user = await this.userDao.getById({ id: Number(userId) });
@@ -19,8 +21,9 @@ export class CommonAuthenticateMiddleware implements NestMiddleware {
           email: user.email,
           firstname: user.firstname,
           lastname: user.lastname,
-          role: user.role,
           isActive: user.isActive,
+          organizationId: Number(organizationId),
+          roles: [],
         };
       }
     }

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { LeaveResponseType } from '@repo/dto';
+import { type LeaveResponseType, UserRoleDtoEnum } from '@repo/dto';
 import { CommonLoggerService, CurrentUserType, IUseCase, LeaveConfigDao, LeaveDao, PrismaService, UserEmployeeLeaveCounterDao } from '@repo/nest-lib';
 import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
 
@@ -21,7 +21,7 @@ export class LeaveApproveUc implements IUseCase<Params, LeaveResponseType> {
   async execute(params: Params): Promise<LeaveResponseType> {
     this.logger.i('Approving leave request', { id: params.id, userId: params.currentUser.id });
 
-    if (params.currentUser.role !== 'admin') {
+    if (!params.currentUser.roles.includes(UserRoleDtoEnum.admin)) {
       throw new ApiError('Only admins can approve leave requests', 403);
     }
 

@@ -78,13 +78,7 @@ class UserService extends BaseService {
     return this.put<OperationStatusResponseType, undefined>({ url: `/api/admin/user/unblock/${id}`, data: undefined, responseSchema: OperationStatusResponseSchema });
   }
 
-  async upgradePlan(id: number): Promise<OperationStatusResponseType> {
-    return this.put<OperationStatusResponseType, undefined>({ url: `/api/admin/user/upgrade-plan/${id}`, data: undefined, responseSchema: OperationStatusResponseSchema });
-  }
-
-  async downgradePlan(id: number): Promise<OperationStatusResponseType> {
-    return this.put<OperationStatusResponseType, undefined>({ url: `/api/admin/user/downgrade-plan/${id}`, data: undefined, responseSchema: OperationStatusResponseSchema });
-  }
 }
+
 
 export const userService = new UserService();

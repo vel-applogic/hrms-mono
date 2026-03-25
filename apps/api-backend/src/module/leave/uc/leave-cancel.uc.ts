@@ -1,15 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import type { LeaveResponseType } from '@repo/dto';
-import {
-  LeaveConfigDao,
-  LeaveDao,
-  UserEmployeeDetailDao,
-  UserEmployeeLeaveCounterDao,
-  CommonLoggerService,
-  CurrentUserType,
-  IUseCase,
-  PrismaService,
-} from '@repo/nest-lib';
+import { type LeaveResponseType, UserRoleDtoEnum } from '@repo/dto';
+import { CommonLoggerService, CurrentUserType, IUseCase, LeaveConfigDao, LeaveDao, PrismaService, UserEmployeeDetailDao, UserEmployeeLeaveCounterDao } from '@repo/nest-lib';
 import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
@@ -31,7 +22,7 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
   async execute(params: Params): Promise<LeaveResponseType> {
     this.logger.i('Cancelling leave request', { id: params.id, userId: params.currentUser.id });
 
-    const isAdmin = params.currentUser.role === 'admin';
+    const isAdmin = params.currentUser.roles.includes(UserRoleDtoEnum.admin);
     const existing = await this.leaveDao.getById({ id: params.id });
     if (!existing) {
       throw new ApiError('Leave not found', 404);

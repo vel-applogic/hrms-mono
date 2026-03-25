@@ -1,4 +1,4 @@
-import { PlanDtoEnum, SearchParamsSchema, SortDirectionDtoEnum, UserFilterRequestType } from '@repo/dto';
+import { SearchParamsSchema, SortDirectionDtoEnum, UserFilterRequestType } from '@repo/dto';
 import { z } from 'zod';
 
 import { UserData } from '@/feature/user/user-data';
@@ -33,10 +33,6 @@ export default async function UserPage(props: Props) {
 
   if (validatedParams.status) {
     filterRequest.isActive = validatedParams.status === 'active';
-  }
-
-  if (validatedParams.plan) {
-    filterRequest.plan = validatedParams.plan as PlanDtoEnum;
   }
 
   const data = await userService.searchPublicUsers(filterRequest);

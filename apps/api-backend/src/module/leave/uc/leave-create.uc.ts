@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { LeaveCreateRequestType, LeaveResponseType } from '@repo/dto';
+import { type LeaveCreateRequestType, type LeaveResponseType, UserRoleDtoEnum } from '@repo/dto';
 import { CommonLoggerService, CurrentUserType, IUseCase, LeaveConfigDao, LeaveDao, PrismaService, UserEmployeeDetailDao } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
@@ -51,7 +51,7 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
     const targetUserId = params.dto.userId;
     this.logger.i('Creating leave request', { userId: targetUserId, requestedBy: params.currentUser.id });
 
-    if (params.currentUser.role !== 'admin' && targetUserId !== params.currentUser.id) {
+    if (!params.currentUser.roles.includes(UserRoleDtoEnum.admin) && targetUserId !== params.currentUser.id) {
       throw new ApiError('You can only apply for leave on your own behalf', 403);
     }
 

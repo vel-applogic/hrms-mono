@@ -1,7 +1,6 @@
 export { BaseDao } from './_base.dao.js';
 export type { OrderByParam } from './_base.dao.js';
 export { UserDao } from './user.dao.js';
-export { UserPlanHistoryDao } from './user-plan-history.dao.js';
 export { MediaDao } from './media.dao.js';
 export { AuditActivityDao } from './audit-activity.dao.js';
 export { AuditActivityHasEntityDao } from './audit-activity-has-entity.dao.js';

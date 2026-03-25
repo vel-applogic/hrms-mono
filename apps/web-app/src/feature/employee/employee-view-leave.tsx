@@ -1,23 +1,17 @@
 'use client';
 
 import type { LeaveFilterRequestType, LeaveResponseType, PaginatedResponseType } from '@repo/dto';
+import { getLastFinancialYearCodes } from '@repo/shared';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/shadcn/select';
 import { Button } from '@repo/ui/component/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/ui/component/shadcn/select';
 import { CalendarPlus } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
-import { getLastFinancialYearCodes } from '@repo/shared';
 
-import { searchLeaves } from '@/lib/action/leave.actions';
 import { LeaveStatusFilter } from '@/app/lib/container/leave-status-filter';
 import { LeaveApplyDrawer } from '@/feature/leave/container/leave-apply.drawer';
 import { LeaveDataTableClient } from '@/feature/leave/leave.datatable';
+import { searchLeaves } from '@/lib/action/leave.actions';
 
 const FY_OPTIONS = getLastFinancialYearCodes(3);
 
@@ -58,7 +52,7 @@ export function EmployeeViewLeave({ employeeId, initialData, initialFinancialYea
 
   useEffect(() => {
     fetchData(financialYear, statusFilter, page);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [financialYear, statusFilter, page]);
 
   const handleStatusChange = (values: string[]) => {
@@ -124,12 +118,7 @@ export function EmployeeViewLeave({ employeeId, initialData, initialFinancialYea
         <p className='py-4 text-sm text-muted-foreground'>No leave records found.</p>
       )}
 
-      <LeaveApplyDrawer
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
-        leave={editingLeave}
-        onSuccess={() => fetchData(financialYear, statusFilter, page)}
-      />
+      <LeaveApplyDrawer open={drawerOpen} onOpenChange={setDrawerOpen} leave={editingLeave} onSuccess={() => fetchData(financialYear, statusFilter, page)} />
     </div>
   );
 }

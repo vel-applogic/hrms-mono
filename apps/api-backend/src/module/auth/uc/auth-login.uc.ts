@@ -49,7 +49,7 @@ export class AuthLoginUc implements IUseCase<Params, AuthLoginResponseType> {
       email: user.email,
       firstname: user.firstname,
       lastname: user.lastname,
-      role: user.role as UserRoleDtoEnum,
+      role: 'admin' as UserRoleDtoEnum,
     };
   }
 }

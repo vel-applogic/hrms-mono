@@ -1,6 +1,6 @@
+import axios from 'axios';
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import axios from 'axios';
 
 interface LoginResponse {
   id: number;

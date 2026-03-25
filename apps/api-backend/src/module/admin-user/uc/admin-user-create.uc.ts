@@ -63,7 +63,6 @@ export class AdminUserCreateUc extends BaseAdminUserUc implements IUseCase<Param
         email: params.dto.email,
         firstname: params.dto.firstname,
         lastname: params.dto.lastname,
-        role: params.dto.role as UserRoleDbEnum,
         password: hashedPassword,
         isActive: false,
       },
@@ -98,7 +97,6 @@ export class AdminUserCreateUc extends BaseAdminUserUc implements IUseCase<Param
         email: createdUser.email,
         firstname: createdUser.firstname,
         lastname: createdUser.lastname,
-        role: createdUser.role,
       },
     });
 

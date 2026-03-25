@@ -98,7 +98,7 @@ export class AuditActivityDao extends BaseDao {
               firstname: true,
               lastname: true,
               email: true,
-              role: true,
+              // role: true,
             },
           },
         },
@@ -127,7 +127,7 @@ export class AuditActivityDao extends BaseDao {
             firstname: true,
             lastname: true,
             email: true,
-            role: true,
+            // role: true,
           },
         },
         entities: true,
@@ -220,7 +220,7 @@ export class AuditActivityDao extends BaseDao {
               firstname: true,
               lastname: true,
               email: true,
-              role: true,
+              // role: true,
             },
           },
         },
@@ -248,7 +248,7 @@ export type AuditActivityWithActorType = Prisma.AuditActivityGetPayload<{
         firstname: true;
         lastname: true;
         email: true;
-        role: true;
+        // role: true;
       };
     };
   };
@@ -262,7 +262,7 @@ export type AuditActivityWithRelationsType = Prisma.AuditActivityGetPayload<{
         firstname: true;
         lastname: true;
         email: true;
-        role: true;
+        // role: true;
       };
     };
     entities: true;

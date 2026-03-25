@@ -1,6 +1,6 @@
 'use client';
 
-import { type AdminUserListResponse, UserRoleDtoEnum } from '@repo/dto';
+import { type AdminUserListResponseType, UserRoleDtoEnum } from '@repo/dto';
 import { Button } from '@repo/ui/component/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@repo/ui/component/ui/dialog';
 import { Input } from '@repo/ui/component/ui/input';
@@ -13,7 +13,7 @@ import { createUser, updateUser } from '@/lib/service/user.service';
 interface UserFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  user?: AdminUserListResponse | null;
+  user?: AdminUserListResponseType | null;
   onSuccess: () => void;
 }
 
@@ -25,7 +25,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
   const [email, setEmail] = useState('');
   const [firstname, setFirstname] = useState('');
   const [lastname, setLastname] = useState('');
-  const [role, setRole] = useState<UserRoleDtoEnum>(UserRoleDtoEnum.user);
+  const [role, setRole] = useState<UserRoleDtoEnum>(UserRoleDtoEnum.admin);
   const [password, setPassword] = useState('');
 
   useEffect(() => {
@@ -33,13 +33,13 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
       setEmail(user.email);
       setFirstname(user.firstname);
       setLastname(user.lastname);
-      setRole(user.role);
+      setRole(user.roles[0]);
       setPassword('');
     } else {
       setEmail('');
       setFirstname('');
       setLastname('');
-      setRole(UserRoleDtoEnum.user);
+      setRole(UserRoleDtoEnum.admin);
       setPassword('');
     }
     setError('');
@@ -101,7 +101,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value='admin'>Admin</SelectItem>
-                <SelectItem value='user'>User</SelectItem>
+                <SelectItem value='superAdmin'>Super Admin</SelectItem>
               </SelectContent>
             </Select>
           </div>

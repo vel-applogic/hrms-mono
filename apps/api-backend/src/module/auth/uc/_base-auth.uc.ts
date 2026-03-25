@@ -1,6 +1,6 @@
 import { User } from '@repo/db';
 import { AdminUserDetailResponseType } from '@repo/dto';
-import { BaseUc, CommonLoggerService, planDbEnumToDtoEnum, PrismaService, UserDao, userRoleDbEnumToDtoEnum } from '@repo/nest-lib';
+import { BaseUc, CommonLoggerService, PrismaService, UserDao, userRoleDbEnumToDtoEnum } from '@repo/nest-lib';
 import { ApiBadRequestError } from '@repo/shared';
 
 export class BaseAuthUseCase extends BaseUc {
@@ -18,9 +18,8 @@ export class BaseAuthUseCase extends BaseUc {
       firstname: dbRec.firstname,
       lastname: dbRec.lastname,
       email: dbRec.email,
-      role: userRoleDbEnumToDtoEnum(dbRec.role),
-      plan: planDbEnumToDtoEnum(dbRec.plan),
       isActive: dbRec.isActive,
+      roles: [],
       createdAt: dbRec.createdAt.toISOString(),
       updatedAt: dbRec.updatedAt.toISOString(),
     };

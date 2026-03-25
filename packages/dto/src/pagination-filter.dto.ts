@@ -67,7 +67,6 @@ export const SearchParamsSchema = z.object({
   sKey: z.string().optional(),
   sVal: z.string().optional(),
   status: z.enum(['active', 'inactive']).optional(),
-  plan: z.enum(['free', 'premium']).optional(),
   candidateStatus: z
     .string()
     .optional()

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@repo/db';
 import { EmployeeMediaType, UserRoleDbEnum } from '@repo/db';
 import {
   AuditActivityStatusDtoEnum,
@@ -24,7 +25,6 @@ import {
   UserEmployeeLeaveCounterDao,
 } from '@repo/nest-lib';
 import { ApiFieldValidationError, getFinancialYearCode } from '@repo/shared';
-import type { Prisma } from '@repo/db';
 
 import { S3Service } from '#src/external-service/s3.service.js';
 import { MediaService } from '#src/service/media.service.js';
@@ -69,7 +69,6 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
           firstname: params.dto.firstname,
           lastname: params.dto.lastname,
           password: hashedPassword,
-          role: UserRoleDbEnum.user,
           isActive: true,
         },
         tx,
@@ -127,12 +126,7 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
     }
   }
 
-  private async createAndLinkMedia(params: {
-    media: MediaUpsertType;
-    userId: number;
-    type: EmployeeMediaType;
-    tx: Prisma.TransactionClient;
-  }): Promise<void> {
+  private async createAndLinkMedia(params: { media: MediaUpsertType; userId: number; type: EmployeeMediaType; tx: Prisma.TransactionClient }): Promise<void> {
     const file = await this.mediaService.moveTempFileAndGetKey({
       media: params.media,
       mediaPlacement: 'employee',

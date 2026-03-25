@@ -6,7 +6,6 @@ export * from './common.dto.js';
 export * from './status.dto.js';
 export * from './media.dto.js';
 export * from './pagination-filter.dto.js';
-export * from './plan.dto.js';
 export * from './audit-activity.dto.js';
 export * from './candidate.dto.js';
 export * from './candidate-feedback.dto.js';

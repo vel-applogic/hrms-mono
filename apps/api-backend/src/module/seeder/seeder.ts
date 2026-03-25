@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { UserRoleDtoEnum } from '@repo/dto';
 import { CommonLoggerService, PrismaService } from '@repo/nest-lib';
 
 import { PasswordService } from '../../service/password.service.js';
@@ -13,7 +14,12 @@ export class Seeder {
 
   async seed() {
     this.logger.i('Seeding data start');
-    await this.runMigration('create-test-users', () => this.createTestUsers());
+    await this.runMigration('create-test-users', () =>
+      this.createTestUsers([
+        { email: 'superAdmin@test.com', firstname: 'Test', lastname: '01', organizationName: 'Test Organization', roles: [], isSuperAdmin: true },
+        { email: 'admin@test.com', firstname: 'Test', lastname: '01', organizationName: 'Test Organization', roles: [UserRoleDtoEnum.admin], isSuperAdmin: false },
+      ]),
+    );
     await this.runMigration('create-leave-config', () => this.createLeaveConfig());
     await this.runMigration('init-employee-leave-counters', () => this.initEmployeeLeaveCounters());
     this.logger.i('Seeding data complete');
@@ -78,21 +84,42 @@ export class Seeder {
     this.logger.i(`Migration "${key}" complete`);
   }
 
-  private async createTestUsers() {
+  private async createTestUsers(users: { email: string; firstname: string; lastname: string; organizationName: string; roles: UserRoleDtoEnum[]; isSuperAdmin: boolean }[]) {
     const hashedPassword = await this.passwordService.hash('test');
 
-    await this.prisma.user.upsert({
-      where: { email: 'karan@test.com' },
-      update: {},
-      create: {
-        email: 'test@test.com',
-        firstname: 'Test',
-        lastname: '01',
-        role: 'admin',
-        password: hashedPassword,
-        isActive: true,
-      },
-    });
+    for (const userData of users) {
+      let organisation = await this.prisma.organization.findFirst({ where: { name: userData.organizationName } });
+      if (!organisation) {
+        organisation = await this.prisma.organization.create({
+          data: {
+            name: userData.organizationName,
+          },
+        });
+      }
+
+      const user = await this.prisma.user.upsert({
+        where: { email: userData.email },
+        update: {},
+        create: {
+          email: userData.email,
+          firstname: userData.firstname,
+          lastname: userData.lastname,
+          password: hashedPassword,
+          isActive: true,
+          isSuperAdmin: userData.isSuperAdmin,
+        },
+      });
+
+      await this.prisma.organizationHasUser.upsert({
+        where: { organizationId_userId: { organizationId: organisation.id, userId: user.id } },
+        update: { roles: userData.roles },
+        create: {
+          userId: user.id,
+          organizationId: organisation.id,
+          roles: userData.roles,
+        },
+      });
+    }
 
     this.logger.i('Test users created');
   }

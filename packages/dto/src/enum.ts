@@ -1,6 +1,6 @@
 export enum UserRoleDtoEnum {
   admin = 'admin',
-  user = 'user',
+  employee = 'employee',
 }
 
 // Common enums
@@ -14,11 +14,6 @@ export enum MediaTypeDtoEnum {
 export enum SortDirectionDtoEnum {
   DESC = 'desc',
   ASC = 'asc',
-}
-
-export enum PlanDtoEnum {
-  free = 'free',
-  premium = 'premium',
 }
 
 // Audit enums
@@ -44,8 +39,6 @@ export enum AuditEventTypeDtoEnum {
   email_verify = 'email_verify',
   account_activate = 'account_activate',
   confirm = 'confirm',
-  upgrade_plan = 'upgrade_plan',
-  downgrade_plan = 'downgrade_plan',
   block_user = 'block_user',
   unblock_user = 'unblock_user',
 }

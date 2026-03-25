@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PlanEnum, type Prisma, UserRoleDbEnum } from '@repo/db';
+import { type Prisma, UserRoleDbEnum } from '@repo/db';
 import type { AdminUserStatsResponseType } from '@repo/dto';
 import { CommonLoggerService, CurrentUserType, IUseCase, PrismaService, UserDao } from '@repo/nest-lib';
 
@@ -22,29 +22,13 @@ export class AdminUserGetStatsUc extends BaseAdminUserUc implements IUseCase<Par
   }
 
   private async getStats(): Promise<AdminUserStatsResponseType> {
-    const now = new Date();
-
     const totalUsersWhere: Prisma.UserWhereInput = {
-      role: UserRoleDbEnum.user,
+      // role: UserRoleDbEnum.admin,
     };
 
-    const premiumUsersWhere: Prisma.UserWhereInput = {
-      role: UserRoleDbEnum.user,
-      plan: PlanEnum.premium,
-    };
+    const totalUsers = await this.userDao.getCount({ where: totalUsersWhere });
 
-    const freeUsersWhere: Prisma.UserWhereInput = {
-      role: UserRoleDbEnum.user,
-      plan: PlanEnum.free,
-    };
-
-    const [totalUsers, premiumUsers, freeUsers] = await Promise.all([
-      this.userDao.getCount({ where: totalUsersWhere }),
-      this.userDao.getCount({ where: premiumUsersWhere }),
-      this.userDao.getCount({ where: freeUsersWhere }),
-    ]);
-
-    return { totalUsers, premiumUsers, freeUsers };
+    return { totalUsers };
   }
 
   async validate(_params: Params): Promise<void> {}

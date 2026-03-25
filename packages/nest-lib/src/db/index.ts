@@ -1,7 +1,6 @@
 export {
   BaseDao,
   UserDao,
-  UserPlanHistoryDao,
   MediaDao,
   UserForgotPasswordDao,
   UserVerifyEmailDao,

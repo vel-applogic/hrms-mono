@@ -1,5 +1,5 @@
-import { AuditActivityStatusDbEnum, AuditEntityTypeDbEnum, AuditEventGroupDbEnum, AuditEventTypeDbEnum, MediaTypeDbEnum, PlanEnum, UserRoleDbEnum } from '@repo/db';
-import { AuditActivityStatusDtoEnum, AuditEntityTypeDtoEnum, AuditEventGroupDtoEnum, AuditEventTypeDtoEnum, MediaTypeDtoEnum, PlanDtoEnum, UserRoleDtoEnum } from '@repo/dto';
+import { AuditActivityStatusDbEnum, AuditEntityTypeDbEnum, AuditEventGroupDbEnum, AuditEventTypeDbEnum, MediaTypeDbEnum, UserRoleDbEnum } from '@repo/db';
+import { AuditActivityStatusDtoEnum, AuditEntityTypeDtoEnum, AuditEventGroupDtoEnum, AuditEventTypeDtoEnum, MediaTypeDtoEnum, UserRoleDtoEnum } from '@repo/dto';
 
 export function auditEventGroupDtoEnumToDbEnum(dtoEnum: AuditEventGroupDtoEnum): AuditEventGroupDbEnum {
   const mapping: Record<AuditEventGroupDtoEnum, AuditEventGroupDbEnum> = {
@@ -43,8 +43,6 @@ export function auditEventTypeDtoEnumToDbEnum(dtoEnum: AuditEventTypeDtoEnum): A
     [AuditEventTypeDtoEnum.email_verify]: 'email_verify',
     [AuditEventTypeDtoEnum.account_activate]: 'account_activate',
     [AuditEventTypeDtoEnum.confirm]: 'confirm',
-    [AuditEventTypeDtoEnum.upgrade_plan]: 'upgrade_plan',
-    [AuditEventTypeDtoEnum.downgrade_plan]: 'downgrade_plan',
     [AuditEventTypeDtoEnum.block_user]: 'block_user',
     [AuditEventTypeDtoEnum.unblock_user]: 'unblock_user',
   };
@@ -71,8 +69,6 @@ export function auditEventTypeDbEnumToDtoEnum(dbEnum: AuditEventTypeDbEnum): Aud
     email_verify: AuditEventTypeDtoEnum.email_verify,
     account_activate: AuditEventTypeDtoEnum.account_activate,
     confirm: AuditEventTypeDtoEnum.confirm,
-    upgrade_plan: AuditEventTypeDtoEnum.upgrade_plan,
-    downgrade_plan: AuditEventTypeDtoEnum.downgrade_plan,
     block_user: AuditEventTypeDtoEnum.block_user,
     unblock_user: AuditEventTypeDtoEnum.unblock_user,
   };
@@ -149,8 +145,8 @@ export function auditActivityStatusDbEnumToDtoEnum(dbEnum: AuditActivityStatusDb
 
 export function userRoleDtoEnumToDbEnum(dtoEnum: UserRoleDtoEnum): UserRoleDbEnum {
   const mapping: Record<UserRoleDtoEnum, UserRoleDbEnum> = {
+    [UserRoleDtoEnum.employee]: 'employee',
     [UserRoleDtoEnum.admin]: 'admin',
-    [UserRoleDtoEnum.user]: 'user',
   };
 
   const dbEnum = mapping[dtoEnum];
@@ -164,7 +160,7 @@ export function userRoleDtoEnumToDbEnum(dtoEnum: UserRoleDtoEnum): UserRoleDbEnu
 export function userRoleDbEnumToDtoEnum(dbEnum: UserRoleDbEnum): UserRoleDtoEnum {
   const mapping: Record<UserRoleDbEnum, UserRoleDtoEnum> = {
     admin: UserRoleDtoEnum.admin,
-    user: UserRoleDtoEnum.user,
+    employee: UserRoleDtoEnum.employee,
   };
 
   const dtoEnum = mapping[dbEnum];
@@ -173,32 +169,4 @@ export function userRoleDbEnumToDtoEnum(dbEnum: UserRoleDbEnum): UserRoleDtoEnum
   }
 
   return dtoEnum;
-}
-
-export function planDbEnumToDtoEnum(dbEnum: PlanEnum): PlanDtoEnum {
-  const mapping: Record<PlanEnum, PlanDtoEnum> = {
-    free: PlanDtoEnum.free,
-    premium: PlanDtoEnum.premium,
-  };
-
-  const dtoEnum = mapping[dbEnum];
-  if (!dtoEnum) {
-    throw new Error(`Unknown PlanEnum: ${dbEnum}`);
-  }
-
-  return dtoEnum;
-}
-
-export function planDtoEnumToDbEnum(dtoEnum: PlanDtoEnum): PlanEnum {
-  const mapping: Record<PlanDtoEnum, PlanEnum> = {
-    [PlanDtoEnum.free]: 'free',
-    [PlanDtoEnum.premium]: 'premium',
-  };
-
-  const dbEnum = mapping[dtoEnum];
-  if (!dbEnum) {
-    throw new Error(`Unknown PlanDtoEnum: ${dtoEnum}`);
-  }
-
-  return dbEnum;
 }

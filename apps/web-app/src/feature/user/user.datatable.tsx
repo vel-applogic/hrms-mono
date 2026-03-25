@@ -1,16 +1,15 @@
 'use client';
 
-import { AdminUserListResponseType, AdminUsersSortableColumns, PaginatedResponseType, PlanDtoEnum } from '@repo/dto';
+import { AdminUserListResponseType, AdminUsersSortableColumns, PaginatedResponseType } from '@repo/dto';
 import { DataTableSimple, DummySort, getSort } from '@repo/ui/container/datatable/datatable';
 import { ActionOption, ActionsIconCellRenderer, ActionsIconCellRendererParams, BadgeRenderer, DateTimeRenderer } from '@repo/ui/container/datatable/datatable-cell-renderer';
 import { isSortable } from '@repo/ui/lib/utils';
 import { ColDef, RowClassParams } from 'ag-grid-community';
-import { Ban, ShieldCheck, TrendingDown, TrendingUp } from 'lucide-react';
+import { Ban, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 
 import { UserBlockDialog } from './user-block-dialog';
-import { UserPlanDialog } from './user-plan-dialog';
 
 interface Props {
   data: PaginatedResponseType<AdminUserListResponseType>;
@@ -26,11 +25,9 @@ export const UserDataTableClient = (props: Props) => {
   const router = useRouter();
   const [detailDrawer, setDetailDrawer] = useState<{ open: boolean; userId?: number }>({ open: false });
   const [blockDialog, setBlockDialog] = useState<{ open: boolean; user: AdminUserListResponseType | null }>({ open: false, user: null });
-  const [planDialog, setPlanDialog] = useState<{ open: boolean; user: AdminUserListResponseType | null }>({ open: false, user: null });
 
   const colDefs = useMemo<ColDef<AdminUserListResponseType>[]>(() => {
     const standardActions: ActionOption[] = [
-      { name: 'Downgrade', icon: TrendingDown },
       { name: 'Block', icon: Ban },
     ];
 
@@ -79,19 +76,6 @@ export const UserDataTableClient = (props: Props) => {
         comparator: DummySort,
       },
       {
-        headerName: 'Plan',
-        field: 'plan',
-        flex: 1,
-        sort: getSort('plan', props.sort.sKey, props.sort.sVal),
-        sortable: isSortable('plan', AdminUsersSortableColumns),
-        comparator: DummySort,
-        cellRenderer: (params: { value: string }) =>
-          BadgeRenderer({
-            text: params.value,
-            className: params.value === 'premium' ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground',
-          }),
-      },
-      {
         headerName: 'Status',
         field: 'isActive',
         flex: 1,
@@ -126,11 +110,6 @@ export const UserDataTableClient = (props: Props) => {
                 ? { name: 'Block', icon: Ban }
                 : { name: 'Unblock', icon: ShieldCheck };
             }
-            if (action.name === 'Downgrade') {
-              return cellParams.data?.plan === PlanDtoEnum.free
-                ? { name: 'Upgrade', icon: TrendingUp }
-                : { name: 'Downgrade', icon: TrendingDown };
-            }
             return action;
           }),
         }) satisfies Partial<ActionsIconCellRendererParams<AdminUserListResponseType>>,
@@ -144,10 +123,6 @@ export const UserDataTableClient = (props: Props) => {
         case 'Block':
         case 'Unblock':
           setBlockDialog({ open: true, user: data });
-          break;
-        case 'Upgrade':
-        case 'Downgrade':
-          setPlanDialog({ open: true, user: data });
           break;
         case 'Details':
           router.push(`/admin/user/${data.id}/detail`);
@@ -204,12 +179,6 @@ export const UserDataTableClient = (props: Props) => {
         onOpenChange={(open) => setBlockDialog((prev) => ({ ...prev, open }))}
         user={blockDialog.user}
         onSuccess={() => setBlockDialog({ open: false, user: null })}
-      />
-      <UserPlanDialog
-        open={planDialog.open}
-        onOpenChange={(open) => setPlanDialog((prev) => ({ ...prev, open }))}
-        user={planDialog.user}
-        onSuccess={() => setPlanDialog({ open: false, user: null })}
       />
     </>
   );

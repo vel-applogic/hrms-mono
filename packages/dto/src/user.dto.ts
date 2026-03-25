@@ -1,13 +1,13 @@
 import { z } from 'zod';
 
-import { PlanDtoEnum, UserRoleDtoEnum } from './enum.js';
+import { UserRoleDtoEnum } from './enum.js';
 import { FilterRequestSchema } from './pagination-filter.dto.js';
 
 export const UserBaseFieldsSchema = z.object({
   email: z.string().email(),
   firstname: z.string().min(1),
   lastname: z.string().min(1),
-  role: z.nativeEnum(UserRoleDtoEnum),
+  roles: z.array(z.nativeEnum(UserRoleDtoEnum)),
 });
 
 export const AdminUserCreateRequestSchema = UserBaseFieldsSchema.extend({
@@ -23,7 +23,6 @@ export type AdminUserUpdateRequestType = z.infer<typeof AdminUserUpdateRequestSc
 
 export const AdminUserListResponseSchema = UserBaseFieldsSchema.extend({
   id: z.number(),
-  plan: z.nativeEnum(PlanDtoEnum),
   isActive: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -32,7 +31,6 @@ export type AdminUserListResponseType = z.infer<typeof AdminUserListResponseSche
 
 export const AdminUserDetailResponseSchema = UserBaseFieldsSchema.extend({
   id: z.number(),
-  plan: z.nativeEnum(PlanDtoEnum),
   isActive: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -41,8 +39,6 @@ export type AdminUserDetailResponseType = z.infer<typeof AdminUserDetailResponse
 
 export const AdminUserStatsResponseSchema = z.object({
   totalUsers: z.number(),
-  premiumUsers: z.number(),
-  freeUsers: z.number(),
 });
 export type AdminUserStatsResponseType = z.infer<typeof AdminUserStatsResponseSchema>;
 
@@ -50,7 +46,6 @@ export const AdminUsersSortableColumns = ['firstname', 'lastname', 'email', 'rol
 
 export const UserFilterRequestSchema = FilterRequestSchema.extend({
   role: z.nativeEnum(UserRoleDtoEnum).optional(),
-  plan: z.nativeEnum(PlanDtoEnum).optional(),
   isActive: z.boolean().optional(),
 });
 export type UserFilterRequestType = z.infer<typeof UserFilterRequestSchema>;

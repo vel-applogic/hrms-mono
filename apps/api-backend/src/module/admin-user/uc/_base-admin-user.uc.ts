@@ -1,6 +1,6 @@
 import { User } from '@repo/db';
 import { AdminUserDetailResponseType } from '@repo/dto';
-import { BaseUc, CommonLoggerService, planDbEnumToDtoEnum, PrismaService, UserDao, userRoleDbEnumToDtoEnum } from '@repo/nest-lib';
+import { BaseUc, CommonLoggerService, PrismaService, UserDao } from '@repo/nest-lib';
 import { ApiBadRequestError } from '@repo/shared';
 
 export class BaseAdminUserUc extends BaseUc {

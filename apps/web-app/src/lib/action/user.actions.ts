@@ -17,14 +17,3 @@ export async function unblockUser(id: number): Promise<OperationStatusResponseTy
   return result;
 }
 
-export async function upgradeUserPlan(id: number): Promise<OperationStatusResponseType> {
-  const result = await userService.upgradePlan(id);
-  revalidatePath('/user');
-  return result;
-}
-
-export async function downgradeUserPlan(id: number): Promise<OperationStatusResponseType> {
-  const result = await userService.downgradePlan(id);
-  revalidatePath('/user');
-  return result;
-}

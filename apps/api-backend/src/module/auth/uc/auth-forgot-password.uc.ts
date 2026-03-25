@@ -86,8 +86,9 @@ export class AuthForgotPasswordUseCase extends BaseAuthUseCase implements IUseCa
       status: AuditActivityStatusDtoEnum.success,
       currentUser: {
         id: params.user.id,
-        role: UserRoleDtoEnum[params.user.role],
+        roles: params.user.roles,
         email: params.user.email,
+        organizationId: 0,
         firstname: params.user.firstname,
         lastname: params.user.lastname,
         isActive: params.user.isActive,
