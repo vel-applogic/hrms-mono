@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { PayslipDetailResponseType, PayslipUpdateLineItemsRequestType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, PayslipDao } from '@repo/nest-lib';
-import type { PayslipWithDetailsType } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, PayrollPayslipDao } from '@repo/nest-lib';
+import type { PayrollPayslipWithDetailsType } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 type Params = {
@@ -14,18 +14,18 @@ type Params = {
 export class PayslipUpdateLineItemsUc implements IUseCase<Params, PayslipDetailResponseType> {
   constructor(
     private readonly logger: CommonLoggerService,
-    private readonly payslipDao: PayslipDao,
+    private readonly payrollPayslipDao: PayrollPayslipDao,
   ) {}
 
   async execute(params: Params): Promise<PayslipDetailResponseType> {
     this.logger.i('Updating payslip line items', { id: params.id });
 
-    const existing = await this.payslipDao.getById({ id: params.id });
+    const existing = await this.payrollPayslipDao.getById({ id: params.id });
     if (!existing) {
       throw new ApiError('Payslip not found', 404);
     }
 
-    const updated = await this.payslipDao.replaceLineItems({
+    const updated = await this.payrollPayslipDao.replaceLineItems({
       payslipId: params.id,
       lineItems: params.dto.lineItems.map((li) => ({
         type: li.type,
@@ -41,7 +41,7 @@ export class PayslipUpdateLineItemsUc implements IUseCase<Params, PayslipDetailR
     return this.mapToDetail(updated);
   }
 
-  private mapToDetail(p: PayslipWithDetailsType): PayslipDetailResponseType {
+  private mapToDetail(p: PayrollPayslipWithDetailsType): PayslipDetailResponseType {
     return {
       id: p.id,
       employeeId: p.userId,
@@ -56,7 +56,7 @@ export class PayslipUpdateLineItemsUc implements IUseCase<Params, PayslipDetailR
       deductionAmount: p.deductionAmount,
       createdAt: p.createdAt.toISOString(),
       updatedAt: p.updatedAt.toISOString(),
-      lineItems: p.payslipLineItems.map((li) => ({
+      lineItems: p.payrollPayslipLineItems.map((li) => ({
         id: li.id,
         payslipId: li.payslipId,
         type: li.type,

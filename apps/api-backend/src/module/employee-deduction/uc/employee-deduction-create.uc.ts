@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { EmployeeDeductionCreateRequestType, EmployeeDeductionResponseType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, PrismaService, UserEmployeeDeductionDao, UserEmployeeDetailDao } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, PrismaService, PayrollDeductionDao, EmployeeDao } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 import { parseDateOnly, parseMonthYearToFirstDay, validateEffectiveFromBeforeTill } from './_employee-deduction-validation.helper.js';
@@ -15,14 +15,14 @@ export class EmployeeDeductionCreateUc implements IUseCase<Params, EmployeeDeduc
   constructor(
     private readonly logger: CommonLoggerService,
     private readonly prisma: PrismaService,
-    private readonly userEmployeeDetailDao: UserEmployeeDetailDao,
-    private readonly userEmployeeDeductionDao: UserEmployeeDeductionDao,
+    private readonly employeeDao: EmployeeDao,
+    private readonly payrollDeductionDao: PayrollDeductionDao,
   ) {}
 
   async execute(params: Params): Promise<EmployeeDeductionResponseType> {
     this.logger.i('Creating employee deduction', { employeeId: params.dto.employeeId });
 
-    const employee = await this.userEmployeeDetailDao.getByUserId({ userId: params.dto.employeeId });
+    const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);
     }
@@ -43,7 +43,7 @@ export class EmployeeDeductionCreateUc implements IUseCase<Params, EmployeeDeduc
     }
 
     // Check for existing active deductions of the same type
-    const existingActive = await this.userEmployeeDeductionDao.findActiveByUserIdAndType({
+    const existingActive = await this.payrollDeductionDao.findActiveByUserIdAndType({
       userId: params.dto.employeeId,
       type: params.dto.type,
     });
@@ -74,14 +74,14 @@ export class EmployeeDeductionCreateUc implements IUseCase<Params, EmployeeDeduc
     const created = await this.prisma.$transaction(async (tx) => {
       // Deactivate all previous active deductions of same type
       for (const existing of existingActive) {
-        await this.userEmployeeDeductionDao.update({
+        await this.payrollDeductionDao.update({
           id: existing.id,
           data: { isActive: false, effectiveTill: prevEffectiveTill },
           tx,
         });
       }
 
-      return this.userEmployeeDeductionDao.create({
+      return this.payrollDeductionDao.create({
         data: {
           user: { connect: { id: params.dto.employeeId } },
           type: params.dto.type,

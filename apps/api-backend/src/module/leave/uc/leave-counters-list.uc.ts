@@ -6,8 +6,8 @@ import {
   IUseCase,
   LeaveConfigDao,
   PrismaService,
-  UserEmployeeDetailDao,
-  UserEmployeeLeaveCounterDao,
+  EmployeeDao,
+  EmployeeLeaveCounterDao,
 } from '@repo/nest-lib';
 
 type Params = {
@@ -20,8 +20,8 @@ export class LeaveCountersListUc implements IUseCase<Params, LeaveCounterRespons
   constructor(
     prisma: PrismaService,
     private readonly logger: CommonLoggerService,
-    private readonly userEmployeeDetailDao: UserEmployeeDetailDao,
-    private readonly userEmployeeLeaveCounterDao: UserEmployeeLeaveCounterDao,
+    private readonly employeeDao: EmployeeDao,
+    private readonly employeeLeaveCounterDao: EmployeeLeaveCounterDao,
     private readonly leaveConfigDao: LeaveConfigDao,
   ) {}
 
@@ -29,8 +29,8 @@ export class LeaveCountersListUc implements IUseCase<Params, LeaveCounterRespons
     this.logger.i('Listing leave counters', { financialYear: params.financialYear });
 
     const [employees, counters, leaveConfig] = await Promise.all([
-      this.userEmployeeDetailDao.findAllWithUser(),
-      this.userEmployeeLeaveCounterDao.findManyByFinancialYear({ financialYear: params.financialYear }),
+      this.employeeDao.findAllWithUser(),
+      this.employeeLeaveCounterDao.findManyByFinancialYear({ financialYear: params.financialYear }),
       this.leaveConfigDao.getLatest(),
     ]);
 

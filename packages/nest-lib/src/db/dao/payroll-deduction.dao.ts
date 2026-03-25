@@ -1,52 +1,52 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma, UserEmployeeDeduction } from '@repo/db';
+import type { Prisma, PayrollDeduction } from '@repo/db';
 
 import { PrismaService } from '../prisma/prisma.service.js';
 import { BaseDao } from './_base.dao.js';
 
 @Injectable()
-export class UserEmployeeDeductionDao extends BaseDao {
+export class PayrollDeductionDao extends BaseDao {
   constructor(prisma: PrismaService) {
     super(prisma);
   }
 
   async create(params: {
-    data: Prisma.UserEmployeeDeductionCreateInput;
+    data: Prisma.PayrollDeductionCreateInput;
     tx?: Prisma.TransactionClient;
-  }): Promise<UserEmployeeDeduction> {
+  }): Promise<PayrollDeduction> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.userEmployeeDeduction.create({ data: params.data });
+    return pc.payrollDeduction.create({ data: params.data });
   }
 
   async update(params: {
     id: number;
-    data: Prisma.UserEmployeeDeductionUpdateInput;
+    data: Prisma.PayrollDeductionUpdateInput;
     tx?: Prisma.TransactionClient;
-  }): Promise<UserEmployeeDeduction> {
+  }): Promise<PayrollDeduction> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.userEmployeeDeduction.update({ where: { id: params.id }, data: params.data });
+    return pc.payrollDeduction.update({ where: { id: params.id }, data: params.data });
   }
 
-  async getById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<UserEmployeeDeduction | null> {
+  async getById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<PayrollDeduction | null> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.userEmployeeDeduction.findUnique({ where: { id: params.id } });
+    return pc.payrollDeduction.findUnique({ where: { id: params.id } });
   }
 
-  async deleteById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<UserEmployeeDeduction> {
+  async deleteById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<PayrollDeduction> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.userEmployeeDeduction.delete({ where: { id: params.id } });
+    return pc.payrollDeduction.delete({ where: { id: params.id } });
   }
 
   async findActiveByUserIdAndType(params: {
     userId: number;
     type: string;
     tx?: Prisma.TransactionClient;
-  }): Promise<UserEmployeeDeduction[]> {
+  }): Promise<PayrollDeduction[]> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.userEmployeeDeduction.findMany({
+    return pc.payrollDeduction.findMany({
       where: {
         userId: params.userId,
-        type: params.type as UserEmployeeDeduction['type'],
+        type: params.type as PayrollDeduction['type'],
         isActive: true,
       },
       orderBy: { effectiveFrom: 'asc' },
@@ -58,7 +58,7 @@ export class UserEmployeeDeductionDao extends BaseDao {
     page: number;
     limit: number;
     tx?: Prisma.TransactionClient;
-  }): Promise<{ deductions: UserEmployeeDeduction[]; totalRecords: number }> {
+  }): Promise<{ deductions: PayrollDeduction[]; totalRecords: number }> {
     const pc = this.getPrismaClient(params.tx);
     const { take, skip } = this.getPagination({
       pageNo: params.page,
@@ -66,8 +66,8 @@ export class UserEmployeeDeductionDao extends BaseDao {
     });
 
     const [totalRecords, deductions] = await Promise.all([
-      pc.userEmployeeDeduction.count({ where: { userId: params.userId } }),
-      pc.userEmployeeDeduction.findMany({
+      pc.payrollDeduction.count({ where: { userId: params.userId } }),
+      pc.payrollDeduction.findMany({
         where: { userId: params.userId },
         orderBy: { effectiveFrom: 'desc' },
         take,

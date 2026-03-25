@@ -26,18 +26,18 @@ model User {
   userForgotPasswords            UserForgotPassword[]
   userVerifyEmails               UserVerifyEmail[]
   candidateHasFeedbacks          CandidateHasFeedback[]
-  reportTo                       UserEmployeeDetail[]       @relation("EmployeeReportTo")
-  employees                      UserEmployeeDetail[]       @relation("EmployeeUser")
-  userEmployeeHasMedias          UserEmployeeHasMedia[]     @relation("EmployeeHasMediaUser")
-  userEmployeeCompensations      UserEmployeeCompensation[] @relation("EmployeeCompensationUser")
-  userEmployeeFeedbacksCreatedBy UserEmployeeFeedback[]     @relation("EmployeeFeedbackCreatedBy")
-  userEmployeeFeedbacks          UserEmployeeFeedback[]     @relation("EmployeeFeedbackUser")
-  leaves                         Leave[]
-  userEmployeeLeaveCounters      UserEmployeeLeaveCounter[]
-  userEmployeeDeductions         UserEmployeeDeduction[]
-  payslips                       Payslip[]
-  organizationHasUsers           OrganizationHasUser[]
-  userInBranches                 UserInBranch[]
+  reportTo                    Employee[]            @relation("EmployeeReportTo")
+  employees                   Employee[]            @relation("EmployeeUser")
+  employeeHasMedias           EmployeeHasMedia[]    @relation("EmployeeHasMediaUser")
+  payrollCompensations        PayrollCompensation[] @relation("EmployeeCompensationUser")
+  employeeFeedbacksCreatedBy  EmployeeFeedback[]    @relation("EmployeeFeedbackCreatedBy")
+  employeeFeedbacks           EmployeeFeedback[]    @relation("EmployeeFeedbackUser")
+  leaves                      Leave[]
+  employeeLeaveCounters       EmployeeLeaveCounter[]
+  payrollDeductions           PayrollDeduction[]
+  payrollPayslips             PayrollPayslip[]
+  organizationHasUsers        OrganizationHasUser[]
+  userInBranches              UserInBranch[]
 
   @@map("users")
 }
@@ -127,7 +127,7 @@ model UserInBranch {
 
 // EMPLOYEE
 
-model UserEmployeeDetail {
+model Employee {
   id            Int                @id @default(autoincrement())
   userId        Int                @unique @map("user_id")
   user          User               @relation("EmployeeUser", fields: [userId], references: [id])
@@ -150,7 +150,7 @@ model UserEmployeeDetail {
   @@map("user_employee_detail")
 }
 
-model UserEmployeeHasMedia {
+model EmployeeHasMedia {
   id        Int               @id @default(autoincrement())
   userId    Int               @map("user_id")
   user      User              @relation("EmployeeHasMediaUser", fields: [userId], references: [id])
@@ -165,7 +165,7 @@ model UserEmployeeHasMedia {
   @@map("employee_has_media")
 }
 
-model UserEmployeeCompensation {
+model PayrollCompensation {
   id              Int       @id @default(autoincrement())
   userId          Int       @map("user_id")
   user            User      @relation("EmployeeCompensationUser", fields: [userId], references: [id])
@@ -183,40 +183,20 @@ model UserEmployeeCompensation {
   @@map("employee_compensation")
 }
 
-enum UserEmployeeDeductionType {
-  providentFund
-  incomeTax
-  insurance
-  professionalTax
-  loan
-  lop
-  other
-
-  @@map("userEmployeeDeductionType")
-}
-
-enum UserEmployeeDeductionFrequency {
-  monthly
-  yearly
-  specificMonth
-
-  @@map("userEmployeeDeductionFrequency")
-}
-
-model UserEmployeeDeduction {
-  id            Int                            @id @default(autoincrement())
-  userId        Int                            @map("user_id")
-  user          User                           @relation(fields: [userId], references: [id])
-  type          UserEmployeeDeductionType      @map("type")
-  frequency     UserEmployeeDeductionFrequency @map("frequency")
-  amount        Int                            @map("amount")
-  otherTitle    String?                        @map("other_title")
-  effectiveFrom DateTime                       @map("effective_from") @db.Date
-  effectiveTill DateTime?                      @map("effective_till") @db.Date
-  specificMonth DateTime?                      @map("specific_month") @db.Date
-  isActive      Boolean                        @default(true) @map("is_active")
-  createdAt     DateTime                       @default(now()) @map("created_at")
-  updatedAt     DateTime                       @updatedAt @map("updated_at")
+model PayrollDeduction {
+  id            Int                      @id @default(autoincrement())
+  userId        Int                      @map("user_id")
+  user          User                     @relation(fields: [userId], references: [id])
+  type          PayrollDeductionType     @map("type")
+  frequency     PayrollDeductionFrequency @map("frequency")
+  amount        Int                      @map("amount")
+  otherTitle    String?                  @map("other_title")
+  effectiveFrom DateTime                 @map("effective_from") @db.Date
+  effectiveTill DateTime?                @map("effective_till") @db.Date
+  specificMonth DateTime?                @map("specific_month") @db.Date
+  isActive      Boolean                  @default(true) @map("is_active")
+  createdAt     DateTime                 @default(now()) @map("created_at")
+  updatedAt     DateTime                 @updatedAt @map("updated_at")
 
   @@index([userId])
   @@map("user_employee_deduction")
@@ -224,54 +204,41 @@ model UserEmployeeDeduction {
 
 // PAYSLIP
 
-model Payslip {
-  id               Int               @id @default(autoincrement())
-  userId           Int               @map("user_id")
-  user             User              @relation(fields: [userId], references: [id])
-  month            Int               @map("month")
-  year             Int               @map("year")
-  createdAt        DateTime          @default(now()) @map("created_at")
-  updatedAt        DateTime          @updatedAt @map("updated_at")
-  grossAmount      Int               @map("gross_amount")
-  netAmount        Int               @map("net_amount")
-  deductionAmount  Int               @map("deduction_amount")
-  pdfS3Key         String            @map("pdf_s3_key")
-  payslipLineItems PayslipLineItem[]
+model PayrollPayslip {
+  id                   Int                    @id @default(autoincrement())
+  userId               Int                    @map("user_id")
+  user                 User                   @relation(fields: [userId], references: [id])
+  month                Int                    @map("month")
+  year                 Int                    @map("year")
+  createdAt            DateTime               @default(now()) @map("created_at")
+  updatedAt            DateTime               @updatedAt @map("updated_at")
+  grossAmount          Int                    @map("gross_amount")
+  netAmount            Int                    @map("net_amount")
+  deductionAmount      Int                    @map("deduction_amount")
+  pdfS3Key             String                 @map("pdf_s3_key")
+  payrollPayslipLineItems PayrollPayslipLineItem[]
 
   @@unique([userId, month, year])
   @@index([userId])
   @@map("payslip")
 }
 
-enum PayslipLineItemType {
-  earning
-  deduction
-}
-
-model PayslipLineItem {
-  id          Int                 @id @default(autoincrement())
-  payslipId   Int                 @map("payslip_id")
-  payslip     Payslip             @relation(fields: [payslipId], references: [id])
-  type        PayslipLineItemType @map("type")
-  amount      Int                 @map("amount")
-  title       String              @map("title")
-  description String?             @map("description")
-  createdAt   DateTime            @default(now()) @map("created_at")
-  updatedAt   DateTime            @updatedAt @map("updated_at")
+model PayrollPayslipLineItem {
+  id          Int                        @id @default(autoincrement())
+  payslipId   Int                        @map("payslip_id")
+  payslip     PayrollPayslip             @relation(fields: [payslipId], references: [id])
+  type        PayrollPayslipLineItemType @map("type")
+  amount      Int                        @map("amount")
+  title       String                     @map("title")
+  description String?                    @map("description")
+  createdAt   DateTime                   @default(now()) @map("created_at")
+  updatedAt   DateTime                   @updatedAt @map("updated_at")
 
   @@index([payslipId])
   @@map("payslip_line_item")
 }
 
-enum EmployeeFeedbackTrend {
-  positive
-  negative
-  neutral
-
-  @@map("employeeFeedbackTrend")
-}
-
-model UserEmployeeFeedback {
+model EmployeeFeedback {
   id          Int                   @id @default(autoincrement())
   userId      Int                   @map("user_id")
   user        User                  @relation("EmployeeFeedbackUser", fields: [userId], references: [id])
@@ -288,7 +255,7 @@ model UserEmployeeFeedback {
   @@map("user_employee_feedback")
 }
 
-model UserEmployeeLeaveCounter {
+model EmployeeLeaveCounter {
   id                   Int      @id @default(autoincrement())
   userId               Int      @map("user_id")
   user                 User     @relation(fields: [userId], references: [id])
@@ -307,24 +274,6 @@ model UserEmployeeLeaveCounter {
 }
 
 // LEAVES
-
-enum LeaveTypeEnum {
-  casual
-  sick
-  medical
-  earned
-
-  @@map("leaveTypeEnum")
-}
-
-enum LeaveStatusEnum {
-  pending
-  approved
-  rejected
-  cancelled
-
-  @@map("leaveStatusEnum")
-}
 
 model LeaveConfig {
   id              Int      @id @default(autoincrement())
@@ -509,10 +458,10 @@ model Media {
   createdAt    DateTime        @default(now()) @map("created_at")
   updatedAt    DateTime        @updatedAt @map("updated_at")
 
-  candidateHasMedias    CandidateHasMedia[]
-  policyHasMedias       PolicyHasMedia[]
-  userEmployeeHasMedias UserEmployeeHasMedia[]
-  leaveHasMedias        LeaveHasMedia[]
+  candidateHasMedias CandidateHasMedia[]
+  policyHasMedias    PolicyHasMedia[]
+  employeeHasMedias  EmployeeHasMedia[]
+  leaveHasMedias     LeaveHasMedia[]
 
   @@map("media")
 }
@@ -598,6 +547,57 @@ enum EmployeeMediaType {
   otherDocuments
 
   @@map("employeeMediaType")
+}
+
+enum PayrollDeductionType {
+  providentFund
+  incomeTax
+  insurance
+  professionalTax
+  loan
+  lop
+  other
+
+  @@map("userEmployeeDeductionType")
+}
+
+enum PayrollDeductionFrequency {
+  monthly
+  yearly
+  specificMonth
+
+  @@map("userEmployeeDeductionFrequency")
+}
+
+enum PayrollPayslipLineItemType {
+  earning
+  deduction
+}
+
+enum EmployeeFeedbackTrend {
+  positive
+  negative
+  neutral
+
+  @@map("employeeFeedbackTrend")
+}
+
+enum LeaveTypeEnum {
+  casual
+  sick
+  medical
+  earned
+
+  @@map("leaveTypeEnum")
+}
+
+enum LeaveStatusEnum {
+  pending
+  approved
+  rejected
+  cancelled
+
+  @@map("leaveStatusEnum")
 }
 
 enum MediaTypeDbEnum {

@@ -2,11 +2,11 @@ import { z } from 'zod';
 
 import { FilterRequestSchema } from './pagination-filter.dto.js';
 
-export const UserEmployeeDeductionTypeDtoEnum = ['providentFund', 'incomeTax', 'insurance', 'professionalTax', 'loan', 'lop', 'other'] as const;
-export type UserEmployeeDeductionTypeDtoEnum = (typeof UserEmployeeDeductionTypeDtoEnum)[number];
+export const PayrollDeductionTypeDtoEnum = ['providentFund', 'incomeTax', 'insurance', 'professionalTax', 'loan', 'lop', 'other'] as const;
+export type PayrollDeductionTypeDtoEnum = (typeof PayrollDeductionTypeDtoEnum)[number];
 
-export const UserEmployeeDeductionFrequencyDtoEnum = ['monthly', 'yearly', 'specificMonth'] as const;
-export type UserEmployeeDeductionFrequencyDtoEnum = (typeof UserEmployeeDeductionFrequencyDtoEnum)[number];
+export const PayrollDeductionFrequencyDtoEnum = ['monthly', 'yearly', 'specificMonth'] as const;
+export type PayrollDeductionFrequencyDtoEnum = (typeof PayrollDeductionFrequencyDtoEnum)[number];
 
 export const EmployeeDeductionFilterRequestSchema = FilterRequestSchema.extend({
   employeeId: z.number(),
@@ -18,8 +18,8 @@ const emptyStringToUndefined = (val: unknown) => (val === '' ? undefined : val);
 export const EmployeeDeductionCreateRequestSchema = z
   .object({
     employeeId: z.number(),
-    type: z.enum(UserEmployeeDeductionTypeDtoEnum),
-    frequency: z.enum(UserEmployeeDeductionFrequencyDtoEnum),
+    type: z.enum(PayrollDeductionTypeDtoEnum),
+    frequency: z.enum(PayrollDeductionFrequencyDtoEnum),
     amount: z.number().min(0),
     otherTitle: z.preprocess(emptyStringToUndefined, z.string().optional().nullable()),
     specificMonth: z.preprocess(emptyStringToUndefined, z.string().optional().nullable()),
@@ -39,8 +39,8 @@ export type EmployeeDeductionCreateRequestType = z.infer<typeof EmployeeDeductio
 
 export const EmployeeDeductionUpdateRequestSchema = z
   .object({
-    type: z.enum(UserEmployeeDeductionTypeDtoEnum).optional(),
-    frequency: z.enum(UserEmployeeDeductionFrequencyDtoEnum).optional(),
+    type: z.enum(PayrollDeductionTypeDtoEnum).optional(),
+    frequency: z.enum(PayrollDeductionFrequencyDtoEnum).optional(),
     amount: z.number().min(0).optional(),
     otherTitle: z.preprocess(emptyStringToUndefined, z.string().optional().nullable()),
     specificMonth: z.preprocess(emptyStringToUndefined, z.string().optional().nullable()),
@@ -67,8 +67,8 @@ export type EmployeeDeductionUpdateRequestType = z.infer<typeof EmployeeDeductio
 export const EmployeeDeductionResponseSchema = z.object({
   id: z.number(),
   employeeId: z.number(),
-  type: z.enum(UserEmployeeDeductionTypeDtoEnum),
-  frequency: z.enum(UserEmployeeDeductionFrequencyDtoEnum),
+  type: z.enum(PayrollDeductionTypeDtoEnum),
+  frequency: z.enum(PayrollDeductionFrequencyDtoEnum),
   amount: z.number(),
   otherTitle: z.string().optional().nullable(),
   specificMonth: z.string().optional().nullable(),

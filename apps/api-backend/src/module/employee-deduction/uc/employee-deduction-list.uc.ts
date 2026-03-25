@@ -4,10 +4,10 @@ import type {
   EmployeeDeductionResponseType,
   PaginatedResponseType,
 } from '@repo/dto';
-import type { UserEmployeeDeduction } from '@repo/db';
+import type { PayrollDeduction } from '@repo/db';
 import {
-  UserEmployeeDeductionDao,
-  UserEmployeeDetailDao,
+  PayrollDeductionDao,
+  EmployeeDao,
   CommonLoggerService,
   CurrentUserType,
   IUseCase,
@@ -23,25 +23,25 @@ type Params = {
 export class EmployeeDeductionListUc implements IUseCase<Params, PaginatedResponseType<EmployeeDeductionResponseType>> {
   constructor(
     private readonly logger: CommonLoggerService,
-    private readonly userEmployeeDetailDao: UserEmployeeDetailDao,
-    private readonly userEmployeeDeductionDao: UserEmployeeDeductionDao,
+    private readonly employeeDao: EmployeeDao,
+    private readonly payrollDeductionDao: PayrollDeductionDao,
   ) {}
 
   async execute(params: Params): Promise<PaginatedResponseType<EmployeeDeductionResponseType>> {
     this.logger.i('Listing employee deductions', { employeeId: params.filterDto.employeeId });
 
-    const employee = await this.userEmployeeDetailDao.getByUserId({ userId: params.filterDto.employeeId });
+    const employee = await this.employeeDao.getByUserId({ userId: params.filterDto.employeeId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);
     }
 
-    const { deductions, totalRecords } = await this.userEmployeeDeductionDao.findByUserIdWithPagination({
+    const { deductions, totalRecords } = await this.payrollDeductionDao.findByUserIdWithPagination({
       userId: params.filterDto.employeeId,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
     });
 
-    const results = deductions.map((d: UserEmployeeDeduction) => ({
+    const results = deductions.map((d: PayrollDeduction) => ({
       id: d.id,
       employeeId: d.userId,
       type: d.type,

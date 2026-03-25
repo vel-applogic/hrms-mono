@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { EmployeeCompensationCreateRequestType, EmployeeCompensationResponseType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, PrismaService, UserEmployeeCompensationDao, UserEmployeeDetailDao } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, PrismaService, PayrollCompensationDao, EmployeeDao } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 import { parseDateOnly, validateEffectiveFromNoOverlap } from './_employee-compensation-validation.helper.js';
@@ -20,8 +20,8 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: CommonLoggerService,
-    private readonly userEmployeeDetailDao: UserEmployeeDetailDao,
-    private readonly userEmployeeCompensationDao: UserEmployeeCompensationDao,
+    private readonly employeeDao: EmployeeDao,
+    private readonly payrollCompensationDao: PayrollCompensationDao,
   ) {}
 
   async execute(params: Params): Promise<EmployeeCompensationResponseType> {
@@ -36,7 +36,7 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
         if (newEffectiveFrom >= mostRecentFrom) {
           const oneDayBefore = new Date(newEffectiveFrom);
           oneDayBefore.setUTCDate(oneDayBefore.getUTCDate() - 1);
-          await this.userEmployeeCompensationDao.update({
+          await this.payrollCompensationDao.update({
             id: mostRecent.id,
             data: { effectiveTill: oneDayBefore, isActive: false },
             tx,
@@ -44,13 +44,13 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
         }
       }
 
-      await this.userEmployeeCompensationDao.updateManyByUserId({
+      await this.payrollCompensationDao.updateManyByUserId({
         userId: params.dto.employeeId,
         data: { isActive: false },
         tx,
       });
 
-      return this.userEmployeeCompensationDao.create({
+      return this.payrollCompensationDao.create({
         data: {
           user: { connect: { id: params.dto.employeeId } },
           basic: params.dto.basic,
@@ -81,14 +81,14 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
   }
 
   private async validate(params: Params): Promise<ValidateResult> {
-    const employee = await this.userEmployeeDetailDao.getByUserId({ userId: params.dto.employeeId });
+    const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);
     }
 
     const newEffectiveFrom = parseDateOnly(params.dto.effectiveFrom);
 
-    const existing = await this.userEmployeeCompensationDao.findByUserIdOrderedByEffectiveFromDesc({
+    const existing = await this.payrollCompensationDao.findByUserIdOrderedByEffectiveFromDesc({
       userId: params.dto.employeeId,
     });
 

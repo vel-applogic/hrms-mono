@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { type LeaveCreateRequestType, type LeaveResponseType, UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, LeaveConfigDao, LeaveDao, PrismaService, UserEmployeeDetailDao } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, LeaveConfigDao, LeaveDao, PrismaService, EmployeeDao } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 type Params = {
@@ -42,7 +42,7 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
   constructor(
     prisma: PrismaService,
     private readonly logger: CommonLoggerService,
-    private readonly userEmployeeDetailDao: UserEmployeeDetailDao,
+    private readonly employeeDao: EmployeeDao,
     private readonly leaveDao: LeaveDao,
     private readonly leaveConfigDao: LeaveConfigDao,
   ) {}
@@ -55,7 +55,7 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
       throw new ApiError('You can only apply for leave on your own behalf', 403);
     }
 
-    const employee = await this.userEmployeeDetailDao.getByUserId({ userId: targetUserId });
+    const employee = await this.employeeDao.getByUserId({ userId: targetUserId });
     if (!employee) {
       throw new ApiError('Selected user is not an employee', 403);
     }

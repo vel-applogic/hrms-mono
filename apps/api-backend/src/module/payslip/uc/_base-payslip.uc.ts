@@ -1,5 +1,5 @@
 import { PayslipListResponseType } from '@repo/dto';
-import type { PayslipWithUserType } from '@repo/nest-lib';
+import type { PayrollPayslipWithUserType } from '@repo/nest-lib';
 import { BaseUc, PrismaService } from '@repo/nest-lib';
 import { CommonLoggerService } from '@repo/nest-lib';
 
@@ -8,7 +8,7 @@ export class BasePayslipUc extends BaseUc {
     super(prisma, logger);
   }
 
-  protected dbToPayslipListResponse(dbRec: PayslipWithUserType): PayslipListResponseType {
+  protected dbToPayslipListResponse(dbRec: PayrollPayslipWithUserType): PayslipListResponseType {
     return {
       id: dbRec.id,
       employeeId: dbRec.userId,

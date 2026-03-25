@@ -2,7 +2,7 @@ import { EmployeeMediaType } from '@repo/db';
 import type { EmployeeDetailResponseType, EmployeeListResponseType, MediaResponseType } from '@repo/dto';
 import { EmployeeStatusDtoEnum } from '@repo/dto';
 import type { EmployeeListRecordType } from '@repo/nest-lib';
-import { BaseUc, CommonLoggerService, PrismaService, UserEmployeeDetailDao, UserEmployeeHasMediaDao } from '@repo/nest-lib';
+import { BaseUc, CommonLoggerService, PrismaService, EmployeeDao, EmployeeHasMediaDao } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 import type { S3Service } from '#src/external-service/s3.service.js';
@@ -11,8 +11,8 @@ export class BaseEmployeeUc extends BaseUc {
   constructor(
     prisma: PrismaService,
     logger: CommonLoggerService,
-    protected readonly userEmployeeDetailDao: UserEmployeeDetailDao,
-    protected readonly userEmployeeHasMediaDao: UserEmployeeHasMediaDao,
+    protected readonly employeeDao: EmployeeDao,
+    protected readonly employeeHasMediaDao: EmployeeHasMediaDao,
     protected readonly s3Service: S3Service,
   ) {
     super(prisma, logger);
@@ -32,10 +32,10 @@ export class BaseEmployeeUc extends BaseUc {
   }
 
   async getById(userId: number): Promise<EmployeeDetailResponseType | undefined> {
-    const employee = await this.userEmployeeDetailDao.getByUserId({ userId });
+    const employee = await this.employeeDao.getByUserId({ userId });
     if (!employee) return undefined;
 
-    const medias = await this.userEmployeeHasMediaDao.findByUserId({ userId });
+    const medias = await this.employeeHasMediaDao.findByUserId({ userId });
     const photoRecord = medias.find((m) => m.type === EmployeeMediaType.photo);
     const resumeRecord = medias.find((m) => m.type === EmployeeMediaType.resume);
     const offerLetterRecords = medias.filter((m) => m.type === EmployeeMediaType.offerLetter);

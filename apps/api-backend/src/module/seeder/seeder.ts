@@ -29,15 +29,15 @@ export class Seeder {
     const { getFinancialYearCode } = await import('@repo/shared');
     const config = await this.prisma.leaveConfig.findFirst({ orderBy: { createdAt: 'desc' } });
     const totalLeavesAvailable = config?.maxLeaves ?? 24;
-    const employees = await this.prisma.userEmployeeDetail.findMany({ select: { userId: true, dateOfJoining: true } });
+    const employees = await this.prisma.employee.findMany({ select: { userId: true, dateOfJoining: true } });
     let created = 0;
     for (const emp of employees) {
       const financialYear = getFinancialYearCode(emp.dateOfJoining);
-      const existing = await this.prisma.userEmployeeLeaveCounter.findUnique({
+      const existing = await this.prisma.employeeLeaveCounter.findUnique({
         where: { userId_financialYear: { userId: emp.userId, financialYear } },
       });
       if (!existing) {
-        await this.prisma.userEmployeeLeaveCounter.create({
+        await this.prisma.employeeLeaveCounter.create({
           data: {
             userId: emp.userId,
             financialYear,

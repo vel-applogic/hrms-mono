@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { type LeaveResponseType, UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, LeaveConfigDao, LeaveDao, PrismaService, UserEmployeeDetailDao, UserEmployeeLeaveCounterDao } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, LeaveConfigDao, LeaveDao, PrismaService, EmployeeDao, EmployeeLeaveCounterDao } from '@repo/nest-lib';
 import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
@@ -13,10 +13,10 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
   constructor(
     prisma: PrismaService,
     private readonly logger: CommonLoggerService,
-    private readonly userEmployeeDetailDao: UserEmployeeDetailDao,
+    private readonly employeeDao: EmployeeDao,
     private readonly leaveDao: LeaveDao,
     private readonly leaveConfigDao: LeaveConfigDao,
-    private readonly userEmployeeLeaveCounterDao: UserEmployeeLeaveCounterDao,
+    private readonly employeeLeaveCounterDao: EmployeeLeaveCounterDao,
   ) {}
 
   async execute(params: Params): Promise<LeaveResponseType> {
@@ -34,9 +34,9 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
       if (existing.status !== 'pending') {
         throw new ApiError('Only pending leave requests can be cancelled by employees', 400);
       }
-      const employee = await this.userEmployeeDetailDao.getByUserId({ userId: params.currentUser.id });
+      const employee = await this.employeeDao.getByUserId({ userId: params.currentUser.id });
       if (!employee) {
-        throw new ApiError('Only employees can cancel leave. UserEmployeeDetail not found.', 403);
+        throw new ApiError('Only employees can cancel leave. Employee not found.', 403);
       }
       if (existing.userId !== params.currentUser.id) {
         throw new ApiError('You can only cancel your own leave requests', 403);
@@ -59,7 +59,7 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
       const leaveConfig = await this.leaveConfigDao.getLatest();
       const maxLeaves = leaveConfig?.maxLeaves ?? 24;
       try {
-        await this.userEmployeeLeaveCounterDao.syncFromActualLeaves({
+        await this.employeeLeaveCounterDao.syncFromActualLeaves({
           userId: existing.userId,
           financialYear,
           ...totals,

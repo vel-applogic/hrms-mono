@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { PayrollActiveCompensationFilterRequestType, PayrollActiveCompensationResponseType, PaginatedResponseType } from '@repo/dto';
-import { UserEmployeeCompensationDao, CommonLoggerService, CurrentUserType, IUseCase } from '@repo/nest-lib';
+import { PayrollCompensationDao, CommonLoggerService, CurrentUserType, IUseCase } from '@repo/nest-lib';
 
 type Params = {
   currentUser: CurrentUserType;
@@ -11,13 +11,13 @@ type Params = {
 export class PayrollActiveCompensationListUc implements IUseCase<Params, PaginatedResponseType<PayrollActiveCompensationResponseType>> {
   constructor(
     private readonly logger: CommonLoggerService,
-    private readonly userEmployeeCompensationDao: UserEmployeeCompensationDao,
+    private readonly payrollCompensationDao: PayrollCompensationDao,
   ) {}
 
   async execute(params: Params): Promise<PaginatedResponseType<PayrollActiveCompensationResponseType>> {
     this.logger.i('Listing all active compensations for payroll');
 
-    const { compensations, totalRecords } = await this.userEmployeeCompensationDao.findActiveWithEmployeeInfo({
+    const { compensations, totalRecords } = await this.payrollCompensationDao.findActiveWithEmployeeInfo({
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
     });

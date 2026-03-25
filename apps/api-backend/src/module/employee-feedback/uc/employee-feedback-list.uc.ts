@@ -4,7 +4,7 @@ import type {
   EmployeeFeedbackResponseType,
   PaginatedResponseType,
 } from '@repo/dto';
-import { UserEmployeeDetailDao, UserEmployeeFeedbackDao, CommonLoggerService, CurrentUserType, IUseCase, PrismaService } from '@repo/nest-lib';
+import { EmployeeDao, EmployeeFeedbackDao, CommonLoggerService, CurrentUserType, IUseCase, PrismaService } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 type Params = {
@@ -17,19 +17,19 @@ export class EmployeeFeedbackListUc implements IUseCase<Params, PaginatedRespons
   constructor(
     prisma: PrismaService,
     private readonly logger: CommonLoggerService,
-    private readonly userEmployeeDetailDao: UserEmployeeDetailDao,
-    private readonly userEmployeeFeedbackDao: UserEmployeeFeedbackDao,
+    private readonly employeeDao: EmployeeDao,
+    private readonly employeeFeedbackDao: EmployeeFeedbackDao,
   ) {}
 
   async execute(params: Params): Promise<PaginatedResponseType<EmployeeFeedbackResponseType>> {
     this.logger.i('Listing employee feedbacks', { employeeId: params.filterDto.employeeId });
 
-    const employee = await this.userEmployeeDetailDao.getByUserId({ userId: params.filterDto.employeeId });
+    const employee = await this.employeeDao.getByUserId({ userId: params.filterDto.employeeId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);
     }
 
-    const { feedbacks, totalRecords } = await this.userEmployeeFeedbackDao.findByUserIdWithPagination({
+    const { feedbacks, totalRecords } = await this.employeeFeedbackDao.findByUserIdWithPagination({
       userId: params.filterDto.employeeId,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,

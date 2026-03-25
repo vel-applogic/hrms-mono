@@ -12,21 +12,21 @@ export { CandidateHasFeedbackDao, type CandidateHasFeedbackWithUserType } from '
 export { PolicyDao, type PolicyDetailRecordType, type PolicyListRecordType } from './policy.dao.js';
 export { PolicyHasMediaDao } from './policy-has-media.dao.js';
 export {
-  UserEmployeeDetailDao,
+  EmployeeDao,
   type EmployeeListRecordType,
   type EmployeeDetailRecordType,
-} from './user-employee-detail.dao.js';
+} from './employee.dao.js';
 export {
-  UserEmployeeHasMediaDao,
-  type UserEmployeeHasMediaWithMediaType,
-} from './user-employee-has-media.dao.js';
-export { UserEmployeeCompensationDao } from './user-employee-compensation.dao.js';
-export { UserEmployeeDeductionDao } from './user-employee-deduction.dao.js';
+  EmployeeHasMediaDao,
+  type EmployeeHasMediaWithMediaType,
+} from './employee-has-media.dao.js';
+export { PayrollCompensationDao } from './payroll-compensation.dao.js';
+export { PayrollDeductionDao } from './payroll-deduction.dao.js';
 export {
-  UserEmployeeFeedbackDao,
-  type UserEmployeeFeedbackWithCreatedByType,
-} from './user-employee-feedback.dao.js';
+  EmployeeFeedbackDao,
+  type EmployeeFeedbackWithCreatedByType,
+} from './employee-feedback.dao.js';
 export { LeaveDao, type LeaveWithUserType } from './leave.dao.js';
 export { LeaveConfigDao } from './leave-config.dao.js';
-export { UserEmployeeLeaveCounterDao } from './user-employee-leave-counter.dao.js';
-export { PayslipDao, type PayslipWithUserType, type PayslipWithDetailsType } from './payslip.dao.js';
+export { EmployeeLeaveCounterDao } from './employee-leave-counter.dao.js';
+export { PayrollPayslipDao, type PayrollPayslipWithUserType, type PayrollPayslipWithDetailsType } from './payroll-payslip.dao.js';

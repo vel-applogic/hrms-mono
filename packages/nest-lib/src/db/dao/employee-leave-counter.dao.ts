@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma, UserEmployeeLeaveCounter } from '@repo/db';
+import type { Prisma, EmployeeLeaveCounter } from '@repo/db';
 
 import { PrismaService } from '../prisma/prisma.service.js';
 import { BaseDao } from './_base.dao.js';
 
 @Injectable()
-export class UserEmployeeLeaveCounterDao extends BaseDao {
+export class EmployeeLeaveCounterDao extends BaseDao {
   constructor(prisma: PrismaService) {
     super(prisma);
   }
@@ -13,9 +13,9 @@ export class UserEmployeeLeaveCounterDao extends BaseDao {
   async findManyByFinancialYear(params: {
     financialYear: string;
     tx?: Prisma.TransactionClient;
-  }): Promise<(UserEmployeeLeaveCounter & { user: { id: number; firstname: string; lastname: string; email: string } })[]> {
+  }): Promise<(EmployeeLeaveCounter & { user: { id: number; firstname: string; lastname: string; email: string } })[]> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.userEmployeeLeaveCounter.findMany({
+    return pc.employeeLeaveCounter.findMany({
       where: { financialYear: params.financialYear },
       include: { user: { select: { id: true, firstname: true, lastname: true, email: true } } },
       orderBy: { user: { firstname: 'asc' } },
@@ -26,9 +26,9 @@ export class UserEmployeeLeaveCounterDao extends BaseDao {
     userId: number;
     financialYear: string;
     tx?: Prisma.TransactionClient;
-  }): Promise<UserEmployeeLeaveCounter | null> {
+  }): Promise<EmployeeLeaveCounter | null> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.userEmployeeLeaveCounter.findUnique({
+    return pc.employeeLeaveCounter.findUnique({
       where: {
         userId_financialYear: {
           userId: params.userId,
@@ -39,21 +39,21 @@ export class UserEmployeeLeaveCounterDao extends BaseDao {
   }
 
   async create(params: {
-    data: Prisma.UserEmployeeLeaveCounterCreateInput;
+    data: Prisma.EmployeeLeaveCounterCreateInput;
     tx?: Prisma.TransactionClient;
-  }): Promise<UserEmployeeLeaveCounter> {
+  }): Promise<EmployeeLeaveCounter> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.userEmployeeLeaveCounter.create({ data: params.data });
+    return pc.employeeLeaveCounter.create({ data: params.data });
   }
 
   async upsert(params: {
     userId: number;
     financialYear: string;
-    data: Prisma.UserEmployeeLeaveCounterCreateInput;
+    data: Prisma.EmployeeLeaveCounterCreateInput;
     tx?: Prisma.TransactionClient;
-  }): Promise<UserEmployeeLeaveCounter> {
+  }): Promise<EmployeeLeaveCounter> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.userEmployeeLeaveCounter.upsert({
+    return pc.employeeLeaveCounter.upsert({
       where: {
         userId_financialYear: {
           userId: params.userId,
@@ -78,9 +78,9 @@ export class UserEmployeeLeaveCounterDao extends BaseDao {
     totalLeavesUsed: number;
     maxLeaves: number;
     tx?: Prisma.TransactionClient;
-  }): Promise<UserEmployeeLeaveCounter> {
+  }): Promise<EmployeeLeaveCounter> {
     const totalLeavesAvailable = Math.max(0, params.maxLeaves - params.totalLeavesUsed);
-    const data: Prisma.UserEmployeeLeaveCounterCreateInput = {
+    const data: Prisma.EmployeeLeaveCounterCreateInput = {
       user: { connect: { id: params.userId } },
       financialYear: params.financialYear,
       casualLeaves: params.casualLeaves,

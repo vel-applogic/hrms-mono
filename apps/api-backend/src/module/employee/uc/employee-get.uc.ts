@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { EmployeeDetailResponseType } from '@repo/dto';
 import type { CurrentUserType } from '@repo/nest-lib';
-import { CommonLoggerService, IUseCase, PrismaService, UserEmployeeDetailDao, UserEmployeeHasMediaDao } from '@repo/nest-lib';
+import { CommonLoggerService, IUseCase, PrismaService, EmployeeDao, EmployeeHasMediaDao } from '@repo/nest-lib';
 
 import { S3Service } from '#src/external-service/s3.service.js';
 
@@ -17,11 +17,11 @@ export class EmployeeGetUc extends BaseEmployeeUc implements IUseCase<Params, Em
   constructor(
     prisma: PrismaService,
     logger: CommonLoggerService,
-    userEmployeeDetailDao: UserEmployeeDetailDao,
-    userEmployeeHasMediaDao: UserEmployeeHasMediaDao,
+    employeeDao: EmployeeDao,
+    employeeHasMediaDao: EmployeeHasMediaDao,
     s3Service: S3Service,
   ) {
-    super(prisma, logger, userEmployeeDetailDao, userEmployeeHasMediaDao, s3Service);
+    super(prisma, logger, employeeDao, employeeHasMediaDao, s3Service);
   }
 
   async execute(params: Params): Promise<EmployeeDetailResponseType> {

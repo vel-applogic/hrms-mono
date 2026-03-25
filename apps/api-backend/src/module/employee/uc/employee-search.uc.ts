@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { EmployeeFilterRequestType, EmployeeListResponseType, PaginatedResponseType } from '@repo/dto';
 import { EmployeeSortableColumns } from '@repo/dto';
 import type { EmployeeListRecordType, OrderByParam } from '@repo/nest-lib';
-import { CommonLoggerService, IUseCase, PrismaService, UserEmployeeDetailDao, UserEmployeeHasMediaDao } from '@repo/nest-lib';
+import { CommonLoggerService, IUseCase, PrismaService, EmployeeDao, EmployeeHasMediaDao } from '@repo/nest-lib';
 
 import { S3Service } from '#src/external-service/s3.service.js';
 
@@ -18,18 +18,18 @@ export class EmployeeSearchUc extends BaseEmployeeUc implements IUseCase<Params,
   constructor(
     prisma: PrismaService,
     logger: CommonLoggerService,
-    userEmployeeDetailDao: UserEmployeeDetailDao,
-    userEmployeeHasMediaDao: UserEmployeeHasMediaDao,
+    employeeDao: EmployeeDao,
+    employeeHasMediaDao: EmployeeHasMediaDao,
     s3Service: S3Service,
   ) {
-    super(prisma, logger, userEmployeeDetailDao, userEmployeeHasMediaDao, s3Service);
+    super(prisma, logger, employeeDao, employeeHasMediaDao, s3Service);
   }
 
   async execute(params: Params): Promise<PaginatedResponseType<EmployeeListResponseType>> {
     this.logger.i('Listing employees', { filter: params.filterDto });
 
     const orderBy = this.getEmployeeOrderBy(params.filterDto.sort);
-    const { dbRecords, totalRecords } = await this.userEmployeeDetailDao.search({
+    const { dbRecords, totalRecords } = await this.employeeDao.search({
       filterDto: params.filterDto,
       orderBy,
     });

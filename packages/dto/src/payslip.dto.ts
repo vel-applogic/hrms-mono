@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 import { FilterRequestSchema } from './pagination-filter.dto.js';
 
-export const PayslipLineItemTypeDtoEnum = ['earning', 'deduction'] as const;
-export type PayslipLineItemTypeDtoEnum = (typeof PayslipLineItemTypeDtoEnum)[number];
+export const PayrollPayslipLineItemTypeDtoEnum = ['earning', 'deduction'] as const;
+export type PayrollPayslipLineItemTypeDtoEnum = (typeof PayrollPayslipLineItemTypeDtoEnum)[number];
 
 export const PayslipFilterRequestSchema = FilterRequestSchema.extend({
   month: z.number().min(1).max(12).optional(),
@@ -23,7 +23,7 @@ export type PayslipGenerateRequestType = z.infer<typeof PayslipGenerateRequestSc
 export const PayslipLineItemResponseSchema = z.object({
   id: z.number(),
   payslipId: z.number(),
-  type: z.enum(PayslipLineItemTypeDtoEnum),
+  type: z.enum(PayrollPayslipLineItemTypeDtoEnum),
   title: z.string(),
   amount: z.number(),
   createdAt: z.string(),
@@ -63,7 +63,7 @@ export const PayslipGenerateResponseSchema = z.object({
 export type PayslipGenerateResponseType = z.infer<typeof PayslipGenerateResponseSchema>;
 
 export const PayslipLineItemUpsertSchema = z.object({
-  type: z.enum(PayslipLineItemTypeDtoEnum),
+  type: z.enum(PayrollPayslipLineItemTypeDtoEnum),
   title: z.string().min(1),
   amount: z.number().min(0),
 });

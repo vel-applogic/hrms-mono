@@ -16,8 +16,8 @@ import {
   MediaDao,
   PrismaService,
   UserDao,
-  UserEmployeeDetailDao,
-  UserEmployeeHasMediaDao,
+  EmployeeDao,
+  EmployeeHasMediaDao,
 } from '@repo/nest-lib';
 import type { Prisma } from '@repo/db';
 
@@ -37,15 +37,15 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
   constructor(
     prisma: PrismaService,
     logger: CommonLoggerService,
-    userEmployeeDetailDao: UserEmployeeDetailDao,
-    userEmployeeHasMediaDao: UserEmployeeHasMediaDao,
+    employeeDao: EmployeeDao,
+    employeeHasMediaDao: EmployeeHasMediaDao,
     s3Service: S3Service,
     private readonly userDao: UserDao,
     private readonly mediaDao: MediaDao,
     private readonly mediaService: MediaService,
     private readonly auditService: AuditService,
   ) {
-    super(prisma, logger, userEmployeeDetailDao, userEmployeeHasMediaDao, s3Service);
+    super(prisma, logger, employeeDao, employeeHasMediaDao, s3Service);
   }
 
   async execute(params: Params): Promise<OperationStatusResponseType> {
@@ -64,7 +64,7 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
         tx,
       });
 
-      await this.userEmployeeDetailDao.update({
+      await this.employeeDao.update({
         userId: params.id,
         data: {
           personalEmail: params.dto.personalEmail ?? undefined,
@@ -81,7 +81,7 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
       });
 
       if (params.dto.photo !== undefined) {
-        await this.userEmployeeHasMediaDao.deleteManyByUserIdAndType({
+        await this.employeeHasMediaDao.deleteManyByUserIdAndType({
           userId: params.id,
           type: EmployeeMediaType.photo,
           tx,
@@ -89,7 +89,7 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
         if (params.dto.photo?.key?.startsWith('temp/')) {
           await this.createAndLinkMedia({ media: params.dto.photo, userId: params.id, type: EmployeeMediaType.photo, tx });
         } else if (params.dto.photo?.id) {
-          await this.userEmployeeHasMediaDao.create({
+          await this.employeeHasMediaDao.create({
             data: { userId: params.id, mediaId: params.dto.photo.id, type: EmployeeMediaType.photo },
             tx,
           });
@@ -121,7 +121,7 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
       tx: params.tx,
     });
 
-    await this.userEmployeeHasMediaDao.create({
+    await this.employeeHasMediaDao.create({
       data: { userId: params.userId, mediaId, type: params.type },
       tx: params.tx,
     });

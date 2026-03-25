@@ -8,7 +8,7 @@ import {
   CommonLoggerService,
   CurrentUserType,
   IUseCase,
-  UserEmployeeDeductionDao,
+  PayrollDeductionDao,
 } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
@@ -28,13 +28,13 @@ type Params = {
 export class EmployeeDeductionUpdateUc implements IUseCase<Params, EmployeeDeductionResponseType> {
   constructor(
     private readonly logger: CommonLoggerService,
-    private readonly userEmployeeDeductionDao: UserEmployeeDeductionDao,
+    private readonly payrollDeductionDao: PayrollDeductionDao,
   ) {}
 
   async execute(params: Params): Promise<EmployeeDeductionResponseType> {
     this.logger.i('Updating employee deduction', { id: params.id });
 
-    const existing = await this.userEmployeeDeductionDao.getById({ id: params.id });
+    const existing = await this.payrollDeductionDao.getById({ id: params.id });
     if (!existing) {
       throw new ApiError('Deduction not found', 404);
     }
@@ -62,7 +62,7 @@ export class EmployeeDeductionUpdateUc implements IUseCase<Params, EmployeeDeduc
       throw new ApiError('Specific month date is required when frequency is Specific Month', 400);
     }
 
-    const updateData: Prisma.UserEmployeeDeductionUpdateInput = {};
+    const updateData: Prisma.PayrollDeductionUpdateInput = {};
     if (params.dto.type !== undefined) updateData.type = params.dto.type;
     if (params.dto.frequency !== undefined) updateData.frequency = params.dto.frequency;
     if (params.dto.amount !== undefined) updateData.amount = params.dto.amount;
@@ -80,12 +80,12 @@ export class EmployeeDeductionUpdateUc implements IUseCase<Params, EmployeeDeduc
     if (params.dto.effectiveTill !== undefined) updateData.effectiveTill = params.dto.effectiveTill ? parseDateOnly(params.dto.effectiveTill) : null;
     if (params.dto.isActive !== undefined) updateData.isActive = params.dto.isActive;
 
-    await this.userEmployeeDeductionDao.update({
+    await this.payrollDeductionDao.update({
       id: params.id,
       data: updateData,
     });
 
-    const updated = await this.userEmployeeDeductionDao.getById({ id: params.id });
+    const updated = await this.payrollDeductionDao.getById({ id: params.id });
     if (!updated) throw new ApiError('Failed to fetch updated deduction', 500);
 
     return {

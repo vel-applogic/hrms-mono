@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { EmployeeCompensationResponseType, EmployeeCompensationUpdateRequestType } from '@repo/dto';
 import type { Prisma } from '@repo/db';
-import { CommonLoggerService, CurrentUserType, IUseCase, PrismaService, UserEmployeeCompensationDao } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, PrismaService, PayrollCompensationDao } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 import { parseDateOnly, validateEffectiveFromBeforeTill, validateEffectiveRangeNoOverlap } from './_employee-compensation-validation.helper.js';
@@ -23,7 +23,7 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: CommonLoggerService,
-    private readonly userEmployeeCompensationDao: UserEmployeeCompensationDao,
+    private readonly payrollCompensationDao: PayrollCompensationDao,
   ) {}
 
   async execute(params: Params): Promise<EmployeeCompensationResponseType> {
@@ -32,7 +32,7 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
     const { newEffectiveFrom, effectiveFromChanged, mostRecent } = await this.validate(params);
 
     const updated = await this.prisma.$transaction(async (tx) => {
-      const updateData: Prisma.UserEmployeeCompensationUpdateInput = {
+      const updateData: Prisma.PayrollCompensationUpdateInput = {
         basic: params.dto.basic,
         hra: params.dto.hra,
         otherAllowances: params.dto.otherAllowances,
@@ -50,7 +50,7 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
           oneDayBefore.setUTCDate(oneDayBefore.getUTCDate() - 1);
           const prevTill = mostRecent.effectiveTill ? new Date(mostRecent.effectiveTill) : null;
           if (!prevTill || prevTill > oneDayBefore) {
-            await this.userEmployeeCompensationDao.update({
+            await this.payrollCompensationDao.update({
               id: mostRecent.id,
               data: { effectiveTill: oneDayBefore, isActive: false },
               tx,
@@ -59,13 +59,13 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
         }
       }
 
-      await this.userEmployeeCompensationDao.update({
+      await this.payrollCompensationDao.update({
         id: params.id,
         data: updateData,
         tx,
       });
 
-      return this.userEmployeeCompensationDao.getById({ id: params.id, tx });
+      return this.payrollCompensationDao.getById({ id: params.id, tx });
     });
 
     if (!updated) throw new ApiError('Failed to fetch updated compensation', 500);
@@ -86,7 +86,7 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
   }
 
   private async validate(params: Params): Promise<ValidateResult> {
-    const existing = await this.userEmployeeCompensationDao.getById({ id: params.id });
+    const existing = await this.payrollCompensationDao.getById({ id: params.id });
     if (!existing) {
       throw new ApiError('Compensation not found', 404);
     }
@@ -96,7 +96,7 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
 
     validateEffectiveFromBeforeTill(newEffectiveFrom, newEffectiveTill);
 
-    const allForUser = await this.userEmployeeCompensationDao.findByUserIdOrderedByEffectiveFromDesc({
+    const allForUser = await this.payrollCompensationDao.findByUserIdOrderedByEffectiveFromDesc({
       userId: existing.userId,
     });
     const others = allForUser.filter((c) => c.id !== params.id);

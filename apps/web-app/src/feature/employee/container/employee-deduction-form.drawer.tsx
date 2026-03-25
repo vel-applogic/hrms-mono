@@ -2,8 +2,8 @@
 
 import type { EmployeeDeductionResponseType } from '@repo/dto';
 import {
-  UserEmployeeDeductionFrequencyDtoEnum,
-  UserEmployeeDeductionTypeDtoEnum,
+  PayrollDeductionFrequencyDtoEnum,
+  PayrollDeductionTypeDtoEnum,
 } from '@repo/dto';
 import { cn } from '@repo/ui/lib/utils';
 import { Button } from '@repo/ui/component/ui/button';
@@ -22,7 +22,7 @@ import { useEffect, useState } from 'react';
 
 import { createEmployeeDeduction, updateEmployeeDeduction } from '@/lib/action/employee-deduction.actions';
 
-const DEDUCTION_TYPE_LABELS: Record<UserEmployeeDeductionTypeDtoEnum, string> = {
+const DEDUCTION_TYPE_LABELS: Record<PayrollDeductionTypeDtoEnum, string> = {
   providentFund: 'Provident Fund',
   incomeTax: 'Income Tax',
   insurance: 'Insurance',
@@ -32,7 +32,7 @@ const DEDUCTION_TYPE_LABELS: Record<UserEmployeeDeductionTypeDtoEnum, string> = 
   other: 'Other',
 };
 
-const DEDUCTION_FREQUENCY_LABELS: Record<UserEmployeeDeductionFrequencyDtoEnum, string> = {
+const DEDUCTION_FREQUENCY_LABELS: Record<PayrollDeductionFrequencyDtoEnum, string> = {
   monthly: 'Monthly',
   yearly: 'Yearly',
   specificMonth: 'Specific Month',
@@ -58,8 +58,8 @@ type FieldErrors = {
 
 export function EmployeeDeductionFormDrawer({ open, onOpenChange, employeeId, deduction, onSuccess }: Props) {
   const isEditing = !!deduction;
-  const [type, setType] = useState<UserEmployeeDeductionTypeDtoEnum>(deduction?.type ?? 'providentFund');
-  const [frequency, setFrequency] = useState<UserEmployeeDeductionFrequencyDtoEnum>(deduction?.frequency ?? 'monthly');
+  const [type, setType] = useState<PayrollDeductionTypeDtoEnum>(deduction?.type ?? 'providentFund');
+  const [frequency, setFrequency] = useState<PayrollDeductionFrequencyDtoEnum>(deduction?.frequency ?? 'monthly');
   const [amount, setAmount] = useState(deduction?.amount?.toString() ?? '');
   const [otherTitle, setOtherTitle] = useState(deduction?.otherTitle ?? '');
   const [specificMonth, setSpecificMonth] = useState(deduction?.specificMonth ?? '');
@@ -208,12 +208,12 @@ export function EmployeeDeductionFormDrawer({ open, onOpenChange, employeeId, de
         <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
           <div className='flex flex-col gap-2'>
             <Label htmlFor='type'>Type</Label>
-            <Select value={type} onValueChange={(v) => setType(v as UserEmployeeDeductionTypeDtoEnum)}>
+            <Select value={type} onValueChange={(v) => setType(v as PayrollDeductionTypeDtoEnum)}>
               <SelectTrigger id='type' className={cn(fieldErrors.type && 'border-destructive')}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {(Object.keys(DEDUCTION_TYPE_LABELS) as UserEmployeeDeductionTypeDtoEnum[]).map((k) => (
+                {(Object.keys(DEDUCTION_TYPE_LABELS) as PayrollDeductionTypeDtoEnum[]).map((k) => (
                   <SelectItem key={k} value={k}>
                     {DEDUCTION_TYPE_LABELS[k]}
                   </SelectItem>
@@ -246,7 +246,7 @@ export function EmployeeDeductionFormDrawer({ open, onOpenChange, employeeId, de
             <Select
               value={frequency}
               onValueChange={(v) => {
-                const newFreq = v as UserEmployeeDeductionFrequencyDtoEnum;
+                const newFreq = v as PayrollDeductionFrequencyDtoEnum;
                 setFrequency(newFreq);
                 if (newFreq !== 'specificMonth') setSpecificMonth('');
                 if (fieldErrors.specificMonth) setFieldErrors((prev) => ({ ...prev, specificMonth: undefined }));
@@ -256,7 +256,7 @@ export function EmployeeDeductionFormDrawer({ open, onOpenChange, employeeId, de
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {(Object.keys(DEDUCTION_FREQUENCY_LABELS) as UserEmployeeDeductionFrequencyDtoEnum[]).map((k) => (
+                {(Object.keys(DEDUCTION_FREQUENCY_LABELS) as PayrollDeductionFrequencyDtoEnum[]).map((k) => (
                   <SelectItem key={k} value={k}>
                     {DEDUCTION_FREQUENCY_LABELS[k]}
                   </SelectItem>

@@ -6,7 +6,7 @@ import type {
 import {
   LeaveConfigDao,
   LeaveDao,
-  UserEmployeeDetailDao,
+  EmployeeDao,
   CommonLoggerService,
   CurrentUserType,
   IUseCase,
@@ -54,7 +54,7 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
   constructor(
     prisma: PrismaService,
     private readonly logger: CommonLoggerService,
-    private readonly userEmployeeDetailDao: UserEmployeeDetailDao,
+    private readonly employeeDao: EmployeeDao,
     private readonly leaveDao: LeaveDao,
     private readonly leaveConfigDao: LeaveConfigDao,
   ) {}
@@ -62,9 +62,9 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
   async execute(params: Params): Promise<LeaveResponseType> {
     this.logger.i('Updating leave request', { id: params.id, userId: params.currentUser.id });
 
-    const employee = await this.userEmployeeDetailDao.getByUserId({ userId: params.currentUser.id });
+    const employee = await this.employeeDao.getByUserId({ userId: params.currentUser.id });
     if (!employee) {
-      throw new ApiError('Only employees can edit leave. UserEmployeeDetail not found.', 403);
+      throw new ApiError('Only employees can edit leave. Employee not found.', 403);
     }
 
     const existing = await this.leaveDao.getById({ id: params.id });

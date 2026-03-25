@@ -1,41 +1,41 @@
 import { Injectable } from '@nestjs/common';
-import type { Payslip, PayslipLineItem, Prisma } from '@repo/db';
+import type { PayrollPayslip, PayrollPayslipLineItem, Prisma } from '@repo/db';
 
 import { PrismaService } from '../prisma/prisma.service.js';
 import { BaseDao } from './_base.dao.js';
 
-export type PayslipWithUserType = Payslip & {
+export type PayrollPayslipWithUserType = PayrollPayslip & {
   user: { firstname: string; lastname: string; email: string };
 };
 
-export type PayslipWithDetailsType = Payslip & {
+export type PayrollPayslipWithDetailsType = PayrollPayslip & {
   user: { firstname: string; lastname: string; email: string; employees?: { designation: string }[] };
-  payslipLineItems: PayslipLineItem[];
+  payrollPayslipLineItems: PayrollPayslipLineItem[];
 };
 
 @Injectable()
-export class PayslipDao extends BaseDao {
+export class PayrollPayslipDao extends BaseDao {
   constructor(prisma: PrismaService) {
     super(prisma);
   }
 
   async create(params: {
-    data: Prisma.PayslipCreateInput;
+    data: Prisma.PayrollPayslipCreateInput;
     tx?: Prisma.TransactionClient;
-  }): Promise<PayslipWithDetailsType> {
+  }): Promise<PayrollPayslipWithDetailsType> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.payslip.create({
+    return pc.payrollPayslip.create({
       data: params.data,
       include: {
         user: { select: { firstname: true, lastname: true, email: true } },
-        payslipLineItems: true,
+        payrollPayslipLineItems: true,
       },
     });
   }
 
-  async getById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<PayslipWithDetailsType | null> {
+  async getById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<PayrollPayslipWithDetailsType | null> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.payslip.findUnique({
+    return pc.payrollPayslip.findUnique({
       where: { id: params.id },
       include: {
         user: {
@@ -46,7 +46,7 @@ export class PayslipDao extends BaseDao {
             employees: { select: { designation: true }, take: 1 },
           },
         },
-        payslipLineItems: { orderBy: { type: 'asc' } },
+        payrollPayslipLineItems: { orderBy: { type: 'asc' } },
       },
     });
   }
@@ -56,9 +56,9 @@ export class PayslipDao extends BaseDao {
     month: number;
     year: number;
     tx?: Prisma.TransactionClient;
-  }): Promise<Payslip | null> {
+  }): Promise<PayrollPayslip | null> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.payslip.findUnique({
+    return pc.payrollPayslip.findUnique({
       where: { userId_month_year: { userId: params.userId, month: params.month, year: params.year } },
     });
   }
@@ -68,9 +68,9 @@ export class PayslipDao extends BaseDao {
     year: number;
     employeeIds?: number[];
     tx?: Prisma.TransactionClient;
-  }): Promise<PayslipWithUserType[]> {
+  }): Promise<PayrollPayslipWithUserType[]> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.payslip.findMany({
+    return pc.payrollPayslip.findMany({
       where: {
         month: params.month,
         year: params.year,
@@ -87,19 +87,19 @@ export class PayslipDao extends BaseDao {
     year?: number;
     employeeIds?: number[];
     tx?: Prisma.TransactionClient;
-  }): Promise<{ payslips: PayslipWithUserType[]; totalRecords: number }> {
+  }): Promise<{ payslips: PayrollPayslipWithUserType[]; totalRecords: number }> {
     const pc = this.getPrismaClient(params.tx);
     const { take, skip } = this.getPagination({ pageNo: params.page, pageSize: params.limit });
 
-    const where: Prisma.PayslipWhereInput = {
+    const where: Prisma.PayrollPayslipWhereInput = {
       ...(params.month != null ? { month: params.month } : {}),
       ...(params.year != null ? { year: params.year } : {}),
       ...(params.employeeIds?.length ? { userId: { in: params.employeeIds } } : {}),
     };
 
     const [totalRecords, payslips] = await Promise.all([
-      pc.payslip.count({ where }),
-      pc.payslip.findMany({
+      pc.payrollPayslip.count({ where }),
+      pc.payrollPayslip.findMany({
         where,
         include: { user: { select: { firstname: true, lastname: true, email: true } } },
         orderBy: [{ year: 'desc' }, { month: 'desc' }, { user: { firstname: 'asc' } }],
@@ -113,13 +113,13 @@ export class PayslipDao extends BaseDao {
 
   async deleteById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
-    await pc.payslipLineItem.deleteMany({ where: { payslipId: params.id } });
-    await pc.payslip.delete({ where: { id: params.id } });
+    await pc.payrollPayslipLineItem.deleteMany({ where: { payslipId: params.id } });
+    await pc.payrollPayslip.delete({ where: { id: params.id } });
   }
 
   async updatePdfS3Key(params: { id: number; s3Key: string; tx?: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
-    await pc.payslip.update({
+    await pc.payrollPayslip.update({
       where: { id: params.id },
       data: { pdfS3Key: params.s3Key },
     });
@@ -129,10 +129,10 @@ export class PayslipDao extends BaseDao {
     payslipId: number;
     lineItems: Array<{ type: string; title: string; amount: number }>;
     tx?: Prisma.TransactionClient;
-  }): Promise<PayslipWithDetailsType | null> {
+  }): Promise<PayrollPayslipWithDetailsType | null> {
     const pc = this.getPrismaClient(params.tx);
-    await pc.payslipLineItem.deleteMany({ where: { payslipId: params.payslipId } });
-    await pc.payslipLineItem.createMany({
+    await pc.payrollPayslipLineItem.deleteMany({ where: { payslipId: params.payslipId } });
+    await pc.payrollPayslipLineItem.createMany({
       data: params.lineItems.map((item) => ({
         payslipId: params.payslipId,
         type: item.type as 'earning' | 'deduction',
@@ -144,7 +144,7 @@ export class PayslipDao extends BaseDao {
     const earnings = params.lineItems.filter((i) => i.type === 'earning').reduce((s, i) => s + i.amount, 0);
     const deductions = params.lineItems.filter((i) => i.type === 'deduction').reduce((s, i) => s + i.amount, 0);
 
-    return pc.payslip.update({
+    return pc.payrollPayslip.update({
       where: { id: params.payslipId },
       data: {
         grossAmount: earnings,
@@ -153,7 +153,7 @@ export class PayslipDao extends BaseDao {
       },
       include: {
         user: { select: { firstname: true, lastname: true, email: true } },
-        payslipLineItems: { orderBy: { type: 'asc' } },
+        payrollPayslipLineItems: { orderBy: { type: 'asc' } },
       },
     });
   }

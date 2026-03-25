@@ -1,31 +1,4 @@
 -- CreateEnum
-CREATE TYPE "auditEntityTypeDbEnum" AS ENUM ('user', 'user_admin', 'candidate', 'employee', 'policy');
-
--- CreateEnum
-CREATE TYPE "employeeStatusEnum" AS ENUM ('active', 'resigned', 'onLeave', 'terminated');
-
--- CreateEnum
-CREATE TYPE "employeeMediaType" AS ENUM ('photo', 'resume', 'offerLetter', 'otherDocuments');
-
--- CreateEnum
-CREATE TYPE "userEmployeeDeductionType" AS ENUM ('providentFund', 'incomeTax', 'insurance', 'professionalTax', 'loan', 'lop', 'other');
-
--- CreateEnum
-CREATE TYPE "userEmployeeDeductionFrequency" AS ENUM ('monthly', 'yearly', 'specificMonth');
-
--- CreateEnum
-CREATE TYPE "PayslipLineItemType" AS ENUM ('earning', 'deduction');
-
--- CreateEnum
-CREATE TYPE "employeeFeedbackTrend" AS ENUM ('positive', 'negative', 'neutral');
-
--- CreateEnum
-CREATE TYPE "leaveTypeEnum" AS ENUM ('casual', 'sick', 'medical', 'earned');
-
--- CreateEnum
-CREATE TYPE "leaveStatusEnum" AS ENUM ('pending', 'approved', 'rejected', 'cancelled');
-
--- CreateEnum
 CREATE TYPE "candidateSource" AS ENUM ('email', 'googleSearch', 'lead', 'linkedin', 'referral', 'websiteForm');
 
 -- CreateEnum
@@ -41,7 +14,34 @@ CREATE TYPE "CandidateProgress" AS ENUM ('new', 'infoCollected', 'lev1InterviewS
 CREATE TYPE "candidateMediaType" AS ENUM ('resume', 'offerLetter', 'otherDocuments');
 
 -- CreateEnum
+CREATE TYPE "auditEntityTypeDbEnum" AS ENUM ('user', 'user_admin', 'candidate', 'employee', 'policy');
+
+-- CreateEnum
 CREATE TYPE "userRoleDbEnum" AS ENUM ('admin', 'employee');
+
+-- CreateEnum
+CREATE TYPE "employeeStatusEnum" AS ENUM ('active', 'resigned', 'onLeave', 'terminated');
+
+-- CreateEnum
+CREATE TYPE "employeeMediaType" AS ENUM ('photo', 'resume', 'offerLetter', 'otherDocuments');
+
+-- CreateEnum
+CREATE TYPE "userEmployeeDeductionType" AS ENUM ('providentFund', 'incomeTax', 'insurance', 'professionalTax', 'loan', 'lop', 'other');
+
+-- CreateEnum
+CREATE TYPE "userEmployeeDeductionFrequency" AS ENUM ('monthly', 'yearly', 'specificMonth');
+
+-- CreateEnum
+CREATE TYPE "PayrollPayslipLineItemType" AS ENUM ('earning', 'deduction');
+
+-- CreateEnum
+CREATE TYPE "employeeFeedbackTrend" AS ENUM ('positive', 'negative', 'neutral');
+
+-- CreateEnum
+CREATE TYPE "leaveTypeEnum" AS ENUM ('casual', 'sick', 'medical', 'earned');
+
+-- CreateEnum
+CREATE TYPE "leaveStatusEnum" AS ENUM ('pending', 'approved', 'rejected', 'cancelled');
 
 -- CreateEnum
 CREATE TYPE "mediaTypeDbEnum" AS ENUM ('doc', 'image', 'zip', 'video');
@@ -54,57 +54,6 @@ CREATE TYPE "auditEventTypeDbEnum" AS ENUM ('login_success', 'login_failure', 'c
 
 -- CreateEnum
 CREATE TYPE "auditActivityStatusDbEnum" AS ENUM ('success', 'failure');
-
--- CreateTable
-CREATE TABLE "app_migrations" (
-    "id" SERIAL NOT NULL,
-    "key" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "app_migrations_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "audit_activity" (
-    "id" SERIAL NOT NULL,
-    "event_group" "auditEventGroupDbEnum" NOT NULL,
-    "event_type" "auditEventTypeDbEnum" NOT NULL,
-    "status" "auditActivityStatusDbEnum" NOT NULL,
-    "actor_id" INTEGER,
-    "description" TEXT,
-    "data" JSONB,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "audit_activity_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "audit_activity_has_entity" (
-    "id" SERIAL NOT NULL,
-    "audit_id" INTEGER NOT NULL,
-    "entity_type" "auditEntityTypeDbEnum" NOT NULL,
-    "entity_id" INTEGER NOT NULL,
-    "message" TEXT,
-    "is_source_entity" BOOLEAN NOT NULL DEFAULT false,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "audit_activity_has_entity_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "media" (
-    "id" SERIAL NOT NULL,
-    "key" TEXT NOT NULL,
-    "thumbnail_key" TEXT,
-    "type" "mediaTypeDbEnum" NOT NULL,
-    "name" TEXT NOT NULL,
-    "size" INTEGER NOT NULL,
-    "ext" TEXT NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "media_pkey" PRIMARY KEY ("id")
-);
 
 -- CreateTable
 CREATE TABLE "users" (
@@ -159,9 +108,9 @@ CREATE TABLE "organization_has_user" (
     "id" SERIAL NOT NULL,
     "organization_id" INTEGER NOT NULL,
     "user_id" INTEGER NOT NULL,
-    "roles" "userRoleDbEnum"[],
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
+    "roles" "userRoleDbEnum"[],
 
     CONSTRAINT "organization_has_user_pkey" PRIMARY KEY ("id")
 );
@@ -276,7 +225,7 @@ CREATE TABLE "payslip" (
 CREATE TABLE "payslip_line_item" (
     "id" SERIAL NOT NULL,
     "payslip_id" INTEGER NOT NULL,
-    "type" "PayslipLineItemType" NOT NULL,
+    "type" "PayrollPayslipLineItemType" NOT NULL,
     "amount" INTEGER NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT,
@@ -430,26 +379,56 @@ CREATE TABLE "policy_has_media" (
     CONSTRAINT "policy_has_media_pkey" PRIMARY KEY ("id")
 );
 
--- CreateIndex
-CREATE UNIQUE INDEX "app_migrations_key_key" ON "app_migrations"("key");
+-- CreateTable
+CREATE TABLE "media" (
+    "id" SERIAL NOT NULL,
+    "key" TEXT NOT NULL,
+    "thumbnail_key" TEXT,
+    "type" "mediaTypeDbEnum" NOT NULL,
+    "name" TEXT NOT NULL,
+    "size" INTEGER NOT NULL,
+    "ext" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
--- CreateIndex
-CREATE INDEX "audit_activity_event_group_event_type_idx" ON "audit_activity"("event_group", "event_type");
+    CONSTRAINT "media_pkey" PRIMARY KEY ("id")
+);
 
--- CreateIndex
-CREATE INDEX "audit_activity_actor_id_idx" ON "audit_activity"("actor_id");
+-- CreateTable
+CREATE TABLE "audit_activity" (
+    "id" SERIAL NOT NULL,
+    "event_group" "auditEventGroupDbEnum" NOT NULL,
+    "event_type" "auditEventTypeDbEnum" NOT NULL,
+    "status" "auditActivityStatusDbEnum" NOT NULL,
+    "actor_id" INTEGER,
+    "description" TEXT,
+    "data" JSONB,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
--- CreateIndex
-CREATE INDEX "audit_activity_created_at_idx" ON "audit_activity"("created_at");
+    CONSTRAINT "audit_activity_pkey" PRIMARY KEY ("id")
+);
 
--- CreateIndex
-CREATE INDEX "audit_activity_status_idx" ON "audit_activity"("status");
+-- CreateTable
+CREATE TABLE "audit_activity_has_entity" (
+    "id" SERIAL NOT NULL,
+    "audit_id" INTEGER NOT NULL,
+    "entity_type" "auditEntityTypeDbEnum" NOT NULL,
+    "entity_id" INTEGER NOT NULL,
+    "message" TEXT,
+    "is_source_entity" BOOLEAN NOT NULL DEFAULT false,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
--- CreateIndex
-CREATE INDEX "audit_activity_has_entity_audit_id_idx" ON "audit_activity_has_entity"("audit_id");
+    CONSTRAINT "audit_activity_has_entity_pkey" PRIMARY KEY ("id")
+);
 
--- CreateIndex
-CREATE INDEX "audit_activity_has_entity_entity_type_entity_id_idx" ON "audit_activity_has_entity"("entity_type", "entity_id");
+-- CreateTable
+CREATE TABLE "app_migrations" (
+    "id" SERIAL NOT NULL,
+    "key" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "app_migrations_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
@@ -517,11 +496,26 @@ CREATE INDEX "leave_has_media_media_id_idx" ON "leave_has_media"("media_id");
 -- CreateIndex
 CREATE INDEX "candidate_has_feedback_candidate_id_idx" ON "candidate_has_feedback"("candidate_id");
 
--- AddForeignKey
-ALTER TABLE "audit_activity" ADD CONSTRAINT "audit_activity_actor_id_fkey" FOREIGN KEY ("actor_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+-- CreateIndex
+CREATE INDEX "audit_activity_event_group_event_type_idx" ON "audit_activity"("event_group", "event_type");
 
--- AddForeignKey
-ALTER TABLE "audit_activity_has_entity" ADD CONSTRAINT "audit_activity_has_entity_audit_id_fkey" FOREIGN KEY ("audit_id") REFERENCES "audit_activity"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+-- CreateIndex
+CREATE INDEX "audit_activity_actor_id_idx" ON "audit_activity"("actor_id");
+
+-- CreateIndex
+CREATE INDEX "audit_activity_created_at_idx" ON "audit_activity"("created_at");
+
+-- CreateIndex
+CREATE INDEX "audit_activity_status_idx" ON "audit_activity"("status");
+
+-- CreateIndex
+CREATE INDEX "audit_activity_has_entity_audit_id_idx" ON "audit_activity_has_entity"("audit_id");
+
+-- CreateIndex
+CREATE INDEX "audit_activity_has_entity_entity_type_entity_id_idx" ON "audit_activity_has_entity"("entity_type", "entity_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "app_migrations_key_key" ON "app_migrations"("key");
 
 -- AddForeignKey
 ALTER TABLE "user_forgot_password" ADD CONSTRAINT "user_forgot_password_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -606,3 +600,9 @@ ALTER TABLE "policy_has_media" ADD CONSTRAINT "policy_has_media_policy_id_fkey" 
 
 -- AddForeignKey
 ALTER TABLE "policy_has_media" ADD CONSTRAINT "policy_has_media_media_id_fkey" FOREIGN KEY ("media_id") REFERENCES "media"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "audit_activity" ADD CONSTRAINT "audit_activity_actor_id_fkey" FOREIGN KEY ("actor_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "audit_activity_has_entity" ADD CONSTRAINT "audit_activity_has_entity_audit_id_fkey" FOREIGN KEY ("audit_id") REFERENCES "audit_activity"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

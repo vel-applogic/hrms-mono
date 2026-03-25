@@ -8,10 +8,10 @@ import {
   IUseCase,
   PrismaService,
   UserDao,
-  UserEmployeeCompensationDao,
-  UserEmployeeDetailDao,
-  UserEmployeeFeedbackDao,
-  UserEmployeeHasMediaDao,
+  PayrollCompensationDao,
+  EmployeeDao,
+  EmployeeFeedbackDao,
+  EmployeeHasMediaDao,
 } from '@repo/nest-lib';
 
 import { S3Service } from '#src/external-service/s3.service.js';
@@ -28,15 +28,15 @@ export class EmployeeDeleteUc extends BaseEmployeeUc implements IUseCase<Params,
   constructor(
     prisma: PrismaService,
     logger: CommonLoggerService,
-    userEmployeeDetailDao: UserEmployeeDetailDao,
-    userEmployeeHasMediaDao: UserEmployeeHasMediaDao,
+    employeeDao: EmployeeDao,
+    employeeHasMediaDao: EmployeeHasMediaDao,
     s3Service: S3Service,
-    private readonly userEmployeeFeedbackDao: UserEmployeeFeedbackDao,
-    private readonly userEmployeeCompensationDao: UserEmployeeCompensationDao,
+    private readonly employeeFeedbackDao: EmployeeFeedbackDao,
+    private readonly payrollCompensationDao: PayrollCompensationDao,
     private readonly userDao: UserDao,
     private readonly auditService: AuditService,
   ) {
-    super(prisma, logger, userEmployeeDetailDao, userEmployeeHasMediaDao, s3Service);
+    super(prisma, logger, employeeDao, employeeHasMediaDao, s3Service);
   }
 
   async execute(params: Params): Promise<OperationStatusResponseType> {
@@ -46,10 +46,10 @@ export class EmployeeDeleteUc extends BaseEmployeeUc implements IUseCase<Params,
 
     await this.transaction(async (tx) => {
       const pc = tx;
-      await pc.userEmployeeFeedback.deleteMany({ where: { userId: params.id } });
-      await pc.userEmployeeCompensation.deleteMany({ where: { userId: params.id } });
-      await pc.userEmployeeHasMedia.deleteMany({ where: { userId: params.id } });
-      await pc.userEmployeeDetail.delete({ where: { userId: params.id } });
+      await pc.employeeFeedback.deleteMany({ where: { userId: params.id } });
+      await pc.payrollCompensation.deleteMany({ where: { userId: params.id } });
+      await pc.employeeHasMedia.deleteMany({ where: { userId: params.id } });
+      await pc.employee.delete({ where: { userId: params.id } });
       await this.userDao.delete({ id: params.id, tx });
     });
 

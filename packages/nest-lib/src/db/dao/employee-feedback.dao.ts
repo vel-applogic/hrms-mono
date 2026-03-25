@@ -1,43 +1,43 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma, UserEmployeeFeedback } from '@repo/db';
+import type { Prisma, EmployeeFeedback } from '@repo/db';
 
 import { PrismaService } from '../prisma/prisma.service.js';
 import { BaseDao } from './_base.dao.js';
 
 @Injectable()
-export class UserEmployeeFeedbackDao extends BaseDao {
+export class EmployeeFeedbackDao extends BaseDao {
   constructor(prisma: PrismaService) {
     super(prisma);
   }
 
   async create(params: {
-    data: Prisma.UserEmployeeFeedbackCreateInput;
+    data: Prisma.EmployeeFeedbackCreateInput;
     tx?: Prisma.TransactionClient;
-  }): Promise<UserEmployeeFeedback> {
+  }): Promise<EmployeeFeedback> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.userEmployeeFeedback.create({ data: params.data });
+    return pc.employeeFeedback.create({ data: params.data });
   }
 
   async update(params: {
     id: number;
-    data: Prisma.UserEmployeeFeedbackUpdateInput;
+    data: Prisma.EmployeeFeedbackUpdateInput;
     tx?: Prisma.TransactionClient;
-  }): Promise<UserEmployeeFeedback> {
+  }): Promise<EmployeeFeedback> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.userEmployeeFeedback.update({ where: { id: params.id }, data: params.data });
+    return pc.employeeFeedback.update({ where: { id: params.id }, data: params.data });
   }
 
-  async delete(params: { id: number; tx?: Prisma.TransactionClient }): Promise<UserEmployeeFeedback> {
+  async delete(params: { id: number; tx?: Prisma.TransactionClient }): Promise<EmployeeFeedback> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.userEmployeeFeedback.delete({ where: { id: params.id } });
+    return pc.employeeFeedback.delete({ where: { id: params.id } });
   }
 
   async getById(params: {
     id: number;
     tx?: Prisma.TransactionClient;
-  }): Promise<UserEmployeeFeedbackWithCreatedByType | null> {
+  }): Promise<EmployeeFeedbackWithCreatedByType | null> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.userEmployeeFeedback.findUnique({
+    return pc.employeeFeedback.findUnique({
       where: { id: params.id },
       include: { createdBy: true },
     });
@@ -48,7 +48,7 @@ export class UserEmployeeFeedbackDao extends BaseDao {
     page: number;
     limit: number;
     tx?: Prisma.TransactionClient;
-  }): Promise<{ feedbacks: UserEmployeeFeedbackWithCreatedByType[]; totalRecords: number }> {
+  }): Promise<{ feedbacks: EmployeeFeedbackWithCreatedByType[]; totalRecords: number }> {
     const pc = this.getPrismaClient(params.tx);
     const { take, skip } = this.getPagination({
       pageNo: params.page,
@@ -56,8 +56,8 @@ export class UserEmployeeFeedbackDao extends BaseDao {
     });
 
     const [totalRecords, feedbacks] = await Promise.all([
-      pc.userEmployeeFeedback.count({ where: { userId: params.userId } }),
-      pc.userEmployeeFeedback.findMany({
+      pc.employeeFeedback.count({ where: { userId: params.userId } }),
+      pc.employeeFeedback.findMany({
         where: { userId: params.userId },
         include: { createdBy: true },
         orderBy: { createdAt: 'desc' },
@@ -70,6 +70,6 @@ export class UserEmployeeFeedbackDao extends BaseDao {
   }
 }
 
-export type UserEmployeeFeedbackWithCreatedByType = Prisma.UserEmployeeFeedbackGetPayload<{
+export type EmployeeFeedbackWithCreatedByType = Prisma.EmployeeFeedbackGetPayload<{
   include: { createdBy: true };
 }>;

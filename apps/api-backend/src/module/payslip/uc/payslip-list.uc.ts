@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { PayslipFilterRequestType, PayslipListResponseType, PaginatedResponseType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, PayslipDao } from '@repo/nest-lib';
-import type { PayslipWithUserType } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, PayrollPayslipDao } from '@repo/nest-lib';
+import type { PayrollPayslipWithUserType } from '@repo/nest-lib';
 
 import { S3Service } from '../../../external-service/s3.service.js';
 
@@ -14,14 +14,14 @@ type Params = {
 export class PayslipListUc implements IUseCase<Params, PaginatedResponseType<PayslipListResponseType>> {
   constructor(
     private readonly logger: CommonLoggerService,
-    private readonly payslipDao: PayslipDao,
+    private readonly payrollPayslipDao: PayrollPayslipDao,
     private readonly s3Service: S3Service,
   ) {}
 
   async execute(params: Params): Promise<PaginatedResponseType<PayslipListResponseType>> {
     this.logger.i('Listing payslips', { month: params.filterDto.month, year: params.filterDto.year });
 
-    const { payslips, totalRecords } = await this.payslipDao.findWithPagination({
+    const { payslips, totalRecords } = await this.payrollPayslipDao.findWithPagination({
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
       month: params.filterDto.month,
@@ -30,10 +30,10 @@ export class PayslipListUc implements IUseCase<Params, PaginatedResponseType<Pay
     });
 
     const signedUrls = await Promise.all(
-      payslips.map((p: PayslipWithUserType) => (p.pdfS3Key ? this.s3Service.getSignedUrl(p.pdfS3Key) : Promise.resolve(null))),
+      payslips.map((p: PayrollPayslipWithUserType) => (p.pdfS3Key ? this.s3Service.getSignedUrl(p.pdfS3Key) : Promise.resolve(null))),
     );
 
-    const results: PayslipListResponseType[] = payslips.map((p: PayslipWithUserType, i: number) => ({
+    const results: PayslipListResponseType[] = payslips.map((p: PayrollPayslipWithUserType, i: number) => ({
       id: p.id,
       employeeId: p.userId,
       employeeFirstname: p.user.firstname,

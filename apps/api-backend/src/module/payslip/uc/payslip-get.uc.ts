@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { PayslipDetailResponseType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, PayslipDao } from '@repo/nest-lib';
-import type { PayslipWithDetailsType } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, PayrollPayslipDao } from '@repo/nest-lib';
+import type { PayrollPayslipWithDetailsType } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 import { S3Service } from '../../../external-service/s3.service.js';
@@ -15,14 +15,14 @@ type Params = {
 export class PayslipGetUc implements IUseCase<Params, PayslipDetailResponseType> {
   constructor(
     private readonly logger: CommonLoggerService,
-    private readonly payslipDao: PayslipDao,
+    private readonly payrollPayslipDao: PayrollPayslipDao,
     private readonly s3Service: S3Service,
   ) {}
 
   async execute(params: Params): Promise<PayslipDetailResponseType> {
     this.logger.i('Getting payslip', { id: params.id });
 
-    const payslip = await this.payslipDao.getById({ id: params.id });
+    const payslip = await this.payrollPayslipDao.getById({ id: params.id });
     if (!payslip) {
       throw new ApiError('Payslip not found', 404);
     }
@@ -32,7 +32,7 @@ export class PayslipGetUc implements IUseCase<Params, PayslipDetailResponseType>
     return this.mapToDetail(payslip, pdfSignedUrl);
   }
 
-  private mapToDetail(p: PayslipWithDetailsType, pdfSignedUrl: string | null): PayslipDetailResponseType {
+  private mapToDetail(p: PayrollPayslipWithDetailsType, pdfSignedUrl: string | null): PayslipDetailResponseType {
     return {
       id: p.id,
       employeeId: p.userId,
@@ -48,7 +48,7 @@ export class PayslipGetUc implements IUseCase<Params, PayslipDetailResponseType>
       pdfSignedUrl,
       createdAt: p.createdAt.toISOString(),
       updatedAt: p.updatedAt.toISOString(),
-      lineItems: p.payslipLineItems.map((li) => ({
+      lineItems: p.payrollPayslipLineItems.map((li) => ({
         id: li.id,
         payslipId: li.payslipId,
         type: li.type,

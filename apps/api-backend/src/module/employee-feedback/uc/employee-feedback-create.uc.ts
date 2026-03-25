@@ -3,7 +3,7 @@ import type {
   EmployeeFeedbackCreateRequestType,
   EmployeeFeedbackResponseType,
 } from '@repo/dto';
-import { UserEmployeeDetailDao, UserEmployeeFeedbackDao, CommonLoggerService, CurrentUserType, IUseCase, PrismaService } from '@repo/nest-lib';
+import { EmployeeDao, EmployeeFeedbackDao, CommonLoggerService, CurrentUserType, IUseCase, PrismaService } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 type Params = {
@@ -16,19 +16,19 @@ export class EmployeeFeedbackCreateUc implements IUseCase<Params, EmployeeFeedba
   constructor(
     prisma: PrismaService,
     private readonly logger: CommonLoggerService,
-    private readonly userEmployeeDetailDao: UserEmployeeDetailDao,
-    private readonly userEmployeeFeedbackDao: UserEmployeeFeedbackDao,
+    private readonly employeeDao: EmployeeDao,
+    private readonly employeeFeedbackDao: EmployeeFeedbackDao,
   ) {}
 
   async execute(params: Params): Promise<EmployeeFeedbackResponseType> {
     this.logger.i('Creating employee feedback', { employeeId: params.dto.employeeId });
 
-    const employee = await this.userEmployeeDetailDao.getByUserId({ userId: params.dto.employeeId });
+    const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);
     }
 
-    const created = await this.userEmployeeFeedbackDao.create({
+    const created = await this.employeeFeedbackDao.create({
       data: {
         user: { connect: { id: params.dto.employeeId } },
         createdBy: { connect: { id: params.currentUser.id } },
@@ -39,7 +39,7 @@ export class EmployeeFeedbackCreateUc implements IUseCase<Params, EmployeeFeedba
       },
     });
 
-    const withUser = await this.userEmployeeFeedbackDao.getById({ id: created.id });
+    const withUser = await this.employeeFeedbackDao.getById({ id: created.id });
     if (!withUser) throw new ApiError('Failed to fetch created feedback', 500);
 
     return {

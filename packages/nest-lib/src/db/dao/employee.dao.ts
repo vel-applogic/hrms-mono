@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma, User, UserEmployeeDetail } from '@repo/db';
+import type { Prisma, User, Employee } from '@repo/db';
 import { EmployeeStatusEnum } from '@repo/db';
 import type { EmployeeFilterRequestType } from '@repo/dto';
 
@@ -7,14 +7,14 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { BaseDao, OrderByParam } from './_base.dao.js';
 
 @Injectable()
-export class UserEmployeeDetailDao extends BaseDao {
+export class EmployeeDao extends BaseDao {
   constructor(prisma: PrismaService) {
     super(prisma);
   }
 
   async findAllWithUser(params?: { tx?: Prisma.TransactionClient }): Promise<EmployeeListRecordType[]> {
     const pc = this.getPrismaClient(params?.tx);
-    return pc.userEmployeeDetail.findMany({
+    return pc.employee.findMany({
       include: { user: true },
       orderBy: { user: { firstname: 'asc' } },
     });
@@ -22,7 +22,7 @@ export class UserEmployeeDetailDao extends BaseDao {
 
   async getByUserId(params: { userId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeDetailRecordType | null> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.userEmployeeDetail.findUnique({
+    return pc.employee.findUnique({
       where: { userId: params.userId },
       include: {
         user: true,
@@ -31,18 +31,18 @@ export class UserEmployeeDetailDao extends BaseDao {
     });
   }
 
-  async create(params: { data: Prisma.UserEmployeeDetailCreateInput; tx?: Prisma.TransactionClient }): Promise<UserEmployeeDetail> {
+  async create(params: { data: Prisma.EmployeeCreateInput; tx?: Prisma.TransactionClient }): Promise<Employee> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.userEmployeeDetail.create({ data: params.data });
+    return pc.employee.create({ data: params.data });
   }
 
   async update(params: {
     userId: number;
-    data: Prisma.UserEmployeeDetailUpdateInput;
+    data: Prisma.EmployeeUpdateInput;
     tx?: Prisma.TransactionClient;
-  }): Promise<UserEmployeeDetail> {
+  }): Promise<Employee> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.userEmployeeDetail.update({ where: { userId: params.userId }, data: params.data });
+    return pc.employee.update({ where: { userId: params.userId }, data: params.data });
   }
 
   async search(params: {
@@ -56,7 +56,7 @@ export class UserEmployeeDetailDao extends BaseDao {
       pageSize: params.filterDto.pagination.limit,
     });
 
-    const where: Prisma.UserEmployeeDetailWhereInput = {};
+    const where: Prisma.EmployeeWhereInput = {};
 
     if (params.filterDto.search) {
       where.user = {
@@ -73,8 +73,8 @@ export class UserEmployeeDetailDao extends BaseDao {
     }
 
     const [totalRecords, dbRecords] = await Promise.all([
-      pc.userEmployeeDetail.count({ where }),
-      pc.userEmployeeDetail.findMany({
+      pc.employee.count({ where }),
+      pc.employee.findMany({
         where,
         include: { user: true },
         take,
@@ -87,10 +87,10 @@ export class UserEmployeeDetailDao extends BaseDao {
   }
 }
 
-export type EmployeeListRecordType = Prisma.UserEmployeeDetailGetPayload<{
+export type EmployeeListRecordType = Prisma.EmployeeGetPayload<{
   include: { user: true };
 }>;
-export type EmployeeDetailRecordType = Prisma.UserEmployeeDetailGetPayload<{
+export type EmployeeDetailRecordType = Prisma.EmployeeGetPayload<{
   include: {
     user: true;
     reportTo: { select: { id: true; firstname: true; lastname: true; email: true } };

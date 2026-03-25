@@ -20,9 +20,9 @@ import {
   MediaDao,
   PrismaService,
   UserDao,
-  UserEmployeeDetailDao,
-  UserEmployeeHasMediaDao,
-  UserEmployeeLeaveCounterDao,
+  EmployeeDao,
+  EmployeeHasMediaDao,
+  EmployeeLeaveCounterDao,
 } from '@repo/nest-lib';
 import { ApiFieldValidationError, getFinancialYearCode } from '@repo/shared';
 
@@ -42,8 +42,8 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
   constructor(
     prisma: PrismaService,
     logger: CommonLoggerService,
-    userEmployeeDetailDao: UserEmployeeDetailDao,
-    userEmployeeHasMediaDao: UserEmployeeHasMediaDao,
+    employeeDao: EmployeeDao,
+    employeeHasMediaDao: EmployeeHasMediaDao,
     s3Service: S3Service,
     private readonly userDao: UserDao,
     private readonly mediaDao: MediaDao,
@@ -51,9 +51,9 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
     private readonly passwordService: PasswordService,
     private readonly auditService: AuditService,
     private readonly leaveConfigDao: LeaveConfigDao,
-    private readonly userEmployeeLeaveCounterDao: UserEmployeeLeaveCounterDao,
+    private readonly employeeLeaveCounterDao: EmployeeLeaveCounterDao,
   ) {
-    super(prisma, logger, userEmployeeDetailDao, userEmployeeHasMediaDao, s3Service);
+    super(prisma, logger, employeeDao, employeeHasMediaDao, s3Service);
   }
 
   async execute(params: Params): Promise<OperationStatusResponseType> {
@@ -75,7 +75,7 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
       });
 
       const dateOfJoining = new Date(params.dto.dateOfJoining);
-      await this.userEmployeeDetailDao.create({
+      await this.employeeDao.create({
         data: {
           user: { connect: { id: user.id } },
           personalEmail: params.dto.personalEmail ?? undefined,
@@ -94,7 +94,7 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
       const financialYear = getFinancialYearCode(dateOfJoining);
       const leaveConfig = await this.leaveConfigDao.getLatest({ tx });
       const totalLeavesAvailable = leaveConfig?.maxLeaves ?? 24;
-      await this.userEmployeeLeaveCounterDao.create({
+      await this.employeeLeaveCounterDao.create({
         data: {
           user: { connect: { id: user.id } },
           financialYear,
@@ -140,7 +140,7 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
       tx: params.tx,
     });
 
-    await this.userEmployeeHasMediaDao.create({
+    await this.employeeHasMediaDao.create({
       data: { userId: params.userId, mediaId, type: params.type },
       tx: params.tx,
     });

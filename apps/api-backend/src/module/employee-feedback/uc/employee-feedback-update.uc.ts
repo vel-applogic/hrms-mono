@@ -3,7 +3,7 @@ import type {
   EmployeeFeedbackResponseType,
   EmployeeFeedbackUpdateRequestType,
 } from '@repo/dto';
-import { UserEmployeeFeedbackDao, CommonLoggerService, CurrentUserType, IUseCase, PrismaService } from '@repo/nest-lib';
+import { EmployeeFeedbackDao, CommonLoggerService, CurrentUserType, IUseCase, PrismaService } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 type Params = {
@@ -17,18 +17,18 @@ export class EmployeeFeedbackUpdateUc implements IUseCase<Params, EmployeeFeedba
   constructor(
     prisma: PrismaService,
     private readonly logger: CommonLoggerService,
-    private readonly userEmployeeFeedbackDao: UserEmployeeFeedbackDao,
+    private readonly employeeFeedbackDao: EmployeeFeedbackDao,
   ) {}
 
   async execute(params: Params): Promise<EmployeeFeedbackResponseType> {
     this.logger.i('Updating employee feedback', { id: params.id });
 
-    const existing = await this.userEmployeeFeedbackDao.getById({ id: params.id });
+    const existing = await this.employeeFeedbackDao.getById({ id: params.id });
     if (!existing) {
       throw new ApiError('Feedback not found', 404);
     }
 
-    await this.userEmployeeFeedbackDao.update({
+    await this.employeeFeedbackDao.update({
       id: params.id,
       data: {
         trend: params.dto.trend as 'positive' | 'negative' | 'neutral',
@@ -38,7 +38,7 @@ export class EmployeeFeedbackUpdateUc implements IUseCase<Params, EmployeeFeedba
       },
     });
 
-    const updated = await this.userEmployeeFeedbackDao.getById({ id: params.id });
+    const updated = await this.employeeFeedbackDao.getById({ id: params.id });
     if (!updated) throw new ApiError('Failed to fetch updated feedback', 500);
 
     return {

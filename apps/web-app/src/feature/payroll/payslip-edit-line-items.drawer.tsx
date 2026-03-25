@@ -1,6 +1,6 @@
 'use client';
 
-import type { PayslipDetailResponseType, PayslipLineItemTypeDtoEnum } from '@repo/dto';
+import type { PayslipDetailResponseType, PayrollPayslipLineItemTypeDtoEnum } from '@repo/dto';
 import { cn } from '@repo/ui/lib/utils';
 import { Button } from '@repo/ui/component/ui/button';
 import { Input } from '@repo/ui/component/ui/input';
@@ -22,7 +22,7 @@ function formatAmount(value: number) {
 
 interface LineItemDraft {
   key: string;
-  type: PayslipLineItemTypeDtoEnum;
+  type: PayrollPayslipLineItemTypeDtoEnum;
   title: string;
   amount: string;
 }
@@ -62,7 +62,7 @@ export function PayslipEditLineItemsDrawer({ open, onOpenChange, payslipId, onSu
     }
   }, [open, payslipId]);
 
-  const addLineItem = (type: PayslipLineItemTypeDtoEnum) => {
+  const addLineItem = (type: PayrollPayslipLineItemTypeDtoEnum) => {
     setLineItems((prev) => [
       ...prev,
       { key: `new-${Date.now()}`, type, title: '', amount: '' },

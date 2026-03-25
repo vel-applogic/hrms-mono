@@ -8,8 +8,8 @@ import {
   IUseCase,
   MediaDao,
   PrismaService,
-  UserEmployeeDetailDao,
-  UserEmployeeHasMediaDao,
+  EmployeeDao,
+  EmployeeHasMediaDao,
 } from '@repo/nest-lib';
 import type { Prisma } from '@repo/db';
 
@@ -29,13 +29,13 @@ export class EmployeeUpdateDocumentsUc extends BaseEmployeeUc implements IUseCas
   constructor(
     prisma: PrismaService,
     logger: CommonLoggerService,
-    userEmployeeDetailDao: UserEmployeeDetailDao,
-    userEmployeeHasMediaDao: UserEmployeeHasMediaDao,
+    employeeDao: EmployeeDao,
+    employeeHasMediaDao: EmployeeHasMediaDao,
     s3Service: S3Service,
     private readonly mediaDao: MediaDao,
     private readonly mediaService: MediaService,
   ) {
-    super(prisma, logger, userEmployeeDetailDao, userEmployeeHasMediaDao, s3Service);
+    super(prisma, logger, employeeDao, employeeHasMediaDao, s3Service);
   }
 
   async execute(params: Params): Promise<OperationStatusResponseType> {
@@ -45,7 +45,7 @@ export class EmployeeUpdateDocumentsUc extends BaseEmployeeUc implements IUseCas
 
     await this.transaction(async (tx) => {
       if (params.dto.resume !== undefined) {
-        await this.userEmployeeHasMediaDao.deleteManyByUserIdAndType({
+        await this.employeeHasMediaDao.deleteManyByUserIdAndType({
           userId: params.id,
           type: EmployeeMediaType.resume,
           tx,
@@ -54,7 +54,7 @@ export class EmployeeUpdateDocumentsUc extends BaseEmployeeUc implements IUseCas
           if (params.dto.resume.key?.startsWith('temp/')) {
             await this.createAndLinkMedia({ media: params.dto.resume, userId: params.id, type: EmployeeMediaType.resume, tx });
           } else if (params.dto.resume.id) {
-            await this.userEmployeeHasMediaDao.create({
+            await this.employeeHasMediaDao.create({
               data: { userId: params.id, mediaId: params.dto.resume.id, type: EmployeeMediaType.resume },
               tx,
             });
@@ -63,7 +63,7 @@ export class EmployeeUpdateDocumentsUc extends BaseEmployeeUc implements IUseCas
       }
 
       if (params.dto.offerLetters !== undefined) {
-        await this.userEmployeeHasMediaDao.deleteManyByUserIdAndType({
+        await this.employeeHasMediaDao.deleteManyByUserIdAndType({
           userId: params.id,
           type: EmployeeMediaType.offerLetter,
           tx,
@@ -72,7 +72,7 @@ export class EmployeeUpdateDocumentsUc extends BaseEmployeeUc implements IUseCas
           if (media.key?.startsWith('temp/')) {
             await this.createAndLinkMedia({ media, userId: params.id, type: EmployeeMediaType.offerLetter, tx });
           } else if (media.id) {
-            await this.userEmployeeHasMediaDao.create({
+            await this.employeeHasMediaDao.create({
               data: { userId: params.id, mediaId: media.id, type: EmployeeMediaType.offerLetter },
               tx,
             });
@@ -81,7 +81,7 @@ export class EmployeeUpdateDocumentsUc extends BaseEmployeeUc implements IUseCas
       }
 
       if (params.dto.otherDocuments !== undefined) {
-        await this.userEmployeeHasMediaDao.deleteManyByUserIdAndType({
+        await this.employeeHasMediaDao.deleteManyByUserIdAndType({
           userId: params.id,
           type: EmployeeMediaType.otherDocuments,
           tx,
@@ -90,7 +90,7 @@ export class EmployeeUpdateDocumentsUc extends BaseEmployeeUc implements IUseCas
           if (media.key?.startsWith('temp/')) {
             await this.createAndLinkMedia({ media, userId: params.id, type: EmployeeMediaType.otherDocuments, tx });
           } else if (media.id) {
-            await this.userEmployeeHasMediaDao.create({
+            await this.employeeHasMediaDao.create({
               data: { userId: params.id, mediaId: media.id, type: EmployeeMediaType.otherDocuments },
               tx,
             });
@@ -121,7 +121,7 @@ export class EmployeeUpdateDocumentsUc extends BaseEmployeeUc implements IUseCas
       tx: params.tx,
     });
 
-    await this.userEmployeeHasMediaDao.create({
+    await this.employeeHasMediaDao.create({
       data: { userId: params.userId, mediaId, type: params.type },
       tx: params.tx,
     });
