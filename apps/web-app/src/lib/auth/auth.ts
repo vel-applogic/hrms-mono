@@ -7,7 +7,7 @@ interface LoginResponse {
   email: string;
   firstname: string;
   lastname: string;
-  organizationIds: number[];
+  organisations: { id: number; name: string }[];
   roles: string[];
 }
 
@@ -35,8 +35,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
               id: String(user.id),
               email: user.email,
               name: `${user.firstname} ${user.lastname}`,
-              organizationIds: user.organizationIds,
-              organizationId: user.organizationIds[0] ?? 0,
+              organisations: user.organisations,
+              organizationId: user.organisations[0]?.id ?? 0,
               roles: user.roles,
             };
           }
@@ -48,19 +48,22 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    jwt({ token, user, trigger, session }) {
       if (user) {
         token.userId = user.id ?? '';
-        token.organizationIds = user.organizationIds;
+        token.organisations = user.organisations;
         token.organizationId = user.organizationId;
         token.roles = user.roles;
+      }
+      if (trigger === 'update' && typeof session?.organizationId === 'number') {
+        token.organizationId = session.organizationId;
       }
       return token;
     },
     session({ session, token }) {
       if (session.user) {
         session.user.id = String(token.userId);
-        session.user.organizationIds = token.organizationIds as number[];
+        session.user.organisations = token.organisations as { id: number; name: string }[];
         session.user.organizationId = token.organizationId as number;
         session.user.roles = token.roles as string[];
       }

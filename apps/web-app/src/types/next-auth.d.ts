@@ -2,7 +2,7 @@ import { DefaultSession } from 'next-auth';
 
 declare module 'next-auth' {
   interface User {
-    organizationIds: number[];
+    organisations: { id: number; name: string }[];
     organizationId: number;
     roles: string[];
   }
@@ -10,7 +10,7 @@ declare module 'next-auth' {
   interface Session {
     user: {
       id: string;
-      organizationIds: number[];
+      organisations: { id: number; name: string }[];
       organizationId: number;
       roles: string[];
     } & DefaultSession['user'];
@@ -20,7 +20,7 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT {
     userId: string;
-    organizationIds: number[];
+    organisations: { id: number; name: string }[];
     organizationId: number;
     roles: string[];
   }

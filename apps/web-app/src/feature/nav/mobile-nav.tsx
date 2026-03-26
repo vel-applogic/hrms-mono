@@ -11,6 +11,8 @@ import { LogOut, Menu, Settings, User } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 
+import { OrgSwitcher } from '@/feature/org/org-switcher';
+
 const tabs = [
   { label: 'Users', href: '/user' },
   { label: 'Policies', href: '/policy' },
@@ -22,9 +24,10 @@ const tabs = [
 
 interface Props {
   userName: string;
+  userEmail: string;
 }
 
-export function MobileNav({ userName }: Props) {
+export function MobileNav({ userName, userEmail }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -33,9 +36,12 @@ export function MobileNav({ userName }: Props) {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <div className="px-2 py-2">
-          <p className="text-sm font-medium text-white">{userName}</p>
-          <p className="text-xs text-muted-foreground">Super admin</p>
+        <div className="space-y-1.5 px-2 py-2">
+          <p className="text-sm font-medium text-white">
+            {userName}
+            {userEmail && <span className="font-normal text-muted-foreground"> ({userEmail})</span>}
+          </p>
+          <OrgSwitcher />
         </div>
         <DropdownMenuSeparator className="bg-border" />
         {tabs.map((tab) => (

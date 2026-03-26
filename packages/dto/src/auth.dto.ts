@@ -13,7 +13,7 @@ export const AuthLoginResponseSchema = z.object({
   email: z.string(),
   firstname: z.string(),
   lastname: z.string(),
-  organizationIds: z.array(z.number()),
+  organisations: z.array(z.object({ id: z.number(), name: z.string() })),
   roles: z.array(z.nativeEnum(UserRoleDtoEnum)),
 });
 export type AuthLoginResponseType = z.infer<typeof AuthLoginResponseSchema>;

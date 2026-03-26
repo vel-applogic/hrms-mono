@@ -16,7 +16,10 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
     <div className='flex h-screen flex-col bg-background'>
       <header className='shrink-0 border-b border-border'>
         <div className='mx-auto max-w-[2200px]'>
-          <TopNav currentUserName={session.user?.name ?? session.user?.email ?? 'User'} />
+          <TopNav
+            currentUserName={session.user?.name ?? session.user?.email ?? 'User'}
+            currentUserEmail={session.user?.email ?? ''}
+          />
         </div>
       </header>
       <main className='min-h-0 w-full flex-1'>{children}</main>
@@ -24,7 +27,7 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
   );
 }
 
-function TopNav({ currentUserName }: { currentUserName: string }) {
+function TopNav({ currentUserName, currentUserEmail }: { currentUserName: string; currentUserEmail: string }) {
   return (
     <nav className='flex items-center justify-between px-4 py-2 md:px-8 md:py-1'>
       {/* Logo - always visible */}
@@ -36,14 +39,14 @@ function TopNav({ currentUserName }: { currentUserName: string }) {
       {/* Desktop navigation - hidden on mobile */}
       <NavTabs />
 
-      {/* Desktop user menu - hidden on mobile */}
+      {/* Desktop right side - hidden on mobile */}
       <div className='hidden lg:block'>
-        <UserMenu userName={currentUserName} />
+        <UserMenu userName={currentUserName} userEmail={currentUserEmail} />
       </div>
 
       {/* Mobile hamburger menu - visible only on mobile */}
       <div className='lg:hidden'>
-        <MobileNav userName={currentUserName} />
+        <MobileNav userName={currentUserName} userEmail={currentUserEmail} />
       </div>
     </nav>
   );

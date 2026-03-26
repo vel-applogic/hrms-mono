@@ -43,7 +43,7 @@ export class AuthLoginUc implements IUseCase<Params, AuthLoginResponseType> {
       throw new ApiError('Account is disabled', 403);
     }
 
-    const orgMemberships = await this.organizationHasUserDao.findAllByUser({ userId: user.id });
+    const orgMemberships = await this.organizationHasUserDao.findAllByUserWithOrganization({ userId: user.id });
     const primaryMembership = orgMemberships[0];
     const roles = primaryMembership?.roles.map((r) => userRoleDbEnumToDtoEnum(r)) ?? [];
 
@@ -52,7 +52,7 @@ export class AuthLoginUc implements IUseCase<Params, AuthLoginResponseType> {
       email: user.email,
       firstname: user.firstname,
       lastname: user.lastname,
-      organizationIds: orgMemberships.map((m) => m.organizationId),
+      organisations: orgMemberships.map((m) => ({ id: m.organizationId, name: m.organization.name })),
       roles,
     };
   }

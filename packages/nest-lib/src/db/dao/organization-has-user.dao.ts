@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { OrganizationHasUser, Prisma, UserRoleDbEnum } from '@repo/db';
+import type { Organization, OrganizationHasUser, Prisma, UserRoleDbEnum } from '@repo/db';
 
 import { PrismaService } from '../prisma/prisma.service.js';
 import { BaseDao } from './_base.dao.js';
@@ -20,6 +20,14 @@ export class OrganizationHasUserDao extends BaseDao {
   async findAllByUser(params: { userId: number; tx?: Prisma.TransactionClient }): Promise<OrganizationHasUser[]> {
     const pc = this.getPrismaClient(params.tx);
     return pc.organizationHasUser.findMany({ where: { userId: params.userId } });
+  }
+
+  async findAllByUserWithOrganization(params: {
+    userId: number;
+    tx?: Prisma.TransactionClient;
+  }): Promise<(OrganizationHasUser & { organization: Organization })[]> {
+    const pc = this.getPrismaClient(params.tx);
+    return pc.organizationHasUser.findMany({ where: { userId: params.userId }, include: { organization: true } });
   }
 
   async findManyByUsersAndOrg(params: { userIds: number[]; organizationId: number; tx?: Prisma.TransactionClient }): Promise<OrganizationHasUser[]> {
