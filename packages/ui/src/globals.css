@@ -13,7 +13,7 @@
   --color-card-foreground: #0f1f16;
   --color-popover: #ffffff;
   --color-popover-foreground: #0f1f16;
-  --color-primary: #1b4332;
+  --color-primary: #077f8c;
   --color-primary-foreground: #ffffff;
   --color-secondary: #e0e6e3;
   --color-secondary-foreground: #3d5245;
@@ -96,7 +96,7 @@
 /* ag-grid theme overrides */
 .ag-theme-quartz {
   --ag-font-family: 'DM Sans', sans-serif;
-  --ag-header-background-color: #1e5a40;
+  --ag-header-background-color: #077f8c;
   --ag-border-color: #c8d3cd;
   --ag-header-text-color: #d4e8dc;
   --ag-foreground-color: #0f1f16;

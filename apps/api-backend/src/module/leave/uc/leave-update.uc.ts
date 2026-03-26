@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { LeaveStatusEnum } from '@repo/db';
 import type { LeaveResponseType, LeaveUpdateRequestType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, EmployeeDao, IUseCase, LeaveConfigDao, LeaveDao, PrismaService } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, EmployeeDao, IUseCase, LeaveConfigDao, LeaveDao, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, leaveTypeDtoEnumToDbEnum, PrismaService } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 type Params = {
@@ -41,7 +42,7 @@ function getTypeLimit(config: { maxLeaves: number; maxSickLeaves: number; maxEar
 @Injectable()
 export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
   constructor(
-    prisma: PrismaService,
+    private readonly prisma: PrismaService,
     private readonly logger: CommonLoggerService,
     private readonly employeeDao: EmployeeDao,
     private readonly leaveDao: LeaveDao,
@@ -84,12 +85,13 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
       throw new ApiError('At least one business day is required', 400);
     }
 
-    const countStatuses = ['pending', 'approved'];
+    const countStatuses: LeaveStatusEnum[] = [LeaveStatusEnum.pending, LeaveStatusEnum.approved];
+    const leaveTypeDb = leaveTypeDtoEnumToDbEnum(params.dto.leaveType);
     const existingByType = await this.leaveDao.sumDaysByUserIdAndStatus({
       userId: params.currentUser.id,
       organizationId: params.currentUser.organizationId,
       statuses: countStatuses,
-      leaveType: params.dto.leaveType,
+      leaveType: leaveTypeDb,
       excludeLeaveId: params.id,
     });
     const existingTotal = await this.leaveDao.sumDaysByUserIdAndStatus({
@@ -107,16 +109,19 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
       throw new ApiError(`Exceeds total leave limit. Used: ${existingTotal}, Limit: ${config.maxLeaves}, Requested: ${numberOfDays}`, 400);
     }
 
-    await this.leaveDao.update({
-      id: params.id,
-      organizationId: params.currentUser.organizationId,
-      data: {
-        leaveType: params.dto.leaveType as 'casual' | 'sick' | 'medical' | 'earned',
-        startDate,
-        endDate,
-        numberOfDays,
-        reason: params.dto.reason,
-      },
+    await this.prisma.$transaction(async (tx) => {
+      await this.leaveDao.update({
+        id: params.id,
+        organizationId: params.currentUser.organizationId,
+        data: {
+          leaveType: leaveTypeDb,
+          startDate,
+          endDate,
+          numberOfDays,
+          reason: params.dto.reason,
+        },
+        tx,
+      });
     });
 
     const updated = await this.leaveDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
@@ -131,12 +136,12 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
         lastname: updated.user.lastname,
         email: updated.user.email,
       },
-      leaveType: updated.leaveType as import('@repo/dto').LeaveTypeDtoEnum,
+      leaveType: leaveTypeDbEnumToDtoEnum(updated.leaveType),
       startDate: updated.startDate.toISOString().split('T')[0],
       endDate: updated.endDate.toISOString().split('T')[0],
       numberOfDays: updated.numberOfDays,
       reason: updated.reason,
-      status: updated.status as import('@repo/dto').LeaveStatusDtoEnum,
+      status: leaveStatusDbEnumToDtoEnum(updated.status),
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
     };

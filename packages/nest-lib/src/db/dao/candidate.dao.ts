@@ -1,33 +1,40 @@
 import { Injectable } from '@nestjs/common';
-import type { Candidate, CandidateHasMedia, Media, Prisma } from '@repo/db';
+import type { CandidateHasMedia, Media, Prisma } from '@repo/db';
 import { CandidateProgress, CandidateSource, CandidateStatus } from '@repo/db';
 import type { CandidateFilterRequestType } from '@repo/dto';
+import { DbOperationError, DbRecordNotFoundError } from '@repo/shared';
 
+import { TrackQuery } from '../../decorator/track-query.decorator.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { BaseDao, OrderByParam } from './_base.dao.js';
 
 @Injectable()
+@TrackQuery()
 export class CandidateDao extends BaseDao {
   constructor(prisma: PrismaService) {
     super(prisma);
   }
 
-  async create(params: { data: Prisma.CandidateCreateInput; tx?: Prisma.TransactionClient }): Promise<Candidate> {
+  public async create(params: { data: CandidateInsertTableRecordType; tx: Prisma.TransactionClient }): Promise<number> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.candidate.create({ data: params.data });
+    const created = await pc.candidate.create({ data: params.data });
+    if (!created?.id) {
+      throw new DbOperationError('Candidate not created');
+    }
+    return created.id;
   }
 
-  async update(params: { id: number; organizationId: number; data: Prisma.CandidateUpdateInput; tx?: Prisma.TransactionClient }): Promise<Candidate> {
+  public async update(params: { id: number; organizationId: number; data: CandidateUpdateTableRecordType; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.candidate.update({
+    await pc.candidate.update({
       where: { id: params.id, organizationId: params.organizationId },
       data: params.data,
     });
   }
 
-  async getById(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<CandidateDetailRecordType | null> {
+  public async getById(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<CandidateDetailRecordType | undefined> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.candidate.findFirst({
+    const dbRec = await pc.candidate.findFirst({
       where: {
         id: params.id,
         isDeleted: false,
@@ -39,17 +46,24 @@ export class CandidateDao extends BaseDao {
         },
       },
     });
+    return dbRec ?? undefined;
   }
 
-  async delete(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<Candidate> {
+  public async deleteByIdOrThrow(params: { id: number; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.candidate.update({
+    const dbRecord = await pc.candidate.findFirst({
+      where: { id: params.id, organizationId: params.organizationId, isDeleted: false },
+    });
+    if (!dbRecord) {
+      throw new DbRecordNotFoundError('Invalid candidate id');
+    }
+    await pc.candidate.update({
       where: { id: params.id, organizationId: params.organizationId },
       data: { isDeleted: true },
     });
   }
 
-  async search(params: {
+  public async search(params: {
     filterDto: CandidateFilterRequestType;
     organizationId: number;
     orderBy?: OrderByParam;
@@ -76,15 +90,15 @@ export class CandidateDao extends BaseDao {
     }
 
     if (params.filterDto.status?.length) {
-      where.status = { in: params.filterDto.status as unknown as CandidateStatus[] };
+      where.status = { in: this.toEnumArray(params.filterDto.status, CandidateStatus) };
     }
 
     if (params.filterDto.progress?.length) {
-      where.progress = { in: params.filterDto.progress as unknown as CandidateProgress[] };
+      where.progress = { in: this.toEnumArray(params.filterDto.progress, CandidateProgress) };
     }
 
     if (params.filterDto.source?.length) {
-      where.source = { in: params.filterDto.source as unknown as CandidateSource[] };
+      where.source = { in: this.toEnumArray(params.filterDto.source, CandidateSource) };
     }
 
     const [totalRecords, dbRecords] = await Promise.all([pc.candidate.count({ where }), pc.candidate.findMany({ where, take, skip, orderBy: params.orderBy })]);
@@ -92,6 +106,11 @@ export class CandidateDao extends BaseDao {
     return { dbRecords, totalRecords };
   }
 }
+
+// Type definitions
+type CandidateSelectTableRecordType = Prisma.CandidateGetPayload<{}>;
+type CandidateInsertTableRecordType = Prisma.CandidateCreateInput;
+type CandidateUpdateTableRecordType = Prisma.CandidateUpdateInput;
 
 export type CandidateListRecordType = Prisma.CandidateGetPayload<{}>;
 export type CandidateDetailRecordType = Prisma.CandidateGetPayload<{

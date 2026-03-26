@@ -29,14 +29,14 @@ export class EmployeeFeedbackListUc implements IUseCase<Params, PaginatedRespons
       throw new ApiError('Employee not found', 404);
     }
 
-    const { feedbacks, totalRecords } = await this.employeeFeedbackDao.findByUserIdWithPagination({
+    const { dbRecords, totalRecords } = await this.employeeFeedbackDao.findByUserIdWithPagination({
       userId: params.filterDto.employeeId,
       organizationId: params.currentUser.organizationId,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
     });
 
-    const results = feedbacks.map((f) => ({
+    const results = dbRecords.map((f) => ({
       id: f.id,
       employeeId: f.userId,
       trend: f.trend as import('@repo/dto').EmployeeFeedbackTrendDtoEnum,

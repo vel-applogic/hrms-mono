@@ -478,7 +478,7 @@ const DataTableContainer = <T,>(props: DataTableContainerProps<T>) => {
 
 const DataTableFooterSimple = (props: { total: number; pageSize: number; page: number; tableKey: string; footerActions: React.ReactNode }) => {
   return (
-    <div className='rounded-b-xl border border-t-0 border-border bg-[#1e5a40] px-4 py-4 text-[#d4e8dc]'>
+    <div className='rounded-b-xl border border-t-0 border-border bg-[#077f8c] px-4 py-4 text-[#d4e8dc]'>
       <div className='flex flex-row items-center justify-between'>
         <DataTableSimplePagination page={props.page} pageSize={props.pageSize} total={props.total} tableKey={props.tableKey} />
         {props.footerActions}
@@ -489,7 +489,7 @@ const DataTableFooterSimple = (props: { total: number; pageSize: number; page: n
 
 const DataTableFooterFull = (props: { total: number; pageSize: number; page: number; tableKey: string }) => {
   return (
-    <div className='rounded-b-xl border border-t-0 border-border bg-[#1e5a40] px-4 py-4 text-[#d4e8dc]'>
+    <div className='rounded-b-xl border border-t-0 border-border bg-[#077f8c] px-4 py-4 text-[#d4e8dc]'>
       <DataTableFullPagination page={props.page} pageSize={props.pageSize} total={props.total} tableKey={props.tableKey} />
     </div>
   );

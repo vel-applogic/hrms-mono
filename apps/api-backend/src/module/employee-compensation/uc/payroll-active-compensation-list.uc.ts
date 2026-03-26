@@ -17,13 +17,13 @@ export class PayrollActiveCompensationListUc implements IUseCase<Params, Paginat
   async execute(params: Params): Promise<PaginatedResponseType<PayrollActiveCompensationResponseType>> {
     this.logger.i('Listing all active compensations for payroll');
 
-    const { compensations, totalRecords } = await this.payrollCompensationDao.findActiveWithEmployeeInfo({
+    const { dbRecords, totalRecords } = await this.payrollCompensationDao.findActiveWithEmployeeInfo({
       organizationId: params.currentUser.organizationId,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
     });
 
-    const results: PayrollActiveCompensationResponseType[] = compensations.map((c) => ({
+    const results: PayrollActiveCompensationResponseType[] = dbRecords.map((c) => ({
       id: c.id,
       employeeId: c.userId,
       basic: c.basic,

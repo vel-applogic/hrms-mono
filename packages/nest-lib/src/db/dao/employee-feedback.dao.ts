@@ -1,53 +1,75 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma, EmployeeFeedback } from '@repo/db';
+import { Prisma } from '@repo/db';
+import { DbOperationError, DbRecordNotFoundError } from '@repo/shared';
 
+import { TrackQuery } from '../../decorator/track-query.decorator.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { BaseDao } from './_base.dao.js';
 
 @Injectable()
+@TrackQuery()
 export class EmployeeFeedbackDao extends BaseDao {
   constructor(prisma: PrismaService) {
     super(prisma);
   }
 
-  async create(params: { data: Prisma.EmployeeFeedbackCreateInput; tx?: Prisma.TransactionClient }): Promise<EmployeeFeedback> {
+  public async create(params: { data: EmployeeFeedbackInsertTableRecordType; tx: Prisma.TransactionClient }): Promise<number> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.employeeFeedback.create({ data: params.data });
+    const created = await pc.employeeFeedback.create({ data: params.data });
+    if (!created?.id) {
+      throw new DbOperationError('EmployeeFeedback not created');
+    }
+    return created.id;
   }
 
-  async update(params: { id: number; organizationId: number; data: Prisma.EmployeeFeedbackUpdateInput; tx?: Prisma.TransactionClient }): Promise<EmployeeFeedback> {
+  public async update(params: { id: number; organizationId: number; data: EmployeeFeedbackUpdateTableRecordType; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.employeeFeedback.update({
+    await pc.employeeFeedback.update({
       where: { id: params.id, organizationId: params.organizationId },
       data: params.data,
     });
   }
 
-  async delete(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeFeedback> {
+  public async deleteByIdOrThrow(params: { id: number; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.employeeFeedback.delete({
+    const dbRecord = await pc.employeeFeedback.findFirst({
+      where: { id: params.id, organizationId: params.organizationId },
+    });
+    if (!dbRecord) {
+      throw new DbRecordNotFoundError('Invalid employee feedback id');
+    }
+    await pc.employeeFeedback.delete({
       where: { id: params.id, organizationId: params.organizationId },
     });
   }
 
-  async getById(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeFeedbackWithCreatedByType | null> {
+  public async getById(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeFeedbackWithCreatedByType | undefined> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.employeeFeedback.findFirst({
+    const dbRec = await pc.employeeFeedback.findFirst({
       where: {
         id: params.id,
         organizationId: params.organizationId,
       },
       include: { createdBy: true },
     });
+    return dbRec ?? undefined;
   }
 
-  async findByUserIdWithPagination(params: {
+  public async getByIdOrThrow(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeFeedbackWithCreatedByType> {
+    const dbRec = await this.getById(params);
+    if (!dbRec) {
+      throw new DbRecordNotFoundError('Employee feedback not found');
+    }
+    return dbRec;
+  }
+
+  public async findByUserIdWithPagination(params: {
     userId: number;
     organizationId: number;
     page: number;
     limit: number;
     tx?: Prisma.TransactionClient;
-  }): Promise<{ feedbacks: EmployeeFeedbackWithCreatedByType[]; totalRecords: number }> {
+  }): Promise<{ dbRecords: EmployeeFeedbackWithCreatedByType[]; totalRecords: number }> {
     const pc = this.getPrismaClient(params.tx);
     const { take, skip } = this.getPagination({
       pageNo: params.page,
@@ -59,7 +81,7 @@ export class EmployeeFeedbackDao extends BaseDao {
       organizationId: params.organizationId,
     };
 
-    const [totalRecords, feedbacks] = await Promise.all([
+    const [totalRecords, dbRecords] = await Promise.all([
       pc.employeeFeedback.count({ where }),
       pc.employeeFeedback.findMany({
         where,
@@ -70,10 +92,13 @@ export class EmployeeFeedbackDao extends BaseDao {
       }),
     ]);
 
-    return { feedbacks, totalRecords };
+    return { dbRecords, totalRecords };
   }
 }
 
 export type EmployeeFeedbackWithCreatedByType = Prisma.EmployeeFeedbackGetPayload<{
   include: { createdBy: true };
 }>;
+
+type EmployeeFeedbackInsertTableRecordType = Prisma.EmployeeFeedbackCreateInput;
+type EmployeeFeedbackUpdateTableRecordType = Prisma.EmployeeFeedbackUpdateInput;

@@ -25,13 +25,13 @@ export class CandidateFeedbackListUc implements IUseCase<Params, PaginatedRespon
       throw new ApiError('Candidate not found', 404);
     }
 
-    const { feedbacks, totalRecords } = await this.candidateHasFeedbackDao.findByCandidateIdWithPagination({
+    const { dbRecords, totalRecords } = await this.candidateHasFeedbackDao.findByCandidateIdWithPagination({
       candidateId: params.filterDto.candidateId,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
     });
 
-    const results = feedbacks.map((f) => ({
+    const results = dbRecords.map((f) => ({
       id: f.id,
       candidateId: f.candidateId,
       feedback: f.feedback,

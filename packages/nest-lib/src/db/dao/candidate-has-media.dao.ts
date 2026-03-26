@@ -1,27 +1,34 @@
 import { Injectable } from '@nestjs/common';
-import { CandidateHasMedia, CandidateMediaType, Prisma } from '@repo/db';
+import { CandidateMediaType, Prisma } from '@repo/db';
+import { DbOperationError } from '@repo/shared';
 
+import { TrackQuery } from '../../decorator/track-query.decorator.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { BaseDao } from './_base.dao.js';
 
 @Injectable()
+@TrackQuery()
 export class CandidateHasMediaDao extends BaseDao {
   constructor(prisma: PrismaService) {
     super(prisma);
   }
 
-  async create(params: {
+  public async create(params: {
     data: { candidateId: number; mediaId: number; type: CandidateMediaType };
-    tx?: Prisma.TransactionClient;
-  }): Promise<CandidateHasMedia> {
+    tx: Prisma.TransactionClient;
+  }): Promise<number> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.candidateHasMedia.create({ data: params.data });
+    const dbRec = await pc.candidateHasMedia.create({ data: params.data });
+    if (!dbRec?.id) {
+      throw new DbOperationError('CandidateHasMedia not created');
+    }
+    return dbRec.id;
   }
 
-  async deleteManyByCandidateIdAndType(params: {
+  public async deleteManyByCandidateIdAndType(params: {
     candidateId: number;
     type: CandidateMediaType;
-    tx?: Prisma.TransactionClient;
+    tx: Prisma.TransactionClient;
   }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
     await pc.candidateHasMedia.deleteMany({
@@ -29,8 +36,13 @@ export class CandidateHasMediaDao extends BaseDao {
     });
   }
 
-  async deleteManyByCandidateId(params: { candidateId: number; tx?: Prisma.TransactionClient }): Promise<void> {
+  public async deleteManyByCandidateId(params: { candidateId: number; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
     await pc.candidateHasMedia.deleteMany({ where: { candidateId: params.candidateId } });
   }
 }
+
+// Type definitions
+type CandidateHasMediaSelectTableRecordType = Prisma.CandidateHasMediaGetPayload<{}>;
+type CandidateHasMediaInsertTableRecordType = Prisma.CandidateHasMediaCreateInput;
+type CandidateHasMediaUpdateTableRecordType = Prisma.CandidateHasMediaUpdateInput;

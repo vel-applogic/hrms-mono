@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@repo/db';
 import type { LeaveFilterRequestType, LeaveResponseType, PaginatedResponseType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, LeaveDao, PrismaService } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, LeaveDao, leaveStatusDbEnumToDtoEnum, leaveStatusDtoEnumToDbEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
 import { getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
@@ -21,10 +21,10 @@ export class LeaveListUc implements IUseCase<Params, PaginatedResponseType<Leave
     this.logger.i('Listing leaves', { userId: params.currentUser.id });
 
     const where: Prisma.LeaveWhereInput = {};
-    if (params.filterDto.status?.length) {
-      where.status = { in: params.filterDto.status as ('pending' | 'approved' | 'rejected' | 'cancelled')[] };
+    if (params.filterDto.status && params.filterDto.status.length > 0) {
+      where.status = { in: params.filterDto.status.map((s) => leaveStatusDtoEnumToDbEnum(s)) };
     }
-    if (params.filterDto.userId?.length) {
+    if (params.filterDto.userId && params.filterDto.userId.length > 0) {
       where.userId = { in: params.filterDto.userId };
     }
     if (params.filterDto.financialYear) {
@@ -39,14 +39,14 @@ export class LeaveListUc implements IUseCase<Params, PaginatedResponseType<Leave
       };
     }
 
-    const { leaves, totalRecords } = await this.leaveDao.findManyWithPagination({
+    const { dbRecords, totalRecords } = await this.leaveDao.findManyWithPagination({
       organizationId: params.currentUser.organizationId,
       where,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
     });
 
-    const results = leaves.map((l) => ({
+    const results = dbRecords.map((l) => ({
       id: l.id,
       userId: l.userId,
       user: {
@@ -55,12 +55,12 @@ export class LeaveListUc implements IUseCase<Params, PaginatedResponseType<Leave
         lastname: l.user.lastname,
         email: l.user.email,
       },
-      leaveType: l.leaveType as import('@repo/dto').LeaveTypeDtoEnum,
+      leaveType: leaveTypeDbEnumToDtoEnum(l.leaveType),
       startDate: l.startDate.toISOString().split('T')[0],
       endDate: l.endDate.toISOString().split('T')[0],
       numberOfDays: l.numberOfDays,
       reason: l.reason,
-      status: l.status as import('@repo/dto').LeaveStatusDtoEnum,
+      status: leaveStatusDbEnumToDtoEnum(l.status),
       createdAt: l.createdAt.toISOString(),
       updatedAt: l.updatedAt.toISOString(),
     }));

@@ -31,7 +31,7 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
 
     const { newEffectiveFrom, effectiveFromChanged, mostRecent } = await this.validate(params);
 
-    const updated = await this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx) => {
       const updateData: Prisma.PayrollCompensationUpdateInput = {
         basic: params.dto.basic,
         hra: params.dto.hra,
@@ -64,10 +64,9 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
         data: updateData,
         tx,
       });
-
-      return this.payrollCompensationDao.getById({ id: params.id, organizationId: params.currentUser.organizationId, tx });
     });
 
+    const updated = await this.payrollCompensationDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!updated) throw new ApiError('Failed to fetch updated compensation', 500);
 
     return {

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { CandidateFeedbackResponseType, CandidateFeedbackUpdateRequestType, OperationStatusResponseType } from '@repo/dto';
+import type { CandidateFeedbackResponseType, CandidateFeedbackUpdateRequestType } from '@repo/dto';
 import { CandidateHasFeedbackDao, CommonLoggerService, CurrentUserType, IUseCase, PrismaService } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
@@ -12,7 +12,7 @@ type Params = {
 @Injectable()
 export class CandidateFeedbackUpdateUc implements IUseCase<Params, CandidateFeedbackResponseType> {
   constructor(
-    prisma: PrismaService,
+    private readonly prisma: PrismaService,
     private readonly logger: CommonLoggerService,
     private readonly candidateHasFeedbackDao: CandidateHasFeedbackDao,
   ) {}
@@ -25,9 +25,12 @@ export class CandidateFeedbackUpdateUc implements IUseCase<Params, CandidateFeed
       throw new ApiError('Feedback not found', 404);
     }
 
-    await this.candidateHasFeedbackDao.update({
-      id: params.id,
-      data: { feedback: params.dto.feedback },
+    await this.prisma.$transaction(async (tx) => {
+      await this.candidateHasFeedbackDao.update({
+        id: params.id,
+        data: { feedback: params.dto.feedback },
+        tx,
+      });
     });
 
     const updated = await this.candidateHasFeedbackDao.getById({ id: params.id });

@@ -1,49 +1,56 @@
 import { Injectable } from '@nestjs/common';
-import type { CandidateHasFeedback, Prisma } from '@repo/db';
+import { Prisma } from '@repo/db';
+import { DbOperationError } from '@repo/shared';
 
+import { TrackQuery } from '../../decorator/track-query.decorator.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { BaseDao } from './_base.dao.js';
 
 @Injectable()
+@TrackQuery()
 export class CandidateHasFeedbackDao extends BaseDao {
   constructor(prisma: PrismaService) {
     super(prisma);
   }
 
-  async create(params: {
-    data: Prisma.CandidateHasFeedbackCreateInput;
-    tx?: Prisma.TransactionClient;
-  }): Promise<CandidateHasFeedback> {
+  public async create(params: {
+    data: CandidateHasFeedbackInsertTableRecordType;
+    tx: Prisma.TransactionClient;
+  }): Promise<number> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.candidateHasFeedback.create({ data: params.data });
+    const dbRec = await pc.candidateHasFeedback.create({ data: params.data });
+    if (!dbRec?.id) {
+      throw new DbOperationError('CandidateHasFeedback not created');
+    }
+    return dbRec.id;
   }
 
-  async update(params: {
+  public async update(params: {
     id: number;
-    data: Prisma.CandidateHasFeedbackUpdateInput;
-    tx?: Prisma.TransactionClient;
-  }): Promise<CandidateHasFeedback> {
+    data: CandidateHasFeedbackUpdateTableRecordType;
+    tx: Prisma.TransactionClient;
+  }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.candidateHasFeedback.update({ where: { id: params.id }, data: params.data });
+    await pc.candidateHasFeedback.update({ where: { id: params.id }, data: params.data });
   }
 
-  async delete(params: { id: number; tx?: Prisma.TransactionClient }): Promise<CandidateHasFeedback> {
+  public async delete(params: { id: number; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.candidateHasFeedback.delete({ where: { id: params.id } });
+    await pc.candidateHasFeedback.delete({ where: { id: params.id } });
   }
 
-  async getById(params: {
+  public async getById(params: {
     id: number;
     tx?: Prisma.TransactionClient;
-  }): Promise<CandidateHasFeedbackWithUserType | null> {
+  }): Promise<CandidateHasFeedbackWithUserType | undefined> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.candidateHasFeedback.findUnique({
+    return await pc.candidateHasFeedback.findUnique({
       where: { id: params.id },
       include: { createdBy: true },
-    });
+    }) ?? undefined;
   }
 
-  async findByCandidateId(params: {
+  public async findByCandidateId(params: {
     candidateId: number;
     tx?: Prisma.TransactionClient;
   }): Promise<CandidateHasFeedbackWithUserType[]> {
@@ -55,19 +62,19 @@ export class CandidateHasFeedbackDao extends BaseDao {
     });
   }
 
-  async findByCandidateIdWithPagination(params: {
+  public async findByCandidateIdWithPagination(params: {
     candidateId: number;
     page: number;
     limit: number;
     tx?: Prisma.TransactionClient;
-  }): Promise<{ feedbacks: CandidateHasFeedbackWithUserType[]; totalRecords: number }> {
+  }): Promise<{ dbRecords: CandidateHasFeedbackWithUserType[]; totalRecords: number }> {
     const pc = this.getPrismaClient(params.tx);
     const { take, skip } = this.getPagination({
       pageNo: params.page,
       pageSize: params.limit,
     });
 
-    const [totalRecords, feedbacks] = await Promise.all([
+    const [totalRecords, dbRecords] = await Promise.all([
       pc.candidateHasFeedback.count({ where: { candidateId: params.candidateId } }),
       pc.candidateHasFeedback.findMany({
         where: { candidateId: params.candidateId },
@@ -78,9 +85,14 @@ export class CandidateHasFeedbackDao extends BaseDao {
       }),
     ]);
 
-    return { feedbacks, totalRecords };
+    return { dbRecords, totalRecords };
   }
 }
+
+// Type definitions
+type CandidateHasFeedbackSelectTableRecordType = Prisma.CandidateHasFeedbackGetPayload<{}>;
+type CandidateHasFeedbackInsertTableRecordType = Prisma.CandidateHasFeedbackCreateInput;
+type CandidateHasFeedbackUpdateTableRecordType = Prisma.CandidateHasFeedbackUpdateInput;
 
 export type CandidateHasFeedbackWithUserType = Prisma.CandidateHasFeedbackGetPayload<{
   include: { createdBy: true };

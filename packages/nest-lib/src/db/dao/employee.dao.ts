@@ -1,18 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma, User, Employee } from '@repo/db';
+import type { Prisma } from '@repo/db';
 import { EmployeeStatusEnum } from '@repo/db';
 import type { EmployeeFilterRequestType } from '@repo/dto';
+import { DbOperationError, DbRecordNotFoundError } from '@repo/shared';
 
+import { TrackQuery } from '../../decorator/track-query.decorator.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { BaseDao, OrderByParam } from './_base.dao.js';
 
 @Injectable()
+@TrackQuery()
 export class EmployeeDao extends BaseDao {
   constructor(prisma: PrismaService) {
     super(prisma);
   }
 
-  async findAllWithUser(params: { organizationId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeListRecordType[]> {
+  public async findAllWithUser(params: { organizationId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeListRecordType[]> {
     const pc = this.getPrismaClient(params.tx);
     return pc.employee.findMany({
       where: { organizationId: params.organizationId },
@@ -21,9 +24,9 @@ export class EmployeeDao extends BaseDao {
     });
   }
 
-  async getByUserId(params: { userId: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeDetailRecordType | null> {
+  public async getByUserId(params: { userId: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeDetailRecordType | undefined> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.employee.findFirst({
+    const dbRec = await pc.employee.findFirst({
       where: {
         userId: params.userId,
         organizationId: params.organizationId,
@@ -33,47 +36,55 @@ export class EmployeeDao extends BaseDao {
         reportTo: { select: { id: true, firstname: true, lastname: true, email: true } },
       },
     });
+    return dbRec ?? undefined;
   }
 
-  async findByEmployeeCode(params: { employeeCode: string; organizationId: number; excludeUserId?: number; tx?: Prisma.TransactionClient }): Promise<Employee | null> {
+  public async findByEmployeeCode(params: { employeeCode: string; organizationId: number; excludeUserId?: number; tx?: Prisma.TransactionClient }): Promise<EmployeeSelectTableRecordType | undefined> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.employee.findFirst({
+    const dbRec = await pc.employee.findFirst({
       where: {
         employeeCode: params.employeeCode,
         organizationId: params.organizationId,
         ...(params.excludeUserId !== undefined ? { userId: { not: params.excludeUserId } } : {}),
       },
     });
+    return dbRec ?? undefined;
   }
 
-  async findByPan(params: { pan: string; organizationId: number; excludeUserId?: number; tx?: Prisma.TransactionClient }): Promise<Employee | null> {
+  public async findByPan(params: { pan: string; organizationId: number; excludeUserId?: number; tx?: Prisma.TransactionClient }): Promise<EmployeeSelectTableRecordType | undefined> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.employee.findFirst({
+    const dbRec = await pc.employee.findFirst({
       where: {
         pan: params.pan,
         organizationId: params.organizationId,
         ...(params.excludeUserId !== undefined ? { userId: { not: params.excludeUserId } } : {}),
       },
     });
+    return dbRec ?? undefined;
   }
 
-  async findByAadhaar(params: { aadhaar: string; organizationId: number; excludeUserId?: number; tx?: Prisma.TransactionClient }): Promise<Employee | null> {
+  public async findByAadhaar(params: { aadhaar: string; organizationId: number; excludeUserId?: number; tx?: Prisma.TransactionClient }): Promise<EmployeeSelectTableRecordType | undefined> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.employee.findFirst({
+    const dbRec = await pc.employee.findFirst({
       where: {
         aadhaar: params.aadhaar,
         organizationId: params.organizationId,
         ...(params.excludeUserId !== undefined ? { userId: { not: params.excludeUserId } } : {}),
       },
     });
+    return dbRec ?? undefined;
   }
 
-  async create(params: { data: Prisma.EmployeeCreateInput; tx?: Prisma.TransactionClient }): Promise<Employee> {
+  public async create(params: { data: EmployeeInsertTableRecordType; tx: Prisma.TransactionClient }): Promise<number> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.employee.create({ data: params.data });
+    const created = await pc.employee.create({ data: params.data });
+    if (!created?.id) {
+      throw new DbOperationError('Employee not created');
+    }
+    return created.id;
   }
 
-  async update(params: { userId: number; organizationId: number; data: Prisma.EmployeeUpdateInput; tx?: Prisma.TransactionClient }): Promise<Employee> {
+  public async update(params: { userId: number; organizationId: number; data: EmployeeUpdateTableRecordType; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
     const existing = await pc.employee.findFirst({
       where: {
@@ -81,11 +92,13 @@ export class EmployeeDao extends BaseDao {
         organizationId: params.organizationId,
       },
     });
-    if (!existing) throw new Error(`Employee with userId ${params.userId} not found`);
-    return pc.employee.update({ where: { id: existing.id }, data: params.data });
+    if (!existing) {
+      throw new DbRecordNotFoundError(`Employee with userId ${params.userId} not found`);
+    }
+    await pc.employee.update({ where: { id: existing.id }, data: params.data });
   }
 
-  async search(params: {
+  public async search(params: {
     filterDto: EmployeeFilterRequestType;
     organizationId: number;
     orderBy?: OrderByParam;
@@ -115,7 +128,7 @@ export class EmployeeDao extends BaseDao {
     }
 
     if (params.filterDto.status?.length) {
-      where.status = { in: params.filterDto.status as unknown as EmployeeStatusEnum[] };
+      where.status = { in: this.toEnumArray(params.filterDto.status, EmployeeStatusEnum) };
     }
 
     const [totalRecords, dbRecords] = await Promise.all([
@@ -132,6 +145,11 @@ export class EmployeeDao extends BaseDao {
     return { dbRecords, totalRecords };
   }
 }
+
+// Type definitions
+type EmployeeSelectTableRecordType = Prisma.EmployeeGetPayload<{}>;
+type EmployeeInsertTableRecordType = Prisma.EmployeeCreateInput;
+type EmployeeUpdateTableRecordType = Prisma.EmployeeUpdateInput;
 
 export type EmployeeListRecordType = Prisma.EmployeeGetPayload<{
   include: { user: true };

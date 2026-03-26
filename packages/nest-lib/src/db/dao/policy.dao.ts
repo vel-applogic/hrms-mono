@@ -1,24 +1,31 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma, Policy } from '@repo/db';
-
+import { Prisma } from '@repo/db';
 import { PolicyFilterRequestType } from '@repo/dto';
+import { DbOperationError, DbRecordNotFoundError } from '@repo/shared';
+
+import { TrackQuery } from '../../decorator/track-query.decorator.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { BaseDao, OrderByParam } from './_base.dao.js';
 
 @Injectable()
+@TrackQuery()
 export class PolicyDao extends BaseDao {
   constructor(prisma: PrismaService) {
     super(prisma);
   }
 
-  async create(params: { data: Prisma.PolicyCreateInput; tx?: Prisma.TransactionClient }): Promise<Policy> {
+  public async create(params: { data: PolicyInsertTableRecordType; tx: Prisma.TransactionClient }): Promise<number> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.policy.create({ data: params.data });
+    const created = await pc.policy.create({ data: params.data });
+    if (!created?.id) {
+      throw new DbOperationError('Policy not created');
+    }
+    return created.id;
   }
 
-  async update(params: { id: number; organizationId: number; data: Prisma.PolicyUpdateInput; tx?: Prisma.TransactionClient }): Promise<Policy> {
+  public async update(params: { id: number; organizationId: number; data: PolicyUpdateTableRecordType; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.policy.update({
+    await pc.policy.update({
       where: { id: params.id, organizationId: params.organizationId },
       data: params.data,
     });
@@ -65,9 +72,9 @@ export class PolicyDao extends BaseDao {
     return { dbRecords, totalRecords };
   }
 
-  async getById(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<PolicyDetailRecordType | null> {
+  public async getById(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<PolicyDetailRecordType | undefined> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.policy.findFirst({
+    const dbRec = await pc.policy.findFirst({
       where: {
         id: params.id,
         organizationId: params.organizationId,
@@ -80,11 +87,26 @@ export class PolicyDao extends BaseDao {
         },
       },
     });
+    return dbRec ?? undefined;
   }
 
-  async delete(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<Policy> {
+  public async getByIdOrThrow(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<PolicyDetailRecordType> {
+    const dbRec = await this.getById(params);
+    if (!dbRec) {
+      throw new DbRecordNotFoundError('Policy not found');
+    }
+    return dbRec;
+  }
+
+  public async deleteByIdOrThrow(params: { id: number; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.policy.delete({
+    const dbRecord = await pc.policy.findFirst({
+      where: { id: params.id, organizationId: params.organizationId },
+    });
+    if (!dbRecord) {
+      throw new DbRecordNotFoundError('Invalid policy id');
+    }
+    await pc.policy.delete({
       where: { id: params.id, organizationId: params.organizationId },
     });
   }
@@ -96,3 +118,6 @@ export type PolicyListRecordType = Prisma.PolicyGetPayload<{
 export type PolicyDetailRecordType = Prisma.PolicyGetPayload<{
   include: { policyHasMedias: { include: { media: true } } };
 }>;
+
+type PolicyInsertTableRecordType = Prisma.PolicyCreateInput;
+type PolicyUpdateTableRecordType = Prisma.PolicyUpdateInput;

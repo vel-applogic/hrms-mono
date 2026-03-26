@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { CandidateDetailResponseType } from '@repo/dto';
 import { CandidateDao, CommonLoggerService, CurrentUserType, IUseCase, PrismaService } from '@repo/nest-lib';
-import { ApiError } from '@repo/shared';
+import { ApiBadRequestError } from '@repo/shared';
 
 import { S3Service } from '#src/external-service/s3.service.js';
 
@@ -23,7 +23,7 @@ export class CandidateGetUc extends BaseCandidateUc implements IUseCase<Params, 
 
     const candidate = await this.validate(params);
 
-    if (!candidate) throw new ApiError('Candidate not found', 404);
+    if (!candidate) throw new ApiBadRequestError('Candidate not found');
     return candidate;
   }
 

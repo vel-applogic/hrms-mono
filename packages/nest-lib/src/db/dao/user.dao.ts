@@ -1,44 +1,53 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma, User } from '@repo/db';
+import type { Prisma } from '@repo/db';
+import { DbOperationError } from '@repo/shared';
 
+import { TrackQuery } from '../../decorator/track-query.decorator.js';
+import { userRoleDtoEnumToDbEnum } from '../../util/enum.util.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { OrderByParam } from '../index.js';
 import { UserFilterRequestType } from '@repo/dto';
-import { userRoleDtoEnumToDbEnum } from '../../util/enum.util.js';
 import { BaseDao } from './_base.dao.js';
 
 @Injectable()
+@TrackQuery()
 export class UserDao extends BaseDao {
   constructor(prisma: PrismaService) {
     super(prisma);
   }
 
-  async create(params: { data: Prisma.UserCreateInput; tx?: Prisma.TransactionClient }): Promise<User> {
+  public async create(params: { data: UserInsertTableRecordType; tx: Prisma.TransactionClient }): Promise<number> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.user.create({ data: params.data });
+    const created = await pc.user.create({ data: params.data });
+    if (!created?.id) {
+      throw new DbOperationError('User not created');
+    }
+    return created.id;
   }
 
-  async update(params: { id: number; data: Prisma.UserUpdateInput; tx?: Prisma.TransactionClient }): Promise<User> {
+  public async update(params: { id: number; data: UserUpdateTableRecordType; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.user.update({ where: { id: params.id }, data: params.data });
+    await pc.user.update({ where: { id: params.id }, data: params.data });
   }
 
-  async delete(params: { id: number; tx?: Prisma.TransactionClient }): Promise<User> {
+  public async delete(params: { id: number; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.user.update({ where: { id: params.id }, data: { isActive: false } });
+    await pc.user.update({ where: { id: params.id }, data: { isActive: false } });
   }
 
-  async getById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<User | null> {
+  public async getById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<UserSelectTableRecordType | undefined> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.user.findUnique({ where: { id: params.id } });
+    const dbRec = await pc.user.findUnique({ where: { id: params.id } });
+    return dbRec ?? undefined;
   }
 
-  async getByEmail(params: { email: string; tx?: Prisma.TransactionClient }): Promise<User | null> {
+  public async getByEmail(params: { email: string; tx?: Prisma.TransactionClient }): Promise<UserSelectTableRecordType | undefined> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.user.findUnique({ where: { email: params.email } });
+    const dbRec = await pc.user.findUnique({ where: { email: params.email } });
+    return dbRec ?? undefined;
   }
 
-  async getCount(params: { where: Prisma.UserWhereInput; tx?: Prisma.TransactionClient }): Promise<number> {
+  public async getCount(params: { where: Prisma.UserWhereInput; tx?: Prisma.TransactionClient }): Promise<number> {
     const pc = this.getPrismaClient(params.tx);
     return pc.user.count({ where: params.where });
   }
@@ -49,7 +58,7 @@ export class UserDao extends BaseDao {
     organizationId: number;
     includeSuperAdmins?: boolean;
     tx?: Prisma.TransactionClient;
-  }): Promise<{ totalRecords: number; dbRecords: User[] }> {
+  }): Promise<{ totalRecords: number; dbRecords: UserSelectTableRecordType[] }> {
     const pc = this.getPrismaClient(params.tx);
     const pagination = {
       pageNo: params.filterDto.pagination.page,
@@ -90,3 +99,10 @@ export class UserDao extends BaseDao {
     return { dbRecords, totalRecords };
   }
 }
+
+// Type definitions
+type UserSelectTableRecordType = Prisma.UserGetPayload<{}>;
+type UserInsertTableRecordType = Prisma.UserCreateInput;
+type UserUpdateTableRecordType = Prisma.UserUpdateInput;
+
+export type { UserSelectTableRecordType };

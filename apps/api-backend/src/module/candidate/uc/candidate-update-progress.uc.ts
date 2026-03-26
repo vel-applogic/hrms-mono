@@ -35,10 +35,13 @@ export class CandidateUpdateProgressUc extends BaseCandidateUc implements IUseCa
 
     const existing = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
 
-    await this.candidateDao.update({
-      id: params.id,
-      organizationId: params.currentUser.organizationId,
-      data: { progress: params.dto.progress },
+    await this.transaction(async (tx) => {
+      await this.candidateDao.update({
+        id: params.id,
+        organizationId: params.currentUser.organizationId,
+        data: { progress: params.dto.progress },
+        tx,
+      });
     });
 
     await this.auditService.recordActivity({

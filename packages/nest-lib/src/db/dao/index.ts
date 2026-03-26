@@ -1,9 +1,9 @@
 export { BaseDao } from './_base.dao.js';
 export type { OrderByParam } from './_base.dao.js';
-export { UserDao } from './user.dao.js';
-export { OrganizationDao } from './organization.dao.js';
-export { OrganizationHasUserDao } from './organization-has-user.dao.js';
-export { BranchDao } from './branch.dao.js';
+export { UserDao, type UserSelectTableRecordType } from './user.dao.js';
+export { OrganizationDao, type OrganizationSelectTableRecordType } from './organization.dao.js';
+export { OrganizationHasUserDao, type OrganizationHasUserWithOrganizationType } from './organization-has-user.dao.js';
+export { BranchDao, type BranchSelectTableRecordType } from './branch.dao.js';
 export { UserInBranchDao } from './user-in-branch.dao.js';
 export { MediaDao } from './media.dao.js';
 export { AuditActivityDao } from './audit-activity.dao.js';
@@ -32,6 +32,6 @@ export {
 } from './employee-feedback.dao.js';
 export { LeaveDao, type LeaveWithUserType } from './leave.dao.js';
 export { LeaveConfigDao } from './leave-config.dao.js';
-export { EmployeeLeaveCounterDao } from './employee-leave-counter.dao.js';
+export { EmployeeLeaveCounterDao, type EmployeeLeaveCounterWithUserType } from './employee-leave-counter.dao.js';
 export { PayrollPayslipDao, type PayrollPayslipWithUserType, type PayrollPayslipWithDetailsType } from './payroll-payslip.dao.js';
 export { UserInviteDao } from './user-invite.dao.js';

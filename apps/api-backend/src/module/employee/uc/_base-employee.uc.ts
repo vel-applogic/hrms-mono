@@ -1,9 +1,8 @@
 import { EmployeeMediaType } from '@repo/db';
 import type { EmployeeDetailResponseType, EmployeeListResponseType, MediaResponseType } from '@repo/dto';
-import { EmployeeStatusDtoEnum } from '@repo/dto';
 import type { EmployeeListRecordType } from '@repo/nest-lib';
-import { BaseUc, CommonLoggerService, EmployeeDao, EmployeeHasMediaDao, PrismaService } from '@repo/nest-lib';
-import { ApiError } from '@repo/shared';
+import { BaseUc, CommonLoggerService, EmployeeDao, EmployeeHasMediaDao, employeeStatusDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
+import { ApiBadRequestError } from '@repo/shared';
 
 import type { S3Service } from '#src/external-service/s3.service.js';
 
@@ -59,7 +58,7 @@ export class BaseEmployeeUc extends BaseUc {
       designation: employee.designation,
       dateOfJoining: employee.dateOfJoining.toISOString().split('T')[0]!,
       dateOfLeaving: employee.dateOfLeaving?.toISOString().split('T')[0] ?? undefined,
-      status: employee.status as unknown as EmployeeStatusDtoEnum,
+      status: employeeStatusDbEnumToDtoEnum(employee.status),
       reportToId: employee.reportToId,
       reportTo: employee.reportTo
         ? {
@@ -80,7 +79,7 @@ export class BaseEmployeeUc extends BaseUc {
 
   async getByIdOrThrow(userId: number, organizationId: number): Promise<EmployeeDetailResponseType> {
     const employee = await this.getById(userId, organizationId);
-    if (!employee) throw new ApiError('Employee not found', 404);
+    if (!employee) throw new ApiBadRequestError('Employee not found');
     return employee;
   }
 
@@ -92,7 +91,7 @@ export class BaseEmployeeUc extends BaseUc {
       lastname: dbRec.user.lastname,
       email: dbRec.user.email,
       designation: dbRec.designation,
-      status: dbRec.status as unknown as EmployeeStatusDtoEnum,
+      status: employeeStatusDbEnumToDtoEnum(dbRec.status),
       dateOfJoining: dbRec.dateOfJoining.toISOString().split('T')[0]!,
       dateOfLeaving: dbRec.dateOfLeaving?.toISOString().split('T')[0] ?? null,
       createdAt: dbRec.createdAt.toISOString(),

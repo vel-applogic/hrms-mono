@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { OperationStatusResponseType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, PayrollDeductionDao } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, PayrollDeductionDao, PrismaService } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 type Params = {
@@ -11,6 +11,7 @@ type Params = {
 @Injectable()
 export class EmployeeDeductionDeleteUc implements IUseCase<Params, OperationStatusResponseType> {
   constructor(
+    private readonly prisma: PrismaService,
     private readonly logger: CommonLoggerService,
     private readonly payrollDeductionDao: PayrollDeductionDao,
   ) {}
@@ -23,7 +24,9 @@ export class EmployeeDeductionDeleteUc implements IUseCase<Params, OperationStat
       throw new ApiError('Deduction not found', 404);
     }
 
-    await this.payrollDeductionDao.deleteById({ id: params.id, organizationId: params.currentUser.organizationId });
+    await this.prisma.$transaction(async (tx) => {
+      await this.payrollDeductionDao.deleteByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId, tx });
+    });
 
     return { success: true };
   }

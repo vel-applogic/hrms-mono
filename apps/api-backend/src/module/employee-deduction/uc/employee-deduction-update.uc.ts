@@ -9,6 +9,7 @@ import {
   CurrentUserType,
   IUseCase,
   PayrollDeductionDao,
+  PrismaService,
 } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
@@ -27,6 +28,7 @@ type Params = {
 @Injectable()
 export class EmployeeDeductionUpdateUc implements IUseCase<Params, EmployeeDeductionResponseType> {
   constructor(
+    private readonly prisma: PrismaService,
     private readonly logger: CommonLoggerService,
     private readonly payrollDeductionDao: PayrollDeductionDao,
   ) {}
@@ -80,9 +82,12 @@ export class EmployeeDeductionUpdateUc implements IUseCase<Params, EmployeeDeduc
     if (params.dto.effectiveTill !== undefined) updateData.effectiveTill = params.dto.effectiveTill ? parseDateOnly(params.dto.effectiveTill) : null;
     if (params.dto.isActive !== undefined) updateData.isActive = params.dto.isActive;
 
-    await this.payrollDeductionDao.update({
-      id: params.id,
-      data: updateData,
+    await this.prisma.$transaction(async (tx) => {
+      await this.payrollDeductionDao.update({
+        id: params.id,
+        data: updateData,
+        tx,
+      });
     });
 
     const updated = await this.payrollDeductionDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { PayslipDetailResponseType, PayslipUpdateLineItemsRequestType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, PayrollPayslipDao } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, PayrollPayslipDao, PrismaService } from '@repo/nest-lib';
 import type { PayrollPayslipWithDetailsType } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
@@ -13,6 +13,7 @@ type Params = {
 @Injectable()
 export class PayslipUpdateLineItemsUc implements IUseCase<Params, PayslipDetailResponseType> {
   constructor(
+    private readonly prisma: PrismaService,
     private readonly logger: CommonLoggerService,
     private readonly payrollPayslipDao: PayrollPayslipDao,
   ) {}
@@ -25,13 +26,16 @@ export class PayslipUpdateLineItemsUc implements IUseCase<Params, PayslipDetailR
       throw new ApiError('Payslip not found', 404);
     }
 
-    const updated = await this.payrollPayslipDao.replaceLineItems({
-      payslipId: params.id,
-      lineItems: params.dto.lineItems.map((li) => ({
-        type: li.type,
-        title: li.title,
-        amount: li.amount,
-      })),
+    const updated = await this.prisma.$transaction(async (tx) => {
+      return this.payrollPayslipDao.replaceLineItems({
+        payslipId: params.id,
+        lineItems: params.dto.lineItems.map((li) => ({
+          type: li.type,
+          title: li.title,
+          amount: li.amount,
+        })),
+        tx,
+      });
     });
 
     if (!updated) {

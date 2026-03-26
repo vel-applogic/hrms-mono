@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { AuthLoginRequestType, AuthLoginResponseType } from '@repo/dto';
 import { CommonLoggerService, IUseCase, OrganizationHasUserDao, UserDao, UserVerifyEmailDao, userRoleDbEnumToDtoEnum } from '@repo/nest-lib';
-import { ApiError } from '@repo/shared';
+import { ApiBadRequestError, ApiError } from '@repo/shared';
 
 import { PasswordService } from '../../../service/password.service.js';
 
@@ -38,9 +38,9 @@ export class AuthLoginUc implements IUseCase<Params, AuthLoginResponseType> {
     if (!user.isActive) {
       const hasPending = await this.userVerifyEmailDao.hasPendingVerification({ userId: user.id });
       if (hasPending) {
-        throw new ApiError('Email is not verified', 403);
+        throw new ApiBadRequestError('Email is not verified');
       }
-      throw new ApiError('Account is disabled', 403);
+      throw new ApiBadRequestError('Account is disabled');
     }
 
     const orgMemberships = await this.organizationHasUserDao.findAllByUserWithOrganization({ userId: user.id });

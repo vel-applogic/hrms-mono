@@ -1,4 +1,3 @@
-import { User } from '@repo/db';
 import { AdminUserDetailResponseType, UserRoleDtoEnum } from '@repo/dto';
 import { BaseUc, CommonLoggerService, OrganizationHasUserDao, PrismaService, UserDao, userRoleDbEnumToDtoEnum } from '@repo/nest-lib';
 import { ApiBadRequestError } from '@repo/shared';

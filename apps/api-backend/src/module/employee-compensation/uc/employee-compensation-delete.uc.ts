@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { OperationStatusResponseType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, PayrollCompensationDao } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, PayrollCompensationDao, PrismaService } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 type Params = {
@@ -11,6 +11,7 @@ type Params = {
 @Injectable()
 export class EmployeeCompensationDeleteUc implements IUseCase<Params, OperationStatusResponseType> {
   constructor(
+    private readonly prisma: PrismaService,
     private readonly logger: CommonLoggerService,
     private readonly payrollCompensationDao: PayrollCompensationDao,
   ) {}
@@ -23,7 +24,9 @@ export class EmployeeCompensationDeleteUc implements IUseCase<Params, OperationS
       throw new ApiError('Compensation not found', 404);
     }
 
-    await this.payrollCompensationDao.deleteById({ id: params.id, organizationId: params.currentUser.organizationId });
+    await this.prisma.$transaction(async (tx) => {
+      await this.payrollCompensationDao.deleteByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId, tx });
+    });
 
     return { success: true };
   }

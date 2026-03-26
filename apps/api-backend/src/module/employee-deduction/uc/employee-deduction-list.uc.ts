@@ -35,14 +35,14 @@ export class EmployeeDeductionListUc implements IUseCase<Params, PaginatedRespon
       throw new ApiError('Employee not found', 404);
     }
 
-    const { deductions, totalRecords } = await this.payrollDeductionDao.findByUserIdWithPagination({
+    const { dbRecords, totalRecords } = await this.payrollDeductionDao.findByUserIdWithPagination({
       userId: params.filterDto.employeeId,
       organizationId: params.currentUser.organizationId,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
     });
 
-    const results = deductions.map((d: PayrollDeduction) => ({
+    const results = dbRecords.map((d: PayrollDeduction) => ({
       id: d.id,
       employeeId: d.userId,
       type: d.type,

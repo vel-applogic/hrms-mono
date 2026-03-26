@@ -3,11 +3,11 @@ import { Prisma } from '@repo/db';
 import { DbOperationError, DbRecordNotFoundError } from '@repo/shared';
 
 import { BaseDao } from './_base.dao.js';
-// import { TrackQuery } from '../../decorator/track-query.decorator.decorator.js';
+import { TrackQuery } from '../../decorator/track-query.decorator.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
-// @TrackQuery()
+@TrackQuery()
 export class MediaDao extends BaseDao {
   constructor(prisma: PrismaService) {
     super(prisma);

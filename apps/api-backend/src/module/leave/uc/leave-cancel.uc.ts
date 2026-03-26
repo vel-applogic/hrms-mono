@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { type LeaveResponseType, UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, EmployeeDao, EmployeeLeaveCounterDao, IUseCase, LeaveConfigDao, LeaveDao, PrismaService } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, EmployeeDao, EmployeeLeaveCounterDao, IUseCase, LeaveConfigDao, LeaveDao, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
 import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
@@ -11,7 +11,7 @@ type Params = {
 @Injectable()
 export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
   constructor(
-    prisma: PrismaService,
+    private readonly prisma: PrismaService,
     private readonly logger: CommonLoggerService,
     private readonly employeeDao: EmployeeDao,
     private readonly leaveDao: LeaveDao,
@@ -43,34 +43,50 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
       }
     }
 
-    await this.leaveDao.update({
-      id: params.id,
-      organizationId: params.currentUser.organizationId,
-      data: { status: 'cancelled' },
-    });
-
     if (existing.status === 'approved') {
       const financialYear = getFinancialYearCode(existing.startDate);
       const { start, end } = getFinancialYearDateRange(financialYear);
-      const totals = await this.leaveDao.getApprovedLeaveTotalsByUserIdAndDateRange({
-        userId: existing.userId,
-        organizationId: params.currentUser.organizationId,
-        startDate: start,
-        endDate: end,
-      });
       const leaveConfig = await this.leaveConfigDao.getLatest();
       const maxLeaves = leaveConfig?.maxLeaves ?? 24;
-      try {
-        await this.employeeLeaveCounterDao.syncFromActualLeaves({
+
+      await this.prisma.$transaction(async (tx) => {
+        await this.leaveDao.update({
+          id: params.id,
+          organizationId: params.currentUser.organizationId,
+          data: { status: 'cancelled' },
+          tx,
+        });
+
+        const totals = await this.leaveDao.getApprovedLeaveTotalsByUserIdAndDateRange({
           userId: existing.userId,
           organizationId: params.currentUser.organizationId,
-          financialYear,
-          ...totals,
-          maxLeaves,
+          startDate: start,
+          endDate: end,
+          tx,
         });
-      } catch {
-        this.logger.w('Failed to sync leave counter', { leaveId: params.id });
-      }
+
+        try {
+          await this.employeeLeaveCounterDao.syncFromActualLeaves({
+            userId: existing.userId,
+            organizationId: params.currentUser.organizationId,
+            financialYear,
+            ...totals,
+            maxLeaves,
+            tx,
+          });
+        } catch {
+          this.logger.w('Failed to sync leave counter', { leaveId: params.id });
+        }
+      });
+    } else {
+      await this.prisma.$transaction(async (tx) => {
+        await this.leaveDao.update({
+          id: params.id,
+          organizationId: params.currentUser.organizationId,
+          data: { status: 'cancelled' },
+          tx,
+        });
+      });
     }
 
     const updated = await this.leaveDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
@@ -85,12 +101,12 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
         lastname: updated.user.lastname,
         email: updated.user.email,
       },
-      leaveType: updated.leaveType as import('@repo/dto').LeaveTypeDtoEnum,
+      leaveType: leaveTypeDbEnumToDtoEnum(updated.leaveType),
       startDate: updated.startDate.toISOString().split('T')[0],
       endDate: updated.endDate.toISOString().split('T')[0],
       numberOfDays: updated.numberOfDays,
       reason: updated.reason,
-      status: updated.status as import('@repo/dto').LeaveStatusDtoEnum,
+      status: leaveStatusDbEnumToDtoEnum(updated.status),
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
     };

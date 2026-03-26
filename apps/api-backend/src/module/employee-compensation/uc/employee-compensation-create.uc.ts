@@ -29,7 +29,7 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
 
     const { newEffectiveFrom, mostRecent } = await this.validate(params);
 
-    const created = await this.prisma.$transaction(async (tx) => {
+    const createdId = await this.prisma.$transaction(async (tx) => {
       if (mostRecent) {
         const mostRecentFrom = new Date(mostRecent.effectiveFrom);
         mostRecentFrom.setUTCHours(0, 0, 0, 0);
@@ -66,6 +66,9 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
         tx,
       });
     });
+
+    const created = await this.payrollCompensationDao.getById({ id: createdId, organizationId: params.currentUser.organizationId });
+    if (!created) throw new ApiError('Failed to fetch created compensation', 500);
 
     return {
       id: created.id,

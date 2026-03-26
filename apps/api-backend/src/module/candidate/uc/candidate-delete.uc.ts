@@ -50,7 +50,7 @@ export class CandidateDeleteUc extends BaseCandidateUc implements IUseCase<Param
 
   private async deleteCandidate(params: { id: number; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
     await this.candidateHasMediaDao.deleteManyByCandidateId({ candidateId: params.id, tx: params.tx });
-    await this.candidateDao.delete({ id: params.id, organizationId: params.organizationId, tx: params.tx });
+    await this.candidateDao.deleteByIdOrThrow({ id: params.id, organizationId: params.organizationId, tx: params.tx });
   }
 
   private async recordActivity(params: Params, deleted: CandidateDetailResponseType): Promise<void> {

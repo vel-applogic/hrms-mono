@@ -25,14 +25,14 @@ export class EmployeeCompensationListUc implements IUseCase<Params, PaginatedRes
       throw new ApiError('Employee not found', 404);
     }
 
-    const { compensations, totalRecords } = await this.payrollCompensationDao.findByUserIdWithPagination({
+    const { dbRecords, totalRecords } = await this.payrollCompensationDao.findByUserIdWithPagination({
       userId: params.filterDto.employeeId,
       organizationId: params.currentUser.organizationId,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
     });
 
-    const results = compensations.map((c) => ({
+    const results = dbRecords.map((c) => ({
       id: c.id,
       employeeId: c.userId,
       basic: c.basic,

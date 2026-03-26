@@ -1,28 +1,34 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma, EmployeeHasMedia } from '@repo/db';
-import { EmployeeMediaType } from '@repo/db';
+import { EmployeeMediaType, Prisma } from '@repo/db';
+import { DbOperationError } from '@repo/shared';
 
+import { TrackQuery } from '../../decorator/track-query.decorator.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { BaseDao } from './_base.dao.js';
 
 @Injectable()
+@TrackQuery()
 export class EmployeeHasMediaDao extends BaseDao {
   constructor(prisma: PrismaService) {
     super(prisma);
   }
 
-  async create(params: {
+  public async create(params: {
     data: { userId: number; mediaId: number; type: EmployeeMediaType; caption?: string };
-    tx?: Prisma.TransactionClient;
-  }): Promise<EmployeeHasMedia> {
+    tx: Prisma.TransactionClient;
+  }): Promise<number> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.employeeHasMedia.create({ data: params.data });
+    const dbRec = await pc.employeeHasMedia.create({ data: params.data });
+    if (!dbRec?.id) {
+      throw new DbOperationError('EmployeeHasMedia not created');
+    }
+    return dbRec.id;
   }
 
-  async deleteManyByUserIdAndType(params: {
+  public async deleteManyByUserIdAndType(params: {
     userId: number;
     type: EmployeeMediaType;
-    tx?: Prisma.TransactionClient;
+    tx: Prisma.TransactionClient;
   }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
     await pc.employeeHasMedia.deleteMany({
@@ -30,7 +36,7 @@ export class EmployeeHasMediaDao extends BaseDao {
     });
   }
 
-  async findByUserId(params: { userId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeHasMediaWithMediaType[]> {
+  public async findByUserId(params: { userId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeHasMediaWithMediaType[]> {
     const pc = this.getPrismaClient(params.tx);
     return pc.employeeHasMedia.findMany({
       where: { userId: params.userId },
@@ -39,6 +45,11 @@ export class EmployeeHasMediaDao extends BaseDao {
     });
   }
 }
+
+// Type definitions
+type EmployeeHasMediaSelectTableRecordType = Prisma.EmployeeHasMediaGetPayload<{}>;
+type EmployeeHasMediaInsertTableRecordType = Prisma.EmployeeHasMediaCreateInput;
+type EmployeeHasMediaUpdateTableRecordType = Prisma.EmployeeHasMediaUpdateInput;
 
 export type EmployeeHasMediaWithMediaType = Prisma.EmployeeHasMediaGetPayload<{
   include: { media: true };

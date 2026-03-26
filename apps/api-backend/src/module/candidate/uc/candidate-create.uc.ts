@@ -44,7 +44,7 @@ export class CandidateCreateUc extends BaseCandidateUc implements IUseCase<Param
     await this.validate(params);
 
     const createdId = await this.transaction(async (tx) => {
-      const candidate = await this.candidateDao.create({
+      const candidateId = await this.candidateDao.create({
         data: {
           organization: { connect: { id: params.currentUser.organizationId } },
           firstname: params.dto.firstname,
@@ -67,10 +67,10 @@ export class CandidateCreateUc extends BaseCandidateUc implements IUseCase<Param
       });
 
       if (params.dto.resume) {
-        await this.createAndLinkMedia({ media: params.dto.resume, candidateId: candidate.id, organizationId: params.currentUser.organizationId, type: CandidateMediaType.resume, tx });
+        await this.createAndLinkMedia({ media: params.dto.resume, candidateId, organizationId: params.currentUser.organizationId, type: CandidateMediaType.resume, tx });
       }
 
-      return candidate.id;
+      return candidateId;
     });
 
     const candidate = await this.getByIdOrThrow(createdId, params.currentUser.organizationId);

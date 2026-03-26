@@ -5,6 +5,7 @@ import { DbOperationError } from '@repo/shared';
 
 import { BaseDao, OrderByParam } from './_base.dao.js';
 import { TrackQuery } from '../../decorator/track-query.decorator.js';
+import { auditEntityTypeDtoEnumToDbEnum } from '../../util/enum.util.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
@@ -115,7 +116,7 @@ export class AuditActivityDao extends BaseDao {
     };
   }
 
-  public async getByIdWithRelations(params: { id: number; tx?: Prisma.TransactionClient }): Promise<AuditActivityWithRelationsType | null> {
+  public async getByIdWithRelations(params: { id: number; tx?: Prisma.TransactionClient }): Promise<AuditActivityWithRelationsType | undefined> {
     const pc = this.getPrismaClient(params.tx);
 
     const dbRec = await pc.auditActivity.findFirst({
@@ -135,7 +136,7 @@ export class AuditActivityDao extends BaseDao {
     });
 
     if (!dbRec) {
-      return null;
+      return undefined;
     }
 
     return {
@@ -182,7 +183,7 @@ export class AuditActivityDao extends BaseDao {
       entities: {
         some: {
           OR: params.filterDto.id.map((item) => ({
-            entityType: item.entityType as never,
+            entityType: auditEntityTypeDtoEnumToDbEnum(item.entityType),
             entityId: item.entityId,
           })),
         },

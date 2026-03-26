@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { LeaveStatusEnum } from '@repo/db';
 import { type LeaveCreateRequestType, type LeaveResponseType, UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, EmployeeDao, IUseCase, LeaveConfigDao, LeaveDao, PrismaService } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, EmployeeDao, IUseCase, LeaveConfigDao, LeaveDao, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, leaveTypeDtoEnumToDbEnum, PrismaService } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 type Params = {
@@ -40,7 +41,7 @@ function getTypeLimit(config: { maxLeaves: number; maxSickLeaves: number; maxEar
 @Injectable()
 export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
   constructor(
-    prisma: PrismaService,
+    private readonly prisma: PrismaService,
     private readonly logger: CommonLoggerService,
     private readonly employeeDao: EmployeeDao,
     private readonly leaveDao: LeaveDao,
@@ -77,12 +78,13 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
       throw new ApiError('At least one business day is required', 400);
     }
 
-    const countStatuses = ['pending', 'approved'];
+    const countStatuses: LeaveStatusEnum[] = [LeaveStatusEnum.pending, LeaveStatusEnum.approved];
+    const leaveTypeDb = leaveTypeDtoEnumToDbEnum(params.dto.leaveType);
     const existingByType = await this.leaveDao.sumDaysByUserIdAndStatus({
       userId: targetUserId,
       organizationId: params.currentUser.organizationId,
       statuses: countStatuses,
-      leaveType: params.dto.leaveType,
+      leaveType: leaveTypeDb,
     });
     const existingTotal = await this.leaveDao.sumDaysByUserIdAndStatus({
       userId: targetUserId,
@@ -98,20 +100,23 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
       throw new ApiError(`Exceeds total leave limit. Used: ${existingTotal}, Limit: ${config.maxLeaves}, Requested: ${numberOfDays}`, 400);
     }
 
-    const created = await this.leaveDao.create({
-      data: {
-        user: { connect: { id: targetUserId } },
-        organization: { connect: { id: params.currentUser.organizationId } },
-        leaveType: params.dto.leaveType as 'casual' | 'sick' | 'medical' | 'earned',
-        startDate,
-        endDate,
-        numberOfDays,
-        reason: params.dto.reason,
-        status: 'pending',
-      },
+    const createdId = await this.prisma.$transaction(async (tx) => {
+      return this.leaveDao.create({
+        data: {
+          user: { connect: { id: targetUserId } },
+          organization: { connect: { id: params.currentUser.organizationId } },
+          leaveType: leaveTypeDb,
+          startDate,
+          endDate,
+          numberOfDays,
+          reason: params.dto.reason,
+          status: 'pending',
+        },
+        tx,
+      });
     });
 
-    const withUser = await this.leaveDao.getById({ id: created.id, organizationId: params.currentUser.organizationId });
+    const withUser = await this.leaveDao.getById({ id: createdId, organizationId: params.currentUser.organizationId });
     if (!withUser) throw new ApiError('Failed to fetch created leave', 500);
 
     return {
@@ -123,12 +128,12 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
         lastname: withUser.user.lastname,
         email: withUser.user.email,
       },
-      leaveType: withUser.leaveType as import('@repo/dto').LeaveTypeDtoEnum,
+      leaveType: leaveTypeDbEnumToDtoEnum(withUser.leaveType),
       startDate: withUser.startDate.toISOString().split('T')[0],
       endDate: withUser.endDate.toISOString().split('T')[0],
       numberOfDays: withUser.numberOfDays,
       reason: withUser.reason,
-      status: withUser.status as import('@repo/dto').LeaveStatusDtoEnum,
+      status: leaveStatusDbEnumToDtoEnum(withUser.status),
       createdAt: withUser.createdAt.toISOString(),
       updatedAt: withUser.updatedAt.toISOString(),
     };

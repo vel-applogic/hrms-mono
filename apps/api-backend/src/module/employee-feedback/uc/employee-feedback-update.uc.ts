@@ -15,7 +15,7 @@ type Params = {
 @Injectable()
 export class EmployeeFeedbackUpdateUc implements IUseCase<Params, EmployeeFeedbackResponseType> {
   constructor(
-    prisma: PrismaService,
+    private readonly prisma: PrismaService,
     private readonly logger: CommonLoggerService,
     private readonly employeeFeedbackDao: EmployeeFeedbackDao,
   ) {}
@@ -28,19 +28,21 @@ export class EmployeeFeedbackUpdateUc implements IUseCase<Params, EmployeeFeedba
       throw new ApiError('Feedback not found', 404);
     }
 
-    await this.employeeFeedbackDao.update({
-      id: params.id,
-      organizationId: params.currentUser.organizationId,
-      data: {
-        trend: params.dto.trend as 'positive' | 'negative' | 'neutral',
-        point: params.dto.point ?? 0,
-        title: params.dto.title,
-        feedback: params.dto.feedback,
-      },
+    await this.prisma.$transaction(async (tx) => {
+      await this.employeeFeedbackDao.update({
+        id: params.id,
+        organizationId: params.currentUser.organizationId,
+        data: {
+          trend: params.dto.trend,
+          point: params.dto.point ?? 0,
+          title: params.dto.title,
+          feedback: params.dto.feedback,
+        },
+        tx,
+      });
     });
 
-    const updated = await this.employeeFeedbackDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
-    if (!updated) throw new ApiError('Failed to fetch updated feedback', 500);
+    const updated = await this.employeeFeedbackDao.getByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId });
 
     return {
       id: updated.id,

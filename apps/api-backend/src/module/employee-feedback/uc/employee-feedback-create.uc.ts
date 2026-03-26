@@ -14,7 +14,7 @@ type Params = {
 @Injectable()
 export class EmployeeFeedbackCreateUc implements IUseCase<Params, EmployeeFeedbackResponseType> {
   constructor(
-    prisma: PrismaService,
+    private readonly prisma: PrismaService,
     private readonly logger: CommonLoggerService,
     private readonly employeeDao: EmployeeDao,
     private readonly employeeFeedbackDao: EmployeeFeedbackDao,
@@ -28,20 +28,22 @@ export class EmployeeFeedbackCreateUc implements IUseCase<Params, EmployeeFeedba
       throw new ApiError('Employee not found', 404);
     }
 
-    const created = await this.employeeFeedbackDao.create({
-      data: {
-        user: { connect: { id: params.dto.employeeId } },
-        organization: { connect: { id: params.currentUser.organizationId } },
-        createdBy: { connect: { id: params.currentUser.id } },
-        trend: params.dto.trend as 'positive' | 'negative' | 'neutral',
-        point: params.dto.point ?? 0,
-        title: params.dto.title,
-        feedback: params.dto.feedback,
-      },
+    const createdId = await this.prisma.$transaction(async (tx) => {
+      return await this.employeeFeedbackDao.create({
+        data: {
+          user: { connect: { id: params.dto.employeeId } },
+          organization: { connect: { id: params.currentUser.organizationId } },
+          createdBy: { connect: { id: params.currentUser.id } },
+          trend: params.dto.trend,
+          point: params.dto.point ?? 0,
+          title: params.dto.title,
+          feedback: params.dto.feedback,
+        },
+        tx,
+      });
     });
 
-    const withUser = await this.employeeFeedbackDao.getById({ id: created.id, organizationId: params.currentUser.organizationId });
-    if (!withUser) throw new ApiError('Failed to fetch created feedback', 500);
+    const withUser = await this.employeeFeedbackDao.getByIdOrThrow({ id: createdId, organizationId: params.currentUser.organizationId });
 
     return {
       id: withUser.id,

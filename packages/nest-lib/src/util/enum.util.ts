@@ -1,5 +1,33 @@
-import { AuditActivityStatusDbEnum, AuditEntityTypeDbEnum, AuditEventGroupDbEnum, AuditEventTypeDbEnum, MediaTypeDbEnum, UserRoleDbEnum } from '@repo/db';
-import { AuditActivityStatusDtoEnum, AuditEntityTypeDtoEnum, AuditEventGroupDtoEnum, AuditEventTypeDtoEnum, MediaTypeDtoEnum, UserRoleDtoEnum } from '@repo/dto';
+import {
+  AuditActivityStatusDbEnum,
+  AuditEntityTypeDbEnum,
+  AuditEventGroupDbEnum,
+  AuditEventTypeDbEnum,
+  CandidateProgress,
+  CandidateSource,
+  CandidateStatus,
+  EmployeeStatusEnum,
+  LeaveStatusEnum,
+  LeaveTypeEnum,
+  MediaTypeDbEnum,
+  NoticePeriodUnit,
+  UserRoleDbEnum,
+} from '@repo/db';
+import {
+  AuditActivityStatusDtoEnum,
+  AuditEntityTypeDtoEnum,
+  AuditEventGroupDtoEnum,
+  AuditEventTypeDtoEnum,
+  CandidateProgressDtoEnum,
+  CandidateSourceDtoEnum,
+  CandidateStatusDtoEnum,
+  EmployeeStatusDtoEnum,
+  LeaveStatusDtoEnum,
+  LeaveTypeDtoEnum,
+  MediaTypeDtoEnum,
+  NoticePeriodUnitDtoEnum,
+  UserRoleDtoEnum,
+} from '@repo/dto';
 
 export function auditEventGroupDtoEnumToDbEnum(dtoEnum: AuditEventGroupDtoEnum): AuditEventGroupDbEnum {
   const mapping: Record<AuditEventGroupDtoEnum, AuditEventGroupDbEnum> = {
@@ -166,6 +194,157 @@ export function userRoleDbEnumToDtoEnum(dbEnum: UserRoleDbEnum): UserRoleDtoEnum
   const dtoEnum = mapping[dbEnum];
   if (!dtoEnum) {
     throw new Error(`Unknown UserRoleDbEnum: ${dbEnum}`);
+  }
+
+  return dtoEnum;
+}
+
+export function leaveTypeDbEnumToDtoEnum(dbEnum: LeaveTypeEnum): LeaveTypeDtoEnum {
+  const mapping: Record<LeaveTypeEnum, LeaveTypeDtoEnum> = {
+    casual: LeaveTypeDtoEnum.casual,
+    sick: LeaveTypeDtoEnum.sick,
+    medical: LeaveTypeDtoEnum.medical,
+    earned: LeaveTypeDtoEnum.earned,
+  };
+
+  const dtoEnum = mapping[dbEnum];
+  if (!dtoEnum) {
+    throw new Error(`Unknown LeaveTypeEnum: ${dbEnum}`);
+  }
+
+  return dtoEnum;
+}
+
+export function leaveTypeDtoEnumToDbEnum(dtoEnum: LeaveTypeDtoEnum): LeaveTypeEnum {
+  const mapping: Record<LeaveTypeDtoEnum, LeaveTypeEnum> = {
+    [LeaveTypeDtoEnum.casual]: 'casual',
+    [LeaveTypeDtoEnum.sick]: 'sick',
+    [LeaveTypeDtoEnum.medical]: 'medical',
+    [LeaveTypeDtoEnum.earned]: 'earned',
+  };
+
+  const dbEnum = mapping[dtoEnum];
+  if (!dbEnum) {
+    throw new Error(`Unknown LeaveTypeDtoEnum: ${dtoEnum}`);
+  }
+
+  return dbEnum;
+}
+
+export function leaveStatusDbEnumToDtoEnum(dbEnum: LeaveStatusEnum): LeaveStatusDtoEnum {
+  const mapping: Record<LeaveStatusEnum, LeaveStatusDtoEnum> = {
+    pending: LeaveStatusDtoEnum.pending,
+    approved: LeaveStatusDtoEnum.approved,
+    rejected: LeaveStatusDtoEnum.rejected,
+    cancelled: LeaveStatusDtoEnum.cancelled,
+  };
+
+  const dtoEnum = mapping[dbEnum];
+  if (!dtoEnum) {
+    throw new Error(`Unknown LeaveStatusEnum: ${dbEnum}`);
+  }
+
+  return dtoEnum;
+}
+
+export function leaveStatusDtoEnumToDbEnum(dtoEnum: LeaveStatusDtoEnum): LeaveStatusEnum {
+  const mapping: Record<LeaveStatusDtoEnum, LeaveStatusEnum> = {
+    [LeaveStatusDtoEnum.pending]: 'pending',
+    [LeaveStatusDtoEnum.approved]: 'approved',
+    [LeaveStatusDtoEnum.rejected]: 'rejected',
+    [LeaveStatusDtoEnum.cancelled]: 'cancelled',
+  };
+
+  const dbEnum = mapping[dtoEnum];
+  if (!dbEnum) {
+    throw new Error(`Unknown LeaveStatusDtoEnum: ${dtoEnum}`);
+  }
+
+  return dbEnum;
+}
+
+export function candidateSourceDbEnumToDtoEnum(dbEnum: CandidateSource): CandidateSourceDtoEnum {
+  const mapping: Record<CandidateSource, CandidateSourceDtoEnum> = {
+    email: CandidateSourceDtoEnum.email,
+    googleSearch: CandidateSourceDtoEnum.googleSearch,
+    lead: CandidateSourceDtoEnum.lead,
+    linkedin: CandidateSourceDtoEnum.linkedin,
+    referral: CandidateSourceDtoEnum.referral,
+    websiteForm: CandidateSourceDtoEnum.websiteForm,
+  };
+
+  const dtoEnum = mapping[dbEnum];
+  if (!dtoEnum) {
+    throw new Error(`Unknown CandidateSource: ${dbEnum}`);
+  }
+
+  return dtoEnum;
+}
+
+export function candidateStatusDbEnumToDtoEnum(dbEnum: CandidateStatus): CandidateStatusDtoEnum {
+  const mapping: Record<CandidateStatus, CandidateStatusDtoEnum> = {
+    new: CandidateStatusDtoEnum.new,
+    planed: CandidateStatusDtoEnum.planed,
+    notReachable: CandidateStatusDtoEnum.notReachable,
+    selected: CandidateStatusDtoEnum.selected,
+    onHold: CandidateStatusDtoEnum.onHold,
+    rejected: CandidateStatusDtoEnum.rejected,
+  };
+
+  const dtoEnum = mapping[dbEnum];
+  if (!dtoEnum) {
+    throw new Error(`Unknown CandidateStatus: ${dbEnum}`);
+  }
+
+  return dtoEnum;
+}
+
+export function candidateProgressDbEnumToDtoEnum(dbEnum: CandidateProgress): CandidateProgressDtoEnum {
+  const mapping: Record<CandidateProgress, CandidateProgressDtoEnum> = {
+    new: CandidateProgressDtoEnum.new,
+    infoCollected: CandidateProgressDtoEnum.infoCollected,
+    lev1InterviewScheduled: CandidateProgressDtoEnum.lev1InterviewScheduled,
+    lev1InterviewCompleted: CandidateProgressDtoEnum.lev1InterviewCompleted,
+    lev2InterviewScheduled: CandidateProgressDtoEnum.lev2InterviewScheduled,
+    lev2InterviewCompleted: CandidateProgressDtoEnum.lev2InterviewCompleted,
+    offerReleased: CandidateProgressDtoEnum.offerReleased,
+    offerAccepted: CandidateProgressDtoEnum.offerAccepted,
+  };
+
+  const dtoEnum = mapping[dbEnum];
+  if (!dtoEnum) {
+    throw new Error(`Unknown CandidateProgress: ${dbEnum}`);
+  }
+
+  return dtoEnum;
+}
+
+export function noticePeriodUnitDbEnumToDtoEnum(dbEnum: NoticePeriodUnit): NoticePeriodUnitDtoEnum {
+  const mapping: Record<NoticePeriodUnit, NoticePeriodUnitDtoEnum> = {
+    days: NoticePeriodUnitDtoEnum.days,
+    weeks: NoticePeriodUnitDtoEnum.weeks,
+    months: NoticePeriodUnitDtoEnum.months,
+  };
+
+  const dtoEnum = mapping[dbEnum];
+  if (!dtoEnum) {
+    throw new Error(`Unknown NoticePeriodUnit: ${dbEnum}`);
+  }
+
+  return dtoEnum;
+}
+
+export function employeeStatusDbEnumToDtoEnum(dbEnum: EmployeeStatusEnum): EmployeeStatusDtoEnum {
+  const mapping: Record<EmployeeStatusEnum, EmployeeStatusDtoEnum> = {
+    active: EmployeeStatusDtoEnum.active,
+    resigned: EmployeeStatusDtoEnum.resigned,
+    onLeave: EmployeeStatusDtoEnum.onLeave,
+    terminated: EmployeeStatusDtoEnum.terminated,
+  };
+
+  const dtoEnum = mapping[dbEnum];
+  if (!dtoEnum) {
+    throw new Error(`Unknown EmployeeStatusEnum: ${dbEnum}`);
   }
 
   return dtoEnum;

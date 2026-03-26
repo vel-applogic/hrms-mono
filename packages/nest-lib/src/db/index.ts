@@ -26,6 +26,9 @@ export {
 } from './dao/index.js';
 export type {
   OrderByParam,
+  UserSelectTableRecordType,
+  OrganizationSelectTableRecordType,
+  BranchSelectTableRecordType,
   PolicyDetailRecordType,
   PolicyListRecordType,
   CandidateListRecordType,
@@ -39,6 +42,7 @@ export type {
   LeaveWithUserType,
   PayrollPayslipWithUserType,
   PayrollPayslipWithDetailsType,
+  OrganizationHasUserWithOrganizationType,
 } from './dao/index.js';
 export { CommonDbModule } from './db-module.js';
 export { PrismaService } from './prisma/prisma.service.js';

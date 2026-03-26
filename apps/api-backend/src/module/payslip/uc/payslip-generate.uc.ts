@@ -108,7 +108,11 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
         const userName = userNameMap.get(userId);
         const s3Key = this.buildS3Key({ userId, firstname: userName?.firstname ?? '', lastname: userName?.lastname ?? '', month, year });
 
-        const created = await this.createPayslip({ userId, organizationId, month, year, grossAmount, deductionAmount, netAmount, earningLineItems, deductionLineItems, s3Key, tx });
+        const createdId = await this.createPayslip({ userId, organizationId, month, year, grossAmount, deductionAmount, netAmount, earningLineItems, deductionLineItems, s3Key, tx });
+        const created = await this.payrollPayslipDao.getById({ id: createdId, organizationId, tx });
+        if (!created) {
+          throw new ApiBadRequestError(`Failed to fetch created payslip for employee ${userId}`);
+        }
         createdPayslips.push(created);
         generated++;
       }
@@ -198,7 +202,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     earningLineItems: Prisma.PayrollPayslipLineItemCreateWithoutPayslipInput[];
     deductionLineItems: Prisma.PayrollPayslipLineItemCreateWithoutPayslipInput[];
     tx: Prisma.TransactionClient;
-  }): Promise<PayrollPayslipWithDetailsType> {
+  }): Promise<number> {
     return this.payrollPayslipDao.create({
       tx: params.tx,
       data: {
@@ -265,7 +269,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
       organizationId: params.organizationId,
     });
 
-    return allDeductions.deductions.filter((d: PayrollDeduction) => {
+    return allDeductions.dbRecords.filter((d: PayrollDeduction) => {
       if (!d.isActive) return false;
 
       const dFrom = new Date(d.effectiveFrom);
@@ -304,7 +308,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
 
   private async deleteOldPayslips(params: { force: boolean | undefined; existingPayslips: PayslipListResponseType[]; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
     if (params.force && params.existingPayslips.length > 0) {
-      await Promise.all(params.existingPayslips.map((p) => this.payrollPayslipDao.deleteById({ id: p.id, organizationId: params.organizationId, tx: params.tx })));
+      await Promise.all(params.existingPayslips.map((p) => this.payrollPayslipDao.deleteByIdOrThrow({ id: p.id, organizationId: params.organizationId, tx: params.tx })));
     }
   }
 

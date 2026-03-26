@@ -1,6 +1,6 @@
-import { User } from '@repo/db';
 import { AdminUserDetailResponseType } from '@repo/dto';
-import { BaseUc, CommonLoggerService, PrismaService, UserDao, userRoleDbEnumToDtoEnum } from '@repo/nest-lib';
+import type { UserSelectTableRecordType } from '@repo/nest-lib';
+import { BaseUc, CommonLoggerService, PrismaService, UserDao } from '@repo/nest-lib';
 import { ApiBadRequestError } from '@repo/shared';
 
 export class BaseAuthUseCase extends BaseUc {
@@ -12,7 +12,7 @@ export class BaseAuthUseCase extends BaseUc {
     super(prisma, logger);
   }
 
-  protected dbToUserResponse(dbRec: User): AdminUserDetailResponseType {
+  protected dbToUserResponse(dbRec: UserSelectTableRecordType): AdminUserDetailResponseType {
     return {
       id: dbRec.id,
       firstname: dbRec.firstname,

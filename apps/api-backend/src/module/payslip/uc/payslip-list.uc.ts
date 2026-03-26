@@ -21,7 +21,7 @@ export class PayslipListUc implements IUseCase<Params, PaginatedResponseType<Pay
   async execute(params: Params): Promise<PaginatedResponseType<PayslipListResponseType>> {
     this.logger.i('Listing payslips', { month: params.filterDto.month, year: params.filterDto.year });
 
-    const { payslips, totalRecords } = await this.payrollPayslipDao.findWithPagination({
+    const { dbRecords, totalRecords } = await this.payrollPayslipDao.findWithPagination({
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
       month: params.filterDto.month,
@@ -31,10 +31,10 @@ export class PayslipListUc implements IUseCase<Params, PaginatedResponseType<Pay
     });
 
     const signedUrls = await Promise.all(
-      payslips.map((p: PayrollPayslipWithUserType) => (p.pdfS3Key ? this.s3Service.getSignedUrl(p.pdfS3Key) : Promise.resolve(null))),
+      dbRecords.map((p: PayrollPayslipWithUserType) => (p.pdfS3Key ? this.s3Service.getSignedUrl(p.pdfS3Key) : Promise.resolve(null))),
     );
 
-    const results: PayslipListResponseType[] = payslips.map((p: PayrollPayslipWithUserType, i: number) => ({
+    const results: PayslipListResponseType[] = dbRecords.map((p: PayrollPayslipWithUserType, i: number) => ({
       id: p.id,
       employeeId: p.userId,
       employeeFirstname: p.user.firstname,

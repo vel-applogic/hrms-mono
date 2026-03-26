@@ -11,7 +11,7 @@ type Params = {
 @Injectable()
 export class CandidateFeedbackDeleteUc implements IUseCase<Params, OperationStatusResponseType> {
   constructor(
-    prisma: PrismaService,
+    private readonly prisma: PrismaService,
     private readonly logger: CommonLoggerService,
     private readonly candidateHasFeedbackDao: CandidateHasFeedbackDao,
   ) {}
@@ -24,7 +24,9 @@ export class CandidateFeedbackDeleteUc implements IUseCase<Params, OperationStat
       throw new ApiError('Feedback not found', 404);
     }
 
-    await this.candidateHasFeedbackDao.delete({ id: params.id });
+    await this.prisma.$transaction(async (tx) => {
+      await this.candidateHasFeedbackDao.delete({ id: params.id, tx });
+    });
 
     return { success: true };
   }

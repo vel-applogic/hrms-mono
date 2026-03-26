@@ -100,7 +100,7 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
         const randomPassword = this.passwordService.makeRandomKey();
         const hashedPassword = await this.passwordService.hash(randomPassword);
 
-        const user = await this.userDao.create({
+        userId = await this.userDao.create({
           data: {
             email: params.dto.email,
             firstname: params.dto.firstname,
@@ -110,7 +110,6 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
           },
           tx,
         });
-        userId = user.id;
 
         const dateOfJoining = new Date(params.dto.dateOfJoining);
         await this.employeeDao.create({

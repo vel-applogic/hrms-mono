@@ -1,9 +1,18 @@
 import { CandidateMediaType } from '@repo/db';
 import type { CandidateDetailResponseType, CandidateListResponseType, MediaResponseType } from '@repo/dto';
-import { CandidateProgressDtoEnum, CandidateSourceDtoEnum, CandidateStatusDtoEnum, MediaTypeDtoEnum, NoticePeriodUnitDtoEnum } from '@repo/dto';
+import { MediaTypeDtoEnum } from '@repo/dto';
 import type { CandidateDetailRecordType, CandidateListRecordType } from '@repo/nest-lib';
-import { BaseUc, CandidateDao, CommonLoggerService, PrismaService } from '@repo/nest-lib';
-import { ApiError } from '@repo/shared';
+import {
+  BaseUc,
+  CandidateDao,
+  candidateProgressDbEnumToDtoEnum,
+  candidateSourceDbEnumToDtoEnum,
+  candidateStatusDbEnumToDtoEnum,
+  CommonLoggerService,
+  noticePeriodUnitDbEnumToDtoEnum,
+  PrismaService,
+} from '@repo/nest-lib';
+import { ApiBadRequestError } from '@repo/shared';
 
 import { S3Service } from '#src/external-service/s3.service.js';
 
@@ -48,7 +57,7 @@ export class BaseCandidateUc extends BaseUc {
       lastname: candidate.lastname,
       email: candidate.email,
       contactNumbers: candidate.contactNumbers,
-      source: candidate.source as unknown as CandidateSourceDtoEnum,
+      source: candidateSourceDbEnumToDtoEnum(candidate.source),
       urls: candidate.urls,
       expInYears: candidate.expInYears,
       relevantExpInYears: candidate.relevantExpInYears,
@@ -56,9 +65,9 @@ export class BaseCandidateUc extends BaseUc {
       currentCtcInLacs: candidate.currentCtcInLacs,
       expectedCtcInLacs: candidate.expectedCtcInLacs,
       noticePeriod: candidate.noticePeriod,
-      noticePeriodUnit: candidate.noticePeriodUnit as unknown as NoticePeriodUnitDtoEnum,
-      status: candidate.status as unknown as CandidateStatusDtoEnum,
-      progress: candidate.progress as unknown as CandidateProgressDtoEnum,
+      noticePeriodUnit: noticePeriodUnitDbEnumToDtoEnum(candidate.noticePeriodUnit),
+      status: candidateStatusDbEnumToDtoEnum(candidate.status),
+      progress: candidateProgressDbEnumToDtoEnum(candidate.progress),
       createdAt: candidate.createdAt.toISOString(),
       updatedAt: candidate.updatedAt.toISOString(),
       resume,
@@ -69,7 +78,7 @@ export class BaseCandidateUc extends BaseUc {
 
   async getByIdOrThrow(id: number, organizationId: number): Promise<CandidateDetailResponseType> {
     const candidate = await this.getById(id, organizationId);
-    if (!candidate) throw new ApiError('Candidate not found', 404);
+    if (!candidate) throw new ApiBadRequestError('Candidate not found');
     return candidate;
   }
 
@@ -80,7 +89,7 @@ export class BaseCandidateUc extends BaseUc {
       lastname: dbRec.lastname,
       email: dbRec.email,
       contactNumbers: dbRec.contactNumbers,
-      source: dbRec.source as unknown as CandidateSourceDtoEnum,
+      source: candidateSourceDbEnumToDtoEnum(dbRec.source),
       urls: dbRec.urls,
       expInYears: dbRec.expInYears,
       relevantExpInYears: dbRec.relevantExpInYears,
@@ -88,9 +97,9 @@ export class BaseCandidateUc extends BaseUc {
       currentCtcInLacs: dbRec.currentCtcInLacs,
       expectedCtcInLacs: dbRec.expectedCtcInLacs,
       noticePeriod: dbRec.noticePeriod,
-      noticePeriodUnit: dbRec.noticePeriodUnit as unknown as NoticePeriodUnitDtoEnum,
-      status: dbRec.status as unknown as CandidateStatusDtoEnum,
-      progress: dbRec.progress as unknown as CandidateProgressDtoEnum,
+      noticePeriodUnit: noticePeriodUnitDbEnumToDtoEnum(dbRec.noticePeriodUnit),
+      status: candidateStatusDbEnumToDtoEnum(dbRec.status),
+      progress: candidateProgressDbEnumToDtoEnum(dbRec.progress),
       createdAt: dbRec.createdAt.toISOString(),
       updatedAt: dbRec.updatedAt.toISOString(),
     };

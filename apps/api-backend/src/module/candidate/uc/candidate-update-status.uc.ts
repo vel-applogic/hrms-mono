@@ -35,10 +35,13 @@ export class CandidateUpdateStatusUc extends BaseCandidateUc implements IUseCase
 
     const existing = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
 
-    await this.candidateDao.update({
-      id: params.id,
-      organizationId: params.currentUser.organizationId,
-      data: { status: params.dto.status },
+    await this.transaction(async (tx) => {
+      await this.candidateDao.update({
+        id: params.id,
+        organizationId: params.currentUser.organizationId,
+        data: { status: params.dto.status },
+        tx,
+      });
     });
 
     await this.auditService.recordActivity({

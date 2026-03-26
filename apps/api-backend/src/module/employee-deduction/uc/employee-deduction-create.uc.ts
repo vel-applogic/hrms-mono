@@ -72,7 +72,7 @@ export class EmployeeDeductionCreateUc implements IUseCase<Params, EmployeeDeduc
     const prevEffectiveTill = new Date(effectiveFrom);
     prevEffectiveTill.setUTCDate(prevEffectiveTill.getUTCDate() - 1);
 
-    const created = await this.prisma.$transaction(async (tx) => {
+    const createdId = await this.prisma.$transaction(async (tx) => {
       // Deactivate all previous active deductions of same type
       for (const existing of existingActive) {
         await this.payrollDeductionDao.update({
@@ -98,6 +98,9 @@ export class EmployeeDeductionCreateUc implements IUseCase<Params, EmployeeDeduc
         tx,
       });
     });
+
+    const created = await this.payrollDeductionDao.getById({ id: createdId, organizationId: params.currentUser.organizationId });
+    if (!created) throw new ApiError('Failed to fetch created deduction', 500);
 
     return {
       id: created.id,

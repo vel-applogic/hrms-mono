@@ -45,9 +45,12 @@ export class AccountUpdateProfileUc extends BaseUc implements IUseCase<Params, A
   }
 
   async updateProfile(params: Params): Promise<void> {
-    await this.userDao.update({
-      id: params.currentUser.id,
-      data: { firstname: params.dto.firstname, lastname: params.dto.lastname },
+    await this.transaction(async (tx) => {
+      await this.userDao.update({
+        id: params.currentUser.id,
+        data: { firstname: params.dto.firstname, lastname: params.dto.lastname },
+        tx,
+      });
     });
   }
 

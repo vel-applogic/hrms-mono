@@ -1,43 +1,52 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma, Leave } from '@repo/db';
+import type { Prisma } from '@repo/db';
+import { LeaveStatusEnum, LeaveTypeEnum } from '@repo/db';
+import { DbOperationError } from '@repo/shared';
 
+import { TrackQuery } from '../../decorator/track-query.decorator.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { BaseDao } from './_base.dao.js';
 
 @Injectable()
+@TrackQuery()
 export class LeaveDao extends BaseDao {
   constructor(prisma: PrismaService) {
     super(prisma);
   }
 
-  async create(params: { data: Prisma.LeaveCreateInput; tx?: Prisma.TransactionClient }): Promise<Leave> {
+  public async create(params: { data: LeaveInsertTableRecordType; tx: Prisma.TransactionClient }): Promise<number> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.leave.create({ data: params.data });
+    const created = await pc.leave.create({ data: params.data });
+    if (!created?.id) {
+      throw new DbOperationError('Leave not created');
+    }
+    return created.id;
   }
 
-  async update(params: { id: number; organizationId: number; data: Prisma.LeaveUpdateInput; tx?: Prisma.TransactionClient }): Promise<Leave> {
+  public async update(params: { id: number; organizationId: number; data: LeaveUpdateTableRecordType; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.leave.update({ where: { id: params.id, organizationId: params.organizationId }, data: params.data });
+    await pc.leave.update({ where: { id: params.id, organizationId: params.organizationId }, data: params.data });
   }
 
-  async getById(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<LeaveWithUserType | null> {
+  public async getById(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<LeaveWithUserType | undefined> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.leave.findFirst({
+    const result = await pc.leave.findFirst({
       where: {
         id: params.id,
         organizationId: params.organizationId,
       },
       include: { user: { select: { id: true, firstname: true, lastname: true, email: true } } },
     });
+    return result ?? undefined;
   }
 
-  async findManyWithPagination(params: {
+  public async findManyWithPagination(params: {
     organizationId: number;
     where?: Prisma.LeaveWhereInput;
     page: number;
     limit: number;
     tx?: Prisma.TransactionClient;
-  }): Promise<{ leaves: LeaveWithUserType[]; totalRecords: number }> {
+  }): Promise<{ dbRecords: LeaveWithUserType[]; totalRecords: number }> {
     const pc = this.getPrismaClient(params.tx);
     const { take, skip } = this.getPagination({
       pageNo: params.page,
@@ -48,7 +57,7 @@ export class LeaveDao extends BaseDao {
       ...params.where,
     };
 
-    const [totalRecords, leaves] = await Promise.all([
+    const [totalRecords, dbRecords] = await Promise.all([
       pc.leave.count({ where }),
       pc.leave.findMany({
         where,
@@ -59,10 +68,10 @@ export class LeaveDao extends BaseDao {
       }),
     ]);
 
-    return { leaves, totalRecords };
+    return { dbRecords, totalRecords };
   }
 
-  async getApprovedLeaveTotalsByUserIdAndDateRange(params: {
+  public async getApprovedLeaveTotalsByUserIdAndDateRange(params: {
     userId: number;
     organizationId: number;
     startDate: Date;
@@ -73,7 +82,7 @@ export class LeaveDao extends BaseDao {
     const leaves = await pc.leave.findMany({
       where: {
         userId: params.userId,
-        status: 'approved',
+        status: LeaveStatusEnum.approved,
         startDate: { gte: params.startDate, lte: params.endDate },
         organizationId: params.organizationId,
       },
@@ -83,9 +92,9 @@ export class LeaveDao extends BaseDao {
     const totals = { casualLeaves: 0, sickLeaves: 0, earnedLeaves: 0 };
     for (const l of leaves) {
       const days = l.numberOfDays;
-      if (l.leaveType === 'casual') totals.casualLeaves += days;
-      else if (l.leaveType === 'sick' || l.leaveType === 'medical') totals.sickLeaves += days;
-      else if (l.leaveType === 'earned') totals.earnedLeaves += days;
+      if (l.leaveType === LeaveTypeEnum.casual) totals.casualLeaves += days;
+      else if (l.leaveType === LeaveTypeEnum.sick || l.leaveType === LeaveTypeEnum.medical) totals.sickLeaves += days;
+      else if (l.leaveType === LeaveTypeEnum.earned) totals.earnedLeaves += days;
     }
     return {
       ...totals,
@@ -93,11 +102,11 @@ export class LeaveDao extends BaseDao {
     };
   }
 
-  async sumDaysByUserIdAndStatus(params: {
+  public async sumDaysByUserIdAndStatus(params: {
     userId: number;
     organizationId: number;
-    statuses: string[];
-    leaveType?: string;
+    statuses: LeaveStatusEnum[];
+    leaveType?: LeaveTypeEnum;
     excludeLeaveId?: number;
     tx?: Prisma.TransactionClient;
   }): Promise<number> {
@@ -106,8 +115,8 @@ export class LeaveDao extends BaseDao {
       where: {
         userId: params.userId,
         organizationId: params.organizationId,
-        status: { in: params.statuses as ('pending' | 'approved')[] },
-        ...(params.leaveType ? { leaveType: params.leaveType as 'casual' | 'sick' | 'medical' | 'earned' } : {}),
+        status: { in: params.statuses },
+        ...(params.leaveType ? { leaveType: params.leaveType } : {}),
         ...(params.excludeLeaveId ? { id: { not: params.excludeLeaveId } } : {}),
       },
       _sum: { numberOfDays: true },
@@ -115,12 +124,12 @@ export class LeaveDao extends BaseDao {
     return result._sum.numberOfDays ?? 0;
   }
 
-  async sumLopDaysByUserIdAndDateRange(params: { userId: number; organizationId: number; startDate: Date; endDate: Date; tx?: Prisma.TransactionClient }): Promise<number> {
+  public async sumLopDaysByUserIdAndDateRange(params: { userId: number; organizationId: number; startDate: Date; endDate: Date; tx?: Prisma.TransactionClient }): Promise<number> {
     const pc = this.getPrismaClient(params.tx);
     const result = await pc.leave.aggregate({
       where: {
         userId: params.userId,
-        status: 'approved',
+        status: LeaveStatusEnum.approved,
         startDate: { gte: params.startDate, lte: params.endDate },
         organizationId: params.organizationId,
       },
@@ -130,6 +139,11 @@ export class LeaveDao extends BaseDao {
   }
 }
 
+// Base table record types
+type LeaveInsertTableRecordType = Prisma.LeaveCreateInput;
+type LeaveUpdateTableRecordType = Prisma.LeaveUpdateInput;
+
+// Return types
 export type LeaveWithUserType = Prisma.LeaveGetPayload<{
   include: { user: { select: { id: true; firstname: true; lastname: true; email: true } } };
 }>;

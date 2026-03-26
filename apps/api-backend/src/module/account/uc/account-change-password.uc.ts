@@ -70,9 +70,12 @@ export class AccountChangePasswordUc implements IUseCase<Params, OperationStatus
 
   async changePassword(params: Params): Promise<void> {
     const hashedPassword = await this.passwordService.hash(params.newPassword);
-    await this.userDao.update({
-      id: params.currentUser.id,
-      data: { password: hashedPassword },
+    await this.prisma.$transaction(async (tx) => {
+      await this.userDao.update({
+        id: params.currentUser.id,
+        data: { password: hashedPassword },
+        tx,
+      });
     });
   }
 }

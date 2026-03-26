@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { OperationStatusResponseType } from '@repo/dto';
 import { AuditActivityStatusDtoEnum, AuditEntityTypeDtoEnum, AuditEventGroupDtoEnum, AuditEventTypeDtoEnum } from '@repo/dto';
 import { AuditService, CommonLoggerService, CurrentUserType, IUseCase, PrismaService, UserDao } from '@repo/nest-lib';
-import { ApiError } from '@repo/shared';
+import { ApiBadRequestError } from '@repo/shared';
 
 import { BaseAdminUserUc } from './_base-admin-user.uc.js';
 
@@ -27,12 +27,15 @@ export class AdminUserDeleteUc extends BaseAdminUserUc implements IUseCase<Param
 
     const existing = await this.userDao.getById({ id: params.id });
     if (!existing) {
-      throw new ApiError('User not found', 404);
+      throw new ApiBadRequestError('User not found');
     }
 
-    await this.userDao.update({
-      id: params.id,
-      data: { isActive: false },
+    await this.transaction(async (tx) => {
+      await this.userDao.update({
+        id: params.id,
+        data: { isActive: false },
+        tx,
+      });
     });
 
     void this.auditService.recordActivity({

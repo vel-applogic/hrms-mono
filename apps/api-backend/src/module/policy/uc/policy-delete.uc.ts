@@ -55,7 +55,7 @@ export class PolicyDeleteUc extends BasePolicyUc implements IUseCase<Params, Ope
   }
 
   async delete(params: { id: number; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
-    await this.policyDao.delete({ id: params.id, organizationId: params.organizationId, tx: params.tx });
+    await this.policyDao.deleteByIdOrThrow({ id: params.id, organizationId: params.organizationId, tx: params.tx });
   }
 
   private async recordActivity(params: Params, deletedPolicy: PolicyDetailResponseType): Promise<void> {
