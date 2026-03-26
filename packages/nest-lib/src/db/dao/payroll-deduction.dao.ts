@@ -27,18 +27,23 @@ export class PayrollDeductionDao extends BaseDao {
     return pc.payrollDeduction.update({ where: { id: params.id }, data: params.data });
   }
 
-  async getById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<PayrollDeduction | null> {
+  async getById(params: { id: number; organizationId?: number; tx?: Prisma.TransactionClient }): Promise<PayrollDeduction | null> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.payrollDeduction.findUnique({ where: { id: params.id } });
+    return pc.payrollDeduction.findFirst({
+      where: { id: params.id, ...(params.organizationId ? { organizationId: params.organizationId } : {}) },
+    });
   }
 
-  async deleteById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<PayrollDeduction> {
+  async deleteById(params: { id: number; organizationId?: number; tx?: Prisma.TransactionClient }): Promise<PayrollDeduction> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.payrollDeduction.delete({ where: { id: params.id } });
+    return pc.payrollDeduction.delete({
+      where: { id: params.id, ...(params.organizationId ? { organizationId: params.organizationId } : {}) },
+    });
   }
 
   async findActiveByUserIdAndType(params: {
     userId: number;
+    organizationId?: number;
     type: string;
     tx?: Prisma.TransactionClient;
   }): Promise<PayrollDeduction[]> {
@@ -48,6 +53,7 @@ export class PayrollDeductionDao extends BaseDao {
         userId: params.userId,
         type: params.type as PayrollDeduction['type'],
         isActive: true,
+        ...(params.organizationId ? { organizationId: params.organizationId } : {}),
       },
       orderBy: { effectiveFrom: 'asc' },
     });
@@ -55,6 +61,7 @@ export class PayrollDeductionDao extends BaseDao {
 
   async findByUserIdWithPagination(params: {
     userId: number;
+    organizationId?: number;
     page: number;
     limit: number;
     tx?: Prisma.TransactionClient;
@@ -65,10 +72,15 @@ export class PayrollDeductionDao extends BaseDao {
       pageSize: params.limit,
     });
 
+    const where = {
+      userId: params.userId,
+      ...(params.organizationId ? { organizationId: params.organizationId } : {}),
+    };
+
     const [totalRecords, deductions] = await Promise.all([
-      pc.payrollDeduction.count({ where: { userId: params.userId } }),
+      pc.payrollDeduction.count({ where }),
       pc.payrollDeduction.findMany({
-        where: { userId: params.userId },
+        where,
         orderBy: { effectiveFrom: 'desc' },
         take,
         skip,

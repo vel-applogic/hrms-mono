@@ -46,6 +46,7 @@ export class CandidateCreateUc extends BaseCandidateUc implements IUseCase<Param
     const createdId = await this.transaction(async (tx) => {
       const candidate = await this.candidateDao.create({
         data: {
+          organization: { connect: { id: params.currentUser.organizationId } },
           firstname: params.dto.firstname,
           lastname: params.dto.lastname,
           email: params.dto.email,
@@ -66,20 +67,20 @@ export class CandidateCreateUc extends BaseCandidateUc implements IUseCase<Param
       });
 
       if (params.dto.resume) {
-        await this.createAndLinkMedia({ media: params.dto.resume, candidateId: candidate.id, type: CandidateMediaType.resume, tx });
+        await this.createAndLinkMedia({ media: params.dto.resume, candidateId: candidate.id, organizationId: params.currentUser.organizationId, type: CandidateMediaType.resume, tx });
       }
 
       return candidate.id;
     });
 
-    const candidate = await this.getByIdOrThrow(createdId);
+    const candidate = await this.getByIdOrThrow(createdId, params.currentUser.organizationId);
     void this.recordActivity(params, candidate);
     return { success: true, message: 'Candidate created successfully' };
   }
 
   private async validate(_params: Params): Promise<void> {}
 
-  private async createAndLinkMedia(params: { media: MediaUpsertType; candidateId: number; type: CandidateMediaType; tx: Prisma.TransactionClient }): Promise<void> {
+  private async createAndLinkMedia(params: { media: MediaUpsertType; candidateId: number; organizationId: number; type: CandidateMediaType; tx: Prisma.TransactionClient }): Promise<void> {
     const file = await this.mediaService.moveTempFileAndGetKey({
       media: params.media,
       mediaPlacement: 'candidate',
@@ -89,7 +90,7 @@ export class CandidateCreateUc extends BaseCandidateUc implements IUseCase<Param
     if (!file) return;
 
     const mediaId = await this.mediaDao.create({
-      data: { key: file.newKey, name: params.media.name, type: params.media.type, size: file.size, ext: file.ext },
+      data: { key: file.newKey, name: params.media.name, type: params.media.type, size: file.size, ext: file.ext, organization: { connect: { id: params.organizationId } } },
       tx: params.tx,
     });
 

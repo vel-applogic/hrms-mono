@@ -24,13 +24,14 @@ export class EmployeeFeedbackListUc implements IUseCase<Params, PaginatedRespons
   async execute(params: Params): Promise<PaginatedResponseType<EmployeeFeedbackResponseType>> {
     this.logger.i('Listing employee feedbacks', { employeeId: params.filterDto.employeeId });
 
-    const employee = await this.employeeDao.getByUserId({ userId: params.filterDto.employeeId });
+    const employee = await this.employeeDao.getByUserId({ userId: params.filterDto.employeeId, organizationId: params.currentUser.organizationId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);
     }
 
     const { feedbacks, totalRecords } = await this.employeeFeedbackDao.findByUserIdWithPagination({
       userId: params.filterDto.employeeId,
+      organizationId: params.currentUser.organizationId,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
     });

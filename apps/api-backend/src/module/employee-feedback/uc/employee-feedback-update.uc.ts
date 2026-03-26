@@ -23,13 +23,14 @@ export class EmployeeFeedbackUpdateUc implements IUseCase<Params, EmployeeFeedba
   async execute(params: Params): Promise<EmployeeFeedbackResponseType> {
     this.logger.i('Updating employee feedback', { id: params.id });
 
-    const existing = await this.employeeFeedbackDao.getById({ id: params.id });
+    const existing = await this.employeeFeedbackDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!existing) {
       throw new ApiError('Feedback not found', 404);
     }
 
     await this.employeeFeedbackDao.update({
       id: params.id,
+      organizationId: params.currentUser.organizationId,
       data: {
         trend: params.dto.trend as 'positive' | 'negative' | 'neutral',
         point: params.dto.point ?? 0,
@@ -38,7 +39,7 @@ export class EmployeeFeedbackUpdateUc implements IUseCase<Params, EmployeeFeedba
       },
     });
 
-    const updated = await this.employeeFeedbackDao.getById({ id: params.id });
+    const updated = await this.employeeFeedbackDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!updated) throw new ApiError('Failed to fetch updated feedback', 500);
 
     return {

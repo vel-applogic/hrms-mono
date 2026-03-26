@@ -18,12 +18,12 @@ export class EmployeeDeductionDeleteUc implements IUseCase<Params, OperationStat
   async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Deleting employee deduction', { id: params.id });
 
-    const existing = await this.payrollDeductionDao.getById({ id: params.id });
+    const existing = await this.payrollDeductionDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!existing) {
       throw new ApiError('Deduction not found', 404);
     }
 
-    await this.payrollDeductionDao.deleteById({ id: params.id });
+    await this.payrollDeductionDao.deleteById({ id: params.id, organizationId: params.currentUser.organizationId });
 
     return { success: true };
   }

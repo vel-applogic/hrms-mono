@@ -20,7 +20,7 @@ export class CandidateFeedbackCreateUc implements IUseCase<Params, CandidateFeed
   async execute(params: Params): Promise<CandidateFeedbackResponseType> {
     this.logger.i('Creating candidate feedback', { candidateId: params.dto.candidateId });
 
-    const candidate = await this.candidateDao.getById({ id: params.dto.candidateId });
+    const candidate = await this.candidateDao.getById({ id: params.dto.candidateId, organizationId: params.currentUser.organizationId });
     if (!candidate) {
       throw new ApiError('Candidate not found', 404);
     }

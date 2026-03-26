@@ -16,13 +16,17 @@ export class PolicyDao extends BaseDao {
     return pc.policy.create({ data: params.data });
   }
 
-  async update(params: { id: number; data: Prisma.PolicyUpdateInput; tx?: Prisma.TransactionClient }): Promise<Policy> {
+  async update(params: { id: number; organizationId?: number; data: Prisma.PolicyUpdateInput; tx?: Prisma.TransactionClient }): Promise<Policy> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.policy.update({ where: { id: params.id }, data: params.data });
+    return pc.policy.update({
+      where: { id: params.id, ...(params.organizationId ? { organizationId: params.organizationId } : {}) },
+      data: params.data,
+    });
   }
 
   public async search(params: {
     filterDto: PolicyFilterRequestType;
+    organizationId?: number;
     orderBy?: OrderByParam;
     tx?: Prisma.TransactionClient;
   }): Promise<{ totalRecords: number; dbRecords: PolicyListRecordType[] }> {
@@ -33,7 +37,7 @@ export class PolicyDao extends BaseDao {
     };
     const { take, skip } = this.getPagination(pagination);
 
-    const where: Prisma.PolicyWhereInput = {};
+    const where: Prisma.PolicyWhereInput = params.organizationId ? { organizationId: params.organizationId } : {};
 
     if (params.filterDto.search && params.filterDto.search.trim().length > 0) {
       where.title = { contains: params.filterDto.search, mode: 'insensitive' };
@@ -61,10 +65,13 @@ export class PolicyDao extends BaseDao {
     return { dbRecords, totalRecords };
   }
 
-  async getById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<PolicyDetailRecordType | null> {
+  async getById(params: { id: number; organizationId?: number; tx?: Prisma.TransactionClient }): Promise<PolicyDetailRecordType | null> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.policy.findUnique({
-      where: { id: params.id },
+    return pc.policy.findFirst({
+      where: {
+        id: params.id,
+        ...(params.organizationId ? { organizationId: params.organizationId } : {}),
+      },
       include: {
         policyHasMedias: {
           include: {
@@ -75,9 +82,11 @@ export class PolicyDao extends BaseDao {
     });
   }
 
-  async delete(params: { id: number; tx?: Prisma.TransactionClient }): Promise<Policy> {
+  async delete(params: { id: number; organizationId?: number; tx?: Prisma.TransactionClient }): Promise<Policy> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.policy.delete({ where: { id: params.id } });
+    return pc.policy.delete({
+      where: { id: params.id, ...(params.organizationId ? { organizationId: params.organizationId } : {}) },
+    });
   }
 }
 

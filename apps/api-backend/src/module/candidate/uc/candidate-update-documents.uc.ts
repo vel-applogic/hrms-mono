@@ -37,14 +37,14 @@ export class CandidateUpdateDocumentsUc extends BaseCandidateUc implements IUseC
   async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Updating candidate documents', { id: params.id });
 
-    await this.getByIdOrThrow(params.id);
+    await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
 
     await this.transaction(async (tx) => {
       if (params.dto.resume !== undefined) {
         await this.candidateHasMediaDao.deleteManyByCandidateIdAndType({ candidateId: params.id, type: CandidateMediaType.resume, tx });
         if (params.dto.resume) {
           if (params.dto.resume.key?.startsWith('temp/')) {
-            await this.createAndLinkMedia({ media: params.dto.resume, candidateId: params.id, type: CandidateMediaType.resume, tx });
+            await this.createAndLinkMedia({ media: params.dto.resume, candidateId: params.id, organizationId: params.currentUser.organizationId, type: CandidateMediaType.resume, tx });
           } else if (params.dto.resume.id) {
             await this.candidateHasMediaDao.create({ data: { candidateId: params.id, mediaId: params.dto.resume.id, type: CandidateMediaType.resume }, tx });
           }
@@ -55,7 +55,7 @@ export class CandidateUpdateDocumentsUc extends BaseCandidateUc implements IUseC
         await this.candidateHasMediaDao.deleteManyByCandidateIdAndType({ candidateId: params.id, type: CandidateMediaType.offerLetter, tx });
         for (const media of params.dto.offerLetters) {
           if (media.key?.startsWith('temp/')) {
-            await this.createAndLinkMedia({ media, candidateId: params.id, type: CandidateMediaType.offerLetter, tx });
+            await this.createAndLinkMedia({ media, candidateId: params.id, organizationId: params.currentUser.organizationId, type: CandidateMediaType.offerLetter, tx });
           } else if (media.id) {
             await this.candidateHasMediaDao.create({ data: { candidateId: params.id, mediaId: media.id, type: CandidateMediaType.offerLetter }, tx });
           }
@@ -66,7 +66,7 @@ export class CandidateUpdateDocumentsUc extends BaseCandidateUc implements IUseC
         await this.candidateHasMediaDao.deleteManyByCandidateIdAndType({ candidateId: params.id, type: CandidateMediaType.otherDocuments, tx });
         for (const media of params.dto.otherDocuments) {
           if (media.key?.startsWith('temp/')) {
-            await this.createAndLinkMedia({ media, candidateId: params.id, type: CandidateMediaType.otherDocuments, tx });
+            await this.createAndLinkMedia({ media, candidateId: params.id, organizationId: params.currentUser.organizationId, type: CandidateMediaType.otherDocuments, tx });
           } else if (media.id) {
             await this.candidateHasMediaDao.create({ data: { candidateId: params.id, mediaId: media.id, type: CandidateMediaType.otherDocuments }, tx });
           }
@@ -77,7 +77,7 @@ export class CandidateUpdateDocumentsUc extends BaseCandidateUc implements IUseC
     return { success: true, message: 'Documents updated successfully' };
   }
 
-  private async createAndLinkMedia(params: { media: MediaUpsertType; candidateId: number; type: CandidateMediaType; tx: Prisma.TransactionClient }): Promise<void> {
+  private async createAndLinkMedia(params: { media: MediaUpsertType; candidateId: number; organizationId: number; type: CandidateMediaType; tx: Prisma.TransactionClient }): Promise<void> {
     const file = await this.mediaService.moveTempFileAndGetKey({
       media: params.media,
       mediaPlacement: 'candidate',
@@ -87,7 +87,7 @@ export class CandidateUpdateDocumentsUc extends BaseCandidateUc implements IUseC
     if (!file) return;
 
     const mediaId = await this.mediaDao.create({
-      data: { key: file.newKey, name: params.media.name, type: params.media.type, size: file.size, ext: file.ext },
+      data: { key: file.newKey, name: params.media.name, type: params.media.type, size: file.size, ext: file.ext, organization: { connect: { id: params.organizationId } } },
       tx: params.tx,
     });
 

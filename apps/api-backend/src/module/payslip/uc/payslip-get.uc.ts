@@ -22,7 +22,7 @@ export class PayslipGetUc implements IUseCase<Params, PayslipDetailResponseType>
   async execute(params: Params): Promise<PayslipDetailResponseType> {
     this.logger.i('Getting payslip', { id: params.id });
 
-    const payslip = await this.payrollPayslipDao.getById({ id: params.id });
+    const payslip = await this.payrollPayslipDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!payslip) {
       throw new ApiError('Payslip not found', 404);
     }

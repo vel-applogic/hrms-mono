@@ -74,11 +74,21 @@ model Organization {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  organizationHasUsers OrganizationHasUser[]
-  branches             Branch[]
-  userInBranches       UserInBranch[]
-  userInvites          UserInvite[]
-  employees            Employee[]
+  organizationHasUsers  OrganizationHasUser[]
+  branches              Branch[]
+  userInBranches        UserInBranch[]
+  userInvites           UserInvite[]
+  employees             Employee[]
+  payrollCompensations  PayrollCompensation[]
+  payrollDeductions     PayrollDeduction[]
+  payrollPayslips       PayrollPayslip[]
+  employeeFeedbacks     EmployeeFeedback[]
+  employeeLeaveCounters EmployeeLeaveCounter[]
+  leaveConfigs          LeaveConfig[]
+  leaves                Leave[]
+  candidates            Candidate[]
+  policies              Policy[]
+  medias                Media[]
 
   @@map("organization")
 }
@@ -195,37 +205,41 @@ model EmployeeHasMedia {
 }
 
 model PayrollCompensation {
-  id              Int       @id @default(autoincrement())
-  userId          Int       @map("user_id")
-  user            User      @relation("EmployeeCompensationUser", fields: [userId], references: [id])
-  basic           Int       @map("basic")
+  id              Int          @id @default(autoincrement())
+  userId          Int          @map("user_id")
+  user            User         @relation("EmployeeCompensationUser", fields: [userId], references: [id])
+  organizationId  Int          @map("organization_id")
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  basic           Int          @map("basic")
   hra             Int
-  otherAllowances Int       @map("other_allowances")
+  otherAllowances Int          @map("other_allowances")
   gross           Int
-  effectiveFrom   DateTime  @map("effective_from") @db.Date
-  effectiveTill   DateTime? @map("effective_till") @db.Date
-  isActive        Boolean   @default(true) @map("is_active")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  effectiveFrom   DateTime     @map("effective_from") @db.Date
+  effectiveTill   DateTime?    @map("effective_till") @db.Date
+  isActive        Boolean      @default(true) @map("is_active")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
 
   @@index([userId])
   @@map("employee_compensation")
 }
 
 model PayrollDeduction {
-  id            Int                       @id @default(autoincrement())
-  userId        Int                       @map("user_id")
-  user          User                      @relation(fields: [userId], references: [id])
-  type          PayrollDeductionType      @map("type")
-  frequency     PayrollDeductionFrequency @map("frequency")
-  amount        Int                       @map("amount")
-  otherTitle    String?                   @map("other_title")
-  effectiveFrom DateTime                  @map("effective_from") @db.Date
-  effectiveTill DateTime?                 @map("effective_till") @db.Date
-  specificMonth DateTime?                 @map("specific_month") @db.Date
-  isActive      Boolean                   @default(true) @map("is_active")
-  createdAt     DateTime                  @default(now()) @map("created_at")
-  updatedAt     DateTime                  @updatedAt @map("updated_at")
+  id             Int                       @id @default(autoincrement())
+  userId         Int                       @map("user_id")
+  user           User                      @relation(fields: [userId], references: [id])
+  organizationId Int                       @map("organization_id")
+  organization   Organization              @relation(fields: [organizationId], references: [id])
+  type           PayrollDeductionType      @map("type")
+  frequency      PayrollDeductionFrequency @map("frequency")
+  amount         Int                       @map("amount")
+  otherTitle     String?                   @map("other_title")
+  effectiveFrom  DateTime                  @map("effective_from") @db.Date
+  effectiveTill  DateTime?                 @map("effective_till") @db.Date
+  specificMonth  DateTime?                 @map("specific_month") @db.Date
+  isActive       Boolean                   @default(true) @map("is_active")
+  createdAt      DateTime                  @default(now()) @map("created_at")
+  updatedAt      DateTime                  @updatedAt @map("updated_at")
 
   @@index([userId])
   @@map("user_employee_deduction")
@@ -237,6 +251,8 @@ model PayrollPayslip {
   id                      Int                      @id @default(autoincrement())
   userId                  Int                      @map("user_id")
   user                    User                     @relation(fields: [userId], references: [id])
+  organizationId          Int                      @map("organization_id")
+  organization            Organization             @relation(fields: [organizationId], references: [id])
   month                   Int                      @map("month")
   year                    Int                      @map("year")
   createdAt               DateTime                 @default(now()) @map("created_at")
@@ -268,34 +284,38 @@ model PayrollPayslipLineItem {
 }
 
 model EmployeeFeedback {
-  id          Int                   @id @default(autoincrement())
-  userId      Int                   @map("user_id")
-  user        User                  @relation("EmployeeFeedbackUser", fields: [userId], references: [id])
-  trend       EmployeeFeedbackTrend @map("trend")
-  point       Int?                  @default(0) @map("point")
-  title       String                @map("title")
-  feedback    String                @map("feedback")
-  createdById Int                   @map("created_by_id")
-  createdBy   User                  @relation("EmployeeFeedbackCreatedBy", fields: [createdById], references: [id])
-  createdAt   DateTime              @default(now()) @map("created_at")
-  updatedAt   DateTime              @updatedAt @map("updated_at")
+  id             Int                   @id @default(autoincrement())
+  userId         Int                   @map("user_id")
+  user           User                  @relation("EmployeeFeedbackUser", fields: [userId], references: [id])
+  organizationId Int                   @map("organization_id")
+  organization   Organization          @relation(fields: [organizationId], references: [id])
+  trend          EmployeeFeedbackTrend @map("trend")
+  point          Int?                  @default(0) @map("point")
+  title          String                @map("title")
+  feedback       String                @map("feedback")
+  createdById    Int                   @map("created_by_id")
+  createdBy      User                  @relation("EmployeeFeedbackCreatedBy", fields: [createdById], references: [id])
+  createdAt      DateTime              @default(now()) @map("created_at")
+  updatedAt      DateTime              @updatedAt @map("updated_at")
 
   @@index([userId])
   @@map("user_employee_feedback")
 }
 
 model EmployeeLeaveCounter {
-  id                   Int      @id @default(autoincrement())
-  userId               Int      @map("user_id")
-  user                 User     @relation(fields: [userId], references: [id])
-  casualLeaves         Int      @map("casual_leaves")
-  sickLeaves           Int      @map("sick_leaves")
-  earnedLeaves         Int      @map("earned_leaves")
-  totalLeavesUsed      Int      @map("total_leaves_used")
-  totalLeavesAvailable Int      @map("total_leaves_available")
-  financialYear        String   @map("financial_year")
-  createdAt            DateTime @default(now()) @map("created_at")
-  updatedAt            DateTime @updatedAt @map("updated_at")
+  id                   Int          @id @default(autoincrement())
+  userId               Int          @map("user_id")
+  user                 User         @relation(fields: [userId], references: [id])
+  organizationId       Int          @map("organization_id")
+  organization         Organization @relation(fields: [organizationId], references: [id])
+  casualLeaves         Int          @map("casual_leaves")
+  sickLeaves           Int          @map("sick_leaves")
+  earnedLeaves         Int          @map("earned_leaves")
+  totalLeavesUsed      Int          @map("total_leaves_used")
+  totalLeavesAvailable Int          @map("total_leaves_available")
+  financialYear        String       @map("financial_year")
+  createdAt            DateTime     @default(now()) @map("created_at")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
 
   @@unique([userId, financialYear])
   @@index([userId])
@@ -305,13 +325,15 @@ model EmployeeLeaveCounter {
 // LEAVES
 
 model LeaveConfig {
-  id              Int      @id @default(autoincrement())
-  maxLeaves       Int      @map("max_leaves")
-  maxSickLeaves   Int      @map("max_sick_leaves")
-  maxEarnedLeaves Int      @map("max_earned_leaves")
-  maxCasualLeaves Int      @map("max_casual_leaves")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  id              Int          @id @default(autoincrement())
+  organizationId  Int          @map("organization_id")
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  maxLeaves       Int          @map("max_leaves")
+  maxSickLeaves   Int          @map("max_sick_leaves")
+  maxEarnedLeaves Int          @map("max_earned_leaves")
+  maxCasualLeaves Int          @map("max_casual_leaves")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
 
   @@map("leave_config")
 }
@@ -320,6 +342,8 @@ model Leave {
   id              Int             @id @default(autoincrement())
   userId          Int             @map("user_id")
   user            User            @relation(fields: [userId], references: [id])
+  organizationId  Int             @map("organization_id")
+  organization    Organization    @relation(fields: [organizationId], references: [id])
   leaveType       LeaveTypeEnum   @map("leave_type")
   startDate       DateTime        @map("start_date") @db.Date
   endDate         DateTime        @map("end_date") @db.Date
@@ -351,52 +375,6 @@ model LeaveHasMedia {
 }
 
 // CANDIDATE
-enum CandidateSource {
-  email
-  googleSearch
-  lead
-  linkedin
-  referral
-  websiteForm
-
-  @@map("candidateSource")
-}
-
-enum NoticePeriodUnit {
-  days
-  weeks
-  months
-
-  @@map("noticePeriodUnit")
-}
-
-enum CandidateStatus {
-  new
-  planed
-  notReachable
-  selected
-  onHold
-  rejected
-}
-
-enum CandidateProgress {
-  new
-  infoCollected
-  lev1InterviewScheduled
-  lev1InterviewCompleted
-  lev2InterviewScheduled
-  lev2InterviewCompleted
-  offerReleased
-  offerAccepted
-}
-
-enum CandidateMediaType {
-  resume
-  offerLetter
-  otherDocuments
-
-  @@map("candidateMediaType")
-}
 
 model CandidateHasMedia {
   id          Int                @id @default(autoincrement())
@@ -411,6 +389,8 @@ model CandidateHasMedia {
 
 model Candidate {
   id                 Int               @id @default(autoincrement())
+  organizationId     Int               @map("organization_id")
+  organization       Organization      @relation(fields: [organizationId], references: [id])
   firstname          String
   lastname           String
   email              String
@@ -433,6 +413,8 @@ model Candidate {
   candidateHasMedias    CandidateHasMedia[]
   candidateHasFeedbacks CandidateHasFeedback[]
 
+  @@unique([email, organizationId])
+  @@index([organizationId])
   @@map("candidate")
 }
 
@@ -452,9 +434,12 @@ model CandidateHasFeedback {
 
 // POLICIES
 model Policy {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   Json
+  id             Int          @id @default(autoincrement())
+  organizationId Int          @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  title          String
+  content        Json
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -464,11 +449,12 @@ model Policy {
 }
 
 model PolicyHasMedia {
-  id        Int      @id @default(autoincrement())
-  policyId  Int      @map("policy_id")
-  policy    Policy   @relation(fields: [policyId], references: [id])
-  mediaId   Int      @map("media_id")
-  media     Media    @relation(fields: [mediaId], references: [id])
+  id       Int    @id @default(autoincrement())
+  policyId Int    @map("policy_id")
+  policy   Policy @relation(fields: [policyId], references: [id])
+  mediaId  Int    @map("media_id")
+  media    Media  @relation(fields: [mediaId], references: [id])
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -477,15 +463,17 @@ model PolicyHasMedia {
 
 // MEDIA
 model Media {
-  id           Int             @id @default(autoincrement())
-  key          String
-  thumbnailKey String?         @map("thumbnail_key")
-  type         MediaTypeDbEnum
-  name         String
-  size         Int
-  ext          String
-  createdAt    DateTime        @default(now()) @map("created_at")
-  updatedAt    DateTime        @updatedAt @map("updated_at")
+  id             Int             @id @default(autoincrement())
+  organizationId Int             @map("organization_id")
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+  key            String
+  thumbnailKey   String?         @map("thumbnail_key")
+  type           MediaTypeDbEnum
+  name           String
+  size           Int
+  ext            String
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
 
   candidateHasMedias CandidateHasMedia[]
   policyHasMedias    PolicyHasMedia[]
@@ -669,4 +657,51 @@ enum AuditActivityStatusDbEnum {
   failure
 
   @@map("auditActivityStatusDbEnum")
+}
+
+enum CandidateSource {
+  email
+  googleSearch
+  lead
+  linkedin
+  referral
+  websiteForm
+
+  @@map("candidateSource")
+}
+
+enum NoticePeriodUnit {
+  days
+  weeks
+  months
+
+  @@map("noticePeriodUnit")
+}
+
+enum CandidateStatus {
+  new
+  planed
+  notReachable
+  selected
+  onHold
+  rejected
+}
+
+enum CandidateProgress {
+  new
+  infoCollected
+  lev1InterviewScheduled
+  lev1InterviewCompleted
+  lev2InterviewScheduled
+  lev2InterviewCompleted
+  offerReleased
+  offerAccepted
+}
+
+enum CandidateMediaType {
+  resume
+  offerLetter
+  otherDocuments
+
+  @@map("candidateMediaType")
 }

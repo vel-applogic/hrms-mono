@@ -24,7 +24,7 @@ export class LeaveListUc implements IUseCase<Params, PaginatedResponseType<Leave
   async execute(params: Params): Promise<PaginatedResponseType<LeaveResponseType>> {
     this.logger.i('Listing leaves', { userId: params.currentUser.id });
 
-    const where: Prisma.LeaveWhereInput = {};
+    const where: Prisma.LeaveWhereInput = { organizationId: params.currentUser.organizationId };
     if (params.filterDto.status?.length) {
       where.status = { in: params.filterDto.status as ('pending' | 'approved' | 'rejected' | 'cancelled')[] };
     }

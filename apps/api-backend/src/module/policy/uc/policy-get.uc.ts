@@ -27,7 +27,7 @@ export class PolicyGetUc extends BasePolicyUc implements IUseCase<Params, Policy
   }
 
   async validate(params: Params): Promise<PolicyDetailResponseType> {
-    const policy = await this.getById(params.id);
+    const policy = await this.getById(params.id, params.currentUser.organizationId);
     if (!policy) {
       throw new ApiError('Policy not found', 404);
     }

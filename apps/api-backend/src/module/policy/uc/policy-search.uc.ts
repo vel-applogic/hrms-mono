@@ -24,6 +24,7 @@ export class PolicySearchUc extends BasePolicyUc implements IUseCase<Params, Pag
 
     const { results, totalRecords } = await this.search({
       filterDto: params.filterDto,
+      organizationId: params.currentUser.organizationId,
       orderBy: this.getSort(params.filterDto.sort, PolicySortableColumns),
     });
     return {
@@ -34,9 +35,10 @@ export class PolicySearchUc extends BasePolicyUc implements IUseCase<Params, Pag
     };
   }
 
-  public async search(params: { filterDto: PolicyFilterRequestType; orderBy?: OrderByParam }): Promise<{ totalRecords: number; results: PolicyListResponseType[] }> {
+  public async search(params: { filterDto: PolicyFilterRequestType; organizationId?: number; orderBy?: OrderByParam }): Promise<{ totalRecords: number; results: PolicyListResponseType[] }> {
     const { dbRecords, totalRecords } = await this.policyDao.search({
       filterDto: params.filterDto,
+      organizationId: params.organizationId,
       orderBy: params.orderBy,
     });
     const results: PolicyListResponseType[] = dbRecords.map((p) => this.dbToPolicyListResponse(p));

@@ -37,7 +37,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     const { month, year, force, employeeIds } = params.dto;
     this.logger.i('Generating payslips', { month, year, employeeIds, force });
 
-    const { existingPayslips, targetUserIds } = await this.validate(params);
+    const { existingPayslips, targetUserIds } = await this.validate(params, params.currentUser.organizationId);
 
     // return if payslips already exist and force is not true
     if (existingPayslips.length > 0 && !force) {
@@ -65,10 +65,11 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     const createdPayslips: PayrollPayslipWithDetailsType[] = [];
 
     await this.transaction(async (tx) => {
-      await this.deleteOldPayslips({ force, existingPayslips, tx });
+      const organizationId = params.currentUser.organizationId;
+      await this.deleteOldPayslips({ force, existingPayslips, organizationId, tx });
 
       for (const userId of targetUserIds) {
-        const overlappingComps = await this.getCompensations({ userId, lastDay, firstDay });
+        const overlappingComps = await this.getCompensations({ userId, lastDay, firstDay, organizationId });
         if (overlappingComps.length === 0) {
           skipped++;
           continue;
@@ -80,7 +81,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
           throw new ApiBadRequestError(`Employee ${userId} has ${openEndedComps.length} compensations with no end date. Only the latest compensation can have no end date.`);
         }
 
-        const applicableDeductions = await this.getApplicableDeductions({ userId, lastDay, firstDay, year, month });
+        const applicableDeductions = await this.getApplicableDeductions({ userId, lastDay, firstDay, year, month, organizationId });
 
         const { totalBasic, totalHra, totalOtherAllowances, totalGross } = this.getSalaryComponents({ overlappingComps, firstDay, totalDaysInMonth, year, month });
 
@@ -96,7 +97,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
           amount: d.amount,
         }));
 
-        const lopDaysCount = await this.leaveDao.sumLopDaysByUserIdAndDateRange({ userId, startDate: firstDay, endDate: lastDay });
+        const lopDaysCount = await this.leaveDao.sumLopDaysByUserIdAndDateRange({ userId, startDate: firstDay, endDate: lastDay, organizationId });
         const lopAmount = lopDaysCount > 0 ? Math.round((totalGross / totalDaysInMonth) * lopDaysCount) : 0;
         deductionLineItems.push({ type: 'deduction' as const, title: 'Loss of Pay', amount: lopAmount });
 
@@ -107,7 +108,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
         const userName = userNameMap.get(userId);
         const s3Key = this.buildS3Key({ userId, firstname: userName?.firstname ?? '', lastname: userName?.lastname ?? '', month, year });
 
-        const created = await this.createPayslip({ userId, month, year, grossAmount, deductionAmount, netAmount, earningLineItems, deductionLineItems, s3Key, tx });
+        const created = await this.createPayslip({ userId, organizationId, month, year, grossAmount, deductionAmount, netAmount, earningLineItems, deductionLineItems, s3Key, tx });
         createdPayslips.push(created);
         generated++;
       }
@@ -161,12 +162,12 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     };
   }
 
-  private async validate(params: Params): Promise<{ existingPayslips: PayslipListResponseType[]; targetUserIds: number[] }> {
+  private async validate(params: Params, organizationId: number): Promise<{ existingPayslips: PayslipListResponseType[]; targetUserIds: number[] }> {
     let targetUserIds: number[];
     if (params.dto.employeeIds?.length) {
       targetUserIds = params.dto.employeeIds;
     } else {
-      const employees = await this.employeeDao.findAllWithUser();
+      const employees = await this.employeeDao.findAllWithUser({ organizationId });
       targetUserIds = employees.map((e) => e.userId);
     }
 
@@ -178,6 +179,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
       month: params.dto.month,
       year: params.dto.year,
       employeeIds: targetUserIds,
+      organizationId,
     });
 
     const existingPayslips = dbExistingPayslips.map((p) => this.dbToPayslipListResponse(p));
@@ -186,6 +188,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
 
   private async createPayslip(params: {
     userId: number;
+    organizationId: number;
     month: number;
     year: number;
     grossAmount: number;
@@ -200,6 +203,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
       tx: params.tx,
       data: {
         user: { connect: { id: params.userId } },
+        organization: { connect: { id: params.organizationId } },
         month: params.month,
         year: params.year,
         grossAmount: params.grossAmount,
@@ -253,11 +257,12 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     return { totalBasic, totalHra, totalOtherAllowances, totalGross };
   }
 
-  private async getApplicableDeductions(params: { userId: number; lastDay: Date; firstDay: Date; year: number; month: number }): Promise<PayrollDeduction[]> {
+  private async getApplicableDeductions(params: { userId: number; lastDay: Date; firstDay: Date; year: number; month: number; organizationId: number }): Promise<PayrollDeduction[]> {
     const allDeductions = await this.payrollDeductionDao.findByUserIdWithPagination({
       userId: params.userId,
       page: 1,
       limit: 1000,
+      organizationId: params.organizationId,
     });
 
     return allDeductions.deductions.filter((d: PayrollDeduction) => {
@@ -285,8 +290,8 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     });
   }
 
-  private async getCompensations(params: { userId: number; lastDay: Date; firstDay: Date }): Promise<PayrollCompensation[]> {
-    const allCompensations = await this.payrollCompensationDao.findByUserIdOrderedByEffectiveFromDesc({ userId: params.userId });
+  private async getCompensations(params: { userId: number; lastDay: Date; firstDay: Date; organizationId: number }): Promise<PayrollCompensation[]> {
+    const allCompensations = await this.payrollCompensationDao.findByUserIdOrderedByEffectiveFromDesc({ userId: params.userId, organizationId: params.organizationId });
     return allCompensations.filter((c: PayrollCompensation) => {
       const compFrom = new Date(c.effectiveFrom);
       compFrom.setUTCHours(0, 0, 0, 0);
@@ -297,9 +302,9 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     });
   }
 
-  private async deleteOldPayslips(params: { force: boolean | undefined; existingPayslips: PayslipListResponseType[]; tx: Prisma.TransactionClient }): Promise<void> {
+  private async deleteOldPayslips(params: { force: boolean | undefined; existingPayslips: PayslipListResponseType[]; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
     if (params.force && params.existingPayslips.length > 0) {
-      await Promise.all(params.existingPayslips.map((p) => this.payrollPayslipDao.deleteById({ id: p.id, tx: params.tx })));
+      await Promise.all(params.existingPayslips.map((p) => this.payrollPayslipDao.deleteById({ id: p.id, organizationId: params.organizationId, tx: params.tx })));
     }
   }
 

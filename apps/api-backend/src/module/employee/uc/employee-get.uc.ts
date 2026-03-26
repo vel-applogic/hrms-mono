@@ -26,6 +26,6 @@ export class EmployeeGetUc extends BaseEmployeeUc implements IUseCase<Params, Em
 
   async execute(params: Params): Promise<EmployeeDetailResponseType> {
     this.logger.i('Getting employee', { id: params.id });
-    return this.getByIdOrThrow(params.id);
+    return this.getByIdOrThrow(params.id, params.currentUser.organizationId);
   }
 }

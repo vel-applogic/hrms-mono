@@ -22,7 +22,7 @@ export class EmployeeDeductionCreateUc implements IUseCase<Params, EmployeeDeduc
   async execute(params: Params): Promise<EmployeeDeductionResponseType> {
     this.logger.i('Creating employee deduction', { employeeId: params.dto.employeeId });
 
-    const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId });
+    const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId, organizationId: params.currentUser.organizationId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);
     }
@@ -45,6 +45,7 @@ export class EmployeeDeductionCreateUc implements IUseCase<Params, EmployeeDeduc
     // Check for existing active deductions of the same type
     const existingActive = await this.payrollDeductionDao.findActiveByUserIdAndType({
       userId: params.dto.employeeId,
+      organizationId: params.currentUser.organizationId,
       type: params.dto.type,
     });
 
@@ -84,6 +85,7 @@ export class EmployeeDeductionCreateUc implements IUseCase<Params, EmployeeDeduc
       return this.payrollDeductionDao.create({
         data: {
           user: { connect: { id: params.dto.employeeId } },
+          organization: { connect: { id: params.currentUser.organizationId } },
           type: params.dto.type,
           frequency: params.dto.frequency,
           amount: params.dto.amount,

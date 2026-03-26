@@ -39,7 +39,7 @@ export class PolicyDeleteUc extends BasePolicyUc implements IUseCase<Params, Ope
 
     this.transaction(async (tx) => {
       await this.removeMedias({ policyId: params.id, tx });
-      await this.delete({ id: params.id, tx });
+      await this.delete({ id: params.id, organizationId: params.currentUser.organizationId, tx });
     });
     void this.recordActivity(params, policy);
 
@@ -47,15 +47,15 @@ export class PolicyDeleteUc extends BasePolicyUc implements IUseCase<Params, Ope
   }
 
   async validate(params: Params): Promise<PolicyDetailResponseType> {
-    return await this.getByIdOrThrow(params.id);
+    return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
   }
 
   async removeMedias(params: { policyId: number; tx: Prisma.TransactionClient }): Promise<void> {
     await this.policyHasMediaDao.deleteManyByPolicyId({ policyId: params.policyId, tx: params.tx });
   }
 
-  async delete(params: { id: number; tx: Prisma.TransactionClient }): Promise<void> {
-    await this.policyDao.delete({ id: params.id, tx: params.tx });
+  async delete(params: { id: number; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
+    await this.policyDao.delete({ id: params.id, organizationId: params.organizationId, tx: params.tx });
   }
 
   private async recordActivity(params: Params, deletedPolicy: PolicyDetailResponseType): Promise<void> {

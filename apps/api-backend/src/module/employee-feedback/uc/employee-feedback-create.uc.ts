@@ -23,7 +23,7 @@ export class EmployeeFeedbackCreateUc implements IUseCase<Params, EmployeeFeedba
   async execute(params: Params): Promise<EmployeeFeedbackResponseType> {
     this.logger.i('Creating employee feedback', { employeeId: params.dto.employeeId });
 
-    const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId });
+    const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId, organizationId: params.currentUser.organizationId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);
     }
@@ -31,6 +31,7 @@ export class EmployeeFeedbackCreateUc implements IUseCase<Params, EmployeeFeedba
     const created = await this.employeeFeedbackDao.create({
       data: {
         user: { connect: { id: params.dto.employeeId } },
+        organization: { connect: { id: params.currentUser.organizationId } },
         createdBy: { connect: { id: params.currentUser.id } },
         trend: params.dto.trend as 'positive' | 'negative' | 'neutral',
         point: params.dto.point ?? 0,
@@ -39,7 +40,7 @@ export class EmployeeFeedbackCreateUc implements IUseCase<Params, EmployeeFeedba
       },
     });
 
-    const withUser = await this.employeeFeedbackDao.getById({ id: created.id });
+    const withUser = await this.employeeFeedbackDao.getById({ id: created.id, organizationId: params.currentUser.organizationId });
     if (!withUser) throw new ApiError('Failed to fetch created feedback', 500);
 
     return {

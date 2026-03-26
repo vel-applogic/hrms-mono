@@ -29,8 +29,8 @@ export class LeaveCountersListUc implements IUseCase<Params, LeaveCounterRespons
     this.logger.i('Listing leave counters', { financialYear: params.financialYear });
 
     const [employees, counters, leaveConfig] = await Promise.all([
-      this.employeeDao.findAllWithUser(),
-      this.employeeLeaveCounterDao.findManyByFinancialYear({ financialYear: params.financialYear }),
+      this.employeeDao.findAllWithUser({ organizationId: params.currentUser.organizationId }),
+      this.employeeLeaveCounterDao.findManyByFinancialYear({ financialYear: params.financialYear, organizationId: params.currentUser.organizationId }),
       this.leaveConfigDao.getLatest(),
     ]);
 

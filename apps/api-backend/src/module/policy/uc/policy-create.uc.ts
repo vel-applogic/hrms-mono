@@ -40,13 +40,13 @@ export class PolicyCreateUc extends BasePolicyUc implements IUseCase<Params, Ope
 
     await this.validate(params);
     const createdId = await this.transaction(async (tx) => {
-      const policy = await this.create({ dto: params.dto, tx });
+      const policy = await this.create({ dto: params.dto, organizationId: params.currentUser.organizationId, tx });
       if (params.dto.mediaIds && params.dto.mediaIds.length > 0) {
         await this.linkMediasToPolicy({ policyId: policy.id, mediaIds: params.dto.mediaIds, tx });
       }
       return policy.id;
     });
-    const policy = await this.getByIdOrThrow(createdId);
+    const policy = await this.getByIdOrThrow(createdId, params.currentUser.organizationId);
     void this.recordActivity(params, policy);
     return { success: true, message: 'Policy created successfully' };
   }
@@ -62,9 +62,10 @@ export class PolicyCreateUc extends BasePolicyUc implements IUseCase<Params, Ope
     }
   }
 
-  async create(params: { dto: PolicyCreateRequestType; tx: Prisma.TransactionClient }): Promise<{ id: number }> {
+  async create(params: { dto: PolicyCreateRequestType; organizationId: number; tx: Prisma.TransactionClient }): Promise<{ id: number }> {
     return await this.policyDao.create({
       data: {
+        organization: { connect: { id: params.organizationId } },
         title: params.dto.title,
         content: params.dto.content,
       },

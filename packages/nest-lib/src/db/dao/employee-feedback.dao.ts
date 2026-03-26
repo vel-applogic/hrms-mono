@@ -20,31 +20,42 @@ export class EmployeeFeedbackDao extends BaseDao {
 
   async update(params: {
     id: number;
+    organizationId?: number;
     data: Prisma.EmployeeFeedbackUpdateInput;
     tx?: Prisma.TransactionClient;
   }): Promise<EmployeeFeedback> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.employeeFeedback.update({ where: { id: params.id }, data: params.data });
+    return pc.employeeFeedback.update({
+      where: { id: params.id, ...(params.organizationId ? { organizationId: params.organizationId } : {}) },
+      data: params.data,
+    });
   }
 
-  async delete(params: { id: number; tx?: Prisma.TransactionClient }): Promise<EmployeeFeedback> {
+  async delete(params: { id: number; organizationId?: number; tx?: Prisma.TransactionClient }): Promise<EmployeeFeedback> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.employeeFeedback.delete({ where: { id: params.id } });
+    return pc.employeeFeedback.delete({
+      where: { id: params.id, ...(params.organizationId ? { organizationId: params.organizationId } : {}) },
+    });
   }
 
   async getById(params: {
     id: number;
+    organizationId?: number;
     tx?: Prisma.TransactionClient;
   }): Promise<EmployeeFeedbackWithCreatedByType | null> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.employeeFeedback.findUnique({
-      where: { id: params.id },
+    return pc.employeeFeedback.findFirst({
+      where: {
+        id: params.id,
+        ...(params.organizationId ? { organizationId: params.organizationId } : {}),
+      },
       include: { createdBy: true },
     });
   }
 
   async findByUserIdWithPagination(params: {
     userId: number;
+    organizationId?: number;
     page: number;
     limit: number;
     tx?: Prisma.TransactionClient;
@@ -55,10 +66,15 @@ export class EmployeeFeedbackDao extends BaseDao {
       pageSize: params.limit,
     });
 
+    const where = {
+      userId: params.userId,
+      ...(params.organizationId ? { organizationId: params.organizationId } : {}),
+    };
+
     const [totalRecords, feedbacks] = await Promise.all([
-      pc.employeeFeedback.count({ where: { userId: params.userId } }),
+      pc.employeeFeedback.count({ where }),
       pc.employeeFeedback.findMany({
-        where: { userId: params.userId },
+        where,
         include: { createdBy: true },
         orderBy: { createdAt: 'desc' },
         take,

@@ -30,13 +30,14 @@ export class EmployeeDeductionListUc implements IUseCase<Params, PaginatedRespon
   async execute(params: Params): Promise<PaginatedResponseType<EmployeeDeductionResponseType>> {
     this.logger.i('Listing employee deductions', { employeeId: params.filterDto.employeeId });
 
-    const employee = await this.employeeDao.getByUserId({ userId: params.filterDto.employeeId });
+    const employee = await this.employeeDao.getByUserId({ userId: params.filterDto.employeeId, organizationId: params.currentUser.organizationId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);
     }
 
     const { deductions, totalRecords } = await this.payrollDeductionDao.findByUserIdWithPagination({
       userId: params.filterDto.employeeId,
+      organizationId: params.currentUser.organizationId,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
     });

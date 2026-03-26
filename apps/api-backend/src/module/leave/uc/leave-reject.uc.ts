@@ -26,7 +26,7 @@ export class LeaveRejectUc implements IUseCase<Params, LeaveResponseType> {
       throw new ApiError('Only admins can reject leave requests', 403);
     }
 
-    const existing = await this.leaveDao.getById({ id: params.id });
+    const existing = await this.leaveDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!existing) {
       throw new ApiError('Leave not found', 404);
     }
@@ -44,6 +44,7 @@ export class LeaveRejectUc implements IUseCase<Params, LeaveResponseType> {
       const { start, end } = getFinancialYearDateRange(financialYear);
       const totals = await this.leaveDao.getApprovedLeaveTotalsByUserIdAndDateRange({
         userId: existing.userId,
+        organizationId: params.currentUser.organizationId,
         startDate: start,
         endDate: end,
       });
@@ -61,7 +62,7 @@ export class LeaveRejectUc implements IUseCase<Params, LeaveResponseType> {
       }
     }
 
-    const updated = await this.leaveDao.getById({ id: params.id });
+    const updated = await this.leaveDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!updated) throw new ApiError('Failed to fetch updated leave', 500);
 
     return {

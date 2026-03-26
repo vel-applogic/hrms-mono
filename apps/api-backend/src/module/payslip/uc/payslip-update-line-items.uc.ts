@@ -20,7 +20,7 @@ export class PayslipUpdateLineItemsUc implements IUseCase<Params, PayslipDetailR
   async execute(params: Params): Promise<PayslipDetailResponseType> {
     this.logger.i('Updating payslip line items', { id: params.id });
 
-    const existing = await this.payrollPayslipDao.getById({ id: params.id });
+    const existing = await this.payrollPayslipDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!existing) {
       throw new ApiError('Payslip not found', 404);
     }

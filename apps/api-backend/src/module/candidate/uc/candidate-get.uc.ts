@@ -28,6 +28,6 @@ export class CandidateGetUc extends BaseCandidateUc implements IUseCase<Params, 
   }
 
   private async validate(params: Params): Promise<CandidateDetailResponseType> {
-    return await this.getByIdOrThrow(params.id);
+    return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
   }
 }

@@ -23,7 +23,7 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
     this.logger.i('Cancelling leave request', { id: params.id, userId: params.currentUser.id });
 
     const isAdmin = params.currentUser.roles.includes(UserRoleDtoEnum.admin);
-    const existing = await this.leaveDao.getById({ id: params.id });
+    const existing = await this.leaveDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!existing) {
       throw new ApiError('Leave not found', 404);
     }
@@ -34,7 +34,7 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
       if (existing.status !== 'pending') {
         throw new ApiError('Only pending leave requests can be cancelled by employees', 400);
       }
-      const employee = await this.employeeDao.getByUserId({ userId: params.currentUser.id });
+      const employee = await this.employeeDao.getByUserId({ userId: params.currentUser.id, organizationId: params.currentUser.organizationId });
       if (!employee) {
         throw new ApiError('Only employees can cancel leave. Employee not found.', 403);
       }
@@ -53,6 +53,7 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
       const { start, end } = getFinancialYearDateRange(financialYear);
       const totals = await this.leaveDao.getApprovedLeaveTotalsByUserIdAndDateRange({
         userId: existing.userId,
+        organizationId: params.currentUser.organizationId,
         startDate: start,
         endDate: end,
       });
@@ -70,7 +71,7 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
       }
     }
 
-    const updated = await this.leaveDao.getById({ id: params.id });
+    const updated = await this.leaveDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!updated) throw new ApiError('Failed to fetch updated leave', 500);
 
     return {

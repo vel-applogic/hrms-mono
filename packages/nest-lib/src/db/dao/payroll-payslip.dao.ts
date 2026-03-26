@@ -33,10 +33,10 @@ export class PayrollPayslipDao extends BaseDao {
     });
   }
 
-  async getById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<PayrollPayslipWithDetailsType | null> {
+  async getById(params: { id: number; organizationId?: number; tx?: Prisma.TransactionClient }): Promise<PayrollPayslipWithDetailsType | null> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.payrollPayslip.findUnique({
-      where: { id: params.id },
+    return pc.payrollPayslip.findFirst({
+      where: { id: params.id, ...(params.organizationId ? { organizationId: params.organizationId } : {}) },
       include: {
         user: {
           select: {
@@ -53,19 +53,26 @@ export class PayrollPayslipDao extends BaseDao {
 
   async findByUserAndMonthYear(params: {
     userId: number;
+    organizationId?: number;
     month: number;
     year: number;
     tx?: Prisma.TransactionClient;
   }): Promise<PayrollPayslip | null> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.payrollPayslip.findUnique({
-      where: { userId_month_year: { userId: params.userId, month: params.month, year: params.year } },
+    return pc.payrollPayslip.findFirst({
+      where: {
+        userId: params.userId,
+        month: params.month,
+        year: params.year,
+        ...(params.organizationId ? { organizationId: params.organizationId } : {}),
+      },
     });
   }
 
   async findManyByMonthYear(params: {
     month: number;
     year: number;
+    organizationId?: number;
     employeeIds?: number[];
     tx?: Prisma.TransactionClient;
   }): Promise<PayrollPayslipWithUserType[]> {
@@ -75,6 +82,7 @@ export class PayrollPayslipDao extends BaseDao {
         month: params.month,
         year: params.year,
         ...(params.employeeIds?.length ? { userId: { in: params.employeeIds } } : {}),
+        ...(params.organizationId ? { organizationId: params.organizationId } : {}),
       },
       include: { user: { select: { firstname: true, lastname: true, email: true } } },
     });
@@ -83,6 +91,7 @@ export class PayrollPayslipDao extends BaseDao {
   async findWithPagination(params: {
     page: number;
     limit: number;
+    organizationId?: number;
     month?: number;
     year?: number;
     employeeIds?: number[];
@@ -95,6 +104,7 @@ export class PayrollPayslipDao extends BaseDao {
       ...(params.month != null ? { month: params.month } : {}),
       ...(params.year != null ? { year: params.year } : {}),
       ...(params.employeeIds?.length ? { userId: { in: params.employeeIds } } : {}),
+      ...(params.organizationId ? { organizationId: params.organizationId } : {}),
     };
 
     const [totalRecords, payslips] = await Promise.all([
@@ -111,8 +121,12 @@ export class PayrollPayslipDao extends BaseDao {
     return { payslips, totalRecords };
   }
 
-  async deleteById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<void> {
+  async deleteById(params: { id: number; organizationId?: number; tx?: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
+    if (params.organizationId) {
+      const payslip = await pc.payrollPayslip.findFirst({ where: { id: params.id, organizationId: params.organizationId } });
+      if (!payslip) throw new Error(`Payslip ${params.id} not found in organization`);
+    }
     await pc.payrollPayslipLineItem.deleteMany({ where: { payslipId: params.id } });
     await pc.payrollPayslip.delete({ where: { id: params.id } });
   }

@@ -18,12 +18,12 @@ export class EmployeeCompensationDeleteUc implements IUseCase<Params, OperationS
   async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Deleting employee compensation', { id: params.id });
 
-    const existing = await this.payrollCompensationDao.getById({ id: params.id });
+    const existing = await this.payrollCompensationDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!existing) {
       throw new ApiError('Compensation not found', 404);
     }
 
-    await this.payrollCompensationDao.deleteById({ id: params.id });
+    await this.payrollCompensationDao.deleteById({ id: params.id, organizationId: params.currentUser.organizationId });
 
     return { success: true };
   }

@@ -27,6 +27,7 @@ export class PayslipListUc implements IUseCase<Params, PaginatedResponseType<Pay
       month: params.filterDto.month,
       year: params.filterDto.year,
       employeeIds: params.filterDto.employeeIds,
+      organizationId: params.currentUser.organizationId,
     });
 
     const signedUrls = await Promise.all(

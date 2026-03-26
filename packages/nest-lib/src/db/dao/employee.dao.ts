@@ -12,18 +12,22 @@ export class EmployeeDao extends BaseDao {
     super(prisma);
   }
 
-  async findAllWithUser(params?: { tx?: Prisma.TransactionClient }): Promise<EmployeeListRecordType[]> {
+  async findAllWithUser(params?: { organizationId?: number; tx?: Prisma.TransactionClient }): Promise<EmployeeListRecordType[]> {
     const pc = this.getPrismaClient(params?.tx);
     return pc.employee.findMany({
+      where: params?.organizationId ? { organizationId: params.organizationId } : undefined,
       include: { user: true },
       orderBy: { user: { firstname: 'asc' } },
     });
   }
 
-  async getByUserId(params: { userId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeDetailRecordType | null> {
+  async getByUserId(params: { userId: number; organizationId?: number; tx?: Prisma.TransactionClient }): Promise<EmployeeDetailRecordType | null> {
     const pc = this.getPrismaClient(params.tx);
     return pc.employee.findFirst({
-      where: { userId: params.userId },
+      where: {
+        userId: params.userId,
+        ...(params.organizationId ? { organizationId: params.organizationId } : {}),
+      },
       include: {
         user: true,
         reportTo: { select: { id: true, firstname: true, lastname: true, email: true } },
@@ -86,17 +90,24 @@ export class EmployeeDao extends BaseDao {
 
   async update(params: {
     userId: number;
+    organizationId?: number;
     data: Prisma.EmployeeUpdateInput;
     tx?: Prisma.TransactionClient;
   }): Promise<Employee> {
     const pc = this.getPrismaClient(params.tx);
-    const existing = await pc.employee.findFirst({ where: { userId: params.userId } });
+    const existing = await pc.employee.findFirst({
+      where: {
+        userId: params.userId,
+        ...(params.organizationId ? { organizationId: params.organizationId } : {}),
+      },
+    });
     if (!existing) throw new Error(`Employee with userId ${params.userId} not found`);
     return pc.employee.update({ where: { id: existing.id }, data: params.data });
   }
 
   async search(params: {
     filterDto: EmployeeFilterRequestType;
+    organizationId?: number;
     orderBy?: OrderByParam;
     tx?: Prisma.TransactionClient;
   }): Promise<{ totalRecords: number; dbRecords: EmployeeListRecordType[] }> {
@@ -106,7 +117,7 @@ export class EmployeeDao extends BaseDao {
       pageSize: params.filterDto.pagination.limit,
     });
 
-    const where: Prisma.EmployeeWhereInput = {};
+    const where: Prisma.EmployeeWhereInput = params.organizationId ? { organizationId: params.organizationId } : {};
 
     if (params.filterDto.search) {
       where.OR = [

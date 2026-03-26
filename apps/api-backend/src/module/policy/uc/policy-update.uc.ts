@@ -41,19 +41,19 @@ export class PolicyUpdateUc extends BasePolicyUc implements IUseCase<Params, Ope
 
     const oldPolicy = await this.validate(params);
     await this.transaction(async (tx) => {
-      await this.update(params.id, params.dto, tx);
+      await this.update(params.id, params.dto, tx, params.currentUser.organizationId);
       if (params.dto.mediaIds !== undefined) {
         await this.linkMediasToPolicy({ policyId: params.id, mediaIds: params.dto.mediaIds, tx });
       }
     });
-    const newPolicy = await this.getByIdOrThrow(params.id);
+    const newPolicy = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
     void this.recordActivity(params, oldPolicy, newPolicy);
 
     return { success: true, message: 'Policy updated successfully' };
   }
 
   async validate(params: Params): Promise<PolicyDetailResponseType> {
-    const existing = await this.policyDao.getById({ id: params.id });
+    const existing = await this.policyDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!existing) {
       throw new ApiError('Policy not found', 404);
     }
@@ -67,16 +67,16 @@ export class PolicyUpdateUc extends BasePolicyUc implements IUseCase<Params, Ope
       }
     }
 
-    return await this.getByIdOrThrow(params.id);
+    return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
   }
 
-  async update(id: number, dto: PolicyUpdateRequestType, tx: Prisma.TransactionClient): Promise<void> {
+  async update(id: number, dto: PolicyUpdateRequestType, tx: Prisma.TransactionClient, organizationId?: number): Promise<void> {
     const updateData: Prisma.PolicyUpdateInput = {
       updatedAt: new Date(),
       title: dto.title,
       content: dto.content,
     };
-    await this.policyDao.update({ id, data: updateData, tx });
+    await this.policyDao.update({ id, organizationId, data: updateData, tx });
   }
 
   async linkMediasToPolicy(params: { policyId: number; mediaIds: number[]; tx: Prisma.TransactionClient }): Promise<void> {

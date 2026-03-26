@@ -30,8 +30,8 @@ export class BaseCandidateUc extends BaseUc {
     };
   }
 
-  async getById(id: number): Promise<CandidateDetailResponseType | undefined> {
-    const candidate = await this.candidateDao.getById({ id });
+  async getById(id: number, organizationId?: number): Promise<CandidateDetailResponseType | undefined> {
+    const candidate = await this.candidateDao.getById({ id, organizationId });
     if (!candidate) return undefined;
 
     const resumeRecord = candidate.candidateHasMedias.find((m) => m.type === CandidateMediaType.resume);
@@ -67,8 +67,8 @@ export class BaseCandidateUc extends BaseUc {
     };
   }
 
-  async getByIdOrThrow(id: number): Promise<CandidateDetailResponseType> {
-    const candidate = await this.getById(id);
+  async getByIdOrThrow(id: number, organizationId?: number): Promise<CandidateDetailResponseType> {
+    const candidate = await this.getById(id, organizationId);
     if (!candidate) throw new ApiError('Candidate not found', 404);
     return candidate;
   }

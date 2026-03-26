@@ -29,11 +29,15 @@ export class LeaveDao extends BaseDao {
 
   async getById(params: {
     id: number;
+    organizationId?: number;
     tx?: Prisma.TransactionClient;
   }): Promise<LeaveWithUserType | null> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.leave.findUnique({
-      where: { id: params.id },
+    return pc.leave.findFirst({
+      where: {
+        id: params.id,
+        ...(params.organizationId ? { organizationId: params.organizationId } : {}),
+      },
       include: { user: { select: { id: true, firstname: true, lastname: true, email: true } } },
     });
   }
@@ -66,6 +70,7 @@ export class LeaveDao extends BaseDao {
 
   async getApprovedLeaveTotalsByUserIdAndDateRange(params: {
     userId: number;
+    organizationId?: number;
     startDate: Date;
     endDate: Date;
     tx?: Prisma.TransactionClient;
@@ -76,6 +81,7 @@ export class LeaveDao extends BaseDao {
         userId: params.userId,
         status: 'approved',
         startDate: { gte: params.startDate, lte: params.endDate },
+        ...(params.organizationId ? { organizationId: params.organizationId } : {}),
       },
       select: { leaveType: true, numberOfDays: true },
     });
@@ -95,6 +101,7 @@ export class LeaveDao extends BaseDao {
 
   async sumDaysByUserIdAndStatus(params: {
     userId: number;
+    organizationId?: number;
     statuses: string[];
     leaveType?: string;
     excludeLeaveId?: number;
@@ -107,6 +114,7 @@ export class LeaveDao extends BaseDao {
         status: { in: params.statuses as ('pending' | 'approved')[] },
         ...(params.leaveType ? { leaveType: params.leaveType as 'casual' | 'sick' | 'medical' | 'earned' } : {}),
         ...(params.excludeLeaveId ? { id: { not: params.excludeLeaveId } } : {}),
+        ...(params.organizationId ? { organizationId: params.organizationId } : {}),
       },
       _sum: { numberOfDays: true },
     });
@@ -115,6 +123,7 @@ export class LeaveDao extends BaseDao {
 
   async sumLopDaysByUserIdAndDateRange(params: {
     userId: number;
+    organizationId?: number;
     startDate: Date;
     endDate: Date;
     tx?: Prisma.TransactionClient;
@@ -125,6 +134,7 @@ export class LeaveDao extends BaseDao {
         userId: params.userId,
         status: 'approved',
         startDate: { gte: params.startDate, lte: params.endDate },
+        ...(params.organizationId ? { organizationId: params.organizationId } : {}),
       },
       _sum: { numberOfLopDays: true },
     });

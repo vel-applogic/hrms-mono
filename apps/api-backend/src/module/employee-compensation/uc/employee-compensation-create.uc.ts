@@ -46,6 +46,7 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
 
       await this.payrollCompensationDao.updateManyByUserId({
         userId: params.dto.employeeId,
+        organizationId: params.currentUser.organizationId,
         data: { isActive: false },
         tx,
       });
@@ -53,6 +54,7 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
       return this.payrollCompensationDao.create({
         data: {
           user: { connect: { id: params.dto.employeeId } },
+          organization: { connect: { id: params.currentUser.organizationId } },
           basic: params.dto.basic,
           hra: params.dto.hra,
           otherAllowances: params.dto.otherAllowances,
@@ -81,7 +83,7 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
   }
 
   private async validate(params: Params): Promise<ValidateResult> {
-    const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId });
+    const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId, organizationId: params.currentUser.organizationId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);
     }
@@ -90,6 +92,7 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
 
     const existing = await this.payrollCompensationDao.findByUserIdOrderedByEffectiveFromDesc({
       userId: params.dto.employeeId,
+      organizationId: params.currentUser.organizationId,
     });
 
     const mostRecent = existing[0];

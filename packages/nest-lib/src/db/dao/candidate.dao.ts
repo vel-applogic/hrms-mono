@@ -17,15 +17,22 @@ export class CandidateDao extends BaseDao {
     return pc.candidate.create({ data: params.data });
   }
 
-  async update(params: { id: number; data: Prisma.CandidateUpdateInput; tx?: Prisma.TransactionClient }): Promise<Candidate> {
+  async update(params: { id: number; organizationId?: number; data: Prisma.CandidateUpdateInput; tx?: Prisma.TransactionClient }): Promise<Candidate> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.candidate.update({ where: { id: params.id }, data: params.data });
+    return pc.candidate.update({
+      where: { id: params.id, ...(params.organizationId ? { organizationId: params.organizationId } : {}) },
+      data: params.data,
+    });
   }
 
-  async getById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<CandidateDetailRecordType | null> {
+  async getById(params: { id: number; organizationId?: number; tx?: Prisma.TransactionClient }): Promise<CandidateDetailRecordType | null> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.candidate.findUnique({
-      where: { id: params.id, isDeleted: false },
+    return pc.candidate.findFirst({
+      where: {
+        id: params.id,
+        isDeleted: false,
+        ...(params.organizationId ? { organizationId: params.organizationId } : {}),
+      },
       include: {
         candidateHasMedias: {
           include: { media: true },
@@ -34,13 +41,17 @@ export class CandidateDao extends BaseDao {
     });
   }
 
-  async delete(params: { id: number; tx?: Prisma.TransactionClient }): Promise<Candidate> {
+  async delete(params: { id: number; organizationId?: number; tx?: Prisma.TransactionClient }): Promise<Candidate> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.candidate.update({ where: { id: params.id }, data: { isDeleted: true } });
+    return pc.candidate.update({
+      where: { id: params.id, ...(params.organizationId ? { organizationId: params.organizationId } : {}) },
+      data: { isDeleted: true },
+    });
   }
 
   async search(params: {
     filterDto: CandidateFilterRequestType;
+    organizationId?: number;
     orderBy?: OrderByParam;
     tx?: Prisma.TransactionClient;
   }): Promise<{ totalRecords: number; dbRecords: CandidateListRecordType[] }> {
@@ -50,7 +61,10 @@ export class CandidateDao extends BaseDao {
       pageSize: params.filterDto.pagination.limit,
     });
 
-    const where: Prisma.CandidateWhereInput = { isDeleted: false };
+    const where: Prisma.CandidateWhereInput = {
+      isDeleted: false,
+      ...(params.organizationId ? { organizationId: params.organizationId } : {}),
+    };
 
     if (params.filterDto.search) {
       where.OR = [

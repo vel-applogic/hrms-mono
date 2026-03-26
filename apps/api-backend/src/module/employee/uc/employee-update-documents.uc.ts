@@ -41,7 +41,7 @@ export class EmployeeUpdateDocumentsUc extends BaseEmployeeUc implements IUseCas
   async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Updating employee documents', { id: params.id });
 
-    await this.getByIdOrThrow(params.id);
+    await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
 
     await this.transaction(async (tx) => {
       if (params.dto.resume !== undefined) {
@@ -52,7 +52,7 @@ export class EmployeeUpdateDocumentsUc extends BaseEmployeeUc implements IUseCas
         });
         if (params.dto.resume) {
           if (params.dto.resume.key?.startsWith('temp/')) {
-            await this.createAndLinkMedia({ media: params.dto.resume, userId: params.id, type: EmployeeMediaType.resume, tx });
+            await this.createAndLinkMedia({ media: params.dto.resume, userId: params.id, organizationId: params.currentUser.organizationId, type: EmployeeMediaType.resume, tx });
           } else if (params.dto.resume.id) {
             await this.employeeHasMediaDao.create({
               data: { userId: params.id, mediaId: params.dto.resume.id, type: EmployeeMediaType.resume },
@@ -70,7 +70,7 @@ export class EmployeeUpdateDocumentsUc extends BaseEmployeeUc implements IUseCas
         });
         for (const media of params.dto.offerLetters) {
           if (media.key?.startsWith('temp/')) {
-            await this.createAndLinkMedia({ media, userId: params.id, type: EmployeeMediaType.offerLetter, tx });
+            await this.createAndLinkMedia({ media, userId: params.id, organizationId: params.currentUser.organizationId, type: EmployeeMediaType.offerLetter, tx });
           } else if (media.id) {
             await this.employeeHasMediaDao.create({
               data: { userId: params.id, mediaId: media.id, type: EmployeeMediaType.offerLetter },
@@ -88,7 +88,7 @@ export class EmployeeUpdateDocumentsUc extends BaseEmployeeUc implements IUseCas
         });
         for (const media of params.dto.otherDocuments) {
           if (media.key?.startsWith('temp/')) {
-            await this.createAndLinkMedia({ media, userId: params.id, type: EmployeeMediaType.otherDocuments, tx });
+            await this.createAndLinkMedia({ media, userId: params.id, organizationId: params.currentUser.organizationId, type: EmployeeMediaType.otherDocuments, tx });
           } else if (media.id) {
             await this.employeeHasMediaDao.create({
               data: { userId: params.id, mediaId: media.id, type: EmployeeMediaType.otherDocuments },
@@ -105,6 +105,7 @@ export class EmployeeUpdateDocumentsUc extends BaseEmployeeUc implements IUseCas
   private async createAndLinkMedia(params: {
     media: MediaUpsertType;
     userId: number;
+    organizationId: number;
     type: EmployeeMediaType;
     tx: Prisma.TransactionClient;
   }): Promise<void> {
@@ -117,7 +118,7 @@ export class EmployeeUpdateDocumentsUc extends BaseEmployeeUc implements IUseCas
     if (!file) return;
 
     const mediaId = await this.mediaDao.create({
-      data: { key: file.newKey, name: params.media.name, type: params.media.type, size: file.size, ext: file.ext },
+      data: { key: file.newKey, name: params.media.name, type: params.media.type, size: file.size, ext: file.ext, organization: { connect: { id: params.organizationId } } },
       tx: params.tx,
     });
 

@@ -148,7 +148,7 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
         });
 
         if (params.dto.photo?.key?.startsWith('temp/')) {
-          await this.createAndLinkMedia({ media: params.dto.photo, userId, type: EmployeeMediaType.photo, tx });
+          await this.createAndLinkMedia({ media: params.dto.photo, userId, organizationId: params.currentUser.organizationId, type: EmployeeMediaType.photo, tx });
         }
       }
 
@@ -178,7 +178,7 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
     void this.sendInviteEmail({ userId, email: params.dto.email, inviteKey, organizationName: org.name });
 
     if (!existingUser) {
-      const employee = await this.getById(userId);
+      const employee = await this.getById(userId, params.currentUser.organizationId);
       void this.recordActivity(params, employee ?? null);
     }
 
@@ -197,7 +197,7 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
     });
   }
 
-  private async createAndLinkMedia(params: { media: MediaUpsertType; userId: number; type: EmployeeMediaType; tx: Prisma.TransactionClient }): Promise<void> {
+  private async createAndLinkMedia(params: { media: MediaUpsertType; userId: number; organizationId: number; type: EmployeeMediaType; tx: Prisma.TransactionClient }): Promise<void> {
     const file = await this.mediaService.moveTempFileAndGetKey({
       media: params.media,
       mediaPlacement: 'employee',
@@ -207,7 +207,7 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
     if (!file) return;
 
     const mediaId = await this.mediaDao.create({
-      data: { key: file.newKey, name: params.media.name, type: params.media.type, size: file.size, ext: file.ext },
+      data: { key: file.newKey, name: params.media.name, type: params.media.type, size: file.size, ext: file.ext, organization: { connect: { id: params.organizationId } } },
       tx: params.tx,
     });
 

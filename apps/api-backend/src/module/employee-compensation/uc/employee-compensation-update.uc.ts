@@ -65,7 +65,7 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
         tx,
       });
 
-      return this.payrollCompensationDao.getById({ id: params.id, tx });
+      return this.payrollCompensationDao.getById({ id: params.id, organizationId: params.currentUser.organizationId, tx });
     });
 
     if (!updated) throw new ApiError('Failed to fetch updated compensation', 500);
@@ -86,7 +86,7 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
   }
 
   private async validate(params: Params): Promise<ValidateResult> {
-    const existing = await this.payrollCompensationDao.getById({ id: params.id });
+    const existing = await this.payrollCompensationDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!existing) {
       throw new ApiError('Compensation not found', 404);
     }
@@ -98,6 +98,7 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
 
     const allForUser = await this.payrollCompensationDao.findByUserIdOrderedByEffectiveFromDesc({
       userId: existing.userId,
+      organizationId: params.currentUser.organizationId,
     });
     const others = allForUser.filter((c) => c.id !== params.id);
     const mostRecent = others[0];

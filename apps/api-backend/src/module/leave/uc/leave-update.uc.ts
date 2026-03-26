@@ -62,12 +62,12 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
   async execute(params: Params): Promise<LeaveResponseType> {
     this.logger.i('Updating leave request', { id: params.id, userId: params.currentUser.id });
 
-    const employee = await this.employeeDao.getByUserId({ userId: params.currentUser.id });
+    const employee = await this.employeeDao.getByUserId({ userId: params.currentUser.id, organizationId: params.currentUser.organizationId });
     if (!employee) {
       throw new ApiError('Only employees can edit leave. Employee not found.', 403);
     }
 
-    const existing = await this.leaveDao.getById({ id: params.id });
+    const existing = await this.leaveDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!existing) {
       throw new ApiError('Leave not found', 404);
     }
@@ -98,12 +98,14 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
     const countStatuses = ['pending', 'approved'];
     const existingByType = await this.leaveDao.sumDaysByUserIdAndStatus({
       userId: params.currentUser.id,
+      organizationId: params.currentUser.organizationId,
       statuses: countStatuses,
       leaveType: params.dto.leaveType,
       excludeLeaveId: params.id,
     });
     const existingTotal = await this.leaveDao.sumDaysByUserIdAndStatus({
       userId: params.currentUser.id,
+      organizationId: params.currentUser.organizationId,
       statuses: countStatuses,
       excludeLeaveId: params.id,
     });
@@ -133,7 +135,7 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
       },
     });
 
-    const updated = await this.leaveDao.getById({ id: params.id });
+    const updated = await this.leaveDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!updated) throw new ApiError('Failed to fetch updated leave', 500);
 
     return {

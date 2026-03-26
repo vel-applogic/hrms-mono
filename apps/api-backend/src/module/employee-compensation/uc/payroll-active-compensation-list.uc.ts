@@ -18,6 +18,7 @@ export class PayrollActiveCompensationListUc implements IUseCase<Params, Paginat
     this.logger.i('Listing all active compensations for payroll');
 
     const { compensations, totalRecords } = await this.payrollCompensationDao.findActiveWithEmployeeInfo({
+      organizationId: params.currentUser.organizationId,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
     });

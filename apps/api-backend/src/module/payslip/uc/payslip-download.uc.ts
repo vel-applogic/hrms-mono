@@ -20,7 +20,7 @@ export class PayslipDownloadUc implements IUseCase<Params, string> {
   async execute(params: Params): Promise<string> {
     this.logger.i('Getting payslip PDF signed URL', { id: params.id });
 
-    const payslip = await this.payrollPayslipDao.getById({ id: params.id });
+    const payslip = await this.payrollPayslipDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!payslip) {
       throw new ApiError('Payslip not found', 404);
     }

@@ -20,7 +20,7 @@ export class CandidateFeedbackListUc implements IUseCase<Params, PaginatedRespon
   async execute(params: Params): Promise<PaginatedResponseType<CandidateFeedbackResponseType>> {
     this.logger.i('Listing candidate feedbacks', { candidateId: params.filterDto.candidateId });
 
-    const candidate = await this.candidateDao.getById({ id: params.filterDto.candidateId });
+    const candidate = await this.candidateDao.getById({ id: params.filterDto.candidateId, organizationId: params.currentUser.organizationId });
     if (!candidate) {
       throw new ApiError('Candidate not found', 404);
     }

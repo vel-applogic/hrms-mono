@@ -34,7 +34,7 @@ export class EmployeeDeductionUpdateUc implements IUseCase<Params, EmployeeDeduc
   async execute(params: Params): Promise<EmployeeDeductionResponseType> {
     this.logger.i('Updating employee deduction', { id: params.id });
 
-    const existing = await this.payrollDeductionDao.getById({ id: params.id });
+    const existing = await this.payrollDeductionDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!existing) {
       throw new ApiError('Deduction not found', 404);
     }
@@ -85,7 +85,7 @@ export class EmployeeDeductionUpdateUc implements IUseCase<Params, EmployeeDeduc
       data: updateData,
     });
 
-    const updated = await this.payrollDeductionDao.getById({ id: params.id });
+    const updated = await this.payrollDeductionDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!updated) throw new ApiError('Failed to fetch updated deduction', 500);
 
     return {

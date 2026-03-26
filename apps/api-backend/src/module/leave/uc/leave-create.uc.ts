@@ -55,7 +55,7 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
       throw new ApiError('You can only apply for leave on your own behalf', 403);
     }
 
-    const employee = await this.employeeDao.getByUserId({ userId: targetUserId });
+    const employee = await this.employeeDao.getByUserId({ userId: targetUserId, organizationId: params.currentUser.organizationId });
     if (!employee) {
       throw new ApiError('Selected user is not an employee', 403);
     }
@@ -80,11 +80,13 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
     const countStatuses = ['pending', 'approved'];
     const existingByType = await this.leaveDao.sumDaysByUserIdAndStatus({
       userId: targetUserId,
+      organizationId: params.currentUser.organizationId,
       statuses: countStatuses,
       leaveType: params.dto.leaveType,
     });
     const existingTotal = await this.leaveDao.sumDaysByUserIdAndStatus({
       userId: targetUserId,
+      organizationId: params.currentUser.organizationId,
       statuses: countStatuses,
     });
 
@@ -99,6 +101,7 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
     const created = await this.leaveDao.create({
       data: {
         user: { connect: { id: targetUserId } },
+        organization: { connect: { id: params.currentUser.organizationId } },
         leaveType: params.dto.leaveType as 'casual' | 'sick' | 'medical' | 'earned',
         startDate,
         endDate,
@@ -108,7 +111,7 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
       },
     });
 
-    const withUser = await this.leaveDao.getById({ id: created.id });
+    const withUser = await this.leaveDao.getById({ id: created.id, organizationId: params.currentUser.organizationId });
     if (!withUser) throw new ApiError('Failed to fetch created leave', 500);
 
     return {

@@ -33,10 +33,11 @@ export class CandidateUpdateStatusUc extends BaseCandidateUc implements IUseCase
   async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Updating candidate status', { id: params.id, status: params.dto.status });
 
-    const existing = await this.getByIdOrThrow(params.id);
+    const existing = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
 
     await this.candidateDao.update({
       id: params.id,
+      organizationId: params.currentUser.organizationId,
       data: { status: params.dto.status },
     });
 

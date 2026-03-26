@@ -19,12 +19,12 @@ export class EmployeeFeedbackDeleteUc implements IUseCase<Params, OperationStatu
   async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Deleting employee feedback', { id: params.id });
 
-    const existing = await this.employeeFeedbackDao.getById({ id: params.id });
+    const existing = await this.employeeFeedbackDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!existing) {
       throw new ApiError('Feedback not found', 404);
     }
 
-    await this.employeeFeedbackDao.delete({ id: params.id });
+    await this.employeeFeedbackDao.delete({ id: params.id, organizationId: params.currentUser.organizationId });
 
     return { success: true };
   }

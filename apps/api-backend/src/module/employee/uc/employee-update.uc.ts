@@ -52,7 +52,7 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
   async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Updating employee', { id: params.id });
 
-    const oldEmployee = await this.getByIdOrThrow(params.id);
+    const oldEmployee = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
 
     const [duplicateCode, duplicatePan, duplicateAadhaar] = await Promise.all([
       this.employeeDao.findByEmployeeCode({ employeeCode: params.dto.employeeCode, organizationId: params.currentUser.organizationId, excludeUserId: params.id }),
@@ -76,6 +76,7 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
 
       await this.employeeDao.update({
         userId: params.id,
+        organizationId: params.currentUser.organizationId,
         data: {
           employeeCode: params.dto.employeeCode,
           personalEmail: params.dto.personalEmail ?? undefined,
@@ -98,7 +99,7 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
           tx,
         });
         if (params.dto.photo?.key?.startsWith('temp/')) {
-          await this.createAndLinkMedia({ media: params.dto.photo, userId: params.id, type: EmployeeMediaType.photo, tx });
+          await this.createAndLinkMedia({ media: params.dto.photo, userId: params.id, organizationId: params.currentUser.organizationId, type: EmployeeMediaType.photo, tx });
         } else if (params.dto.photo?.id) {
           await this.employeeHasMediaDao.create({
             data: { userId: params.id, mediaId: params.dto.photo.id, type: EmployeeMediaType.photo },
@@ -108,7 +109,7 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
       }
     });
 
-    const newEmployee = await this.getByIdOrThrow(params.id);
+    const newEmployee = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
     void this.recordActivity(params, oldEmployee, newEmployee);
     return { success: true, message: 'Employee updated successfully' };
   }
@@ -116,6 +117,7 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
   private async createAndLinkMedia(params: {
     media: MediaUpsertType;
     userId: number;
+    organizationId: number;
     type: EmployeeMediaType;
     tx: Prisma.TransactionClient;
   }): Promise<void> {
@@ -128,7 +130,7 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
     if (!file) return;
 
     const mediaId = await this.mediaDao.create({
-      data: { key: file.newKey, name: params.media.name, type: params.media.type, size: file.size, ext: file.ext },
+      data: { key: file.newKey, name: params.media.name, type: params.media.type, size: file.size, ext: file.ext, organization: { connect: { id: params.organizationId } } },
       tx: params.tx,
     });
 

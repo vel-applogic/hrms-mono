@@ -31,8 +31,8 @@ export class BaseEmployeeUc extends BaseUc {
     };
   }
 
-  async getById(userId: number): Promise<EmployeeDetailResponseType | undefined> {
-    const employee = await this.employeeDao.getByUserId({ userId });
+  async getById(userId: number, organizationId?: number): Promise<EmployeeDetailResponseType | undefined> {
+    const employee = await this.employeeDao.getByUserId({ userId, organizationId });
     if (!employee) return undefined;
 
     const medias = await this.employeeHasMediaDao.findByUserId({ userId });
@@ -78,8 +78,8 @@ export class BaseEmployeeUc extends BaseUc {
     };
   }
 
-  async getByIdOrThrow(userId: number): Promise<EmployeeDetailResponseType> {
-    const employee = await this.getById(userId);
+  async getByIdOrThrow(userId: number, organizationId?: number): Promise<EmployeeDetailResponseType> {
+    const employee = await this.getById(userId, organizationId);
     if (!employee) throw new ApiError('Employee not found', 404);
     return employee;
   }

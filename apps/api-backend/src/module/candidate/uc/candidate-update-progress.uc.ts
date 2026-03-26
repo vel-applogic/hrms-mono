@@ -33,10 +33,11 @@ export class CandidateUpdateProgressUc extends BaseCandidateUc implements IUseCa
   async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Updating candidate progress', { id: params.id, progress: params.dto.progress });
 
-    const existing = await this.getByIdOrThrow(params.id);
+    const existing = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
 
     await this.candidateDao.update({
       id: params.id,
+      organizationId: params.currentUser.organizationId,
       data: { progress: params.dto.progress },
     });
 

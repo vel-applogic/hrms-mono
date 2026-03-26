@@ -20,13 +20,14 @@ export class EmployeeCompensationListUc implements IUseCase<Params, PaginatedRes
   async execute(params: Params): Promise<PaginatedResponseType<EmployeeCompensationResponseType>> {
     this.logger.i('Listing employee compensations', { employeeId: params.filterDto.employeeId });
 
-    const employee = await this.employeeDao.getByUserId({ userId: params.filterDto.employeeId });
+    const employee = await this.employeeDao.getByUserId({ userId: params.filterDto.employeeId, organizationId: params.currentUser.organizationId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);
     }
 
     const { compensations, totalRecords } = await this.payrollCompensationDao.findByUserIdWithPagination({
       userId: params.filterDto.employeeId,
+      organizationId: params.currentUser.organizationId,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
     });

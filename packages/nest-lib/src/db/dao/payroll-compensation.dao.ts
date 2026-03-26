@@ -27,35 +27,47 @@ export class PayrollCompensationDao extends BaseDao {
     return pc.payrollCompensation.update({ where: { id: params.id }, data: params.data });
   }
 
-  async getById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<PayrollCompensation | null> {
+  async getById(params: { id: number; organizationId?: number; tx?: Prisma.TransactionClient }): Promise<PayrollCompensation | null> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.payrollCompensation.findUnique({ where: { id: params.id } });
+    return pc.payrollCompensation.findFirst({
+      where: { id: params.id, ...(params.organizationId ? { organizationId: params.organizationId } : {}) },
+    });
   }
 
-  async deleteById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<PayrollCompensation> {
+  async deleteById(params: { id: number; organizationId?: number; tx?: Prisma.TransactionClient }): Promise<PayrollCompensation> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.payrollCompensation.delete({ where: { id: params.id } });
+    return pc.payrollCompensation.delete({
+      where: { id: params.id, ...(params.organizationId ? { organizationId: params.organizationId } : {}) },
+    });
   }
 
   async findByUserIdOrderedByEffectiveFromDesc(params: {
     userId: number;
+    organizationId?: number;
     tx?: Prisma.TransactionClient;
   }): Promise<PayrollCompensation[]> {
     const pc = this.getPrismaClient(params.tx);
     return pc.payrollCompensation.findMany({
-      where: { userId: params.userId },
+      where: {
+        userId: params.userId,
+        ...(params.organizationId ? { organizationId: params.organizationId } : {}),
+      },
       orderBy: { effectiveFrom: 'desc' },
     });
   }
 
   async updateManyByUserId(params: {
     userId: number;
+    organizationId?: number;
     data: Prisma.PayrollCompensationUpdateInput;
     tx?: Prisma.TransactionClient;
   }): Promise<number> {
     const pc = this.getPrismaClient(params.tx);
     const result = await pc.payrollCompensation.updateMany({
-      where: { userId: params.userId },
+      where: {
+        userId: params.userId,
+        ...(params.organizationId ? { organizationId: params.organizationId } : {}),
+      },
       data: params.data,
     });
     return result.count;
@@ -63,6 +75,7 @@ export class PayrollCompensationDao extends BaseDao {
 
   async findByUserIdWithPagination(params: {
     userId: number;
+    organizationId?: number;
     page: number;
     limit: number;
     tx?: Prisma.TransactionClient;
@@ -73,10 +86,15 @@ export class PayrollCompensationDao extends BaseDao {
       pageSize: params.limit,
     });
 
+    const where = {
+      userId: params.userId,
+      ...(params.organizationId ? { organizationId: params.organizationId } : {}),
+    };
+
     const [totalRecords, compensations] = await Promise.all([
-      pc.payrollCompensation.count({ where: { userId: params.userId } }),
+      pc.payrollCompensation.count({ where }),
       pc.payrollCompensation.findMany({
-        where: { userId: params.userId },
+        where,
         orderBy: { effectiveFrom: 'desc' },
         take,
         skip,
@@ -87,6 +105,7 @@ export class PayrollCompensationDao extends BaseDao {
   }
 
   async findActiveWithEmployeeInfo(params: {
+    organizationId?: number;
     page: number;
     limit: number;
     tx?: Prisma.TransactionClient;
@@ -97,10 +116,15 @@ export class PayrollCompensationDao extends BaseDao {
       pageSize: params.limit,
     });
 
+    const where = {
+      isActive: true,
+      ...(params.organizationId ? { organizationId: params.organizationId } : {}),
+    };
+
     const [totalRecords, compensations] = await Promise.all([
-      pc.payrollCompensation.count({ where: { isActive: true } }),
+      pc.payrollCompensation.count({ where }),
       pc.payrollCompensation.findMany({
-        where: { isActive: true },
+        where,
         include: { user: { select: { firstname: true, lastname: true, email: true } } },
         orderBy: { user: { firstname: 'asc' } },
         take,
