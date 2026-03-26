@@ -8,11 +8,11 @@
 
 @theme inline {
   --color-background: #e4eae7;
-  --color-foreground: #1a2e23;
+  --color-foreground: #0f1f16;
   --color-card: #ffffff;
-  --color-card-foreground: #1a2e23;
+  --color-card-foreground: #0f1f16;
   --color-popover: #ffffff;
-  --color-popover-foreground: #1a2e23;
+  --color-popover-foreground: #0f1f16;
   --color-primary: #1b4332;
   --color-primary-foreground: #ffffff;
   --color-secondary: #e0e6e3;
@@ -20,11 +20,11 @@
   --color-muted: #e4e9e6;
   --color-muted-foreground: #5e7a6d;
   --color-accent: #e0e6e3;
-  --color-accent-foreground: #1a2e23;
+  --color-accent-foreground: #0f1f16;
   --color-destructive: #e53e3e;
   --color-destructive-foreground: #ffffff;
   --color-border: #c8d3cd;
-  --color-input: #c8d3cd;
+  --color-input: #3d6b55;
   --color-ring: #1b4332;
   --color-success: #38a169;
   --color-warning: #d69e2e;
@@ -36,7 +36,7 @@
 }
 
 @utility center-container {
-  @apply mx-auto w-full max-w-[2200px] px-4 md:px-11;
+  @apply mx-auto w-full max-w-[2200px] px-4 md:px-8;
 }
 
 @layer base {
@@ -45,6 +45,15 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Form inputs: white background on the green page background */
+  input:not([type='checkbox']):not([type='radio']),
+  textarea,
+  select,
+  [role='combobox'],
+  [data-slot='select-trigger'] {
+    background-color: #ffffff !important;
   }
 
   /* Date input: light theme for picker popup + visible calendar icon */
@@ -90,7 +99,7 @@
   --ag-header-background-color: #e4eae7;
   --ag-border-color: #c8d3cd;
   --ag-header-text-color: #5e7a6d;
-  --ag-foreground-color: #1a2e23;
+  --ag-foreground-color: #0f1f16;
   --ag-background-color: #ffffff;
   --ag-wrapper-border-radius: 0;
 

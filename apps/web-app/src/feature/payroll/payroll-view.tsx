@@ -27,9 +27,7 @@ export function PayrollView({ children }: Props) {
             const isActive = pathname.startsWith(tab.href);
             return (
               <Link key={tab.id} href={tab.href} className='group relative flex h-[52px] items-center px-3 pb-2 pt-3'>
-                <span
-                  className={`text-sm font-bold tracking-widest transition-colors group-hover:text-foreground ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}
-                >
+                <span className={`text-sm font-bold tracking-widest transition-colors group-hover:text-foreground ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
                   {tab.label}
                 </span>
                 {isActive && <span className='absolute bottom-[-1px] left-0 right-0 h-[3px] bg-primary' />}
@@ -38,7 +36,7 @@ export function PayrollView({ children }: Props) {
           })}
         </div>
 
-        <div className='min-h-0 flex-1 p-6'>{children}</div>
+        <div className='min-h-0 flex-1 pt-4'>{children}</div>
       </div>
     </div>
   );

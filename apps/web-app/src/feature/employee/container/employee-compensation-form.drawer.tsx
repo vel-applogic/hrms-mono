@@ -1,11 +1,11 @@
 'use client';
 
 import type { EmployeeCompensationResponseType } from '@repo/dto';
-import { cn } from '@repo/ui/lib/utils';
 import { Button } from '@repo/ui/component/ui/button';
 import { Input } from '@repo/ui/component/ui/input';
 import { Label } from '@repo/ui/component/ui/label';
 import { Drawer } from '@repo/ui/container/drawer/drawer';
+import { cn } from '@repo/ui/lib/utils';
 import { useEffect, useMemo, useState } from 'react';
 
 import { createEmployeeCompensation, updateEmployeeCompensation } from '@/lib/action/employee-compensation.actions';
@@ -53,8 +53,8 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
       return { basic: 0, hra: 0, otherAllowances: 0 };
     }
     const grossRounded = Math.round(grossNum);
-    let b = Math.round(grossRounded * 0.4);
-    let h = Math.round(grossRounded * 0.2);
+    const b = Math.round(grossRounded * 0.4);
+    const h = Math.round(grossRounded * 0.2);
     let o = Math.round(grossRounded * 0.2);
     const sum = b + h + o;
     const diff = grossRounded - sum;

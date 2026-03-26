@@ -200,7 +200,7 @@ const DataTableContainer = <T,>(props: DataTableContainerProps<T>) => {
       headerFontWeight: '700',
       backgroundColor: '#FFFFFF',
       chromeBackgroundColor: '#FFFFFF',
-      foregroundColor: '#1A2E23',
+      foregroundColor: '#0F1F16',
       headerBackgroundColor: '#E4EAE7',
       headerColumnBorder: { style: 'solid', color: '#C8D3CD' },
       rowBorder: { style: 'solid', color: '#C8D3CD' },

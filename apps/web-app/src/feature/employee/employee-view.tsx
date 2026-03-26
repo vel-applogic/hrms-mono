@@ -1,9 +1,9 @@
 'use client';
 
 import type {
-  EmployeeDetailResponseType,
   EmployeeCompensationResponseType,
   EmployeeDeductionResponseType,
+  EmployeeDetailResponseType,
   EmployeeFeedbackResponseType,
   LeaveResponseType,
   PaginatedResponseType,
@@ -38,15 +38,7 @@ interface Props {
   activeTab: 'details' | 'documents' | 'feedbacks' | 'compensation' | 'deduction' | 'leave';
 }
 
-export function EmployeeView({
-  employee,
-  initialFeedbackPage,
-  initialCompensationPage,
-  initialDeductionPage,
-  initialLeavePage,
-  initialLeaveFinancialYear,
-  activeTab,
-}: Props) {
+export function EmployeeView({ employee, initialFeedbackPage, initialCompensationPage, initialDeductionPage, initialLeavePage, initialLeaveFinancialYear, activeTab }: Props) {
   return (
     <div className='flex h-full flex-col gap-4 pt-4'>
       <div className='center-container flex items-center justify-between'>
@@ -80,25 +72,13 @@ export function EmployeeView({
           })}
         </div>
 
-        <div className='min-h-0 flex-1 p-6'>
+        <div className='min-h-0 flex-1 pt-4'>
           {activeTab === 'details' && <EmployeeViewBasicDetails employeeId={employee.id} />}
           {activeTab === 'documents' && <EmployeeViewDocuments employeeId={employee.id} />}
-          {activeTab === 'feedbacks' && (
-            <EmployeeViewFeedbacks employeeId={employee.id} initialPage={initialFeedbackPage} />
-          )}
-          {activeTab === 'compensation' && (
-            <EmployeeViewCompensation employeeId={employee.id} initialPage={initialCompensationPage} />
-          )}
-          {activeTab === 'deduction' && (
-            <EmployeeViewDeduction employeeId={employee.id} initialPage={initialDeductionPage} />
-          )}
-          {activeTab === 'leave' && (
-            <EmployeeViewLeave
-              employeeId={employee.id}
-              initialData={initialLeavePage}
-              initialFinancialYear={initialLeaveFinancialYear}
-            />
-          )}
+          {activeTab === 'feedbacks' && <EmployeeViewFeedbacks employeeId={employee.id} initialPage={initialFeedbackPage} />}
+          {activeTab === 'compensation' && <EmployeeViewCompensation employeeId={employee.id} initialPage={initialCompensationPage} />}
+          {activeTab === 'deduction' && <EmployeeViewDeduction employeeId={employee.id} initialPage={initialDeductionPage} />}
+          {activeTab === 'leave' && <EmployeeViewLeave employeeId={employee.id} initialData={initialLeavePage} initialFinancialYear={initialLeaveFinancialYear} />}
         </div>
       </div>
     </div>

@@ -95,7 +95,7 @@ export function AcceptInviteForm({ userId, inviteKey }: AcceptInviteFormProps) {
               value={firstname}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFirstname(e.target.value)}
               required
-              className='w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none'
+              className='w-full rounded-[40px] border border-input bg-white px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none'
             />
           </div>
           <div className='flex flex-col gap-3'>
@@ -109,7 +109,7 @@ export function AcceptInviteForm({ userId, inviteKey }: AcceptInviteFormProps) {
               value={lastname}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLastname(e.target.value)}
               required
-              className='w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none'
+              className='w-full rounded-[40px] border border-input bg-white px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none'
             />
           </div>
         </div>
@@ -124,7 +124,7 @@ export function AcceptInviteForm({ userId, inviteKey }: AcceptInviteFormProps) {
             value={password}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
             required
-            className='w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none'
+            className='w-full rounded-[40px] border border-input bg-white px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none'
           />
           {passwordErrors.length > 0 && (
             <ul className='flex flex-col gap-1'>
@@ -145,7 +145,7 @@ export function AcceptInviteForm({ userId, inviteKey }: AcceptInviteFormProps) {
             value={confirmPassword}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
             required
-            className='w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none'
+            className='w-full rounded-[40px] border border-input bg-white px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none'
           />
         </div>
         <p className='text-xs text-muted-foreground'>

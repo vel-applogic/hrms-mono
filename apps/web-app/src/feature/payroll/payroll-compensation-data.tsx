@@ -16,13 +16,11 @@ interface Props {
 }
 
 export function PayrollCompensationData({ data, searchParams }: Props) {
-
   const colDefs: ColDef<PayrollActiveCompensationResponseType>[] = [
     {
       headerName: 'Employee',
       flex: 2,
-      valueGetter: (params) =>
-        params.data ? `${params.data.employeeFirstname} ${params.data.employeeLastname}` : '',
+      valueGetter: (params) => (params.data ? `${params.data.employeeFirstname} ${params.data.employeeLastname}` : ''),
     },
     {
       headerName: 'Email',
@@ -102,9 +100,7 @@ export function PayrollCompensationData({ data, searchParams }: Props) {
         />
       </div>
 
-      {data.results.length === 0 && (
-        <p className='py-4 text-sm text-muted-foreground'>No active compensation records found.</p>
-      )}
+      {data.results.length === 0 && <p className='py-4 text-sm text-muted-foreground'>No active compensation records found.</p>}
     </div>
   );
 }

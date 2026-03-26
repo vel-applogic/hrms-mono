@@ -58,7 +58,7 @@ export function ForgotPasswordForm() {
             value={email}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
             required
-            className='w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none'
+            className='w-full rounded-[40px] border border-input bg-white px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none'
           />
         </div>
         {error && <p className='text-sm text-destructive'>{error}</p>}
