@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+
 import { LoginForm } from '@/feature/auth/login-form';
 
 export default function LoginPage() {
@@ -11,7 +13,9 @@ export default function LoginPage() {
       </nav>
       <div className='flex flex-1 items-center justify-center'>
         <div className='w-full max-w-[384px]'>
-          <LoginForm />
+          <Suspense>
+            <LoginForm />
+          </Suspense>
         </div>
       </div>
     </div>
