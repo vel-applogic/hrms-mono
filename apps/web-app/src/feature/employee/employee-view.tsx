@@ -57,7 +57,7 @@ export function EmployeeView({
             </Button>
           </Link>
           <div>
-            <h1 className='text-xl font-medium tracking-tight text-white'>
+            <h1 className='text-xl font-medium tracking-tight text-foreground'>
               {employee.firstname} {employee.lastname}
             </h1>
             <p className='text-sm text-muted-foreground'>{employee.email}</p>
@@ -71,7 +71,7 @@ export function EmployeeView({
             const isActive = activeTab === tab.id;
             return (
               <Link key={tab.id} href={`/employee/${employee.id}/${tab.id}`} className='group relative flex h-[52px] items-center px-3 pb-2 pt-3'>
-                <span className={`text-sm font-bold tracking-widest transition-colors group-hover:text-white ${isActive ? 'text-white' : 'text-muted-foreground'}`}>
+                <span className={`text-sm font-bold tracking-widest transition-colors group-hover:text-foreground ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
                   {tab.label}
                 </span>
                 {isActive && <span className='absolute -bottom-px left-0 right-0 h-[3px] bg-primary' />}

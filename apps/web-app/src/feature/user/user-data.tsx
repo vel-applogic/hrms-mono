@@ -83,13 +83,13 @@ export const UserData = ({ data, searchParams, stats }: Props) => {
 
   return (
     <div className='flex h-full flex-col gap-4'>
-      <h2 className='text-xl font-medium tracking-tight text-white'>Overview</h2>
+      <h2 className='text-xl font-medium tracking-tight text-foreground'>Overview</h2>
 
       <div className='grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5'>
         {statCards.map((card, i) => (
           <div key={i} className='flex flex-col overflow-hidden rounded-lg bg-card'>
             <div className='flex flex-col gap-2 px-4 py-3 md:px-5'>
-              <span className='text-xl font-medium tracking-tight text-white md:text-2xl'>{card.value}</span>
+              <span className='text-xl font-medium tracking-tight text-foreground md:text-2xl'>{card.value}</span>
               <span className='text-sm text-muted-foreground md:text-base'>{card.label}</span>
             </div>
           </div>
@@ -97,7 +97,7 @@ export const UserData = ({ data, searchParams, stats }: Props) => {
       </div>
 
       <div className='flex items-center justify-between'>
-        <span className='text-xl font-medium tracking-tight text-white'>Users</span>
+        <span className='text-xl font-medium tracking-tight text-foreground'>Users</span>
         <div className='flex items-center gap-3'>
           <SelectSearchSingle
             value={searchParams.status}
@@ -129,7 +129,7 @@ export const UserData = ({ data, searchParams, stats }: Props) => {
                 setSearchText(event.target.value);
               }}
               placeholder='Search for user'
-              className='w-full bg-transparent text-sm font-medium text-white placeholder:text-muted-foreground focus:outline-none'
+              className='w-full bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none'
             />
           </div>
           <Button onClick={() => setInviteOpen(true)}>

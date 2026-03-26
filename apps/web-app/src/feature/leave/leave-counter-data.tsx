@@ -113,7 +113,7 @@ export const LeaveCounterData = ({ counters, financialYear, financialYearOptions
   return (
     <div className='flex h-full flex-col gap-4 pt-4'>
       <div className='center-container flex items-center justify-between'>
-        <span className='text-xl font-medium tracking-tight text-white'>Leave Counters</span>
+        <span className='text-xl font-medium tracking-tight text-foreground'>Leave Counters</span>
         <div className='flex items-center gap-3'>
           <div className='flex h-10 w-[260px] items-center gap-3 rounded-[40px] border border-border bg-background px-4'>
             <svg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'>
@@ -130,7 +130,7 @@ export const LeaveCounterData = ({ counters, financialYear, financialYearOptions
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               placeholder='Search by name or email...'
-              className='w-full bg-transparent text-sm font-medium text-white placeholder:text-muted-foreground focus:outline-none'
+              className='w-full bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none'
             />
           </div>
           <Select value={financialYear} onValueChange={handleFinancialYearChange}>

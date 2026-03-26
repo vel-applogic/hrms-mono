@@ -70,7 +70,7 @@ export function PayrollCompensationData({ data, searchParams }: Props) {
         return (
           <Link
             href={`/employee/${params.data.employeeId}/compensation`}
-            className='inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-white'
+            className='inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground'
           >
             <Eye className='h-4 w-4' />
           </Link>

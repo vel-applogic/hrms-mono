@@ -186,14 +186,14 @@ export function PayslipEditLineItemsDrawer({ open, onOpenChange, payslipId, onSu
                   <button
                     type='button'
                     onClick={() => addLineItem('earning')}
-                    className='flex items-center gap-1.5 text-sm text-muted-foreground hover:text-white transition-colors'
+                    className='flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors'
                   >
                     <Plus className='h-4 w-4' />
                     Add earning
                   </button>
                   {earnings.length > 0 && (
                     <span className='text-sm text-muted-foreground'>
-                      Gross: <strong className='text-white'>{formatAmount(getGross())}</strong>
+                      Gross: <strong className='text-foreground'>{formatAmount(getGross())}</strong>
                     </span>
                   )}
                 </div>
@@ -219,7 +219,7 @@ export function PayslipEditLineItemsDrawer({ open, onOpenChange, payslipId, onSu
                   <button
                     type='button'
                     onClick={() => addLineItem('deduction')}
-                    className='flex items-center gap-1.5 text-sm text-muted-foreground hover:text-white transition-colors'
+                    className='flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors'
                   >
                     <Plus className='h-4 w-4' />
                     Add deduction

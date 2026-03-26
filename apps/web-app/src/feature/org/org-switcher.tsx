@@ -24,7 +24,7 @@ export function OrgSwitcher() {
       <DropdownMenuTrigger asChild disabled={!hasMultiple}>
         <button className="flex items-center gap-1.5 rounded border border-border px-2 py-1 outline-none transition-colors disabled:cursor-default disabled:opacity-60 enabled:hover:bg-accent">
           <Building2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <span className="max-w-[140px] truncate text-xs text-white">{currentOrg.name}</span>
+          <span className="max-w-[140px] truncate text-xs text-foreground">{currentOrg.name}</span>
           <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
         </button>
       </DropdownMenuTrigger>

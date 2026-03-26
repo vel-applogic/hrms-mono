@@ -40,7 +40,7 @@ function DownloadButton({ onDownload }: { onDownload: () => Promise<void> }) {
     <button
       onClick={handleClick}
       disabled={isLoading}
-      className='inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-white disabled:cursor-not-allowed disabled:opacity-50'
+      className='inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50'
       title='Download PDF'
     >
       {isLoading ? <Loader2 className='h-4 w-4 animate-spin' /> : <Download className='h-4 w-4' />}
@@ -180,7 +180,7 @@ export function PayslipData() {
           <div className='flex items-center gap-1'>
             <button
               onClick={() => setViewPayslipId(payslipId)}
-              className='inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-white'
+              className='inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground'
               title='View payslip'
             >
               <Eye className='h-4 w-4' />
@@ -188,7 +188,7 @@ export function PayslipData() {
             <DownloadButton onDownload={() => handleDownloadPdf(payslipId)} />
             <button
               onClick={() => setEditPayslipId(payslipId)}
-              className='inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-white'
+              className='inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground'
               title='Edit line items'
             >
               <Pencil className='h-4 w-4' />

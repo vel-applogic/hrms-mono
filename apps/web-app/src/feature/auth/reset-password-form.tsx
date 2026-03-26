@@ -58,7 +58,7 @@ export function ResetPasswordForm({ userId, resetKey }: ResetPasswordFormProps) 
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-2 text-center">
-        <h1 className="text-2xl font-semibold text-white">Reset password</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Reset password</h1>
         <p className="text-sm text-muted-foreground">Enter your new password below</p>
       </div>
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -73,7 +73,7 @@ export function ResetPasswordForm({ userId, resetKey }: ResetPasswordFormProps) 
             value={password}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
             required
-            className="w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-white placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+            className="w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
           />
           {passwordErrors.length > 0 && (
             <ul className="flex flex-col gap-1">
@@ -94,7 +94,7 @@ export function ResetPasswordForm({ userId, resetKey }: ResetPasswordFormProps) 
             value={confirmPassword}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
             required
-            className="w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-white placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+            className="w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
           />
         </div>
         <p className="text-xs text-muted-foreground">
@@ -104,13 +104,13 @@ export function ResetPasswordForm({ userId, resetKey }: ResetPasswordFormProps) 
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-[40px] bg-primary py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="w-full rounded-[40px] bg-primary py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {loading ? 'Resetting...' : 'Reset password'}
         </button>
         <Link
           href="/auth/login"
-          className="text-center text-sm text-muted-foreground transition-colors hover:text-white"
+          className="text-center text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           Back to login
         </Link>

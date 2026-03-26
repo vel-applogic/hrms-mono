@@ -43,7 +43,7 @@ export function CandidateDeleteDialog({ open, onOpenChange, candidate, onSuccess
 
         <p className='text-sm text-muted-foreground'>
           Are you sure you want to delete candidate{' '}
-          <span className='font-medium text-white'>
+          <span className='font-medium text-foreground'>
             {candidate?.firstname} {candidate?.lastname}
           </span>
           ? This action cannot be undone.

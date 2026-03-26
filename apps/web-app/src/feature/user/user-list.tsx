@@ -109,13 +109,13 @@ export function UserList() {
 
   return (
     <div className="flex h-full flex-col gap-4">
-      <h2 className="text-xl font-medium tracking-tight text-white">Overview</h2>
+      <h2 className="text-xl font-medium tracking-tight text-foreground">Overview</h2>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
         {statCards.map((card, i) => (
           <div key={i} className="flex flex-col overflow-hidden rounded-lg bg-card">
             <div className="flex flex-col gap-2 px-4 py-3 md:px-5">
-              <span className="text-xl font-medium tracking-tight text-white md:text-2xl">{card.value}</span>
+              <span className="text-xl font-medium tracking-tight text-foreground md:text-2xl">{card.value}</span>
               <span className="text-sm text-muted-foreground md:text-base">{card.label}</span>
             </div>
           </div>
@@ -128,7 +128,7 @@ export function UserList() {
       </div>
 
       <div className="flex items-center justify-between">
-        <span className="text-xl font-medium tracking-tight text-white">Users</span>
+        <span className="text-xl font-medium tracking-tight text-foreground">Users</span>
         <div className="flex items-center gap-3">
           <div className="flex h-10 items-center gap-2 rounded-[40px] border border-border bg-background px-3">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -140,7 +140,7 @@ export function UserList() {
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M7.33 12.67A5.33 5.33 0 1 0 7.33 2a5.33 5.33 0 0 0 0 10.67ZM14 14l-2.9-2.9" stroke="#848A91" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span className="text-sm font-medium text-white">Search for user</span>
+            <span className="text-sm font-medium text-foreground">Search for user</span>
           </div>
         </div>
       </div>

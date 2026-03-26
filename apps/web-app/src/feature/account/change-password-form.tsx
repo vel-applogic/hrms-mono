@@ -49,7 +49,7 @@ export function ChangePasswordForm() {
           value={currentPassword}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrentPassword(e.target.value)}
           required
-          className="w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-white placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+          className="w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
         />
       </div>
       <div className="flex flex-col gap-3">
@@ -63,7 +63,7 @@ export function ChangePasswordForm() {
           value={newPassword}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPassword(e.target.value)}
           required
-          className="w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-white placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+          className="w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
         />
         <p className="text-xs text-muted-foreground">
           Min 6 characters, max 20. Must include uppercase, lowercase, number, and special character (!@#$%^&*).
@@ -80,7 +80,7 @@ export function ChangePasswordForm() {
           value={confirmPassword}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
           required
-          className="w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-white placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+          className="w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
         />
       </div>
       {successMessage && <p className="text-sm text-green-500">{successMessage}</p>}
@@ -88,7 +88,7 @@ export function ChangePasswordForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-[40px] bg-primary py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="w-full rounded-[40px] bg-primary py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {loading ? 'Updating...' : 'Change password'}
       </button>

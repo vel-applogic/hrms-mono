@@ -30,7 +30,7 @@ export function UserMenu({ userName, userEmail }: Props) {
         <button className="flex cursor-pointer items-center gap-4 pr-4 outline-none">
           <div className="h-6 w-6 rounded-full bg-[#D9D9D9]" />
           <div className="flex flex-col items-start">
-            <span className="text-sm text-white">
+            <span className="text-sm text-foreground">
               {userName}
               {userEmail && <span className="text-muted-foreground"> ({userEmail})</span>}
             </span>

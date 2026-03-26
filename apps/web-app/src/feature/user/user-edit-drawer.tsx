@@ -61,7 +61,7 @@ export function UserEditDrawer({ open, onOpenChange, user, onSuccess }: UserEdit
           <div className='flex flex-col gap-5 px-6 py-5 flex-1'>
             <div className='flex flex-col gap-1.5'>
               <Label className='text-muted-foreground text-xs'>Email</Label>
-              <p className='text-sm text-white'>{user?.email}</p>
+              <p className='text-sm text-foreground'>{user?.email}</p>
             </div>
             <div className='grid grid-cols-2 gap-4'>
               <div className='flex flex-col gap-2'>

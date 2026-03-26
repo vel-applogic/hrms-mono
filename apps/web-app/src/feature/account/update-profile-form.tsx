@@ -67,7 +67,7 @@ export function UpdateProfileForm({ initialFirstname, initialLastname, email }: 
           value={firstname}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFirstname(e.target.value)}
           required
-          className="w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-white placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+          className="w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
         />
       </div>
       <div className="flex flex-col gap-3">
@@ -81,7 +81,7 @@ export function UpdateProfileForm({ initialFirstname, initialLastname, email }: 
           value={lastname}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLastname(e.target.value)}
           required
-          className="w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-white placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+          className="w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
         />
       </div>
       {successMessage && <p className="text-sm text-green-500">{successMessage}</p>}
@@ -89,7 +89,7 @@ export function UpdateProfileForm({ initialFirstname, initialLastname, email }: 
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-[40px] bg-primary py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="w-full rounded-[40px] bg-primary py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {loading ? 'Saving...' : 'Save changes'}
       </button>

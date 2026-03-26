@@ -249,12 +249,12 @@ export const LeaveDataTableClient = (props: Props) => {
               type='button'
               onClick={closeConfirm}
               disabled={loading}
-              className='absolute right-4 top-4 rounded p-1 text-muted-foreground hover:bg-muted hover:text-white disabled:opacity-50'
+              className='absolute right-4 top-4 rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50'
               aria-label='Close'
             >
               <X className='h-4 w-4' />
             </button>
-            <p className='mb-4 pr-8 text-sm text-white'>
+            <p className='mb-4 pr-8 text-sm text-foreground'>
               {getConfirmMessage(confirmModal.action, confirmModal.leave)}
             </p>
             <div className='flex justify-end gap-3'>
@@ -262,7 +262,7 @@ export const LeaveDataTableClient = (props: Props) => {
                 type='button'
                 onClick={closeConfirm}
                 disabled={loading}
-                className='rounded border border-border px-4 py-2 text-sm text-white hover:bg-muted disabled:opacity-50'
+                className='rounded border border-border px-4 py-2 text-sm text-foreground hover:bg-muted disabled:opacity-50'
               >
                 No
               </button>

@@ -22,7 +22,7 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
         {/* Logo */}
         <div className='flex items-center gap-3 border-b border-border px-5 py-4'>
           <img src='/logo.png' alt='Hrms' width={130} />
-          <span className='rounded border border-primary px-1.5 py-0.5 text-xs font-bold tracking-widest text-white'>ADMIN</span>
+          <span className='rounded bg-primary px-1.5 py-0.5 text-xs font-bold tracking-widest text-primary-foreground'>ADMIN</span>
         </div>
 
         {/* Navigation */}
@@ -41,7 +41,7 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
           <nav className='flex items-center justify-between px-4 py-2'>
             <div className='flex items-center gap-3'>
               <img src='/logo.png' alt='Hrms' width={130} />
-              <span className='hidden rounded border border-primary px-1.5 py-0.5 text-xs font-bold tracking-widest text-white sm:inline'>ADMIN</span>
+              <span className='hidden rounded bg-primary px-1.5 py-0.5 text-xs font-bold tracking-widest text-primary-foreground sm:inline'>ADMIN</span>
             </div>
             <MobileNav userName={currentUserName} userEmail={currentUserEmail} />
           </nav>

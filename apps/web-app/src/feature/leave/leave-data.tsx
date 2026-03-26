@@ -123,7 +123,7 @@ export const LeaveData = ({ data, employees, defaultFinancialYear, financialYear
   return (
     <div className='flex h-full flex-col gap-4 pt-4'>
       <div className='center-container flex items-center justify-between'>
-        <span className='text-xl font-medium tracking-tight text-white'>Leave Details for {currentFinancialYear}</span>
+        <span className='text-xl font-medium tracking-tight text-foreground'>Leave Details for {currentFinancialYear}</span>
         <Button className='shrink-0 rounded-[40px]' onClick={handleApplyLeave}>
           <CalendarPlus className='h-4 w-4' />
           Apply leave
@@ -179,7 +179,7 @@ export const LeaveData = ({ data, employees, defaultFinancialYear, financialYear
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               placeholder='Search by name or email...'
-              className='w-full bg-transparent text-sm font-medium text-white placeholder:text-muted-foreground focus:outline-none'
+              className='w-full bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none'
             />
           </div>
         </div>

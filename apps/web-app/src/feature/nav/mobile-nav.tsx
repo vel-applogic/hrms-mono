@@ -32,12 +32,12 @@ export function MobileNav({ userName, userEmail }: Props) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button className="flex h-10 w-10 items-center justify-center rounded-lg border border-border outline-none">
-          <Menu className="h-5 w-5 text-white" />
+          <Menu className="h-5 w-5 text-foreground" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <div className="space-y-1.5 px-2 py-2">
-          <p className="text-sm font-medium text-white">
+          <p className="text-sm font-medium text-foreground">
             {userName}
             {userEmail && <span className="font-normal text-muted-foreground"> ({userEmail})</span>}
           </p>

@@ -12,7 +12,7 @@ import { getPolicyById } from '@/lib/action/policy.actions';
 
 function PolicyTitleCellRenderer({ value }: ICellRendererParams<PolicyListResponseType>) {
   if (!value) return null;
-  return <span className='text-sm text-white'>{value}</span>;
+  return <span className='text-sm text-foreground'>{value}</span>;
 }
 
 interface Props {

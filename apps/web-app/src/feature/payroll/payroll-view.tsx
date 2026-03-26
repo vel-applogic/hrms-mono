@@ -18,7 +18,7 @@ export function PayrollView({ children }: Props) {
   return (
     <div className='flex h-full flex-col gap-4 pt-4'>
       <div className='center-container flex items-center justify-between'>
-        <span className='text-xl font-medium tracking-tight text-white'>Payroll</span>
+        <span className='text-xl font-medium tracking-tight text-foreground'>Payroll</span>
       </div>
 
       <div className='center-container flex flex-col gap-4'>
@@ -28,7 +28,7 @@ export function PayrollView({ children }: Props) {
             return (
               <Link key={tab.id} href={tab.href} className='group relative flex h-[52px] items-center px-3 pb-2 pt-3'>
                 <span
-                  className={`text-sm font-bold tracking-widest transition-colors group-hover:text-white ${isActive ? 'text-white' : 'text-muted-foreground'}`}
+                  className={`text-sm font-bold tracking-widest transition-colors group-hover:text-foreground ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}
                 >
                   {tab.label}
                 </span>

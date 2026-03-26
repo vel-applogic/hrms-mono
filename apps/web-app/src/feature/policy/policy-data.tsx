@@ -91,7 +91,7 @@ export const PolicyData = ({ data, searchParams }: Props) => {
   return (
     <div className='flex h-full flex-col gap-4 pt-4'>
       <div className='center-container flex items-center justify-between'>
-        <span className='text-xl font-medium tracking-tight text-white'>Policies</span>
+        <span className='text-xl font-medium tracking-tight text-foreground'>Policies</span>
         <Button className='rounded-[40px]' onClick={handleAddNew}>
           <Plus className='h-4 w-4' />
           Add new policy
@@ -126,7 +126,7 @@ export const PolicyData = ({ data, searchParams }: Props) => {
               value={searchText}
               onChange={(event) => setSearchText(event.target.value)}
               placeholder='Search for policy'
-              className='w-full bg-transparent text-sm font-medium text-white placeholder:text-muted-foreground focus:outline-none'
+              className='w-full bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none'
             />
           </div>
         </div>

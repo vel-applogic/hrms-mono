@@ -63,7 +63,7 @@ export function AcceptInviteForm({ userId, inviteKey }: AcceptInviteFormProps) {
     return (
       <div className='flex flex-col gap-6 text-center'>
         <div className='flex flex-col gap-2'>
-          <h1 className='text-2xl font-semibold text-white'>Account activated!</h1>
+          <h1 className='text-2xl font-semibold text-foreground'>Account activated!</h1>
           <p className='text-sm text-muted-foreground'>Your account is ready. Redirecting to login…</p>
         </div>
         <Link
@@ -79,7 +79,7 @@ export function AcceptInviteForm({ userId, inviteKey }: AcceptInviteFormProps) {
   return (
     <div className='flex flex-col gap-8'>
       <div className='flex flex-col gap-2 text-center'>
-        <h1 className='text-2xl font-semibold text-white'>Accept invitation</h1>
+        <h1 className='text-2xl font-semibold text-foreground'>Accept invitation</h1>
         <p className='text-sm text-muted-foreground'>Set up your name and password to activate your account.</p>
       </div>
       <form onSubmit={handleSubmit} className='flex flex-col gap-5'>
@@ -95,7 +95,7 @@ export function AcceptInviteForm({ userId, inviteKey }: AcceptInviteFormProps) {
               value={firstname}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFirstname(e.target.value)}
               required
-              className='w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-white placeholder:text-muted-foreground focus:border-primary focus:outline-none'
+              className='w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none'
             />
           </div>
           <div className='flex flex-col gap-3'>
@@ -109,7 +109,7 @@ export function AcceptInviteForm({ userId, inviteKey }: AcceptInviteFormProps) {
               value={lastname}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLastname(e.target.value)}
               required
-              className='w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-white placeholder:text-muted-foreground focus:border-primary focus:outline-none'
+              className='w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none'
             />
           </div>
         </div>
@@ -124,7 +124,7 @@ export function AcceptInviteForm({ userId, inviteKey }: AcceptInviteFormProps) {
             value={password}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
             required
-            className='w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-white placeholder:text-muted-foreground focus:border-primary focus:outline-none'
+            className='w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none'
           />
           {passwordErrors.length > 0 && (
             <ul className='flex flex-col gap-1'>
@@ -145,7 +145,7 @@ export function AcceptInviteForm({ userId, inviteKey }: AcceptInviteFormProps) {
             value={confirmPassword}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
             required
-            className='w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-white placeholder:text-muted-foreground focus:border-primary focus:outline-none'
+            className='w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none'
           />
         </div>
         <p className='text-xs text-muted-foreground'>
@@ -155,13 +155,13 @@ export function AcceptInviteForm({ userId, inviteKey }: AcceptInviteFormProps) {
         <button
           type='submit'
           disabled={loading}
-          className='w-full rounded-[40px] bg-primary py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50'
+          className='w-full rounded-[40px] bg-primary py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50'
         >
           {loading ? 'Activating...' : 'Activate Account'}
         </button>
         <Link
           href='/auth/login'
-          className='text-center text-sm text-muted-foreground transition-colors hover:text-white'
+          className='text-center text-sm text-muted-foreground transition-colors hover:text-foreground'
         >
           Back to login
         </Link>

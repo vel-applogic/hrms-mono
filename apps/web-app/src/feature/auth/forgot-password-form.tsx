@@ -30,10 +30,10 @@ export function ForgotPasswordForm() {
     return (
       <div className='flex flex-col gap-8'>
         <div className='flex flex-col gap-2 text-center'>
-          <h1 className='text-2xl font-semibold text-white'>Check your email</h1>
+          <h1 className='text-2xl font-semibold text-foreground'>Check your email</h1>
           <p className='text-sm text-muted-foreground'>If an account with that email exists, we sent a password reset link.</p>
         </div>
-        <Link href='/auth/login' className='w-full rounded-[40px] bg-primary py-2 text-center text-sm font-medium text-white transition-opacity hover:opacity-90'>
+        <Link href='/auth/login' className='w-full rounded-[40px] bg-primary py-2 text-center text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90'>
           Back to login
         </Link>
       </div>
@@ -43,7 +43,7 @@ export function ForgotPasswordForm() {
   return (
     <div className='flex flex-col gap-8'>
       <div className='flex flex-col gap-2 text-center'>
-        <h1 className='text-2xl font-semibold text-white'>Forgot password</h1>
+        <h1 className='text-2xl font-semibold text-foreground'>Forgot password</h1>
         <p className='text-sm text-muted-foreground'>Enter your email to receive a reset link</p>
       </div>
       <form onSubmit={handleSubmit} className='flex flex-col gap-5'>
@@ -58,18 +58,18 @@ export function ForgotPasswordForm() {
             value={email}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
             required
-            className='w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-white placeholder:text-muted-foreground focus:border-primary focus:outline-none'
+            className='w-full rounded-[40px] border border-border bg-background px-4 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none'
           />
         </div>
         {error && <p className='text-sm text-destructive'>{error}</p>}
         <button
           type='submit'
           disabled={loading}
-          className='w-full rounded-[40px] bg-primary py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50'
+          className='w-full rounded-[40px] bg-primary py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50'
         >
           {loading ? 'Sending...' : 'Send reset link'}
         </button>
-        <Link href='/auth/login' className='text-center text-sm text-muted-foreground transition-colors hover:text-white'>
+        <Link href='/auth/login' className='text-center text-sm text-muted-foreground transition-colors hover:text-foreground'>
           Back to login
         </Link>
       </form>
