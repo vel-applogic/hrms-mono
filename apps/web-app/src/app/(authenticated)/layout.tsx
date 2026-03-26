@@ -18,19 +18,19 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
   return (
     <div className='flex h-screen bg-background'>
       {/* Fixed left sidebar - desktop only */}
-      <aside className='hidden w-60 shrink-0 flex-col border-r border-border lg:flex'>
+      <aside className='hidden w-60 shrink-0 flex-col bg-[#143026] lg:flex'>
         {/* Logo */}
-        <div className='flex items-center gap-3 border-b border-border px-5 py-4'>
+        <div className='flex items-center gap-3 border-b border-white/10 px-5 py-4'>
           <img src='/logo.png' alt='Hrms' width={130} />
-          <span className='rounded bg-primary px-1.5 py-0.5 text-xs font-bold tracking-widest text-primary-foreground'>ADMIN</span>
+          <span className='rounded bg-white/20 px-1.5 py-0.5 text-xs font-bold tracking-widest text-white'>ADMIN</span>
         </div>
 
         {/* Navigation */}
         <SidebarNav />
 
         {/* User menu at bottom */}
-        <div className='border-t border-border p-3'>
-          <UserMenu userName={currentUserName} userEmail={currentUserEmail} />
+        <div className='border-t border-white/10 p-3'>
+          <UserMenu userName={currentUserName} userEmail={currentUserEmail} variant='sidebar' />
         </div>
       </aside>
 

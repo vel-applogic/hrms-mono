@@ -15,9 +15,10 @@ import Link from 'next/link';
 interface Props {
   userName: string;
   userEmail: string;
+  variant?: 'default' | 'sidebar';
 }
 
-export function UserMenu({ userName, userEmail }: Props) {
+export function UserMenu({ userName, userEmail, variant = 'default' }: Props) {
   const { data: session, update } = useSession();
   const organisations = session?.user?.organisations ?? [];
   const currentOrgId = session?.user?.organizationId;
@@ -27,15 +28,15 @@ export function UserMenu({ userName, userEmail }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex cursor-pointer items-center gap-4 pr-4 outline-none">
-          <div className="h-6 w-6 rounded-full bg-[#D9D9D9]" />
-          <div className="flex flex-col items-start">
-            <span className="text-sm text-foreground">
+        <button className="flex w-full cursor-pointer items-center gap-3 text-left outline-none">
+          <div className={`h-6 w-6 rounded-full ${variant === 'sidebar' ? 'bg-white/30' : 'bg-[#D9D9D9]'}`} />
+          <div className="flex min-w-0 flex-col items-start">
+            <span className={`truncate text-sm ${variant === 'sidebar' ? 'text-white' : 'text-foreground'}`}>
               {userName}
-              {userEmail && <span className="text-muted-foreground"> ({userEmail})</span>}
+              {userEmail && <span className={variant === 'sidebar' ? 'text-white/60' : 'text-muted-foreground'}> ({userEmail})</span>}
             </span>
             {currentOrg && (
-              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span className={`flex items-center gap-1 text-xs ${variant === 'sidebar' ? 'text-white/60' : 'text-muted-foreground'}`}>
                 <Building2 className="h-3 w-3" />
                 {currentOrg.name}
               </span>
