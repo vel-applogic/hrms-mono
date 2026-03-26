@@ -15,4 +15,5 @@ export * from './employee-compensation.dto.js';
 export * from './employee-deduction.dto.js';
 export * from './leave.dto.js';
 export * from './policy.dto.js';
+export * from './organization.dto.js';
 export * from './payslip.dto.js';

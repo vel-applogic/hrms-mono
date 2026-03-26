@@ -14,20 +14,22 @@ import Link from 'next/link';
 import { OrgSwitcher } from '@/feature/org/org-switcher';
 
 const tabs = [
-  { label: 'Users', href: '/user' },
-  { label: 'Policies', href: '/policy' },
-  { label: 'Candidates', href: '/candidate' },
-  { label: 'Employees', href: '/employee' },
-  { label: 'Payroll', href: '/payroll/compensation' },
-  { label: 'Leaves', href: '/leaves/counter' },
+  { label: 'Organizations', href: '/organization', superAdminOnly: true },
+  { label: 'Users', href: '/user', superAdminOnly: false },
+  { label: 'Policies', href: '/policy', superAdminOnly: false },
+  { label: 'Candidates', href: '/candidate', superAdminOnly: false },
+  { label: 'Employees', href: '/employee', superAdminOnly: false },
+  { label: 'Payroll', href: '/payroll/compensation', superAdminOnly: false },
+  { label: 'Leaves', href: '/leaves/counter', superAdminOnly: false },
 ];
 
 interface Props {
   userName: string;
   userEmail: string;
+  isSuperAdmin?: boolean;
 }
 
-export function MobileNav({ userName, userEmail }: Props) {
+export function MobileNav({ userName, userEmail, isSuperAdmin }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -44,7 +46,7 @@ export function MobileNav({ userName, userEmail }: Props) {
           <OrgSwitcher />
         </div>
         <DropdownMenuSeparator className="bg-border" />
-        {tabs.map((tab) => (
+        {tabs.filter((tab) => !tab.superAdminOnly || isSuperAdmin).map((tab) => (
           <DropdownMenuItem key={tab.href} asChild className="cursor-pointer">
             <Link href={tab.href}>{tab.label}</Link>
           </DropdownMenuItem>

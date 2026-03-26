@@ -1,25 +1,32 @@
 'use client';
 
 import { cn } from '@repo/ui/lib/utils';
-import { Briefcase, CalendarDays, FileText, HandCoins, UserRound, Users } from 'lucide-react';
+import { Briefcase, Building2, CalendarDays, FileText, HandCoins, UserRound, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const navItems = [
-  { label: 'Users', href: '/user', icon: Users },
-  { label: 'Policies', href: '/policy', icon: FileText },
-  { label: 'Candidates', href: '/candidate', icon: UserRound },
-  { label: 'Employees', href: '/employee', icon: Briefcase },
-  { label: 'Payroll', href: '/payroll/compensation', icon: HandCoins },
-  { label: 'Leaves', href: '/leaves', icon: CalendarDays },
+  { label: 'Organizations', href: '/organization', icon: Building2, superAdminOnly: true },
+  { label: 'Users', href: '/user', icon: Users, superAdminOnly: false },
+  { label: 'Policies', href: '/policy', icon: FileText, superAdminOnly: false },
+  { label: 'Candidates', href: '/candidate', icon: UserRound, superAdminOnly: false },
+  { label: 'Employees', href: '/employee', icon: Briefcase, superAdminOnly: false },
+  { label: 'Payroll', href: '/payroll/compensation', icon: HandCoins, superAdminOnly: false },
+  { label: 'Leaves', href: '/leaves', icon: CalendarDays, superAdminOnly: false },
 ];
 
-export function SidebarNav() {
+interface Props {
+  isSuperAdmin?: boolean;
+}
+
+export function SidebarNav({ isSuperAdmin }: Props) {
   const pathname = usePathname();
+
+  const visibleItems = navItems.filter((item) => !item.superAdminOnly || isSuperAdmin);
 
   return (
     <nav className='flex flex-1 flex-col gap-1 px-3 py-2'>
-      {navItems.map((item) => {
+      {visibleItems.map((item) => {
         const baseSegment = '/' + item.href.split('/')[1];
         const isActive = pathname.startsWith(baseSegment);
         const Icon = item.icon;

@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@repo/db';
-import { DbOperationError } from '@repo/shared';
+import type { OrganizationFilterRequestType } from '@repo/dto';
+import { DbOperationError, DbRecordNotFoundError } from '@repo/shared';
 
 import { TrackQuery } from '../../decorator/track-query.decorator.js';
+import type { OrderByParam } from './_base.dao.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { BaseDao } from './_base.dao.js';
 
@@ -19,9 +21,44 @@ export class OrganizationDao extends BaseDao {
     return dbRec ?? undefined;
   }
 
+  public async getByIdOrThrow(params: { id: number; tx?: Prisma.TransactionClient }): Promise<OrganizationSelectTableRecordType> {
+    const dbRec = await this.findById(params);
+    if (!dbRec) {
+      throw new DbRecordNotFoundError('Organization not found');
+    }
+    return dbRec;
+  }
+
   public async findAll(params?: { tx?: Prisma.TransactionClient }): Promise<OrganizationSelectTableRecordType[]> {
     const pc = this.getPrismaClient(params?.tx);
     return pc.organization.findMany({ orderBy: { name: 'asc' } });
+  }
+
+  public async findByName(params: { name: string; tx?: Prisma.TransactionClient }): Promise<OrganizationSelectTableRecordType | undefined> {
+    const pc = this.getPrismaClient(params.tx);
+    const dbRec = await pc.organization.findFirst({ where: { name: { equals: params.name, mode: 'insensitive' } } });
+    return dbRec ?? undefined;
+  }
+
+  public async search(params: {
+    filterDto: OrganizationFilterRequestType;
+    orderBy?: OrderByParam;
+    tx?: Prisma.TransactionClient;
+  }): Promise<{ totalRecords: number; dbRecords: OrganizationSelectTableRecordType[] }> {
+    const pc = this.getPrismaClient(params.tx);
+    const { take, skip } = this.getPagination({ pageNo: params.filterDto.pagination.page, pageSize: params.filterDto.pagination.limit });
+
+    const where: Prisma.OrganizationWhereInput = {};
+    if (params.filterDto.search) {
+      where.name = { contains: params.filterDto.search, mode: 'insensitive' };
+    }
+
+    const [totalRecords, dbRecords] = await Promise.all([
+      pc.organization.count({ where }),
+      pc.organization.findMany({ where, orderBy: params.orderBy ?? { createdAt: 'desc' }, take, skip }),
+    ]);
+
+    return { totalRecords, dbRecords };
   }
 
   public async create(params: { data: OrganizationInsertTableRecordType; tx: Prisma.TransactionClient }): Promise<number> {
@@ -36,6 +73,15 @@ export class OrganizationDao extends BaseDao {
   public async update(params: { id: number; data: OrganizationUpdateTableRecordType; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
     await pc.organization.update({ where: { id: params.id }, data: params.data });
+  }
+
+  public async deleteByIdOrThrow(params: { id: number; tx: Prisma.TransactionClient }): Promise<void> {
+    const pc = this.getPrismaClient(params.tx);
+    const dbRec = await pc.organization.findUnique({ where: { id: params.id } });
+    if (!dbRec) {
+      throw new DbRecordNotFoundError('Invalid organization id');
+    }
+    await pc.organization.delete({ where: { id: params.id } });
   }
 }
 
