@@ -15,6 +15,7 @@ export const CurrentUser = createParamDecorator((data: unknown, context: Executi
     email: request.user.email!,
     firstname: request.user.firstname!,
     lastname: request.user.lastname!,
+    isSuperAdmin: request.user.isSuperAdmin,
     isActive: request.user.isActive!,
     roles: request.user.roles,
     organizationId: request.user.organizationId,

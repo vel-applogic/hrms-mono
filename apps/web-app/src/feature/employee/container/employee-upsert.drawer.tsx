@@ -275,7 +275,7 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
             onUploaded={(val) => form.setValue('photo', val)}
             onRemove={() => form.setValue('photo', undefined)}
             onError={() => {}}
-            variant='dark'
+
             previewFirst
           />
         </div>

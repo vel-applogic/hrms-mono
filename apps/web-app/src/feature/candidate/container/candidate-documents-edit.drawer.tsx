@@ -91,7 +91,7 @@ export function CandidateDocumentsEditDrawer({ open, onOpenChange, candidate, on
             onUploaded={(val) => setResume(val)}
             onRemove={() => setResume(undefined)}
             onError={(err) => err && setError(err)}
-            variant='dark'
+
             previewFirst
           />
         </div>
@@ -103,7 +103,7 @@ export function CandidateDocumentsEditDrawer({ open, onOpenChange, candidate, on
             onUploaded={(val) => setOfferLetters((prev) => [...prev, val])}
             onRemove={(index) => setOfferLetters((prev) => prev.filter((_, i) => i !== index))}
             onError={(err) => err && setError(err)}
-            variant='dark'
+
             previewFirst
           />
         </div>
@@ -115,7 +115,7 @@ export function CandidateDocumentsEditDrawer({ open, onOpenChange, candidate, on
             onUploaded={(val) => setOtherDocuments((prev) => [...prev, val])}
             onRemove={(index) => setOtherDocuments((prev) => prev.filter((_, i) => i !== index))}
             onError={(err) => err && setError(err)}
-            variant='dark'
+
             previewFirst
           />
         </div>

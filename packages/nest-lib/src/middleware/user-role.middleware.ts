@@ -14,7 +14,7 @@ export class CommonAdminUserMiddleware implements NestMiddleware {
       throw new ApiError('Unauthorized', HttpStatus.UNAUTHORIZED);
     }
 
-    if (!user.roles.includes(UserRoleDtoEnum.admin)) {
+    if (!user.isSuperAdmin && !user.roles.includes(UserRoleDtoEnum.admin)) {
       throw new ApiError('Forbidden: admin role required', HttpStatus.FORBIDDEN);
     }
 

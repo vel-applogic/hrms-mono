@@ -36,6 +36,7 @@ export class CommonAuthenticateMiddleware implements NestMiddleware {
           email: user.email,
           firstname: user.firstname,
           lastname: user.lastname,
+          isSuperAdmin: user.isSuperAdmin,
           isActive: user.isActive,
           organizationId: orgId,
           roles,

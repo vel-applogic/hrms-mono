@@ -7,6 +7,7 @@ interface LoginResponse {
   email: string;
   firstname: string;
   lastname: string;
+  isSuperAdmin: boolean;
   organisations: { id: number; name: string }[];
   roles: string[];
 }
@@ -35,6 +36,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
               id: String(user.id),
               email: user.email,
               name: `${user.firstname} ${user.lastname}`,
+              isSuperAdmin: user.isSuperAdmin,
               organisations: user.organisations,
               organizationId: user.organisations[0]?.id ?? 0,
               roles: user.roles,
@@ -51,6 +53,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     jwt({ token, user, trigger, session }) {
       if (user) {
         token.userId = user.id ?? '';
+        token.isSuperAdmin = user.isSuperAdmin;
         token.organisations = user.organisations;
         token.organizationId = user.organizationId;
         token.roles = user.roles;
@@ -63,6 +66,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     session({ session, token }) {
       if (session.user) {
         session.user.id = String(token.userId);
+        session.user.isSuperAdmin = Boolean(token.isSuperAdmin);
         session.user.organisations = token.organisations as { id: number; name: string }[];
         session.user.organizationId = token.organizationId as number;
         session.user.roles = token.roles as string[];

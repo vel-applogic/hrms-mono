@@ -92,7 +92,7 @@ export function EmployeeDocumentsEditDrawer({ open, onOpenChange, employee, onSu
             onUploaded={(val) => setResume(val)}
             onRemove={() => setResume(undefined)}
             onError={(err) => err && setError(err)}
-            variant='dark'
+
             previewFirst
           />
         </div>
@@ -104,7 +104,7 @@ export function EmployeeDocumentsEditDrawer({ open, onOpenChange, employee, onSu
             onUploaded={(val) => setOfferLetters((prev) => [...prev, val])}
             onRemove={(index) => setOfferLetters((prev) => prev.filter((_, i) => i !== index))}
             onError={(err) => err && setError(err)}
-            variant='dark'
+
             previewFirst
           />
         </div>
@@ -116,7 +116,7 @@ export function EmployeeDocumentsEditDrawer({ open, onOpenChange, employee, onSu
             onUploaded={(val) => setOtherDocuments((prev) => [...prev, val])}
             onRemove={(index) => setOtherDocuments((prev) => prev.filter((_, i) => i !== index))}
             onError={(err) => err && setError(err)}
-            variant='dark'
+
             previewFirst
           />
         </div>

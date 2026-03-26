@@ -14,15 +14,18 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
 
   const currentUserName = session.user?.name ?? session.user?.email ?? 'User';
   const currentUserEmail = session.user?.email ?? '';
+  const roleBadgeLabel = session.user?.isSuperAdmin ? 'SU' : session.user?.roles?.includes('admin') ? 'ADMIN' : null;
 
   return (
     <div className='flex h-screen bg-background'>
       {/* Fixed left sidebar - desktop only */}
-      <aside className='hidden w-60 shrink-0 flex-col bg-[#143026] lg:flex'>
+      <aside className='hidden w-60 shrink-0 flex-col bg-primary lg:flex'>
         {/* Logo */}
-        <div className='flex items-center gap-3 border-b border-white/10 px-5 py-4'>
-          <img src='/logo.png' alt='Hrms' width={130} />
-          <span className='rounded bg-white/20 px-1.5 py-0.5 text-xs font-bold tracking-widest text-white'>ADMIN</span>
+        <div className='flex items-center gap-3 border-b border-white/10 px-5 py-4 relative mb-3'>
+          <div className='bg-white p-2 rounded-lg'>
+            <img src='/logo.png' alt='Hrms' width={130} />
+          </div>
+          {roleBadgeLabel && <span className='rounded-b px-1.5 py-0.5 text-xs font-bold tracking-widest text-primary  bg-white absolute bottom-[-20px] right-3'>{roleBadgeLabel}</span>}
         </div>
 
         {/* Navigation */}
@@ -41,7 +44,7 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
           <nav className='flex items-center justify-between px-4 py-2'>
             <div className='flex items-center gap-3'>
               <img src='/logo.png' alt='Hrms' width={130} />
-              <span className='hidden rounded bg-primary px-1.5 py-0.5 text-xs font-bold tracking-widest text-primary-foreground sm:inline'>ADMIN</span>
+              {roleBadgeLabel && <span className='hidden rounded bg-primary px-1.5 py-0.5 text-xs font-bold tracking-widest text-primary-foreground sm:inline'>{roleBadgeLabel}</span>}
             </div>
             <MobileNav userName={currentUserName} userEmail={currentUserEmail} />
           </nav>

@@ -396,7 +396,7 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
             onUploaded={(val) => form.setValue('resume', val)}
             onRemove={() => form.setValue('resume', undefined)}
             onError={(err) => err && form.setError('resume', { message: err })}
-            variant='dark'
+
           />
           {form.formState.errors.resume && <p className='text-sm text-destructive'>{String(form.formState.errors.resume.message)}</p>}
         </div>

@@ -73,6 +73,7 @@ export class AuthVerifyEmailUseCase extends BaseAuthUseCase implements IUseCase<
       currentUser: {
         id: user.id,
         roles: user.roles,
+        isSuperAdmin: false,
         organizationId: 0,
         email: user.email,
         firstname: user.firstname,

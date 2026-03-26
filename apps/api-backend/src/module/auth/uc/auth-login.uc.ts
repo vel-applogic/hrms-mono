@@ -52,6 +52,7 @@ export class AuthLoginUc implements IUseCase<Params, AuthLoginResponseType> {
       email: user.email,
       firstname: user.firstname,
       lastname: user.lastname,
+      isSuperAdmin: user.isSuperAdmin,
       organisations: orgMemberships.map((m) => ({ id: m.organizationId, name: m.organization.name })),
       roles,
     };

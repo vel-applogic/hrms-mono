@@ -3,8 +3,9 @@ import './globals.css';
 
 import type { Metadata } from 'next';
 
-import { dmSans } from './fonts';
 import { AuthProvider } from '@/lib/auth/auth-provider';
+
+import { dmSans } from './fonts';
 
 export const metadata: Metadata = {
   title: 'Hrms Admin',

@@ -13,6 +13,7 @@ export const AuthLoginResponseSchema = z.object({
   email: z.string(),
   firstname: z.string(),
   lastname: z.string(),
+  isSuperAdmin: z.boolean(),
   organisations: z.array(z.object({ id: z.number(), name: z.string() })),
   roles: z.array(z.nativeEnum(UserRoleDtoEnum)),
 });
