@@ -33,7 +33,7 @@ const ToolbarButton = ({ onClick, active, title, children }: ToolbarButtonProps)
     title={title}
     className={cn(
       'flex h-7 w-7 items-center justify-center rounded transition-colors',
-      active ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+      active ? 'bg-white/20 text-white' : 'text-primary-foreground/70 hover:bg-white/10 hover:text-white',
     )}
   >
     {children}
@@ -83,8 +83,8 @@ export const MarkdownEditor = ({ value, onChange, placeholder, className }: Mark
   if (!editor) return null;
 
   return (
-    <div className={cn('w-full overflow-hidden rounded-md border border-input bg-background focus-within:ring-1 focus-within:ring-ring', className)}>
-      <div className='flex flex-wrap items-center gap-0.5 border-b border-input px-2 py-1.5'>
+    <div className={cn('w-full overflow-hidden rounded-md border border-input bg-white focus-within:ring-1 focus-within:ring-ring', className)}>
+      <div className='flex flex-wrap items-center gap-0.5 border-b border-input bg-primary px-2 py-1.5'>
         <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={activeMarks?.bold} title='Bold'>
           <Bold className='h-3.5 w-3.5' />
         </ToolbarButton>
