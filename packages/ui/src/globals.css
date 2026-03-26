@@ -96,9 +96,9 @@
 /* ag-grid theme overrides */
 .ag-theme-quartz {
   --ag-font-family: 'DM Sans', sans-serif;
-  --ag-header-background-color: #e4eae7;
+  --ag-header-background-color: #1e5a40;
   --ag-border-color: #c8d3cd;
-  --ag-header-text-color: #5e7a6d;
+  --ag-header-text-color: #d4e8dc;
   --ag-foreground-color: #0f1f16;
   --ag-background-color: #ffffff;
   --ag-wrapper-border-radius: 0;

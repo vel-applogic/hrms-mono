@@ -100,7 +100,7 @@ const SimplePaginationRow = (props: { page: number; pageSize: number; total: num
       <PaginationContent>
         {props.page > 1 && (
           <PaginationPrevious
-            className="cursor-pointer text-muted-foreground hover:bg-card hover:text-foreground"
+            className="cursor-pointer text-inherit opacity-70 hover:bg-white/10 hover:opacity-100"
             onClick={() => {
               props.updatePage(props.page - 1);
             }}
@@ -109,7 +109,7 @@ const SimplePaginationRow = (props: { page: number; pageSize: number; total: num
 
         {props.page < totalPageCount && (
           <PaginationNext
-            className="cursor-pointer text-muted-foreground hover:bg-card hover:text-foreground"
+            className="cursor-pointer text-inherit opacity-70 hover:bg-white/10 hover:opacity-100"
             onClick={() => {
               props.updatePage(props.page + 1);
             }}
@@ -140,7 +140,7 @@ const NumbersPaginationRow = (props: { page: number; pageSize: number; total: nu
       <PaginationContent>
         {props.page > 1 && (
           <PaginationPrevious
-            className="cursor-pointer text-muted-foreground hover:bg-card hover:text-foreground"
+            className="cursor-pointer text-inherit opacity-70 hover:bg-white/10 hover:opacity-100"
             onClick={() => {
               props.updatePage(props.page - 1);
             }}
@@ -152,7 +152,7 @@ const NumbersPaginationRow = (props: { page: number; pageSize: number; total: nu
               <PaginationLink
                 isActive={p === props.page}
                 key={i}
-                className={cn('cursor-pointer', p === props.page ? 'border-primary bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-card hover:text-foreground')}
+                className={cn('cursor-pointer', p === props.page ? 'border-primary bg-primary text-primary-foreground' : 'text-inherit opacity-70 hover:bg-white/10 hover:opacity-100')}
                 onClick={() => {
                   props.updatePage(p);
                 }}
@@ -161,11 +161,11 @@ const NumbersPaginationRow = (props: { page: number; pageSize: number; total: nu
               </PaginationLink>
             );
           }
-          return <PaginationEllipsis key={i} className="text-muted-foreground" />;
+          return <PaginationEllipsis key={i} className="text-inherit opacity-70" />;
         })}
         {props.page < totalPageCount && (
           <PaginationNext
-            className="cursor-pointer text-muted-foreground hover:bg-card hover:text-foreground"
+            className="cursor-pointer text-inherit opacity-70 hover:bg-white/10 hover:opacity-100"
             onClick={() => {
               props.updatePage(props.page + 1);
             }}
@@ -197,10 +197,10 @@ const PerPageSelection = (props: { pageSize: number }) => {
   }, []);
 
   return (
-    <div className="text-sm text-muted-foreground">
+    <div className="text-sm text-inherit">
       <DropdownMenu>
         <DropdownMenuTrigger>
-          <div className="flex flex-row items-center gap-1 rounded-lg bg-card px-3 py-1 text-sm">
+          <div className="flex flex-row items-center gap-1 rounded-lg bg-white/10 px-3 py-1 text-sm">
             <div>Page size:</div>
             <div className="font-semibold">{props.pageSize}</div>
           </div>
@@ -301,5 +301,5 @@ const range = (start: number, end: number) => {
 const CurrentResultsIndicator = (props: { total: number; page: number; pageSize: number; tableKey: string }) => {
   const upto = Math.min(props.page * props.pageSize, props.total);
 
-  return <div className="text-xs text-muted-foreground">{props.total ? `Results: ${props.page}-${upto} of ${props.total} ${props.tableKey}` : 'No records to show'}</div>;
+  return <div className="text-xs text-inherit opacity-80">{props.total ? `Results: ${props.page}-${upto} of ${props.total} ${props.tableKey}` : 'No records to show'}</div>;
 };

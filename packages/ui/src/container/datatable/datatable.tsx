@@ -196,13 +196,13 @@ const DataTableContainer = <T,>(props: DataTableContainerProps<T>) => {
       checkboxUncheckedBorderColor: '#C8D3CD',
       wrapperBorderRadius: 0,
       borderRadius: 0,
-      headerTextColor: '#5E7A6D',
+      headerTextColor: '#d4e8dc',
       headerFontWeight: '700',
       backgroundColor: '#FFFFFF',
       chromeBackgroundColor: '#FFFFFF',
       foregroundColor: '#0F1F16',
-      headerBackgroundColor: '#E4EAE7',
-      headerColumnBorder: { style: 'solid', color: '#C8D3CD' },
+      headerBackgroundColor: '#1e5a40',
+      headerColumnBorder: { style: 'solid', color: '#2a7a56' },
       rowBorder: { style: 'solid', color: '#C8D3CD' },
       columnBorder: { style: 'solid', color: '#C8D3CD' },
       wrapperBorder: {
@@ -478,7 +478,7 @@ const DataTableContainer = <T,>(props: DataTableContainerProps<T>) => {
 
 const DataTableFooterSimple = (props: { total: number; pageSize: number; page: number; tableKey: string; footerActions: React.ReactNode }) => {
   return (
-    <div className='rounded-b-xl border border-t-0 border-border px-4 py-4'>
+    <div className='rounded-b-xl border border-t-0 border-border bg-[#1e5a40] px-4 py-4 text-[#d4e8dc]'>
       <div className='flex flex-row items-center justify-between'>
         <DataTableSimplePagination page={props.page} pageSize={props.pageSize} total={props.total} tableKey={props.tableKey} />
         {props.footerActions}
@@ -489,7 +489,7 @@ const DataTableFooterSimple = (props: { total: number; pageSize: number; page: n
 
 const DataTableFooterFull = (props: { total: number; pageSize: number; page: number; tableKey: string }) => {
   return (
-    <div className='rounded-b-xl border border-t-0 border-border px-4 py-4'>
+    <div className='rounded-b-xl border border-t-0 border-border bg-[#1e5a40] px-4 py-4 text-[#d4e8dc]'>
       <DataTableFullPagination page={props.page} pageSize={props.pageSize} total={props.total} tableKey={props.tableKey} />
     </div>
   );
