@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { type LeaveResponseType, UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, LeaveConfigDao, LeaveDao, PrismaService, EmployeeLeaveCounterDao } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, EmployeeLeaveCounterDao, IUseCase, LeaveConfigDao, LeaveDao, PrismaService } from '@repo/nest-lib';
 import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
@@ -35,6 +35,7 @@ export class LeaveApproveUc implements IUseCase<Params, LeaveResponseType> {
 
     await this.leaveDao.update({
       id: params.id,
+      organizationId: params.currentUser.organizationId,
       data: { status: 'approved' },
     });
 
@@ -50,6 +51,7 @@ export class LeaveApproveUc implements IUseCase<Params, LeaveResponseType> {
     const maxLeaves = leaveConfig?.maxLeaves ?? 24;
     await this.employeeLeaveCounterDao.syncFromActualLeaves({
       userId: existing.userId,
+      organizationId: params.currentUser.organizationId,
       financialYear,
       ...totals,
       maxLeaves,

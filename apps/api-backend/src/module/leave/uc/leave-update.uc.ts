@@ -1,17 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import type {
-  LeaveResponseType,
-  LeaveUpdateRequestType,
-} from '@repo/dto';
-import {
-  LeaveConfigDao,
-  LeaveDao,
-  EmployeeDao,
-  CommonLoggerService,
-  CurrentUserType,
-  IUseCase,
-  PrismaService,
-} from '@repo/nest-lib';
+import type { LeaveResponseType, LeaveUpdateRequestType } from '@repo/dto';
+import { CommonLoggerService, CurrentUserType, EmployeeDao, IUseCase, LeaveConfigDao, LeaveDao, PrismaService } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 type Params = {
@@ -112,20 +101,15 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
 
     const typeLimit = getTypeLimit(config, params.dto.leaveType);
     if (existingByType + numberOfDays > typeLimit) {
-      throw new ApiError(
-        `Exceeds ${params.dto.leaveType} leave limit. Used: ${existingByType}, Limit: ${typeLimit}, Requested: ${numberOfDays}`,
-        400,
-      );
+      throw new ApiError(`Exceeds ${params.dto.leaveType} leave limit. Used: ${existingByType}, Limit: ${typeLimit}, Requested: ${numberOfDays}`, 400);
     }
     if (existingTotal + numberOfDays > config.maxLeaves) {
-      throw new ApiError(
-        `Exceeds total leave limit. Used: ${existingTotal}, Limit: ${config.maxLeaves}, Requested: ${numberOfDays}`,
-        400,
-      );
+      throw new ApiError(`Exceeds total leave limit. Used: ${existingTotal}, Limit: ${config.maxLeaves}, Requested: ${numberOfDays}`, 400);
     }
 
     await this.leaveDao.update({
       id: params.id,
+      organizationId: params.currentUser.organizationId,
       data: {
         leaveType: params.dto.leaveType as 'casual' | 'sick' | 'medical' | 'earned',
         startDate,

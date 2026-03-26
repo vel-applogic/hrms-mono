@@ -43,7 +43,13 @@ export class UserDao extends BaseDao {
     return pc.user.count({ where: params.where });
   }
 
-  public async search(params: { filterDto: UserFilterRequestType; orderBy?: OrderByParam; organizationId?: number; includeSuperAdmins?: boolean; tx?: Prisma.TransactionClient }): Promise<{ totalRecords: number; dbRecords: User[] }> {
+  public async search(params: {
+    filterDto: UserFilterRequestType;
+    orderBy?: OrderByParam;
+    organizationId: number;
+    includeSuperAdmins?: boolean;
+    tx?: Prisma.TransactionClient;
+  }): Promise<{ totalRecords: number; dbRecords: User[] }> {
     const pc = this.getPrismaClient(params.tx);
     const pagination = {
       pageNo: params.filterDto.pagination.page,
@@ -61,7 +67,7 @@ export class UserDao extends BaseDao {
       ];
     }
 
-    if (params.filterDto.role && params.organizationId) {
+    if (params.filterDto.role) {
       const orgRoleFilter: Prisma.UserWhereInput = {
         organizationHasUsers: {
           some: {
@@ -70,9 +76,7 @@ export class UserDao extends BaseDao {
           },
         },
       };
-      where.AND = params.includeSuperAdmins
-        ? [{ OR: [{ isSuperAdmin: true }, orgRoleFilter] }]
-        : [orgRoleFilter];
+      where.AND = params.includeSuperAdmins ? [{ OR: [{ isSuperAdmin: true }, orgRoleFilter] }] : [orgRoleFilter];
     }
 
     if (params.filterDto.isActive !== undefined) {
@@ -81,10 +85,7 @@ export class UserDao extends BaseDao {
 
     const orderBy = params.orderBy;
 
-    const [totalRecords, dbRecords] = await Promise.all([
-      pc.user.count({ where }),
-      pc.user.findMany({ where, take, skip, orderBy }),
-    ]);
+    const [totalRecords, dbRecords] = await Promise.all([pc.user.count({ where }), pc.user.findMany({ where, take, skip, orderBy })]);
 
     return { dbRecords, totalRecords };
   }

@@ -15,7 +15,7 @@ export class BasePolicyUc extends BaseUc {
     super(prisma, logger);
   }
 
-  async getById(id: number, organizationId?: number): Promise<PolicyDetailResponseType | undefined> {
+  async getById(id: number, organizationId: number): Promise<PolicyDetailResponseType | undefined> {
     const policy = await this.policyDao.getById({ id, organizationId });
     if (!policy) {
       return undefined;
@@ -54,7 +54,7 @@ export class BasePolicyUc extends BaseUc {
     };
   }
 
-  async getByIdOrThrow(id: number, organizationId?: number): Promise<PolicyDetailResponseType> {
+  async getByIdOrThrow(id: number, organizationId: number): Promise<PolicyDetailResponseType> {
     const policy = await this.getById(id, organizationId);
     if (!policy) {
       throw new ApiError('Policy not found', 404);

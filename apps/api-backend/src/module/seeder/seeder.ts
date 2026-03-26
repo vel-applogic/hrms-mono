@@ -29,17 +29,18 @@ export class Seeder {
     const { getFinancialYearCode } = await import('@repo/shared');
     const config = await this.prisma.leaveConfig.findFirst({ orderBy: { createdAt: 'desc' } });
     const totalLeavesAvailable = config?.maxLeaves ?? 24;
-    const employees = await this.prisma.employee.findMany({ select: { userId: true, dateOfJoining: true } });
+    const employees = await this.prisma.employee.findMany({ select: { userId: true, dateOfJoining: true, organizationId: true } });
     let created = 0;
     for (const emp of employees) {
       const financialYear = getFinancialYearCode(emp.dateOfJoining);
       const existing = await this.prisma.employeeLeaveCounter.findUnique({
-        where: { userId_financialYear: { userId: emp.userId, financialYear } },
+        where: { userId_organizationId_financialYear: { userId: emp.userId, organizationId: emp.organizationId, financialYear } },
       });
       if (!existing) {
         await this.prisma.employeeLeaveCounter.create({
           data: {
-            userId: emp.userId,
+            user: { connect: { id: emp.userId } },
+            organization: { connect: { id: emp.organizationId } },
             financialYear,
             casualLeaves: 0,
             sickLeaves: 0,
@@ -55,19 +56,23 @@ export class Seeder {
   }
 
   private async createLeaveConfig() {
-    const existing = await this.prisma.leaveConfig.findFirst();
-    if (existing) {
-      this.logger.i('LeaveConfig already exists, skipping');
-      return;
+    const organizations = await this.prisma.organization.findMany();
+    for (const organization of organizations) {
+      const existing = await this.prisma.leaveConfig.findFirst({ where: { organizationId: organization.id } });
+      if (existing) {
+        this.logger.i('LeaveConfig already exists, skipping');
+        return;
+      }
+      await this.prisma.leaveConfig.create({
+        data: {
+          organization: { connect: { id: organization.id } },
+          maxLeaves: 24,
+          maxEarnedLeaves: 10,
+          maxSickLeaves: 7,
+          maxCasualLeaves: 7,
+        },
+      });
     }
-    await this.prisma.leaveConfig.create({
-      data: {
-        maxLeaves: 24,
-        maxEarnedLeaves: 10,
-        maxSickLeaves: 7,
-        maxCasualLeaves: 7,
-      },
-    });
     this.logger.i('LeaveConfig created');
   }
 

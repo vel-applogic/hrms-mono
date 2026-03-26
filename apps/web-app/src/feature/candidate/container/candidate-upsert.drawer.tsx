@@ -22,7 +22,11 @@ import { z } from 'zod';
 import { FileUpload } from '@/container/s3-file-upload/s3-file-upload';
 import { createCandidate, updateCandidate } from '@/lib/action/candidate.actions';
 
-const FormSchema = CandidateCreateRequestSchema;
+const FormSchema = CandidateCreateRequestSchema.extend({
+  contactNumbers: z.array(z.string()),
+  urls: z.array(z.string()),
+  skills: z.array(z.string()),
+});
 type FormType = z.infer<typeof FormSchema>;
 
 interface Props {

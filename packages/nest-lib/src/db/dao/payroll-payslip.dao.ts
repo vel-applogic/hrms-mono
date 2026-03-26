@@ -19,10 +19,7 @@ export class PayrollPayslipDao extends BaseDao {
     super(prisma);
   }
 
-  async create(params: {
-    data: Prisma.PayrollPayslipCreateInput;
-    tx?: Prisma.TransactionClient;
-  }): Promise<PayrollPayslipWithDetailsType> {
+  async create(params: { data: Prisma.PayrollPayslipCreateInput; tx?: Prisma.TransactionClient }): Promise<PayrollPayslipWithDetailsType> {
     const pc = this.getPrismaClient(params.tx);
     return pc.payrollPayslip.create({
       data: params.data,
@@ -33,10 +30,10 @@ export class PayrollPayslipDao extends BaseDao {
     });
   }
 
-  async getById(params: { id: number; organizationId?: number; tx?: Prisma.TransactionClient }): Promise<PayrollPayslipWithDetailsType | null> {
+  async getById(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<PayrollPayslipWithDetailsType | null> {
     const pc = this.getPrismaClient(params.tx);
     return pc.payrollPayslip.findFirst({
-      where: { id: params.id, ...(params.organizationId ? { organizationId: params.organizationId } : {}) },
+      where: { id: params.id, organizationId: params.organizationId },
       include: {
         user: {
           select: {
@@ -51,20 +48,14 @@ export class PayrollPayslipDao extends BaseDao {
     });
   }
 
-  async findByUserAndMonthYear(params: {
-    userId: number;
-    organizationId?: number;
-    month: number;
-    year: number;
-    tx?: Prisma.TransactionClient;
-  }): Promise<PayrollPayslip | null> {
+  async findByUserAndMonthYear(params: { userId: number; organizationId: number; month: number; year: number; tx?: Prisma.TransactionClient }): Promise<PayrollPayslip | null> {
     const pc = this.getPrismaClient(params.tx);
     return pc.payrollPayslip.findFirst({
       where: {
         userId: params.userId,
         month: params.month,
         year: params.year,
-        ...(params.organizationId ? { organizationId: params.organizationId } : {}),
+        organizationId: params.organizationId,
       },
     });
   }
@@ -72,17 +63,17 @@ export class PayrollPayslipDao extends BaseDao {
   async findManyByMonthYear(params: {
     month: number;
     year: number;
-    organizationId?: number;
+    organizationId: number;
     employeeIds?: number[];
     tx?: Prisma.TransactionClient;
   }): Promise<PayrollPayslipWithUserType[]> {
     const pc = this.getPrismaClient(params.tx);
     return pc.payrollPayslip.findMany({
       where: {
+        organizationId: params.organizationId,
         month: params.month,
         year: params.year,
         ...(params.employeeIds?.length ? { userId: { in: params.employeeIds } } : {}),
-        ...(params.organizationId ? { organizationId: params.organizationId } : {}),
       },
       include: { user: { select: { firstname: true, lastname: true, email: true } } },
     });
@@ -91,7 +82,7 @@ export class PayrollPayslipDao extends BaseDao {
   async findWithPagination(params: {
     page: number;
     limit: number;
-    organizationId?: number;
+    organizationId: number;
     month?: number;
     year?: number;
     employeeIds?: number[];
@@ -101,10 +92,10 @@ export class PayrollPayslipDao extends BaseDao {
     const { take, skip } = this.getPagination({ pageNo: params.page, pageSize: params.limit });
 
     const where: Prisma.PayrollPayslipWhereInput = {
+      organizationId: params.organizationId,
       ...(params.month != null ? { month: params.month } : {}),
       ...(params.year != null ? { year: params.year } : {}),
       ...(params.employeeIds?.length ? { userId: { in: params.employeeIds } } : {}),
-      ...(params.organizationId ? { organizationId: params.organizationId } : {}),
     };
 
     const [totalRecords, payslips] = await Promise.all([
@@ -121,12 +112,10 @@ export class PayrollPayslipDao extends BaseDao {
     return { payslips, totalRecords };
   }
 
-  async deleteById(params: { id: number; organizationId?: number; tx?: Prisma.TransactionClient }): Promise<void> {
+  async deleteById(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
-    if (params.organizationId) {
-      const payslip = await pc.payrollPayslip.findFirst({ where: { id: params.id, organizationId: params.organizationId } });
-      if (!payslip) throw new Error(`Payslip ${params.id} not found in organization`);
-    }
+    const payslip = await pc.payrollPayslip.findFirst({ where: { id: params.id, organizationId: params.organizationId } });
+    if (!payslip) throw new Error(`Payslip ${params.id} not found in organization`);
     await pc.payrollPayslipLineItem.deleteMany({ where: { payslipId: params.id } });
     await pc.payrollPayslip.delete({ where: { id: params.id } });
   }

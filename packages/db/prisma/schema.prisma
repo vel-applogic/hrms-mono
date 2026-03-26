@@ -317,8 +317,8 @@ model EmployeeLeaveCounter {
   createdAt            DateTime     @default(now()) @map("created_at")
   updatedAt            DateTime     @updatedAt @map("updated_at")
 
-  @@unique([userId, financialYear])
-  @@index([userId])
+  @@unique([userId, organizationId, financialYear])
+  @@index([userId, organizationId])
   @@map("user_employee_leave_counter")
 }
 

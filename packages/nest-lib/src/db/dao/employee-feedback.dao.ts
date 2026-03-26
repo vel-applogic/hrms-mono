@@ -10,44 +10,32 @@ export class EmployeeFeedbackDao extends BaseDao {
     super(prisma);
   }
 
-  async create(params: {
-    data: Prisma.EmployeeFeedbackCreateInput;
-    tx?: Prisma.TransactionClient;
-  }): Promise<EmployeeFeedback> {
+  async create(params: { data: Prisma.EmployeeFeedbackCreateInput; tx?: Prisma.TransactionClient }): Promise<EmployeeFeedback> {
     const pc = this.getPrismaClient(params.tx);
     return pc.employeeFeedback.create({ data: params.data });
   }
 
-  async update(params: {
-    id: number;
-    organizationId?: number;
-    data: Prisma.EmployeeFeedbackUpdateInput;
-    tx?: Prisma.TransactionClient;
-  }): Promise<EmployeeFeedback> {
+  async update(params: { id: number; organizationId: number; data: Prisma.EmployeeFeedbackUpdateInput; tx?: Prisma.TransactionClient }): Promise<EmployeeFeedback> {
     const pc = this.getPrismaClient(params.tx);
     return pc.employeeFeedback.update({
-      where: { id: params.id, ...(params.organizationId ? { organizationId: params.organizationId } : {}) },
+      where: { id: params.id, organizationId: params.organizationId },
       data: params.data,
     });
   }
 
-  async delete(params: { id: number; organizationId?: number; tx?: Prisma.TransactionClient }): Promise<EmployeeFeedback> {
+  async delete(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeFeedback> {
     const pc = this.getPrismaClient(params.tx);
     return pc.employeeFeedback.delete({
-      where: { id: params.id, ...(params.organizationId ? { organizationId: params.organizationId } : {}) },
+      where: { id: params.id, organizationId: params.organizationId },
     });
   }
 
-  async getById(params: {
-    id: number;
-    organizationId?: number;
-    tx?: Prisma.TransactionClient;
-  }): Promise<EmployeeFeedbackWithCreatedByType | null> {
+  async getById(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeFeedbackWithCreatedByType | null> {
     const pc = this.getPrismaClient(params.tx);
     return pc.employeeFeedback.findFirst({
       where: {
         id: params.id,
-        ...(params.organizationId ? { organizationId: params.organizationId } : {}),
+        organizationId: params.organizationId,
       },
       include: { createdBy: true },
     });
@@ -55,7 +43,7 @@ export class EmployeeFeedbackDao extends BaseDao {
 
   async findByUserIdWithPagination(params: {
     userId: number;
-    organizationId?: number;
+    organizationId: number;
     page: number;
     limit: number;
     tx?: Prisma.TransactionClient;
@@ -68,7 +56,7 @@ export class EmployeeFeedbackDao extends BaseDao {
 
     const where = {
       userId: params.userId,
-      ...(params.organizationId ? { organizationId: params.organizationId } : {}),
+      organizationId: params.organizationId,
     };
 
     const [totalRecords, feedbacks] = await Promise.all([

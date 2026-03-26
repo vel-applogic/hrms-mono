@@ -13,12 +13,7 @@ type Params = {
 
 @Injectable()
 export class AdminUserSearchUc extends BaseAdminUserUc implements IUseCase<Params, PaginatedResponseType<AdminUserListResponseType>> {
-  constructor(
-    prisma: PrismaService,
-    logger: CommonLoggerService,
-    userDao: UserDao,
-    organizationHasUserDao: OrganizationHasUserDao,
-  ) {
+  constructor(prisma: PrismaService, logger: CommonLoggerService, userDao: UserDao, organizationHasUserDao: OrganizationHasUserDao) {
     super(prisma, logger, userDao, organizationHasUserDao);
   }
 
@@ -38,7 +33,11 @@ export class AdminUserSearchUc extends BaseAdminUserUc implements IUseCase<Param
     };
   }
 
-  public async search(params: { filterDto: UserFilterRequestType; orderBy?: OrderByParam; organizationId?: number }): Promise<{ totalRecords: number; results: AdminUserListResponseType[] }> {
+  public async search(params: {
+    filterDto: UserFilterRequestType;
+    orderBy?: OrderByParam;
+    organizationId: number;
+  }): Promise<{ totalRecords: number; results: AdminUserListResponseType[] }> {
     const filterDto: UserFilterRequestType = {
       ...params.filterDto,
       role: UserRoleDtoEnum.admin,
@@ -50,7 +49,7 @@ export class AdminUserSearchUc extends BaseAdminUserUc implements IUseCase<Param
       organizationId: params.organizationId,
     });
 
-    const orgRoles = params.organizationId && this.organizationHasUserDao
+    const orgRoles = this.organizationHasUserDao
       ? await this.organizationHasUserDao.findManyByUsersAndOrg({
           userIds: dbRecords.map((u) => u.id),
           organizationId: params.organizationId,
@@ -59,9 +58,7 @@ export class AdminUserSearchUc extends BaseAdminUserUc implements IUseCase<Param
 
     const orgRolesMap = new Map(orgRoles.map((o) => [o.userId, o.roles.map((r) => userRoleDbEnumToDtoEnum(r))]));
 
-    const results: AdminUserListResponseType[] = dbRecords.map((u) =>
-      this.dbToAdminUserDetailResponse(u, orgRolesMap.get(u.id) ?? []),
-    );
+    const results: AdminUserListResponseType[] = dbRecords.map((u) => this.dbToAdminUserDetailResponse(u, orgRolesMap.get(u.id) ?? []));
     return { totalRecords, results };
   }
 }

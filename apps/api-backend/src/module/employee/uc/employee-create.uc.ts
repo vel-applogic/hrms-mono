@@ -30,8 +30,8 @@ import {
 import { ApiBadRequestError, ApiFieldValidationError, getFinancialYearCode } from '@repo/shared';
 
 import { AppConfigService } from '#src/config/app-config.service.js';
-import { EmailService } from '#src/service/email/email.service.js';
 import { S3Service } from '#src/external-service/s3.service.js';
+import { EmailService } from '#src/service/email/email.service.js';
 import { MediaService } from '#src/service/media.service.js';
 import { PasswordService } from '#src/service/password.service.js';
 
@@ -137,6 +137,7 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
         await this.employeeLeaveCounterDao.create({
           data: {
             user: { connect: { id: userId } },
+            organization: { connect: { id: params.currentUser.organizationId } },
             financialYear,
             casualLeaves: 0,
             sickLeaves: 0,
@@ -197,7 +198,13 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
     });
   }
 
-  private async createAndLinkMedia(params: { media: MediaUpsertType; userId: number; organizationId: number; type: EmployeeMediaType; tx: Prisma.TransactionClient }): Promise<void> {
+  private async createAndLinkMedia(params: {
+    media: MediaUpsertType;
+    userId: number;
+    organizationId: number;
+    type: EmployeeMediaType;
+    tx: Prisma.TransactionClient;
+  }): Promise<void> {
     const file = await this.mediaService.moveTempFileAndGetKey({
       media: params.media,
       mediaPlacement: 'employee',

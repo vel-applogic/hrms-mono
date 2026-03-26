@@ -35,7 +35,11 @@ export class PolicySearchUc extends BasePolicyUc implements IUseCase<Params, Pag
     };
   }
 
-  public async search(params: { filterDto: PolicyFilterRequestType; organizationId?: number; orderBy?: OrderByParam }): Promise<{ totalRecords: number; results: PolicyListResponseType[] }> {
+  public async search(params: {
+    filterDto: PolicyFilterRequestType;
+    organizationId: number;
+    orderBy?: OrderByParam;
+  }): Promise<{ totalRecords: number; results: PolicyListResponseType[] }> {
     const { dbRecords, totalRecords } = await this.policyDao.search({
       filterDto: params.filterDto,
       organizationId: params.organizationId,

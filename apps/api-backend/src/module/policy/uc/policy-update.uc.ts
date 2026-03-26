@@ -70,7 +70,7 @@ export class PolicyUpdateUc extends BasePolicyUc implements IUseCase<Params, Ope
     return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
   }
 
-  async update(id: number, dto: PolicyUpdateRequestType, tx: Prisma.TransactionClient, organizationId?: number): Promise<void> {
+  async update(id: number, dto: PolicyUpdateRequestType, tx: Prisma.TransactionClient, organizationId: number): Promise<void> {
     const updateData: Prisma.PolicyUpdateInput = {
       updatedAt: new Date(),
       title: dto.title,

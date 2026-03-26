@@ -2,7 +2,7 @@ import { EmployeeMediaType } from '@repo/db';
 import type { EmployeeDetailResponseType, EmployeeListResponseType, MediaResponseType } from '@repo/dto';
 import { EmployeeStatusDtoEnum } from '@repo/dto';
 import type { EmployeeListRecordType } from '@repo/nest-lib';
-import { BaseUc, CommonLoggerService, PrismaService, EmployeeDao, EmployeeHasMediaDao } from '@repo/nest-lib';
+import { BaseUc, CommonLoggerService, EmployeeDao, EmployeeHasMediaDao, PrismaService } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 import type { S3Service } from '#src/external-service/s3.service.js';
@@ -31,7 +31,7 @@ export class BaseEmployeeUc extends BaseUc {
     };
   }
 
-  async getById(userId: number, organizationId?: number): Promise<EmployeeDetailResponseType | undefined> {
+  async getById(userId: number, organizationId: number): Promise<EmployeeDetailResponseType | undefined> {
     const employee = await this.employeeDao.getByUserId({ userId, organizationId });
     if (!employee) return undefined;
 
@@ -78,7 +78,7 @@ export class BaseEmployeeUc extends BaseUc {
     };
   }
 
-  async getByIdOrThrow(userId: number, organizationId?: number): Promise<EmployeeDetailResponseType> {
+  async getByIdOrThrow(userId: number, organizationId: number): Promise<EmployeeDetailResponseType> {
     const employee = await this.getById(userId, organizationId);
     if (!employee) throw new ApiError('Employee not found', 404);
     return employee;

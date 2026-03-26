@@ -13,7 +13,7 @@ export class BaseAdminUserUc extends BaseUc {
     super(prisma, logger);
   }
 
-  async getById(id: number, organizationId?: number): Promise<AdminUserDetailResponseType | undefined> {
+  async getById(id: number, organizationId: number): Promise<AdminUserDetailResponseType | undefined> {
     const user = await this.userDao.getById({ id });
     if (!user) {
       return undefined;
@@ -23,7 +23,7 @@ export class BaseAdminUserUc extends BaseUc {
     return this.dbToAdminUserDetailResponse(user, roles);
   }
 
-  async getByIdOrThrow(id: number, organizationId?: number): Promise<AdminUserDetailResponseType> {
+  async getByIdOrThrow(id: number, organizationId: number): Promise<AdminUserDetailResponseType> {
     const user = await this.getById(id, organizationId);
     if (!user) {
       throw new ApiBadRequestError('User not found', { userId: id });
@@ -31,11 +31,8 @@ export class BaseAdminUserUc extends BaseUc {
     return user;
   }
 
-  protected async fetchOrgRoles(userId: number, organizationId?: number): Promise<UserRoleDtoEnum[]> {
-    if (!organizationId || organizationId <= 0 || !this.organizationHasUserDao) {
-      return [];
-    }
-    const orgHasUser = await this.organizationHasUserDao.findByUserAndOrg({ userId, organizationId });
+  protected async fetchOrgRoles(userId: number, organizationId: number): Promise<UserRoleDtoEnum[]> {
+    const orgHasUser = await this.organizationHasUserDao?.findByUserAndOrg({ userId, organizationId });
     return orgHasUser?.roles.map((r) => userRoleDbEnumToDtoEnum(r)) ?? [];
   }
 }

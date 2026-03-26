@@ -40,7 +40,11 @@ export class CandidateSearchUc extends BaseCandidateUc implements IUseCase<Param
 
   async validate(_params: Params): Promise<void> {}
 
-  async search(params: { filterDto: CandidateFilterRequestType; organizationId?: number; orderBy?: OrderByParam }): Promise<{ totalRecords: number; results: CandidateListResponseType[] }> {
+  async search(params: {
+    filterDto: CandidateFilterRequestType;
+    organizationId: number;
+    orderBy?: OrderByParam;
+  }): Promise<{ totalRecords: number; results: CandidateListResponseType[] }> {
     const { dbRecords, totalRecords } = await this.candidateDao.search({
       filterDto: params.filterDto,
       organizationId: params.organizationId,

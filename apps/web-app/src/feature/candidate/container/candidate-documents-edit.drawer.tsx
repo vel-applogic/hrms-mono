@@ -1,9 +1,9 @@
 'use client';
 
-import type { CandidateDetailResponseType, CandidateUpdateDocumentsRequestType } from '@repo/dto';
-import { Drawer } from '@repo/ui/container/drawer/drawer';
+import type { CandidateDetailResponseType, CandidateUpdateDocumentsRequestType, MediaTypeDtoEnum } from '@repo/dto';
 import { Button } from '@repo/ui/component/ui/button';
 import { Label } from '@repo/ui/component/ui/label';
+import { Drawer } from '@repo/ui/container/drawer/drawer';
 import { useEffect, useState } from 'react';
 
 import { FileUpload } from '@/container/s3-file-upload/s3-file-upload';
@@ -16,14 +16,14 @@ interface Props {
   onSuccess: () => void;
 }
 
-function toUpsertMedia(doc: { id: number; key: string; name: string; type: string }) {
-  return { id: doc.id, key: doc.key, name: doc.name, type: doc.type as 'image' | 'file' };
+function toUpsertMedia(doc: { id: number; key: string; name: string; type: MediaTypeDtoEnum }) {
+  return { id: doc.id, key: doc.key, name: doc.name, type: doc.type };
 }
 
 export function CandidateDocumentsEditDrawer({ open, onOpenChange, candidate, onSuccess }: Props) {
-  const [resume, setResume] = useState<{ key: string; name: string; type: string; id?: number } | undefined>();
-  const [offerLetters, setOfferLetters] = useState<Array<{ key: string; name: string; type: string; id?: number }>>([]);
-  const [otherDocuments, setOtherDocuments] = useState<Array<{ key: string; name: string; type: string; id?: number }>>([]);
+  const [resume, setResume] = useState<{ key: string; name: string; type: MediaTypeDtoEnum; id?: number } | undefined>();
+  const [offerLetters, setOfferLetters] = useState<Array<{ key: string; name: string; type: MediaTypeDtoEnum; id?: number }>>([]);
+  const [otherDocuments, setOtherDocuments] = useState<Array<{ key: string; name: string; type: MediaTypeDtoEnum; id?: number }>>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -41,9 +41,9 @@ export function CandidateDocumentsEditDrawer({ open, onOpenChange, candidate, on
     setError('');
     try {
       const payload: CandidateUpdateDocumentsRequestType = {
-        resume: resume ? { key: resume.key, name: resume.name, type: resume.type as 'image' | 'file', id: resume.id } : undefined,
-        offerLetters: offerLetters.map((m) => ({ key: m.key, name: m.name, type: m.type as 'image' | 'file', id: m.id })),
-        otherDocuments: otherDocuments.map((m) => ({ key: m.key, name: m.name, type: m.type as 'image' | 'file', id: m.id })),
+        resume: resume ? { key: resume.key, name: resume.name, type: resume.type as MediaTypeDtoEnum, id: resume.id } : undefined,
+        offerLetters: offerLetters.map((m) => ({ key: m.key, name: m.name, type: m.type as MediaTypeDtoEnum, id: m.id })),
+        otherDocuments: otherDocuments.map((m) => ({ key: m.key, name: m.name, type: m.type as MediaTypeDtoEnum, id: m.id })),
       };
       await updateCandidateDocuments(candidate.id, payload);
       onSuccess();

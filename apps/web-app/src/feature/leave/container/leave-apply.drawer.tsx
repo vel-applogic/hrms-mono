@@ -1,19 +1,15 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  LeaveCreateRequestSchema,
-  LeaveResponseType,
-  LeaveTypeDtoEnum,
-} from '@repo/dto';
+import { LeaveCreateRequestSchema, LeaveResponseType, LeaveTypeDtoEnum } from '@repo/dto';
 import { Button } from '@repo/ui/component/ui/button';
 import { Input } from '@repo/ui/component/ui/input';
 import { Label } from '@repo/ui/component/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/ui/select';
 import { Drawer } from '@repo/ui/container/drawer/drawer';
+import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useSession } from 'next-auth/react';
 import { z } from 'zod';
 
 import { createLeave, updateLeave } from '@/lib/action/leave.actions';
@@ -80,6 +76,7 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, onSuccess }: Props
     try {
       if (isEditing && leave) {
         await updateLeave(leave.id, {
+          userId: data.userId,
           leaveType: data.leaveType,
           startDate: data.startDate,
           endDate: data.endDate,
@@ -130,9 +127,7 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, onSuccess }: Props
           currentUserId={currentUserId}
           isAdmin={isAdmin}
         />
-        {form.formState.errors.userId && (
-          <p className='text-sm text-destructive'>{form.formState.errors.userId.message}</p>
-        )}
+        {form.formState.errors.userId && <p className='text-sm text-destructive'>{form.formState.errors.userId.message}</p>}
 
         <div className='flex flex-col gap-2'>
           <Label>Leave type</Label>
@@ -154,25 +149,19 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, onSuccess }: Props
           <div className='flex flex-col gap-2'>
             <Label htmlFor='startDate'>Start date</Label>
             <Input id='startDate' type='date' {...form.register('startDate')} />
-            {form.formState.errors.startDate && (
-              <p className='text-sm text-destructive'>{form.formState.errors.startDate.message}</p>
-            )}
+            {form.formState.errors.startDate && <p className='text-sm text-destructive'>{form.formState.errors.startDate.message}</p>}
           </div>
           <div className='flex flex-col gap-2'>
             <Label htmlFor='endDate'>End date</Label>
             <Input id='endDate' type='date' {...form.register('endDate')} />
-            {form.formState.errors.endDate && (
-              <p className='text-sm text-destructive'>{form.formState.errors.endDate.message}</p>
-            )}
+            {form.formState.errors.endDate && <p className='text-sm text-destructive'>{form.formState.errors.endDate.message}</p>}
           </div>
         </div>
 
         <div className='flex flex-col gap-2'>
           <Label htmlFor='reason'>Reason</Label>
           <Input id='reason' placeholder='Reason for leave' {...form.register('reason')} />
-          {form.formState.errors.reason && (
-            <p className='text-sm text-destructive'>{form.formState.errors.reason.message}</p>
-          )}
+          {form.formState.errors.reason && <p className='text-sm text-destructive'>{form.formState.errors.reason.message}</p>}
         </div>
       </form>
     </Drawer>

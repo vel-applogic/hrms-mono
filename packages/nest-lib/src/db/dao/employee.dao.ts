@@ -12,21 +12,21 @@ export class EmployeeDao extends BaseDao {
     super(prisma);
   }
 
-  async findAllWithUser(params?: { organizationId?: number; tx?: Prisma.TransactionClient }): Promise<EmployeeListRecordType[]> {
-    const pc = this.getPrismaClient(params?.tx);
+  async findAllWithUser(params: { organizationId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeListRecordType[]> {
+    const pc = this.getPrismaClient(params.tx);
     return pc.employee.findMany({
-      where: params?.organizationId ? { organizationId: params.organizationId } : undefined,
+      where: { organizationId: params.organizationId },
       include: { user: true },
       orderBy: { user: { firstname: 'asc' } },
     });
   }
 
-  async getByUserId(params: { userId: number; organizationId?: number; tx?: Prisma.TransactionClient }): Promise<EmployeeDetailRecordType | null> {
+  async getByUserId(params: { userId: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeDetailRecordType | null> {
     const pc = this.getPrismaClient(params.tx);
     return pc.employee.findFirst({
       where: {
         userId: params.userId,
-        ...(params.organizationId ? { organizationId: params.organizationId } : {}),
+        organizationId: params.organizationId,
       },
       include: {
         user: true,
@@ -35,12 +35,7 @@ export class EmployeeDao extends BaseDao {
     });
   }
 
-  async findByEmployeeCode(params: {
-    employeeCode: string;
-    organizationId: number;
-    excludeUserId?: number;
-    tx?: Prisma.TransactionClient;
-  }): Promise<Employee | null> {
+  async findByEmployeeCode(params: { employeeCode: string; organizationId: number; excludeUserId?: number; tx?: Prisma.TransactionClient }): Promise<Employee | null> {
     const pc = this.getPrismaClient(params.tx);
     return pc.employee.findFirst({
       where: {
@@ -51,12 +46,7 @@ export class EmployeeDao extends BaseDao {
     });
   }
 
-  async findByPan(params: {
-    pan: string;
-    organizationId: number;
-    excludeUserId?: number;
-    tx?: Prisma.TransactionClient;
-  }): Promise<Employee | null> {
+  async findByPan(params: { pan: string; organizationId: number; excludeUserId?: number; tx?: Prisma.TransactionClient }): Promise<Employee | null> {
     const pc = this.getPrismaClient(params.tx);
     return pc.employee.findFirst({
       where: {
@@ -67,12 +57,7 @@ export class EmployeeDao extends BaseDao {
     });
   }
 
-  async findByAadhaar(params: {
-    aadhaar: string;
-    organizationId: number;
-    excludeUserId?: number;
-    tx?: Prisma.TransactionClient;
-  }): Promise<Employee | null> {
+  async findByAadhaar(params: { aadhaar: string; organizationId: number; excludeUserId?: number; tx?: Prisma.TransactionClient }): Promise<Employee | null> {
     const pc = this.getPrismaClient(params.tx);
     return pc.employee.findFirst({
       where: {
@@ -88,17 +73,12 @@ export class EmployeeDao extends BaseDao {
     return pc.employee.create({ data: params.data });
   }
 
-  async update(params: {
-    userId: number;
-    organizationId?: number;
-    data: Prisma.EmployeeUpdateInput;
-    tx?: Prisma.TransactionClient;
-  }): Promise<Employee> {
+  async update(params: { userId: number; organizationId: number; data: Prisma.EmployeeUpdateInput; tx?: Prisma.TransactionClient }): Promise<Employee> {
     const pc = this.getPrismaClient(params.tx);
     const existing = await pc.employee.findFirst({
       where: {
         userId: params.userId,
-        ...(params.organizationId ? { organizationId: params.organizationId } : {}),
+        organizationId: params.organizationId,
       },
     });
     if (!existing) throw new Error(`Employee with userId ${params.userId} not found`);
@@ -107,7 +87,7 @@ export class EmployeeDao extends BaseDao {
 
   async search(params: {
     filterDto: EmployeeFilterRequestType;
-    organizationId?: number;
+    organizationId: number;
     orderBy?: OrderByParam;
     tx?: Prisma.TransactionClient;
   }): Promise<{ totalRecords: number; dbRecords: EmployeeListRecordType[] }> {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { type LeaveResponseType, UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, LeaveConfigDao, LeaveDao, PrismaService, EmployeeDao, EmployeeLeaveCounterDao } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, EmployeeDao, EmployeeLeaveCounterDao, IUseCase, LeaveConfigDao, LeaveDao, PrismaService } from '@repo/nest-lib';
 import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
@@ -45,6 +45,7 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
 
     await this.leaveDao.update({
       id: params.id,
+      organizationId: params.currentUser.organizationId,
       data: { status: 'cancelled' },
     });
 
@@ -62,6 +63,7 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
       try {
         await this.employeeLeaveCounterDao.syncFromActualLeaves({
           userId: existing.userId,
+          organizationId: params.currentUser.organizationId,
           financialYear,
           ...totals,
           maxLeaves,
