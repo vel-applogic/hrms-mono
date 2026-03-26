@@ -13,6 +13,7 @@ import {
   PayslipListResponseSchema,
   PaginatedResponseSchema,
 } from '@repo/dto';
+import { z } from 'zod';
 import { CreateAxiosInstance } from '@repo/ui/lib/axios/axios-instance';
 
 import { BaseService } from './_base.service';
@@ -54,11 +55,11 @@ class PayslipService extends BaseService {
   }
 
   async getPdfSignedUrl(id: number): Promise<string> {
-    const { userId } = await this.getAuthHeaderInfo();
-    const response = await this.apiService.get<{ signedUrl: string }>(`/api/payslip/${id}/pdf`, {
-      headers: { 'x-user-id': userId },
+    const result = await this.get<{ signedUrl: string }>({
+      url: `/api/payslip/${id}/pdf`,
+      responseSchema: z.object({ signedUrl: z.string() }),
     });
-    return (response.data as { signedUrl: string }).signedUrl;
+    return result.signedUrl;
   }
 }
 

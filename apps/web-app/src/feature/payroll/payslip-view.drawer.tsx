@@ -43,7 +43,7 @@ export function PayslipViewDrawer({ open, onOpenChange, payslipId }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-3xl p-0 bg-white'>
+      <DialogContent className='max-w-3xl p-0 bg-white [&>button]:text-gray-600'>
         {loading && (
           <div className='flex items-center justify-center py-16'>
             <p className='text-sm text-gray-500'>Loading payslip…</p>
