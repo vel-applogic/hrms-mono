@@ -33,7 +33,28 @@ export interface PayslipTemplateData {
 
 const MONTH_LABELS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-const ONES = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+const ONES = [
+  '',
+  'One',
+  'Two',
+  'Three',
+  'Four',
+  'Five',
+  'Six',
+  'Seven',
+  'Eight',
+  'Nine',
+  'Ten',
+  'Eleven',
+  'Twelve',
+  'Thirteen',
+  'Fourteen',
+  'Fifteen',
+  'Sixteen',
+  'Seventeen',
+  'Eighteen',
+  'Nineteen',
+];
 const TENS = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
 
 function toWords(n: number): string {
@@ -61,10 +82,7 @@ function formatAmount(value: number): string {
 
 // ── Data builder ─────────────────────────────────────────────────────────────
 
-export function buildPayslipTemplateData(
-  payslip: PayslipDetailResponseType,
-  options: { companyName?: string; companyAddress?: string } = {},
-): PayslipTemplateData {
+export function buildPayslipTemplateData(payslip: PayslipDetailResponseType, options: { companyName?: string; companyAddress?: string } = {}): PayslipTemplateData {
   const earnings = payslip.lineItems.filter((li) => li.type === 'earning');
   const deductions = payslip.lineItems.filter((li) => li.type === 'deduction');
   const lopItem = deductions.find((li) => li.title === 'Loss of Pay');
@@ -146,7 +164,7 @@ export const PAYSLIP_HTML_TEMPLATE = `<!DOCTYPE html>
     .info-table { width: 100%; border-collapse: collapse; font-size: 11px; }
     .info-table td { padding: 2px 0; vertical-align: top; }
     .info-label { color: #6b7280; padding-right: 8px; white-space: nowrap; }
-    .info-sep { color: #9ca3af; padding: 0 4px; }
+    .info-sep { color: #9ca3af; padding: 0 10px; width: 30px; }
     .info-value { color: #1f2937; }
     .info-value.bold { font-weight: 600; color: #111827; }
     .net-box {
@@ -209,22 +227,22 @@ export const PAYSLIP_HTML_TEMPLATE = `<!DOCTYPE html>
         <tbody>
           <tr>
             <td class="info-label">Employee Name</td>
-            <td class="info-sep">:</td>
-            <td class="info-value bold">{{employeeFirstname}} {{employeeLastname}} ({{employeeEmail}})</td>
+            <td class="info-sep" style="padding: 0 10px;">:</td>
+            <td class="info-value bold" width="100%">{{employeeFirstname}} {{employeeLastname}}</td>
           </tr>
           <tr>
             <td class="info-label">Employee ID</td>
-            <td class="info-sep">:</td>
+            <td class="info-sep" style="padding: 0 10px;">:</td>
             <td class="info-value">{{employeeId}}</td>
           </tr>
           <tr>
             <td class="info-label">Designation</td>
-            <td class="info-sep">:</td>
+            <td class="info-sep" style="padding: 0 10px;">:</td>
             <td class="info-value">{{employeeDesignation}}</td>
           </tr>
           <tr>
             <td class="info-label">Pay Period</td>
-            <td class="info-sep">:</td>
+            <td class="info-sep" style="padding: 0 10px;">:</td>
             <td class="info-value">{{monthLabel}} {{year}}</td>
           </tr>
         </tbody>
@@ -239,12 +257,12 @@ export const PAYSLIP_HTML_TEMPLATE = `<!DOCTYPE html>
         <tbody>
           <tr>
             <td class="info-label">Paid Days</td>
-            <td class="info-sep">:</td>
-            <td class="info-value">{{paidDays}}</td>
+            <td class="info-sep" style="padding: 0 10px;">:</td>
+            <td class="info-value" width="100%">{{paidDays}}</td>
           </tr>
           <tr>
             <td class="info-label">LOP Days</td>
-            <td class="info-sep">:</td>
+            <td class="info-sep" style="padding: 0 10px;">:</td>
             <td class="info-value">{{lopDays}}</td>
           </tr>
         </tbody>

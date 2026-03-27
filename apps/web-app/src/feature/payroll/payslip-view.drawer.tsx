@@ -50,9 +50,7 @@ export function PayslipViewDrawer({ open, onOpenChange, payslipId }: Props) {
           </div>
         )}
 
-        {error && (
-          <p className='m-6 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600'>{error}</p>
-        )}
+        {error && <p className='m-6 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600'>{error}</p>}
 
         {payslip && htmlContent && (
           <iframe
