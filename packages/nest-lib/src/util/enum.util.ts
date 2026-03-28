@@ -10,6 +10,7 @@ import {
   LeaveStatusEnum,
   LeaveTypeEnum,
   MediaTypeDbEnum,
+  NoOfDaysInMonthDbEnum,
   NoticePeriodUnit,
   UserRoleDbEnum,
 } from '@repo/db';
@@ -25,6 +26,7 @@ import {
   LeaveStatusDtoEnum,
   LeaveTypeDtoEnum,
   MediaTypeDtoEnum,
+  NoOfDaysInMonthDtoEnum,
   NoticePeriodUnitDtoEnum,
   UserRoleDtoEnum,
 } from '@repo/dto';
@@ -348,4 +350,66 @@ export function employeeStatusDbEnumToDtoEnum(dbEnum: EmployeeStatusEnum): Emplo
   }
 
   return dtoEnum;
+}
+
+export function noOfDaysInMonthDtoEnumToDbEnum(dtoEnum: NoOfDaysInMonthDtoEnum): NoOfDaysInMonthDbEnum {
+  const mapping: Record<NoOfDaysInMonthDtoEnum, NoOfDaysInMonthDbEnum> = {
+    [NoOfDaysInMonthDtoEnum.dynamic]: 'dynamic',
+    [NoOfDaysInMonthDtoEnum.thirty]: 'thirty',
+    [NoOfDaysInMonthDtoEnum.thirtyOne]: 'thirtyOne',
+  };
+
+  const dbEnum = mapping[dtoEnum];
+  if (!dbEnum) {
+    throw new Error(`Unknown NoOfDaysInMonthDtoEnum: ${dtoEnum}`);
+  }
+
+  return dbEnum;
+}
+
+export function noOfDaysInMonthDbEnumToDtoEnum(dbEnum: NoOfDaysInMonthDbEnum): NoOfDaysInMonthDtoEnum {
+  const mapping: Record<NoOfDaysInMonthDbEnum, NoOfDaysInMonthDtoEnum> = {
+    dynamic: NoOfDaysInMonthDtoEnum.dynamic,
+    thirty: NoOfDaysInMonthDtoEnum.thirty,
+    thirtyOne: NoOfDaysInMonthDtoEnum.thirtyOne,
+  };
+
+  const dtoEnum = mapping[dbEnum];
+  if (!dtoEnum) {
+    throw new Error(`Unknown NoOfDaysInMonthDbEnum: ${dbEnum}`);
+  }
+
+  return dtoEnum;
+}
+
+export function mediaTypeDbEnumToDtoEnum(dbEnum: MediaTypeDbEnum): MediaTypeDtoEnum {
+  const mapping: Record<MediaTypeDbEnum, MediaTypeDtoEnum> = {
+    doc: MediaTypeDtoEnum.doc,
+    image: MediaTypeDtoEnum.image,
+    zip: MediaTypeDtoEnum.zip,
+    video: MediaTypeDtoEnum.video,
+  };
+
+  const dtoEnum = mapping[dbEnum];
+  if (!dtoEnum) {
+    throw new Error(`Unknown MediaTypeDbEnum: ${dbEnum}`);
+  }
+
+  return dtoEnum;
+}
+
+export function mediaTypeDtoEnumToDbEnum(dtoEnum: MediaTypeDtoEnum): MediaTypeDbEnum {
+  const mapping: Record<MediaTypeDtoEnum, MediaTypeDbEnum> = {
+    [MediaTypeDtoEnum.doc]: 'doc',
+    [MediaTypeDtoEnum.image]: 'image',
+    [MediaTypeDtoEnum.zip]: 'zip',
+    [MediaTypeDtoEnum.video]: 'video',
+  };
+
+  const dbEnum = mapping[dtoEnum];
+  if (!dbEnum) {
+    throw new Error(`Unknown MediaTypeDtoEnum: ${dtoEnum}`);
+  }
+
+  return dbEnum;
 }

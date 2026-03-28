@@ -18,6 +18,9 @@ export function UserMenu({ userName, userEmail, variant = 'default' }: Props) {
   const currentOrgId = session?.user?.organizationId;
   const currentOrg = organisations.find((o) => o.id === currentOrgId) ?? organisations[0];
   const hasMultiple = organisations.length > 1;
+  const isSuperAdmin = session?.user?.isSuperAdmin ?? false;
+  const roles = session?.user?.roles ?? [];
+  const canViewOrgSettings = isSuperAdmin || roles.includes('admin');
   const router = useRouter();
   return (
     <DropdownMenu>
@@ -27,7 +30,7 @@ export function UserMenu({ userName, userEmail, variant = 'default' }: Props) {
           <div className='flex min-w-0 flex-col items-start'>
             <span className={`truncate text-sm ${variant === 'sidebar' ? 'text-white' : 'text-foreground'}`}>
               {userName}
-              {userEmail && <span className={variant === 'sidebar' ? 'text-white/60' : 'text-muted-foreground'}> ({userEmail})</span>}
+              {userEmail && <span className={variant === 'sidebar' ? 'text-white/60' : 'text-muted-foreground'}> ({userEmail.toLowerCase()})</span>}
             </span>
             {currentOrg && (
               <span className={`flex items-center gap-1 text-xs ${variant === 'sidebar' ? 'text-white/60' : 'text-muted-foreground'}`}>

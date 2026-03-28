@@ -2,6 +2,7 @@
 
 import type {
   OrganizationCreateRequestType,
+  OrganizationDetailResponseType,
   OrganizationResponseType,
   OrganizationUpdateRequestType,
   OperationStatusResponseType,
@@ -10,6 +11,15 @@ import { revalidatePath } from 'next/cache';
 
 import { organizationService } from '@/lib/service/organization.service';
 import { ActionResult, extractActionError } from '@/lib/util/action-result';
+
+export async function getOrganizationById(id: number): Promise<ActionResult<OrganizationDetailResponseType>> {
+  try {
+    const result = await organizationService.getById(id);
+    return { ok: true, data: result };
+  } catch (err) {
+    return { ok: false, error: extractActionError(err, 'Failed to get organization') };
+  }
+}
 
 export async function createOrganization(data: OrganizationCreateRequestType): Promise<ActionResult<OrganizationResponseType>> {
   try {

@@ -1,20 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { UserRoleDbEnum } from '@repo/db';
 import type { OrganizationCreateRequestType, OrganizationResponseType } from '@repo/dto';
+import { MediaTypeDtoEnum } from '@repo/dto';
 import type { CurrentUserType } from '@repo/nest-lib';
 import {
   CommonLoggerService,
   IUseCase,
+  MediaDao,
   OrganizationDao,
+  OrganizationHasDocumentDao,
   OrganizationHasUserDao,
+  OrganizationSettingDao,
   PrismaService,
   UserDao,
   UserInviteDao,
 } from '@repo/nest-lib';
+import { mediaTypeDtoEnumToDbEnum, noOfDaysInMonthDtoEnumToDbEnum } from '@repo/nest-lib';
 import { ApiFieldValidationError } from '@repo/shared';
 
 import { AppConfigService } from '#src/config/app-config.service.js';
+import { S3Service } from '#src/external-service/s3.service.js';
 import { EmailService } from '#src/service/email/email.service.js';
+import { MediaService } from '#src/service/media.service.js';
 import { PasswordService } from '#src/service/password.service.js';
 
 import { BaseOrganizationUc } from './_base-organization.uc.js';
@@ -30,14 +37,19 @@ export class OrganizationCreateUc extends BaseOrganizationUc implements IUseCase
     prisma: PrismaService,
     logger: CommonLoggerService,
     organizationDao: OrganizationDao,
+    organizationSettingDao: OrganizationSettingDao,
+    organizationHasDocumentDao: OrganizationHasDocumentDao,
+    s3Service: S3Service,
     private readonly userDao: UserDao,
     private readonly organizationHasUserDao: OrganizationHasUserDao,
     private readonly userInviteDao: UserInviteDao,
+    private readonly mediaDao: MediaDao,
+    private readonly mediaService: MediaService,
     private readonly passwordService: PasswordService,
     private readonly emailService: EmailService,
     private readonly appConfigService: AppConfigService,
   ) {
-    super(prisma, logger, organizationDao);
+    super(prisma, logger, organizationDao, organizationSettingDao, organizationHasDocumentDao, s3Service);
   }
 
   async execute(params: Params): Promise<OrganizationResponseType> {
@@ -94,6 +106,80 @@ export class OrganizationCreateUc extends BaseOrganizationUc implements IUseCase
         },
         tx,
       });
+
+      // Create settings if provided
+      if (params.dto.settings) {
+        const logoFile = await this.mediaService.moveTempFileAndGetKey({
+          media: params.dto.settings.logo,
+          mediaPlacement: 'organization',
+          relationId: organizationId,
+          isImage: params.dto.settings.logo.type === MediaTypeDtoEnum.image,
+        });
+
+        if (logoFile) {
+          const logoId = await this.mediaDao.create({
+            data: {
+              key: logoFile.newKey,
+              name: params.dto.settings.logo.name,
+              type: mediaTypeDtoEnumToDbEnum(params.dto.settings.logo.type),
+              size: logoFile.size,
+              ext: logoFile.ext,
+              organization: { connect: { id: organizationId } },
+            },
+            tx,
+          });
+
+          await this.organizationSettingDao.create({
+            data: {
+              organization: { connect: { id: organizationId } },
+              logo: { connect: { id: logoId } },
+              noOfDaysInMonth: noOfDaysInMonthDtoEnumToDbEnum(params.dto.settings.noOfDaysInMonth),
+              totalLeaveInDays: params.dto.settings.totalLeaveInDays,
+              sickLeaveInDays: params.dto.settings.sickLeaveInDays,
+              earnedLeaveInDays: params.dto.settings.earnedLeaveInDays,
+              casualLeaveInDays: params.dto.settings.casualLeaveInDays,
+              maternityLeaveInDays: params.dto.settings.maternityLeaveInDays,
+              paternityLeaveInDays: params.dto.settings.paternityLeaveInDays,
+            },
+            tx,
+          });
+        }
+      }
+
+      // Create documents if provided
+      if (params.dto.documents && params.dto.documents.length > 0) {
+        for (const doc of params.dto.documents) {
+          const docFile = await this.mediaService.moveTempFileAndGetKey({
+            media: doc,
+            mediaPlacement: 'organization',
+            relationId: organizationId,
+            isImage: doc.type === MediaTypeDtoEnum.image,
+          });
+
+          if (docFile) {
+            const mediaId = await this.mediaDao.create({
+              data: {
+                key: docFile.newKey,
+                name: doc.name,
+                type: mediaTypeDtoEnumToDbEnum(doc.type),
+                size: docFile.size,
+                ext: docFile.ext,
+                organization: { connect: { id: organizationId } },
+              },
+              tx,
+            });
+
+            await this.organizationHasDocumentDao.create({
+              data: {
+                organization: { connect: { id: organizationId } },
+                document: { connect: { id: mediaId } },
+                mediaType: mediaTypeDtoEnumToDbEnum(doc.mediaType),
+              },
+              tx,
+            });
+          }
+        }
+      }
 
       return { organizationId, userId, inviteKey };
     });

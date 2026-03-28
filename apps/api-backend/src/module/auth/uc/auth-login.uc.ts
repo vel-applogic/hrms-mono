@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { AuthLoginRequestType, AuthLoginResponseType } from '@repo/dto';
-import { CommonLoggerService, IUseCase, OrganizationHasUserDao, UserDao, UserVerifyEmailDao, userRoleDbEnumToDtoEnum } from '@repo/nest-lib';
+import { CommonLoggerService, IUseCase, OrganizationHasUserDao, UserDao, userRoleDbEnumToDtoEnum, UserVerifyEmailDao } from '@repo/nest-lib';
 import { ApiBadRequestError, ApiError } from '@repo/shared';
 
 import { PasswordService } from '../../../service/password.service.js';
@@ -25,7 +25,7 @@ export class AuthLoginUc implements IUseCase<Params, AuthLoginResponseType> {
   }
 
   async validate(params: Params): Promise<AuthLoginResponseType> {
-    const user = await this.userDao.getByEmail({ email: params.dto.email });
+    const user = await this.userDao.getByEmail({ email: params.dto.email.toLowerCase() });
     if (!user) {
       throw new ApiError('Invalid credentials', 401);
     }

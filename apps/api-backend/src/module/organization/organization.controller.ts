@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put } from '@nestjs/common';
 import type {
   OrganizationCreateRequestType,
+  OrganizationDetailResponseType,
   OrganizationFilterRequestType,
   OrganizationResponseType,
   OrganizationUpdateRequestType,
@@ -57,7 +58,7 @@ export class OrganizationController {
   }
 
   @Get(':id')
-  async get(@Param('id', ParseIntPipe) id: number, @CurrentUser() currentUser: CurrentUserType): Promise<OrganizationResponseType> {
+  async get(@Param('id', ParseIntPipe) id: number, @CurrentUser() currentUser: CurrentUserType): Promise<OrganizationDetailResponseType> {
     return this.getUc.execute({ currentUser, id });
   }
 

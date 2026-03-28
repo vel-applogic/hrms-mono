@@ -111,3 +111,9 @@ export enum EmployeeFeedbackTrendDtoEnum {
   negative = 'negative',
   neutral = 'neutral',
 }
+
+export enum NoOfDaysInMonthDtoEnum {
+  dynamic = 'dynamic',
+  thirty = 'thirty',
+  thirtyOne = 'thirtyOne',
+}

@@ -43,7 +43,7 @@ export class UserDao extends BaseDao {
 
   public async getByEmail(params: { email: string; tx?: Prisma.TransactionClient }): Promise<UserSelectTableRecordType | undefined> {
     const pc = this.getPrismaClient(params.tx);
-    const dbRec = await pc.user.findUnique({ where: { email: params.email } });
+    const dbRec = await pc.user.findFirst({ where: { email: { equals: params.email, mode: 'insensitive' } } });
     return dbRec ?? undefined;
   }
 

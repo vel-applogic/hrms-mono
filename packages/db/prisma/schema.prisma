@@ -74,21 +74,23 @@ model Organization {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  organizationHasUsers  OrganizationHasUser[]
-  branches              Branch[]
-  userInBranches        UserInBranch[]
-  userInvites           UserInvite[]
-  employees             Employee[]
-  payrollCompensations  PayrollCompensation[]
-  payrollDeductions     PayrollDeduction[]
-  payrollPayslips       PayrollPayslip[]
-  employeeFeedbacks     EmployeeFeedback[]
-  employeeLeaveCounters EmployeeLeaveCounter[]
-  leaveConfigs          LeaveConfig[]
-  leaves                Leave[]
-  candidates            Candidate[]
-  policies              Policy[]
-  medias                Media[]
+  organizationHasUsers     OrganizationHasUser[]
+  branches                 Branch[]
+  userInBranches           UserInBranch[]
+  userInvites              UserInvite[]
+  employees                Employee[]
+  payrollCompensations     PayrollCompensation[]
+  payrollDeductions        PayrollDeduction[]
+  payrollPayslips          PayrollPayslip[]
+  employeeFeedbacks        EmployeeFeedback[]
+  employeeLeaveCounters    EmployeeLeaveCounter[]
+  leaveConfigs             LeaveConfig[]
+  leaves                   Leave[]
+  candidates               Candidate[]
+  policies                 Policy[]
+  medias                   Media[]
+  settings                 OrganizationSetting[]
+  organizationHasDocuments OrganizationHasDocument[]
 
   @@map("organization")
 }
@@ -107,6 +109,46 @@ model OrganizationHasUser {
 
   @@unique([organizationId, userId])
   @@map("organization_has_user")
+}
+
+enum NoOfDaysInMonthDbEnum {
+  dynamic
+  thirty
+  thirtyOne
+}
+
+model OrganizationSetting {
+  id                   Int                   @id @default(autoincrement())
+  organizationId       Int                   @map("organization_id")
+  organization         Organization          @relation(fields: [organizationId], references: [id])
+  logoId               Int                   @map("logo_id")
+  logo                 Media                 @relation(fields: [logoId], references: [id])
+  noOfDaysInMonth      NoOfDaysInMonthDbEnum @default(thirty) @map("no_of_days_in_month")
+  totalLeaveInDays     Int                   @default(24) @map("total_leave_in_days")
+  sickLeaveInDays      Int                   @default(10) @map("sick_leave_in_days")
+  earnedLeaveInDays    Int                   @default(10) @map("earned_leave_in_days")
+  casualLeaveInDays    Int                   @default(10) @map("casual_leave_in_days")
+  maternityLeaveInDays Int                   @default(10) @map("maternity_leave_in_days")
+  paternityLeaveInDays Int                   @default(10) @map("paternity_leave_in_days")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("organization_settings")
+}
+
+model OrganizationHasDocument {
+  id             Int             @id @default(autoincrement())
+  organizationId Int             @map("organization_id")
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+  documentId     Int             @map("document_id")
+  document       Media           @relation(fields: [documentId], references: [id])
+  mediaType      MediaTypeDbEnum @map("media_type")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("organization_has_document")
 }
 
 // BRANCH
@@ -475,10 +517,12 @@ model Media {
   createdAt      DateTime        @default(now()) @map("created_at")
   updatedAt      DateTime        @updatedAt @map("updated_at")
 
-  candidateHasMedias CandidateHasMedia[]
-  policyHasMedias    PolicyHasMedia[]
-  employeeHasMedias  EmployeeHasMedia[]
-  leaveHasMedias     LeaveHasMedia[]
+  candidateHasMedias       CandidateHasMedia[]
+  policyHasMedias          PolicyHasMedia[]
+  employeeHasMedias        EmployeeHasMedia[]
+  leaveHasMedias           LeaveHasMedia[]
+  OrganizationSetting      OrganizationSetting[]
+  organizationHasDocuments OrganizationHasDocument[]
 
   @@map("media")
 }

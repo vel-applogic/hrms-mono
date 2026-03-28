@@ -1,5 +1,7 @@
 import {
   OrganizationCreateRequestType,
+  OrganizationDetailResponseSchema,
+  OrganizationDetailResponseType,
   OrganizationFilterRequestType,
   OrganizationResponseSchema,
   OrganizationResponseType,
@@ -26,10 +28,10 @@ class OrganizationService extends BaseService {
     });
   }
 
-  async getById(id: number): Promise<OrganizationResponseType> {
-    return this.get<OrganizationResponseType>({
+  async getById(id: number): Promise<OrganizationDetailResponseType> {
+    return this.get<OrganizationDetailResponseType>({
       url: `/api/organization/${id}`,
-      responseSchema: OrganizationResponseSchema,
+      responseSchema: OrganizationDetailResponseSchema,
     });
   }
 

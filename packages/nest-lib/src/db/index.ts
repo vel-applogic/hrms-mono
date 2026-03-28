@@ -23,11 +23,15 @@ export {
   PolicyHasMediaDao,
   PayrollPayslipDao,
   UserInviteDao,
+  OrganizationSettingDao,
+  OrganizationHasDocumentDao,
 } from './dao/index.js';
 export type {
   OrderByParam,
   UserSelectTableRecordType,
   OrganizationSelectTableRecordType,
+  OrganizationSettingWithLogoType,
+  OrganizationHasDocumentWithMediaType,
   BranchSelectTableRecordType,
   PolicyDetailRecordType,
   PolicyListRecordType,

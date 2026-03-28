@@ -9,17 +9,19 @@ import { DataTableSimple, DummySort, getSort } from '@repo/ui/container/datatabl
 import { ActionOption, ActionsIconCellRenderer, ActionsIconCellRendererParams, DateTimeRenderer } from '@repo/ui/container/datatable/datatable-cell-renderer';
 import { isSortable } from '@repo/ui/lib/utils';
 import { ColDef } from 'ag-grid-community';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 
 interface Props {
   data: PaginatedResponseType<OrganizationResponseType>;
   sort: { sKey?: string; sVal?: string };
+  onView: (organization: OrganizationResponseType) => void;
   onEdit: (organization: OrganizationResponseType) => void;
   onDelete: (organization: OrganizationResponseType) => void;
 }
 
 const actionOptions: ActionOption[] = [
+  { name: 'View', icon: Eye, variant: 'outline' },
   { name: 'Edit', icon: Pencil, variant: 'outline' },
   { name: 'Delete', icon: Trash2, variant: 'outline-danger' },
 ];
@@ -79,6 +81,9 @@ export const OrganizationDataTableClient = (props: Props) => {
   const onActionClick = useCallback(
     (action: string, data: OrganizationResponseType) => {
       switch (action) {
+        case 'View':
+          props.onView(data);
+          break;
         case 'Edit':
           props.onEdit(data);
           break;
