@@ -48,10 +48,14 @@ export function UserMenu({ userName, userEmail, variant = 'default' }: Props) {
             Profile
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem className='cursor-pointer'>
-          <Settings />
-          Settings
-        </DropdownMenuItem>
+        {canViewOrgSettings && (
+          <DropdownMenuItem asChild className='cursor-pointer'>
+            <Link href='/organization/settings'>
+              <Settings />
+              Organization Settings
+            </Link>
+          </DropdownMenuItem>
+        )}
         {organisations.length > 0 && (
           <>
             <DropdownMenuSeparator className='bg-border' />

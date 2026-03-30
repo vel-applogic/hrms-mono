@@ -1,8 +1,6 @@
 'use client';
 
 import type { OrganizationDetailResponseType } from '@repo/dto';
-import { Button } from '@repo/ui/component/ui/button';
-import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 import { OrganizationViewDocuments } from './organization-view-documents';
@@ -24,15 +22,8 @@ export function OrganizationView({ organization, activeTab }: Props) {
   return (
     <div className='flex h-full flex-col gap-4 pt-4'>
       <div className='center-container flex items-center justify-between'>
-        <div className='flex items-center gap-3'>
-          <Link href='/organization'>
-            <Button variant='ghost' size='icon' className='shrink-0'>
-              <ArrowLeft className='h-4 w-4' />
-            </Button>
-          </Link>
-          <div>
-            <h1 className='text-xl font-medium tracking-tight text-foreground'>{organization.name}</h1>
-          </div>
+        <div>
+          <h1 className='text-xl font-medium tracking-tight text-foreground'>{organization.name}</h1>
         </div>
       </div>
 
@@ -41,7 +32,7 @@ export function OrganizationView({ organization, activeTab }: Props) {
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
-              <Link key={tab.id} href={`/organization/${organization.id}/${tab.id}`} className='group relative flex h-[52px] items-center px-3 pb-2 pt-3'>
+              <Link key={tab.id} href={`/organization/${tab.id}`} className='group relative flex h-[52px] items-center px-3 pb-2 pt-3'>
                 <span className={`text-sm font-bold tracking-widest transition-colors group-hover:text-foreground ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
                   {tab.label}
                 </span>

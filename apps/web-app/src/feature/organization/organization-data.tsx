@@ -23,7 +23,7 @@ interface Props {
 export const OrganizationData = ({ data, searchParams }: Props) => {
   const pathname = usePathname();
   const currentSearchParams = useSearchParams();
-  const { replace, refresh, push } = useRouter();
+  const { replace, refresh } = useRouter();
   const [searchText, setSearchText] = useState(searchParams.search ?? '');
   const prevSearchTextRef = useRef(searchText);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -58,10 +58,6 @@ export const OrganizationData = ({ data, searchParams }: Props) => {
   }, [searchText, currentSearchParams, pathname, replace]);
 
   const sort = { sKey: searchParams.sKey, sVal: searchParams.sVal };
-
-  const handleView = (organization: OrganizationResponseType) => {
-    push(`/organization/${organization.id}/info`);
-  };
 
   const handleAddNew = () => {
     setEditingOrganization(null);
@@ -132,7 +128,7 @@ export const OrganizationData = ({ data, searchParams }: Props) => {
       </div>
 
       <div className='center-container flex flex-1 flex-col min-h-0 pb-4'>
-        <OrganizationDataTableClient data={data} sort={sort} onView={handleView} onEdit={handleEdit} onDelete={handleDelete} />
+        <OrganizationDataTableClient data={data} sort={sort} onEdit={handleEdit} onDelete={handleDelete} />
       </div>
 
       <OrganizationUpsertDrawer open={drawerOpen} onOpenChange={setDrawerOpen} organization={editingOrganization} onSuccess={() => refresh()} />
