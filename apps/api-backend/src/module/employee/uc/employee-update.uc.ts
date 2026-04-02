@@ -88,6 +88,7 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
           dateOfLeaving: params.dto.dateOfLeaving ? new Date(params.dto.dateOfLeaving) : undefined,
           status: params.dto.status,
           reportTo: params.dto.reportToId ? { connect: { id: params.dto.reportToId } } : { disconnect: true },
+          isBgVerified: params.dto.isBgVerified ?? false,
         },
         tx,
       });

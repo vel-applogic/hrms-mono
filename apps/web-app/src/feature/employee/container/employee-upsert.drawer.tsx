@@ -10,6 +10,7 @@ import { Button } from '@repo/ui/component/ui/button';
 import { Input } from '@repo/ui/component/ui/input';
 import { Label } from '@repo/ui/component/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/ui/select';
+import { Switch } from '@repo/ui/component/ui/switch';
 import { Drawer } from '@repo/ui/container/drawer/drawer';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -54,6 +55,7 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
       dateOfLeaving: undefined,
       status: EmployeeStatusDtoEnum.active,
       reportToId: undefined,
+      isBgVerified: false,
     },
   });
 
@@ -74,6 +76,7 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
           dateOfLeaving: employee.dateOfLeaving ?? undefined,
           status: employee.status as EmployeeStatusDtoEnum,
           reportToId: employee.reportToId ?? undefined,
+          isBgVerified: employee.isBgVerified ?? false,
           photo: employee.photo ? { key: employee.photo.key, name: employee.photo.name, type: employee.photo.type } : undefined,
         });
       } else {
@@ -91,6 +94,7 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
           dateOfLeaving: undefined,
           status: EmployeeStatusDtoEnum.active,
           reportToId: undefined,
+          isBgVerified: false,
         });
       }
       setError('');
@@ -127,6 +131,7 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
           dateOfLeaving: data.dateOfLeaving ?? null,
           status: data.status,
           reportToId: data.reportToId ?? null,
+          isBgVerified: data.isBgVerified,
           photo: data.photo,
         });
       } else {
@@ -144,6 +149,7 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
           dateOfLeaving: data.dateOfLeaving ?? undefined,
           status: data.status,
           reportToId: data.reportToId ?? undefined,
+          isBgVerified: data.isBgVerified,
           photo: data.photo,
         });
       }
@@ -265,6 +271,15 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className='flex items-center justify-between rounded-lg border border-border p-4'>
+          <Label htmlFor='isBgVerified'>Background Verified</Label>
+          <Switch
+            id='isBgVerified'
+            checked={form.watch('isBgVerified') ?? false}
+            onCheckedChange={(checked) => form.setValue('isBgVerified', checked)}
+          />
         </div>
 
         <div className='flex flex-col gap-2'>

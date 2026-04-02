@@ -40,6 +40,7 @@ model User {
   payrollPayslips            PayrollPayslip[]
   organizationHasUsers       OrganizationHasUser[]
   userInBranches             UserInBranch[]
+  employeeBgvFeedbacks       employeeBgvFeedback[]  @relation("EmployeeBgvFeedbackUser")
 
   @@map("users")
 }
@@ -90,6 +91,7 @@ model Organization {
   medias                   Media[]
   settings                 OrganizationSetting[]
   organizationHasDocuments OrganizationHasDocument[]
+  employeeBgvFeedbacks     employeeBgvFeedback[]
 
   @@map("organization")
 }
@@ -230,6 +232,36 @@ model Employee {
   @@index([reportToId])
   @@index([status])
   @@map("user_employee_detail")
+}
+
+model employeeBgvFeedback {
+  id             Int          @id @default(autoincrement())
+  userId         Int          @map("user_id")
+  user           User         @relation("EmployeeBgvFeedbackUser", fields: [userId], references: [id])
+  organizationId Int          @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  feedback       String       @map("feedback")
+
+  createdAt                   DateTime                     @default(now()) @map("created_at")
+  updatedAt                   DateTime                     @updatedAt @map("updated_at")
+  employyBgvFeedbackHasMedias employyBgvFeedbackHasMedia[]
+
+  @@index([userId])
+  @@map("employee_bgv_feedback")
+}
+
+model employyBgvFeedbackHasMedia {
+  id                    Int                 @id @default(autoincrement())
+  employeeBgvFeedbackId Int                 @map("employee_bgv_feedback_id")
+  employeeBgvFeedback   employeeBgvFeedback @relation(fields: [employeeBgvFeedbackId], references: [id])
+  mediaId               Int                 @map("media_id")
+  media                 Media               @relation(fields: [mediaId], references: [id])
+  createdAt             DateTime            @default(now()) @map("created_at")
+  updatedAt             DateTime            @updatedAt @map("updated_at")
+
+  @@index([employeeBgvFeedbackId])
+  @@index([mediaId])
+  @@map("employee_bgv_feedback_has_media")
 }
 
 model EmployeeHasMedia {
@@ -502,12 +534,13 @@ model Media {
   createdAt      DateTime        @default(now()) @map("created_at")
   updatedAt      DateTime        @updatedAt @map("updated_at")
 
-  candidateHasMedias       CandidateHasMedia[]
-  policyHasMedias          PolicyHasMedia[]
-  employeeHasMedias        EmployeeHasMedia[]
-  leaveHasMedias           LeaveHasMedia[]
-  OrganizationSetting      OrganizationSetting[]
-  organizationHasDocuments OrganizationHasDocument[]
+  candidateHasMedias          CandidateHasMedia[]
+  policyHasMedias             PolicyHasMedia[]
+  employeeHasMedias           EmployeeHasMedia[]
+  leaveHasMedias              LeaveHasMedia[]
+  OrganizationSetting         OrganizationSetting[]
+  organizationHasDocuments    OrganizationHasDocument[]
+  employyBgvFeedbackHasMedias employyBgvFeedbackHasMedia[]
 
   @@map("media")
 }

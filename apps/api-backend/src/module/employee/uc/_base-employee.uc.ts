@@ -59,6 +59,7 @@ export class BaseEmployeeUc extends BaseUc {
       dateOfJoining: employee.dateOfJoining.toISOString().split('T')[0]!,
       dateOfLeaving: employee.dateOfLeaving?.toISOString().split('T')[0] ?? undefined,
       status: employeeStatusDbEnumToDtoEnum(employee.status),
+      isBgVerified: employee.isBgVerified,
       reportToId: employee.reportToId,
       reportTo: employee.reportTo
         ? {
@@ -92,6 +93,7 @@ export class BaseEmployeeUc extends BaseUc {
       email: dbRec.user.email,
       designation: dbRec.designation,
       status: employeeStatusDbEnumToDtoEnum(dbRec.status),
+      isBgVerified: dbRec.isBgVerified,
       dateOfJoining: dbRec.dateOfJoining.toISOString().split('T')[0]!,
       dateOfLeaving: dbRec.dateOfLeaving?.toISOString().split('T')[0] ?? null,
       createdAt: dbRec.createdAt.toISOString(),

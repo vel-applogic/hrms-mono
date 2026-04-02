@@ -11,6 +11,7 @@ export * from './candidate.dto.js';
 export * from './candidate-feedback.dto.js';
 export * from './employee.dto.js';
 export * from './employee-feedback.dto.js';
+export * from './employee-bgv-feedback.dto.js';
 export * from './employee-compensation.dto.js';
 export * from './employee-deduction.dto.js';
 export * from './leave.dto.js';

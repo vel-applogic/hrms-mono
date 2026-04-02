@@ -14,6 +14,7 @@ import { CandidateModule } from './module/candidate/candidate.module.js';
 import { CandidateFeedbackModule } from './module/candidate-feedback/candidate-feedback.module.js';
 import { EmployeeModule } from './module/employee/employee.module.js';
 import { EmployeeFeedbackModule } from './module/employee-feedback/employee-feedback.module.js';
+import { EmployeeBgvFeedbackModule } from './module/employee-bgv-feedback/employee-bgv-feedback.module.js';
 import { EmployeeCompensationModule } from './module/employee-compensation/employee-compensation.module.js';
 import { EmployeeDeductionModule } from './module/employee-deduction/employee-deduction.module.js';
 import { PayslipModule } from './module/payslip/payslip.module.js';
@@ -38,6 +39,7 @@ import { ServiceModule } from './service/service.module.js';
     CandidateFeedbackModule,
     EmployeeModule,
     EmployeeFeedbackModule,
+    EmployeeBgvFeedbackModule,
     EmployeeCompensationModule,
     EmployeeDeductionModule,
     PayslipModule,

@@ -119,6 +119,10 @@ export function EmployeeViewBasicDetails({ employeeId }: Props) {
               <Label className='text-muted-foreground'>Date of leaving</Label>
               <p className='text-sm font-medium'>{employee.dateOfLeaving ?? '—'}</p>
             </div>
+            <div className='flex flex-col gap-2'>
+              <Label className='text-muted-foreground'>BG Verified</Label>
+              <p className='text-sm font-medium'>{employee.isBgVerified ? 'Yes' : 'No'}</p>
+            </div>
             <div className='flex flex-col gap-2 sm:col-span-2'>
               <Label className='text-muted-foreground'>Reports to</Label>
               <p className='text-sm font-medium'>

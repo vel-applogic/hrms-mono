@@ -18,6 +18,7 @@ export const EmployeeBaseFieldsSchema = z.object({
   dateOfLeaving: z.string().optional().nullable(),
   status: z.nativeEnum(EmployeeStatusDtoEnum),
   reportToId: z.number().optional().nullable(),
+  isBgVerified: z.boolean().optional(),
 });
 
 export const EmployeeCreateRequestSchema = EmployeeBaseFieldsSchema.extend({
@@ -47,6 +48,7 @@ export const EmployeeListResponseSchema = z.object({
   status: z.nativeEnum(EmployeeStatusDtoEnum),
   dateOfJoining: z.string(),
   dateOfLeaving: z.string().optional().nullable(),
+  isBgVerified: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

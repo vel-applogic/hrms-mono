@@ -95,6 +95,18 @@ export const EmployeeDataTableClient = (props: Props) => {
         cellRenderer: EmployeeStatusRenderer,
       },
       {
+        headerName: 'BGV',
+        field: 'isBgVerified',
+        width: 100,
+        sortable: false,
+        cellRenderer: (params: { value?: boolean }) => (
+          <BadgeRenderer
+            text={params.value ? 'Pass' : 'Pending'}
+            className={`text-xs ${params.value ? 'bg-success/20 text-success' : 'bg-warning/20 text-warning'}`}
+          />
+        ),
+      },
+      {
         headerName: 'Joining Date',
         field: 'dateOfJoining',
         width: 130,
