@@ -11,8 +11,8 @@ export const EmployeeBaseFieldsSchema = z.object({
   email: z.string().email(),
   personalEmail: z.string().email().optional().nullable(),
   dob: z.string().min(1, 'Date of birth is required'),
-  pan: z.string().min(1, 'PAN is required'),
-  aadhaar: z.string().min(1, 'Aadhaar is required'),
+  pan: z.string().optional().nullable(),
+  aadhaar: z.string().optional().nullable(),
   designation: z.string().min(1, 'Designation is required'),
   dateOfJoining: z.string().min(1, 'Date of joining is required'),
   dateOfLeaving: z.string().optional().nullable(),
@@ -49,6 +49,7 @@ export const EmployeeListResponseSchema = z.object({
   dateOfJoining: z.string(),
   dateOfLeaving: z.string().optional().nullable(),
   isBgVerified: z.boolean(),
+  candidateId: z.number().optional().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -57,8 +58,8 @@ export type EmployeeListResponseType = z.infer<typeof EmployeeListResponseSchema
 export const EmployeeDetailResponseSchema = EmployeeListResponseSchema.extend({
   personalEmail: z.string().optional().nullable(),
   dob: z.string(),
-  pan: z.string(),
-  aadhaar: z.string(),
+  pan: z.string().optional().nullable(),
+  aadhaar: z.string().optional().nullable(),
   reportToId: z.number().optional().nullable(),
   reportTo: z
     .object({

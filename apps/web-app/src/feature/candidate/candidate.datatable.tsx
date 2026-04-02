@@ -11,14 +11,13 @@ import { DataTableSimple, DummySort, getSort } from '@repo/ui/container/datatabl
 import {
   ActionOption,
   ActionsIconCellRenderer,
-  ActionsIconCellRendererParams,
   BadgeRenderer,
   DateTimeRenderer,
   EditableSelectCellRenderer,
 } from '@repo/ui/container/datatable/datatable-cell-renderer';
 import { isSortable } from '@repo/ui/lib/utils';
 import { ColDef } from 'ag-grid-community';
-import { Eye, Pencil, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Trash2, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 
@@ -29,14 +28,21 @@ interface Props {
   sort: { sKey?: string; sVal?: string };
   onEdit: (candidate: CandidateListResponseType) => void;
   onDelete: (candidate: CandidateListResponseType) => void;
+  onConvertToEmployee: (candidate: CandidateListResponseType) => void;
   onRefresh?: () => void;
 }
 
-const actionOptions: ActionOption[] = [
-  { name: 'View', icon: Eye, variant: 'outline' },
-  { name: 'Edit', icon: Pencil, variant: 'outline' },
-  { name: 'Delete', icon: Trash2, variant: 'outline-danger' },
-];
+function getActionOptions(candidate: CandidateListResponseType): ActionOption[] {
+  const options: ActionOption[] = [
+    { name: 'View', icon: Eye, variant: 'outline' },
+    { name: 'Edit', icon: Pencil, variant: 'outline' },
+  ];
+  if (!candidate.employeeId) {
+    options.push({ name: 'Convert to Employee', icon: UserPlus, variant: 'outline' });
+  }
+  options.push({ name: 'Delete', icon: Trash2, variant: 'outline-danger' });
+  return options;
+}
 
 const statusColors: Record<string, string> = {
   new: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
@@ -191,12 +197,12 @@ export const CandidateDataTableClient = (props: Props) => {
         sortable: false,
         resizable: false,
         pinned: 'right',
-        width: 20 + actionOptions.length * 40,
+        width: 20 + 4 * 40,
         cellClass: '!flex items-center !justify-center',
         cellRenderer: ActionsIconCellRenderer<CandidateListResponseType>,
-        cellRendererParams: {
-          options: actionOptions,
-        } satisfies Partial<ActionsIconCellRendererParams<CandidateListResponseType>>,
+        cellRendererParams: (params: { data: CandidateListResponseType }) => ({
+          options: getActionOptions(params.data),
+        }),
       },
     ] satisfies ColDef<CandidateListResponseType>[];
   }, [props.sort.sKey, props.sort.sVal, onSaveStatus, onSaveProgress, props.onRefresh]);
@@ -209,6 +215,9 @@ export const CandidateDataTableClient = (props: Props) => {
           break;
         case 'Edit':
           props.onEdit(data);
+          break;
+        case 'Convert to Employee':
+          props.onConvertToEmployee(data);
           break;
         case 'Delete':
           props.onDelete(data);

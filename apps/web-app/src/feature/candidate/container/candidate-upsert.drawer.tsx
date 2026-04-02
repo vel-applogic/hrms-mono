@@ -70,6 +70,9 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
       noticePeriodUnit: NoticePeriodUnitDtoEnum.days,
       status: CandidateStatusDtoEnum.new,
       progress: CandidateProgressDtoEnum.new,
+      dob: undefined,
+      pan: undefined,
+      aadhaar: undefined,
     },
   });
 
@@ -97,6 +100,9 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
           noticePeriodUnit: candidate.noticePeriodUnit as NoticePeriodUnitDtoEnum,
           status: candidate.status as CandidateStatusDtoEnum,
           progress: candidate.progress as CandidateProgressDtoEnum,
+          dob: candidate.dob ?? undefined,
+          pan: candidate.pan ?? undefined,
+          aadhaar: candidate.aadhaar ?? undefined,
           resume: candidate.resume ? { key: candidate.resume.key, name: candidate.resume.name, type: candidate.resume.type } : undefined,
         });
         setContactNumbers(candidate.contactNumbers.length > 0 ? candidate.contactNumbers : ['']);
@@ -119,6 +125,9 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
           noticePeriodUnit: NoticePeriodUnitDtoEnum.days,
           status: CandidateStatusDtoEnum.new,
           progress: CandidateProgressDtoEnum.new,
+          dob: undefined,
+          pan: undefined,
+          aadhaar: undefined,
         });
         setContactNumbers(['']);
         setUrls(['']);
@@ -191,6 +200,24 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
           <Label htmlFor='email'>Email</Label>
           <Input id='email' type='email' placeholder='candidate@example.com' {...form.register('email')} />
           {form.formState.errors.email && <p className='text-sm text-destructive'>{form.formState.errors.email.message}</p>}
+        </div>
+
+        {/* DOB */}
+        <div className='flex flex-col gap-2'>
+          <Label htmlFor='dob'>Date of birth</Label>
+          <Input id='dob' type='date' {...form.register('dob')} />
+        </div>
+
+        {/* PAN + Aadhaar */}
+        <div className='grid grid-cols-2 gap-4'>
+          <div className='flex flex-col gap-2'>
+            <Label htmlFor='pan'>PAN</Label>
+            <Input id='pan' placeholder='PAN' {...form.register('pan')} />
+          </div>
+          <div className='flex flex-col gap-2'>
+            <Label htmlFor='aadhaar'>Aadhaar</Label>
+            <Input id='aadhaar' placeholder='Aadhaar' {...form.register('aadhaar')} />
+          </div>
         </div>
 
         {/* Source */}

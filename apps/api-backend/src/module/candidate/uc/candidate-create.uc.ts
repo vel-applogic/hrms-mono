@@ -62,6 +62,9 @@ export class CandidateCreateUc extends BaseCandidateUc implements IUseCase<Param
           noticePeriodUnit: params.dto.noticePeriodUnit,
           status: params.dto.status,
           progress: params.dto.progress,
+          dob: params.dto.dob ? new Date(params.dto.dob) : undefined,
+          pan: params.dto.pan ?? undefined,
+          aadhaar: params.dto.aadhaar ?? undefined,
         },
         tx,
       });

@@ -101,11 +101,11 @@ export function EmployeeViewBasicDetails({ employeeId }: Props) {
             </div>
             <div className='flex flex-col gap-2'>
               <Label className='text-muted-foreground'>PAN</Label>
-              <p className='text-sm font-medium'>{employee.pan}</p>
+              <p className='text-sm font-medium'>{employee.pan ?? '—'}</p>
             </div>
             <div className='flex flex-col gap-2'>
               <Label className='text-muted-foreground'>Aadhaar</Label>
-              <p className='text-sm font-medium'>{employee.aadhaar}</p>
+              <p className='text-sm font-medium'>{employee.aadhaar ?? '—'}</p>
             </div>
             <div className='flex flex-col gap-2'>
               <Label className='text-muted-foreground'>Status</Label>

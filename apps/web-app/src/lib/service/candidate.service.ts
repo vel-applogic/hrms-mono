@@ -1,4 +1,5 @@
 import {
+  CandidateConvertToEmployeeRequestType,
   CandidateCreateRequestType,
   CandidateDetailResponseSchema,
   CandidateDetailResponseType,
@@ -72,6 +73,14 @@ class CandidateService extends BaseService {
   async updateDocuments(id: number, data: CandidateUpdateDocumentsRequestType): Promise<OperationStatusResponseType> {
     return this.patch<OperationStatusResponseType, CandidateUpdateDocumentsRequestType>({
       url: `/api/candidate/${id}/documents`,
+      data,
+      responseSchema: OperationStatusResponseSchema,
+    });
+  }
+
+  async convertToEmployee(id: number, data: CandidateConvertToEmployeeRequestType): Promise<OperationStatusResponseType> {
+    return this.post<OperationStatusResponseType, CandidateConvertToEmployeeRequestType>({
+      url: `/api/candidate/${id}/convert-to-employee`,
       data,
       responseSchema: OperationStatusResponseSchema,
     });

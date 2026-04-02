@@ -1,6 +1,7 @@
 'use server';
 
 import type {
+  CandidateConvertToEmployeeRequestType,
   CandidateCreateRequestType,
   CandidateDetailResponseType,
   CandidateListResponseType,
@@ -52,6 +53,16 @@ export async function updateCandidateProgress(
 ): Promise<OperationStatusResponseType> {
   const result = await candidateService.updateProgress(id, progress);
   revalidatePath('/candidate');
+  return result;
+}
+
+export async function convertCandidateToEmployee(
+  id: number,
+  data: CandidateConvertToEmployeeRequestType,
+): Promise<OperationStatusResponseType> {
+  const result = await candidateService.convertToEmployee(id, data);
+  revalidatePath('/candidate');
+  revalidatePath('/employee');
   return result;
 }
 

@@ -54,14 +54,17 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
 
     const oldEmployee = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
 
-    const [duplicateCode, duplicatePan, duplicateAadhaar] = await Promise.all([
-      this.employeeDao.findByEmployeeCode({ employeeCode: params.dto.employeeCode, organizationId: params.currentUser.organizationId, excludeUserId: params.id }),
-      this.employeeDao.findByPan({ pan: params.dto.pan, organizationId: params.currentUser.organizationId, excludeUserId: params.id }),
-      this.employeeDao.findByAadhaar({ aadhaar: params.dto.aadhaar, organizationId: params.currentUser.organizationId, excludeUserId: params.id }),
-    ]);
+    const duplicateCode = await this.employeeDao.findByEmployeeCode({ employeeCode: params.dto.employeeCode, organizationId: params.currentUser.organizationId, excludeUserId: params.id });
     if (duplicateCode) throw new ApiFieldValidationError('employeeCode', 'Employee code already exists in this organisation');
-    if (duplicatePan) throw new ApiFieldValidationError('pan', 'PAN already registered in this organisation');
-    if (duplicateAadhaar) throw new ApiFieldValidationError('aadhaar', 'Aadhaar already registered in this organisation');
+
+    if (params.dto.pan) {
+      const duplicatePan = await this.employeeDao.findByPan({ pan: params.dto.pan, organizationId: params.currentUser.organizationId, excludeUserId: params.id });
+      if (duplicatePan) throw new ApiFieldValidationError('pan', 'PAN already registered in this organisation');
+    }
+    if (params.dto.aadhaar) {
+      const duplicateAadhaar = await this.employeeDao.findByAadhaar({ aadhaar: params.dto.aadhaar, organizationId: params.currentUser.organizationId, excludeUserId: params.id });
+      if (duplicateAadhaar) throw new ApiFieldValidationError('aadhaar', 'Aadhaar already registered in this organisation');
+    }
 
     await this.transaction(async (tx) => {
       await this.userDao.update({
@@ -81,8 +84,8 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
           employeeCode: params.dto.employeeCode,
           personalEmail: params.dto.personalEmail ?? undefined,
           dob: new Date(params.dto.dob),
-          pan: params.dto.pan,
-          aadhaar: params.dto.aadhaar,
+          pan: params.dto.pan ?? undefined,
+          aadhaar: params.dto.aadhaar ?? undefined,
           designation: params.dto.designation,
           dateOfJoining: new Date(params.dto.dateOfJoining),
           dateOfLeaving: params.dto.dateOfLeaving ? new Date(params.dto.dateOfLeaving) : undefined,

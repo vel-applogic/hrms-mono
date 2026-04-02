@@ -20,6 +20,9 @@ export const CandidateBaseFieldsSchema = z.object({
   noticePeriodUnit: z.nativeEnum(NoticePeriodUnitDtoEnum),
   status: z.nativeEnum(CandidateStatusDtoEnum).optional(),
   progress: z.nativeEnum(CandidateProgressDtoEnum).optional(),
+  dob: z.string().optional(),
+  pan: z.string().optional(),
+  aadhaar: z.string().optional(),
 });
 
 export const CandidateCreateRequestSchema = CandidateBaseFieldsSchema.extend({
@@ -48,6 +51,7 @@ export const CandidateListResponseSchema = CandidateBaseFieldsSchema.extend({
   id: z.number(),
   status: z.nativeEnum(CandidateStatusDtoEnum),
   progress: z.nativeEnum(CandidateProgressDtoEnum),
+  employeeId: z.number().optional().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -86,3 +90,10 @@ export const CandidateUpdateProgressRequestSchema = z.object({
   progress: z.nativeEnum(CandidateProgressDtoEnum),
 });
 export type CandidateUpdateProgressRequestType = z.infer<typeof CandidateUpdateProgressRequestSchema>;
+
+export const CandidateConvertToEmployeeRequestSchema = z.object({
+  employeeCode: z.string().min(1, 'Employee code is required'),
+  designation: z.string().min(1, 'Designation is required'),
+  dateOfJoining: z.string().min(1, 'Date of joining is required'),
+});
+export type CandidateConvertToEmployeeRequestType = z.infer<typeof CandidateConvertToEmployeeRequestSchema>;

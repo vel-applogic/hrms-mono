@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put } from '@nestjs/common';
 import type {
+  CandidateConvertToEmployeeRequestType,
   CandidateCreateRequestType,
   CandidateDetailResponseType,
   CandidateFilterRequestType,
@@ -12,6 +13,7 @@ import type {
   PaginatedResponseType,
 } from '@repo/dto';
 import {
+  CandidateConvertToEmployeeRequestSchema,
   CandidateCreateRequestSchema,
   CandidateFilterRequestSchema,
   CandidateUpdateDocumentsRequestSchema,
@@ -22,6 +24,7 @@ import {
 import type { CurrentUserType } from '@repo/nest-lib';
 import { CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
 
+import { CandidateConvertToEmployeeUc } from './uc/candidate-convert-to-employee.uc.js';
 import { CandidateCreateUc } from './uc/candidate-create.uc.js';
 import { CandidateDeleteUc } from './uc/candidate-delete.uc.js';
 import { CandidateGetUc } from './uc/candidate-get.uc.js';
@@ -41,6 +44,7 @@ export class CandidateController {
     private readonly updateDocumentsUc: CandidateUpdateDocumentsUc,
     private readonly updateStatusUc: CandidateUpdateStatusUc,
     private readonly updateProgressUc: CandidateUpdateProgressUc,
+    private readonly convertToEmployeeUc: CandidateConvertToEmployeeUc,
     private readonly deleteUc: CandidateDeleteUc,
   ) {}
 
@@ -99,6 +103,15 @@ export class CandidateController {
   @Get(':id')
   async get(@Param('id', ParseIntPipe) id: number, @CurrentUser() currentUser: CurrentUserType): Promise<CandidateDetailResponseType> {
     return this.getUc.execute({ currentUser, id });
+  }
+
+  @Post(':id/convert-to-employee')
+  async convertToEmployee(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(new ZodValidationPipe(CandidateConvertToEmployeeRequestSchema)) body: CandidateConvertToEmployeeRequestType,
+    @CurrentUser() currentUser: CurrentUserType,
+  ): Promise<OperationStatusResponseType> {
+    return this.convertToEmployeeUc.execute({ currentUser, id, dto: body });
   }
 
   @Delete(':id')

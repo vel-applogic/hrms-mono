@@ -80,14 +80,17 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
 
     const existingUser = await this.userDao.getByEmail({ email: params.dto.email });
 
-    const [duplicateCode, duplicatePan, duplicateAadhaar] = await Promise.all([
-      this.employeeDao.findByEmployeeCode({ employeeCode: params.dto.employeeCode, organizationId: params.currentUser.organizationId }),
-      this.employeeDao.findByPan({ pan: params.dto.pan, organizationId: params.currentUser.organizationId }),
-      this.employeeDao.findByAadhaar({ aadhaar: params.dto.aadhaar, organizationId: params.currentUser.organizationId }),
-    ]);
+    const duplicateCode = await this.employeeDao.findByEmployeeCode({ employeeCode: params.dto.employeeCode, organizationId: params.currentUser.organizationId });
     if (duplicateCode) throw new ApiFieldValidationError('employeeCode', 'Employee code already exists in this organisation');
-    if (duplicatePan) throw new ApiFieldValidationError('pan', 'PAN already registered in this organisation');
-    if (duplicateAadhaar) throw new ApiFieldValidationError('aadhaar', 'Aadhaar already registered in this organisation');
+
+    if (params.dto.pan) {
+      const duplicatePan = await this.employeeDao.findByPan({ pan: params.dto.pan, organizationId: params.currentUser.organizationId });
+      if (duplicatePan) throw new ApiFieldValidationError('pan', 'PAN already registered in this organisation');
+    }
+    if (params.dto.aadhaar) {
+      const duplicateAadhaar = await this.employeeDao.findByAadhaar({ aadhaar: params.dto.aadhaar, organizationId: params.currentUser.organizationId });
+      if (duplicateAadhaar) throw new ApiFieldValidationError('aadhaar', 'Aadhaar already registered in this organisation');
+    }
 
     const { userId, inviteKey } = await this.transaction(async (tx) => {
       let userId: number;
@@ -119,8 +122,8 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
             employeeCode: params.dto.employeeCode,
             personalEmail: params.dto.personalEmail ?? undefined,
             dob: new Date(params.dto.dob),
-            pan: params.dto.pan,
-            aadhaar: params.dto.aadhaar,
+            pan: params.dto.pan ?? undefined,
+            aadhaar: params.dto.aadhaar ?? undefined,
             designation: params.dto.designation,
             dateOfJoining,
             dateOfLeaving: params.dto.dateOfLeaving ? new Date(params.dto.dateOfLeaving) : undefined,

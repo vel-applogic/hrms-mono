@@ -11,9 +11,10 @@ import { CandidateSourceFilter } from '@/app/lib/container/candidate-source-filt
 import { CandidateStatusFilter } from '@/app/lib/container/candidate-status-filter';
 import { getCandidateById } from '@/lib/action/candidate.actions';
 
+import { CandidateDataTableClient } from './candidate.datatable';
+import { CandidateConvertToEmployeeDrawer } from './container/candidate-convert-to-employee.drawer';
 import { CandidateDeleteDialog } from './container/candidate-delete.dialog';
 import { CandidateUpsertDrawer } from './container/candidate-upsert.drawer';
-import { CandidateDataTableClient } from './candidate.datatable';
 
 interface Props {
   data: PaginatedResponseType<CandidateListResponseType>;
@@ -30,6 +31,8 @@ export const CandidateData = ({ data, searchParams }: Props) => {
   const [editingCandidate, setEditingCandidate] = useState<CandidateDetailResponseType | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingCandidate, setDeletingCandidate] = useState<CandidateListResponseType | null>(null);
+  const [convertDrawerOpen, setConvertDrawerOpen] = useState(false);
+  const [convertingCandidate, setConvertingCandidate] = useState<CandidateListResponseType | null>(null);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -73,6 +76,11 @@ export const CandidateData = ({ data, searchParams }: Props) => {
   const handleDelete = (candidate: CandidateListResponseType) => {
     setDeletingCandidate(candidate);
     setDeleteDialogOpen(true);
+  };
+
+  const handleConvertToEmployee = (candidate: CandidateListResponseType) => {
+    setConvertingCandidate(candidate);
+    setConvertDrawerOpen(true);
   };
 
   const handleStatusChange = (values: string[]) => {
@@ -168,12 +176,14 @@ export const CandidateData = ({ data, searchParams }: Props) => {
       </div>
 
       <div className='center-container flex flex-1 flex-col min-h-0 pb-4'>
-        <CandidateDataTableClient data={data} sort={sort} onEdit={handleEdit} onDelete={handleDelete} onRefresh={() => refresh()} />
+        <CandidateDataTableClient data={data} sort={sort} onEdit={handleEdit} onDelete={handleDelete} onConvertToEmployee={handleConvertToEmployee} onRefresh={() => refresh()} />
       </div>
 
       <CandidateUpsertDrawer open={drawerOpen} onOpenChange={setDrawerOpen} candidate={editingCandidate} onSuccess={() => refresh()} />
 
       <CandidateDeleteDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} candidate={deletingCandidate} onSuccess={() => refresh()} />
+
+      <CandidateConvertToEmployeeDrawer open={convertDrawerOpen} onOpenChange={setConvertDrawerOpen} candidate={convertingCandidate} onSuccess={() => refresh()} />
     </div>
   );
 };
