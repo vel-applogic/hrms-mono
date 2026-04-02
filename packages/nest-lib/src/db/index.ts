@@ -17,7 +17,6 @@ export {
   PayrollDeductionDao,
   EmployeeFeedbackDao,
   LeaveDao,
-  LeaveConfigDao,
   EmployeeLeaveCounterDao,
   PolicyDao,
   PolicyHasMediaDao,

@@ -19,10 +19,10 @@ import {
   EmployeeHasMediaDao,
   EmployeeLeaveCounterDao,
   IUseCase,
-  LeaveConfigDao,
   MediaDao,
   OrganizationDao,
   OrganizationHasUserDao,
+  OrganizationSettingDao,
   PrismaService,
   UserDao,
   UserInviteDao,
@@ -55,10 +55,10 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
     private readonly mediaService: MediaService,
     private readonly passwordService: PasswordService,
     private readonly auditService: AuditService,
-    private readonly leaveConfigDao: LeaveConfigDao,
     private readonly employeeLeaveCounterDao: EmployeeLeaveCounterDao,
     private readonly organizationHasUserDao: OrganizationHasUserDao,
     private readonly organizationDao: OrganizationDao,
+    private readonly organizationSettingDao: OrganizationSettingDao,
     private readonly userInviteDao: UserInviteDao,
     private readonly emailService: EmailService,
     private readonly appConfigService: AppConfigService,
@@ -131,8 +131,8 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
         });
 
         const financialYear = getFinancialYearCode(dateOfJoining);
-        const leaveConfig = await this.leaveConfigDao.getLatest({ tx });
-        const totalLeavesAvailable = leaveConfig?.maxLeaves ?? 24;
+        const orgSettings = await this.organizationSettingDao.findByOrganizationId({ organizationId: params.currentUser.organizationId, tx });
+        const totalLeavesAvailable = orgSettings?.totalLeaveInDays ?? 24;
         await this.employeeLeaveCounterDao.create({
           data: {
             user: { connect: { id: userId } },

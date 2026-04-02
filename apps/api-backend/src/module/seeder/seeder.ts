@@ -20,15 +20,14 @@ export class Seeder {
         { email: 'admin@test.com', firstname: 'Test', lastname: '01', organizationName: 'Test Organization', roles: [UserRoleDtoEnum.admin], isSuperAdmin: false },
       ]),
     );
-    await this.runMigration('create-leave-config', () => this.createLeaveConfig());
     await this.runMigration('init-employee-leave-counters', () => this.initEmployeeLeaveCounters());
     this.logger.i('Seeding data complete');
   }
 
   private async initEmployeeLeaveCounters() {
     const { getFinancialYearCode } = await import('@repo/shared');
-    const config = await this.prisma.leaveConfig.findFirst({ orderBy: { createdAt: 'desc' } });
-    const totalLeavesAvailable = config?.maxLeaves ?? 24;
+    const orgSetting = await this.prisma.organizationSetting.findFirst({ orderBy: { createdAt: 'desc' } });
+    const totalLeavesAvailable = orgSetting?.totalLeaveInDays ?? 24;
     const employees = await this.prisma.employee.findMany({ select: { userId: true, dateOfJoining: true, organizationId: true } });
     let created = 0;
     for (const emp of employees) {
@@ -53,27 +52,6 @@ export class Seeder {
       }
     }
     this.logger.i(`Employee leave counters initialized: ${created} created`);
-  }
-
-  private async createLeaveConfig() {
-    const organizations = await this.prisma.organization.findMany();
-    for (const organization of organizations) {
-      const existing = await this.prisma.leaveConfig.findFirst({ where: { organizationId: organization.id } });
-      if (existing) {
-        this.logger.i('LeaveConfig already exists, skipping');
-        return;
-      }
-      await this.prisma.leaveConfig.create({
-        data: {
-          organization: { connect: { id: organization.id } },
-          maxLeaves: 24,
-          maxEarnedLeaves: 10,
-          maxSickLeaves: 7,
-          maxCasualLeaves: 7,
-        },
-      });
-    }
-    this.logger.i('LeaveConfig created');
   }
 
   private async runMigration(key: string, migration: () => Promise<void>) {

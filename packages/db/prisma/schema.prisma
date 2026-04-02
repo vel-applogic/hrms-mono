@@ -84,7 +84,6 @@ model Organization {
   payrollPayslips          PayrollPayslip[]
   employeeFeedbacks        EmployeeFeedback[]
   employeeLeaveCounters    EmployeeLeaveCounter[]
-  leaveConfigs             LeaveConfig[]
   leaves                   Leave[]
   candidates               Candidate[]
   policies                 Policy[]
@@ -218,8 +217,10 @@ model Employee {
   status         EmployeeStatusEnum @map("status")
   reportToId     Int?               @map("report_to_id")
   reportTo       User?              @relation("EmployeeReportTo", fields: [reportToId], references: [id])
-  createdAt      DateTime           @default(now()) @map("created_at")
-  updatedAt      DateTime           @updatedAt @map("updated_at")
+  isBgVerified   Boolean            @default(false) @map("is_bg_verified")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@unique([userId, organizationId])
   @@unique([employeeCode, organizationId])
@@ -287,44 +288,6 @@ model PayrollDeduction {
   @@map("user_employee_deduction")
 }
 
-// PAYSLIP
-
-model PayrollPayslip {
-  id                      Int                      @id @default(autoincrement())
-  userId                  Int                      @map("user_id")
-  user                    User                     @relation(fields: [userId], references: [id])
-  organizationId          Int                      @map("organization_id")
-  organization            Organization             @relation(fields: [organizationId], references: [id])
-  month                   Int                      @map("month")
-  year                    Int                      @map("year")
-  createdAt               DateTime                 @default(now()) @map("created_at")
-  updatedAt               DateTime                 @updatedAt @map("updated_at")
-  grossAmount             Int                      @map("gross_amount")
-  netAmount               Int                      @map("net_amount")
-  deductionAmount         Int                      @map("deduction_amount")
-  pdfS3Key                String                   @map("pdf_s3_key")
-  payrollPayslipLineItems PayrollPayslipLineItem[]
-
-  @@unique([userId, month, year])
-  @@index([userId])
-  @@map("payslip")
-}
-
-model PayrollPayslipLineItem {
-  id          Int                        @id @default(autoincrement())
-  payslipId   Int                        @map("payslip_id")
-  payslip     PayrollPayslip             @relation(fields: [payslipId], references: [id])
-  type        PayrollPayslipLineItemType @map("type")
-  amount      Int                        @map("amount")
-  title       String                     @map("title")
-  description String?                    @map("description")
-  createdAt   DateTime                   @default(now()) @map("created_at")
-  updatedAt   DateTime                   @updatedAt @map("updated_at")
-
-  @@index([payslipId])
-  @@map("payslip_line_item")
-}
-
 model EmployeeFeedback {
   id             Int                   @id @default(autoincrement())
   userId         Int                   @map("user_id")
@@ -364,22 +327,44 @@ model EmployeeLeaveCounter {
   @@map("user_employee_leave_counter")
 }
 
-// LEAVES
+// PAYROLL
+model PayrollPayslip {
+  id                      Int                      @id @default(autoincrement())
+  userId                  Int                      @map("user_id")
+  user                    User                     @relation(fields: [userId], references: [id])
+  organizationId          Int                      @map("organization_id")
+  organization            Organization             @relation(fields: [organizationId], references: [id])
+  month                   Int                      @map("month")
+  year                    Int                      @map("year")
+  createdAt               DateTime                 @default(now()) @map("created_at")
+  updatedAt               DateTime                 @updatedAt @map("updated_at")
+  grossAmount             Int                      @map("gross_amount")
+  netAmount               Int                      @map("net_amount")
+  deductionAmount         Int                      @map("deduction_amount")
+  pdfS3Key                String                   @map("pdf_s3_key")
+  payrollPayslipLineItems PayrollPayslipLineItem[]
 
-model LeaveConfig {
-  id              Int          @id @default(autoincrement())
-  organizationId  Int          @map("organization_id")
-  organization    Organization @relation(fields: [organizationId], references: [id])
-  maxLeaves       Int          @map("max_leaves")
-  maxSickLeaves   Int          @map("max_sick_leaves")
-  maxEarnedLeaves Int          @map("max_earned_leaves")
-  maxCasualLeaves Int          @map("max_casual_leaves")
-  createdAt       DateTime     @default(now()) @map("created_at")
-  updatedAt       DateTime     @updatedAt @map("updated_at")
-
-  @@map("leave_config")
+  @@unique([userId, month, year])
+  @@index([userId])
+  @@map("payslip")
 }
 
+model PayrollPayslipLineItem {
+  id          Int                        @id @default(autoincrement())
+  payslipId   Int                        @map("payslip_id")
+  payslip     PayrollPayslip             @relation(fields: [payslipId], references: [id])
+  type        PayrollPayslipLineItemType @map("type")
+  amount      Int                        @map("amount")
+  title       String                     @map("title")
+  description String?                    @map("description")
+  createdAt   DateTime                   @default(now()) @map("created_at")
+  updatedAt   DateTime                   @updatedAt @map("updated_at")
+
+  @@index([payslipId])
+  @@map("payslip_line_item")
+}
+
+// LEAVES
 model Leave {
   id              Int             @id @default(autoincrement())
   userId          Int             @map("user_id")

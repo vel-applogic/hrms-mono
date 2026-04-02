@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { type LeaveResponseType, UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, EmployeeDao, EmployeeLeaveCounterDao, IUseCase, LeaveConfigDao, LeaveDao, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, EmployeeDao, EmployeeLeaveCounterDao, IUseCase, LeaveDao, OrganizationSettingDao, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
 import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
@@ -15,7 +15,7 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
     private readonly logger: CommonLoggerService,
     private readonly employeeDao: EmployeeDao,
     private readonly leaveDao: LeaveDao,
-    private readonly leaveConfigDao: LeaveConfigDao,
+    private readonly organizationSettingDao: OrganizationSettingDao,
     private readonly employeeLeaveCounterDao: EmployeeLeaveCounterDao,
   ) {}
 
@@ -46,8 +46,8 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
     if (existing.status === 'approved') {
       const financialYear = getFinancialYearCode(existing.startDate);
       const { start, end } = getFinancialYearDateRange(financialYear);
-      const leaveConfig = await this.leaveConfigDao.getLatest();
-      const maxLeaves = leaveConfig?.maxLeaves ?? 24;
+      const orgSettings = await this.organizationSettingDao.findByOrganizationId({ organizationId: params.currentUser.organizationId });
+      const maxLeaves = orgSettings?.totalLeaveInDays ?? 24;
 
       await this.prisma.$transaction(async (tx) => {
         await this.leaveDao.update({

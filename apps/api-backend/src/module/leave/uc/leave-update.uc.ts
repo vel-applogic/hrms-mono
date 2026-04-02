@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { LeaveStatusEnum } from '@repo/db';
 import type { LeaveResponseType, LeaveUpdateRequestType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, EmployeeDao, IUseCase, LeaveConfigDao, LeaveDao, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, leaveTypeDtoEnumToDbEnum, PrismaService } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, EmployeeDao, IUseCase, LeaveDao, OrganizationSettingDao, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, leaveTypeDtoEnumToDbEnum, PrismaService } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 type Params = {
@@ -25,15 +25,15 @@ function getBusinessDays(start: Date, end: Date): number {
   return count;
 }
 
-function getTypeLimit(config: { maxLeaves: number; maxSickLeaves: number; maxEarnedLeaves: number; maxCasualLeaves: number }, leaveType: string): number {
+function getTypeLimit(config: { totalLeaveInDays: number; sickLeaveInDays: number; earnedLeaveInDays: number; casualLeaveInDays: number }, leaveType: string): number {
   switch (leaveType) {
     case 'casual':
-      return config.maxCasualLeaves;
+      return config.casualLeaveInDays;
     case 'sick':
     case 'medical':
-      return config.maxSickLeaves;
+      return config.sickLeaveInDays;
     case 'earned':
-      return config.maxEarnedLeaves;
+      return config.earnedLeaveInDays;
     default:
       return 0;
   }
@@ -46,7 +46,7 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
     private readonly logger: CommonLoggerService,
     private readonly employeeDao: EmployeeDao,
     private readonly leaveDao: LeaveDao,
-    private readonly leaveConfigDao: LeaveConfigDao,
+    private readonly organizationSettingDao: OrganizationSettingDao,
   ) {}
 
   async execute(params: Params): Promise<LeaveResponseType> {
@@ -68,9 +68,9 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
       throw new ApiError('Only pending leave requests can be edited', 400);
     }
 
-    const config = await this.leaveConfigDao.getLatest();
+    const config = await this.organizationSettingDao.findByOrganizationId({ organizationId: params.currentUser.organizationId });
     if (!config) {
-      throw new ApiError('Leave configuration not found', 500);
+      throw new ApiError('Organization settings not found', 500);
     }
 
     const startDate = new Date(params.dto.startDate);
@@ -105,8 +105,8 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
     if (existingByType + numberOfDays > typeLimit) {
       throw new ApiError(`Exceeds ${params.dto.leaveType} leave limit. Used: ${existingByType}, Limit: ${typeLimit}, Requested: ${numberOfDays}`, 400);
     }
-    if (existingTotal + numberOfDays > config.maxLeaves) {
-      throw new ApiError(`Exceeds total leave limit. Used: ${existingTotal}, Limit: ${config.maxLeaves}, Requested: ${numberOfDays}`, 400);
+    if (existingTotal + numberOfDays > config.totalLeaveInDays) {
+      throw new ApiError(`Exceeds total leave limit. Used: ${existingTotal}, Limit: ${config.totalLeaveInDays}, Requested: ${numberOfDays}`, 400);
     }
 
     await this.prisma.$transaction(async (tx) => {
