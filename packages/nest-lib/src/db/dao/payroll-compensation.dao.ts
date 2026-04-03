@@ -133,6 +133,7 @@ export class PayrollCompensationDao extends BaseDao {
     organizationId: number;
     page: number;
     limit: number;
+    search?: string;
     tx?: Prisma.TransactionClient;
   }): Promise<{ dbRecords: PayrollCompensationWithEmployeeInfoType[]; totalRecords: number }> {
     const pc = this.getPrismaClient(params.tx);
@@ -141,9 +142,21 @@ export class PayrollCompensationDao extends BaseDao {
       pageSize: params.limit,
     });
 
-    const where = {
+    const searchFilter: Prisma.PayrollCompensationWhereInput | undefined = params.search
+      ? {
+          OR: [
+            { user: { firstname: { contains: params.search, mode: 'insensitive' } } },
+            { user: { lastname: { contains: params.search, mode: 'insensitive' } } },
+            { user: { email: { contains: params.search, mode: 'insensitive' } } },
+            { user: { employees: { some: { employeeCode: { contains: params.search, mode: 'insensitive' }, organizationId: params.organizationId } } } },
+          ],
+        }
+      : undefined;
+
+    const where: Prisma.PayrollCompensationWhereInput = {
       isActive: true,
       organizationId: params.organizationId,
+      ...searchFilter,
     };
 
     const [totalRecords, dbRecords] = await Promise.all([
@@ -152,7 +165,14 @@ export class PayrollCompensationDao extends BaseDao {
         where,
         include: {
           ...lineItemsInclude,
-          user: { select: { firstname: true, lastname: true, email: true } },
+          user: {
+            select: {
+              firstname: true,
+              lastname: true,
+              email: true,
+              employees: { where: { organizationId: params.organizationId }, select: { employeeCode: true }, take: 1 },
+            },
+          },
         },
         orderBy: { user: { firstname: 'asc' } },
         take,
@@ -175,5 +195,5 @@ export type PayrollCompensationWithLineItemsType = PayrollCompensationSelectTabl
 };
 
 export type PayrollCompensationWithEmployeeInfoType = PayrollCompensationWithLineItemsType & {
-  user: { firstname: string; lastname: string; email: string };
+  user: { firstname: string; lastname: string; email: string; employees: Array<{ employeeCode: string }> };
 };

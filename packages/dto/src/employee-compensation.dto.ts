@@ -53,6 +53,7 @@ export const PayrollActiveCompensationFilterRequestSchema = FilterRequestSchema;
 export type PayrollActiveCompensationFilterRequestType = z.infer<typeof PayrollActiveCompensationFilterRequestSchema>;
 
 export const PayrollActiveCompensationResponseSchema = EmployeeCompensationResponseSchema.extend({
+  employeeCode: z.string(),
   employeeFirstname: z.string(),
   employeeLastname: z.string(),
   employeeEmail: z.string(),

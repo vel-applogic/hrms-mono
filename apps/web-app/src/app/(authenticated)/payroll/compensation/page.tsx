@@ -16,6 +16,7 @@ export default async function PayrollCompensationPage(props: Props) {
       page: validatedParams.page ?? 1,
       limit: validatedParams.pageSize ?? 50,
     },
+    search: validatedParams.search,
   });
 
   return (

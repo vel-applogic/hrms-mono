@@ -21,7 +21,7 @@ export function PayrollView({ children }: Props) {
         <span className='text-xl font-medium tracking-tight text-foreground'>Payroll</span>
       </div>
 
-      <div className='center-container flex flex-col gap-4'>
+      <div className='center-container flex min-h-0 flex-1 flex-col gap-4'>
         <div className='flex items-center gap-2.5 border-b border-border'>
           {TABS.map((tab) => {
             const isActive = pathname.startsWith(tab.href);
@@ -36,7 +36,7 @@ export function PayrollView({ children }: Props) {
           })}
         </div>
 
-        <div className='min-h-0 flex-1 pt-4'>{children}</div>
+        <div className='min-h-0 flex-1 pb-4 pt-4'>{children}</div>
       </div>
     </div>
   );

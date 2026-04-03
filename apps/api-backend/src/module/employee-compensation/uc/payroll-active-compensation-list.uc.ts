@@ -21,6 +21,7 @@ export class PayrollActiveCompensationListUc implements IUseCase<Params, Paginat
       organizationId: params.currentUser.organizationId,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
+      search: params.filterDto.search,
     });
 
     const results: PayrollActiveCompensationResponseType[] = dbRecords.map((c) => ({
@@ -37,6 +38,7 @@ export class PayrollActiveCompensationListUc implements IUseCase<Params, Paginat
       })),
       createdAt: c.createdAt.toISOString(),
       updatedAt: c.updatedAt.toISOString(),
+      employeeCode: c.user.employees[0]?.employeeCode ?? '',
       employeeFirstname: c.user.firstname,
       employeeLastname: c.user.lastname,
       employeeEmail: c.user.email,
