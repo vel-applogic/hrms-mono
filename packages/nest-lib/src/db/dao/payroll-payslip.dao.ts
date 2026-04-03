@@ -43,7 +43,13 @@ export class PayrollPayslipDao extends BaseDao {
     return result ?? undefined;
   }
 
-  public async findByUserAndMonthYear(params: { userId: number; organizationId: number; month: number; year: number; tx?: Prisma.TransactionClient }): Promise<PayrollPayslip | null> {
+  public async findByUserAndMonthYear(params: {
+    userId: number;
+    organizationId: number;
+    month: number;
+    year: number;
+    tx?: Prisma.TransactionClient;
+  }): Promise<PayrollPayslip | null> {
     const pc = this.getPrismaClient(params.tx);
     return pc.payrollPayslip.findFirst({
       where: {
