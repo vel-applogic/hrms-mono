@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@repo/db';
-import type { PayslipDetailResponseType, PayslipGenerateRequestType, PayslipGenerateResponseType, PayslipListResponseType } from '@repo/dto';
+import type { PayslipGenerateRequestType, PayslipGenerateResponseType, PayslipListResponseType } from '@repo/dto';
 import { PrismaService } from '@repo/nest-lib';
-import { CommonLoggerService, CurrentUserType, IUseCase, LeaveDao, PayrollPayslipDao, PayrollCompensationDao, PayrollDeductionDao, EmployeeDao } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, LeaveDao, PayrollPayslipDao, PayrollCompensationDao, PayrollDeductionDao, EmployeeDao, OrganizationDao } from '@repo/nest-lib';
 import type { PayrollPayslipWithDetailsType, PayrollCompensationWithLineItemsType, PayrollDeductionWithLineItemsType } from '@repo/nest-lib';
 import { ApiBadRequestError } from '@repo/shared';
 import { buildPayslipTemplateData } from '@repo/shared';
@@ -26,6 +26,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     private readonly payrollCompensationDao: PayrollCompensationDao,
     private readonly payrollDeductionDao: PayrollDeductionDao,
     private readonly leaveDao: LeaveDao,
+    private readonly organizationDao: OrganizationDao,
     private readonly pdfGeneratorService: PdfGeneratorService,
     private readonly s3Service: S3Service,
   ) {
@@ -107,18 +108,29 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
       }
     });
 
-    await Promise.all(createdPayslips.map((p) => this.generateAndUploadPdf(p)));
+    const orgData = await this.getOrganizationData(params.currentUser.organizationId);
+    await Promise.all(createdPayslips.map((p) => this.generateAndUploadPdf(p, orgData)));
 
     return { generated, skipped, alreadyExisting: false };
   }
 
-  private async generateAndUploadPdf(payslip: PayrollPayslipWithDetailsType): Promise<void> {
+  private async generateAndUploadPdf(payslip: PayrollPayslipWithDetailsType, orgData: { companyName: string; companyLogoUrl: string | null }): Promise<void> {
     try {
-      const pdfData = buildPayslipTemplateData(this.mapToDetail(payslip));
+      const pdfData = buildPayslipTemplateData(this.mapToDetail(payslip), orgData);
       const pdfBuffer = await this.pdfGeneratorService.generatePayslipPdf(pdfData);
       await this.s3Service.uploadBuffer({ s3Key: payslip.pdfS3Key, buffer: pdfBuffer, contentType: 'application/pdf' });
     } catch (err) {
       this.logger.e('Failed to generate/upload payslip PDF', { payslipId: payslip.id, error: String(err) });
+    }
+  }
+
+  private async getOrganizationData(organizationId: number): Promise<{ companyName: string; companyLogoUrl: string | null }> {
+    try {
+      const org = await this.organizationDao.getByIdWithLogoOrThrow({ id: organizationId });
+      const companyLogoUrl = org.logo ? await this.s3Service.getSignedUrl(org.logo.key) : null;
+      return { companyName: org.name, companyLogoUrl };
+    } catch {
+      return { companyName: 'Company Name', companyLogoUrl: null };
     }
   }
 
@@ -127,7 +139,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     return `user/${params.userId}/payslip-${name}-${params.month}-${params.year}.pdf`;
   }
 
-  private mapToDetail(p: PayrollPayslipWithDetailsType): PayslipDetailResponseType {
+  private mapToDetail(p: PayrollPayslipWithDetailsType) {
     return {
       id: p.id,
       employeeId: p.userId,
@@ -140,8 +152,6 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
       grossAmount: p.grossAmount,
       netAmount: p.netAmount,
       deductionAmount: p.deductionAmount,
-      createdAt: p.createdAt.toISOString(),
-      updatedAt: p.updatedAt.toISOString(),
       lineItems: p.payrollPayslipLineItems.map((li) => ({
         id: li.id,
         payslipId: li.payslipId,

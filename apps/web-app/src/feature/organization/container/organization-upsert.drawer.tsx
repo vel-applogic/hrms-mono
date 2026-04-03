@@ -119,11 +119,13 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
                   paternityLeaveInDays: detail.settings.paternityLeaveInDays,
                 },
               });
+            }
+            if (detail.logo) {
               setLogo({
-                id: detail.settings.logo.id,
-                key: detail.settings.logo.key,
-                name: detail.settings.logo.name,
-                type: detail.settings.logo.type,
+                id: detail.logo.id,
+                key: detail.logo.key,
+                name: detail.logo.name,
+                type: detail.logo.type,
               });
             }
             setExistingDocuments(detail.documents);
@@ -149,8 +151,17 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
     }
   };
 
-  const buildSettingsPayload = (data: CreateFormType | UpdateFormType) => {
+  const buildLogoPayload = () => {
     if (!logo) return undefined;
+    return {
+      key: logo.key,
+      name: logo.name,
+      type: logo.type,
+      id: logo.id,
+    };
+  };
+
+  const buildSettingsPayload = (data: CreateFormType | UpdateFormType) => {
     return {
       noOfDaysInMonth: data.settings.noOfDaysInMonth,
       totalLeaveInDays: data.settings.totalLeaveInDays,
@@ -159,12 +170,6 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
       casualLeaveInDays: data.settings.casualLeaveInDays,
       maternityLeaveInDays: data.settings.maternityLeaveInDays,
       paternityLeaveInDays: data.settings.paternityLeaveInDays,
-      logo: {
-        key: logo.key,
-        name: logo.name,
-        type: logo.type,
-        id: logo.id,
-      },
     };
   };
 
@@ -185,6 +190,7 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
       const result = await createOrganization({
         name: data.name,
         email: data.email,
+        logo: buildLogoPayload(),
         settings: buildSettingsPayload(data),
         documents: buildDocumentsPayload(),
       });
@@ -211,6 +217,7 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
       const result = await updateOrganization(organization.id, {
         id: organization.id,
         name: data.name,
+        logo: buildLogoPayload(),
         settings: buildSettingsPayload(data),
         documents: buildDocumentsPayload(),
         removeDocumentIds: removeDocumentIds.length > 0 ? removeDocumentIds : undefined,

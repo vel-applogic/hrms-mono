@@ -64,8 +64,8 @@ export function OrganizationViewInfo({ organizationId }: Props) {
         </div>
         <div className='flex flex-col gap-2'>
           <Label className='text-muted-foreground'>Logo</Label>
-          {organization.settings?.logo ? (
-            <img src={organization.settings.logo.urlFull} alt='Logo' className='h-16 w-16 rounded-md border border-border object-contain' />
+          {organization.logo ? (
+            <img src={organization.logo.urlFull} alt='Logo' className='h-16 w-16 rounded-md border border-border object-contain' />
           ) : (
             <p className='text-sm text-muted-foreground'>No logo uploaded</p>
           )}

@@ -13,6 +13,7 @@ export interface PayslipTemplateTableRow {
 export interface PayslipTemplateData {
   companyName: string;
   companyAddress: string;
+  companyLogoUrl: string | null;
   monthLabel: string;
   year: number;
   employeeFirstname: string;
@@ -82,7 +83,12 @@ function formatAmount(value: number): string {
 
 // ── Data builder ─────────────────────────────────────────────────────────────
 
-export function buildPayslipTemplateData(payslip: PayslipDetailResponseType, options: { companyName?: string; companyAddress?: string } = {}): PayslipTemplateData {
+type PayslipDataInput = Pick<PayslipDetailResponseType, 'month' | 'year' | 'employeeFirstname' | 'employeeLastname' | 'employeeEmail' | 'employeeId' | 'employeeDesignation' | 'grossAmount' | 'netAmount' | 'deductionAmount' | 'lineItems'> & {
+  companyName?: string;
+  companyLogoUrl?: string | null;
+};
+
+export function buildPayslipTemplateData(payslip: PayslipDataInput, options: { companyName?: string; companyAddress?: string; companyLogoUrl?: string | null } = {}): PayslipTemplateData {
   const earnings = payslip.lineItems.filter((li) => li.type === 'earning');
   const deductions = payslip.lineItems.filter((li) => li.type === 'deduction');
   const lopItem = deductions.find((li) => li.title === 'Loss of Pay');
@@ -100,8 +106,9 @@ export function buildPayslipTemplateData(payslip: PayslipDetailResponseType, opt
   }));
 
   return {
-    companyName: options.companyName ?? 'Company Name',
+    companyName: options.companyName ?? payslip.companyName ?? 'Company Name',
     companyAddress: options.companyAddress ?? 'Company Address',
+    companyLogoUrl: options.companyLogoUrl ?? payslip.companyLogoUrl ?? null,
     monthLabel: MONTH_LABELS[payslip.month - 1] ?? '',
     year: payslip.year,
     employeeFirstname: payslip.employeeFirstname,
@@ -152,6 +159,10 @@ export const PAYSLIP_HTML_TEMPLATE = `<!DOCTYPE html>
       display: flex; align-items: center; justify-content: center;
       border: 1px solid #d1d5db; background: #f3f4f6;
       color: #9ca3af; font-size: 10px; border-radius: 4px;
+      overflow: hidden;
+    }
+    .logo-box img {
+      width: 100%; height: 100%; object-fit: contain;
     }
     .company-name { font-size: 14px; font-weight: 700; color: #111827; }
     .company-address { font-size: 10px; color: #6b7280; margin-top: 2px; }
@@ -213,7 +224,7 @@ export const PAYSLIP_HTML_TEMPLATE = `<!DOCTYPE html>
 <div class="payslip">
 
   <div class="header">
-    <div class="logo-box">Logo</div>
+    {{#if companyLogoUrl}}<div class="logo-box"><img src="{{companyLogoUrl}}" alt="Logo" /></div>{{else}}<div class="logo-box">Logo</div>{{/if}}
     <div>
       <p class="company-name">{{companyName}}</p>
       <p class="company-address">{{companyAddress}}</p>

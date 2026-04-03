@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { PayslipDetailResponseType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, PayrollPayslipDao } from '@repo/nest-lib';
-import type { PayrollPayslipWithDetailsType } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, OrganizationDao, PayrollPayslipDao } from '@repo/nest-lib';
+import type { OrganizationWithLogoType, PayrollPayslipWithDetailsType } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 import { S3Service } from '../../../external-service/s3.service.js';
@@ -16,23 +16,30 @@ export class PayslipGetUc implements IUseCase<Params, PayslipDetailResponseType>
   constructor(
     private readonly logger: CommonLoggerService,
     private readonly payrollPayslipDao: PayrollPayslipDao,
+    private readonly organizationDao: OrganizationDao,
     private readonly s3Service: S3Service,
   ) {}
 
   async execute(params: Params): Promise<PayslipDetailResponseType> {
     this.logger.i('Getting payslip', { id: params.id });
 
-    const payslip = await this.payrollPayslipDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
+    const [payslip, org] = await Promise.all([
+      this.payrollPayslipDao.getById({ id: params.id, organizationId: params.currentUser.organizationId }),
+      this.organizationDao.getByIdWithLogoOrThrow({ id: params.currentUser.organizationId }),
+    ]);
     if (!payslip) {
       throw new ApiError('Payslip not found', 404);
     }
 
-    const pdfSignedUrl = payslip.pdfS3Key ? await this.s3Service.getSignedUrl(payslip.pdfS3Key) : null;
+    const [pdfSignedUrl, companyLogoUrl] = await Promise.all([
+      payslip.pdfS3Key ? this.s3Service.getSignedUrl(payslip.pdfS3Key) : null,
+      org.logo ? this.s3Service.getSignedUrl(org.logo.key) : null,
+    ]);
 
-    return this.mapToDetail(payslip, pdfSignedUrl);
+    return this.mapToDetail(payslip, pdfSignedUrl, org.name, companyLogoUrl);
   }
 
-  private mapToDetail(p: PayrollPayslipWithDetailsType, pdfSignedUrl: string | null): PayslipDetailResponseType {
+  private mapToDetail(p: PayrollPayslipWithDetailsType, pdfSignedUrl: string | null, companyName: string, companyLogoUrl: string | null): PayslipDetailResponseType {
     return {
       id: p.id,
       employeeId: p.userId,
@@ -40,6 +47,8 @@ export class PayslipGetUc implements IUseCase<Params, PayslipDetailResponseType>
       employeeLastname: p.user.lastname,
       employeeEmail: p.user.email,
       employeeDesignation: p.user.employees?.[0]?.designation ?? '',
+      companyName,
+      companyLogoUrl,
       month: p.month,
       year: p.year,
       grossAmount: p.grossAmount,

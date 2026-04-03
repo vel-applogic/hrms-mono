@@ -55,46 +55,55 @@ export class OrganizationUpdateUc extends BaseOrganizationUc implements IUseCase
         tx,
       });
 
-      // Update or create settings if provided
-      if (params.dto.settings) {
-        const existingSetting = await this.organizationSettingDao.findByOrganizationId({ organizationId: params.dto.id, tx });
+      // Handle logo if provided
+      if (params.dto.logo) {
+        const existingOrg = await this.organizationDao.getByIdWithLogoOrThrow({ id: params.dto.id, tx });
 
-        // Handle logo
-        let logoId: number;
-        if (params.dto.settings.logo.key.startsWith('temp/')) {
+        if (params.dto.logo.key.startsWith('temp/')) {
           // New logo uploaded
           const logoFile = await this.mediaService.moveTempFileAndGetKey({
-            media: params.dto.settings.logo,
+            media: params.dto.logo,
             mediaPlacement: 'organization',
             relationId: params.dto.id,
-            isImage: params.dto.settings.logo.type === MediaTypeDtoEnum.image,
+            isImage: params.dto.logo.type === MediaTypeDtoEnum.image,
           });
 
           if (logoFile) {
-            logoId = await this.mediaDao.create({
+            const logoId = await this.mediaDao.create({
               data: {
                 key: logoFile.newKey,
-                name: params.dto.settings.logo.name,
-                type: mediaTypeDtoEnumToDbEnum(params.dto.settings.logo.type),
+                name: params.dto.logo.name,
+                type: mediaTypeDtoEnumToDbEnum(params.dto.logo.type),
                 size: logoFile.size,
                 ext: logoFile.ext,
                 organization: { connect: { id: params.dto.id } },
               },
               tx,
             });
-          } else {
-            logoId = existingSetting?.logoId ?? 0;
+
+            await this.organizationDao.update({
+              id: params.dto.id,
+              data: { logo: { connect: { id: logoId } } },
+              tx,
+            });
           }
-        } else {
-          // Existing logo - use the id from the existing setting or the upsert media id
-          logoId = params.dto.settings.logo.id ?? existingSetting?.logoId ?? 0;
+        } else if (params.dto.logo.id && params.dto.logo.id !== existingOrg.logoId) {
+          await this.organizationDao.update({
+            id: params.dto.id,
+            data: { logo: { connect: { id: params.dto.logo.id } } },
+            tx,
+          });
         }
+      }
+
+      // Update or create settings if provided
+      if (params.dto.settings) {
+        const existingSetting = await this.organizationSettingDao.findByOrganizationId({ organizationId: params.dto.id, tx });
 
         if (existingSetting) {
           await this.organizationSettingDao.update({
             id: existingSetting.id,
             data: {
-              logo: { connect: { id: logoId } },
               noOfDaysInMonth: noOfDaysInMonthDtoEnumToDbEnum(params.dto.settings.noOfDaysInMonth),
               totalLeaveInDays: params.dto.settings.totalLeaveInDays,
               sickLeaveInDays: params.dto.settings.sickLeaveInDays,
@@ -109,7 +118,6 @@ export class OrganizationUpdateUc extends BaseOrganizationUc implements IUseCase
           await this.organizationSettingDao.create({
             data: {
               organization: { connect: { id: params.dto.id } },
-              logo: { connect: { id: logoId } },
               noOfDaysInMonth: noOfDaysInMonthDtoEnumToDbEnum(params.dto.settings.noOfDaysInMonth),
               totalLeaveInDays: params.dto.settings.totalLeaveInDays,
               sickLeaveInDays: params.dto.settings.sickLeaveInDays,

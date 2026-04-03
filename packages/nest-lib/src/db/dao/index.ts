@@ -1,7 +1,7 @@
 export { BaseDao } from './_base.dao.js';
 export type { OrderByParam } from './_base.dao.js';
 export { UserDao, type UserSelectTableRecordType } from './user.dao.js';
-export { OrganizationDao, type OrganizationSelectTableRecordType } from './organization.dao.js';
+export { OrganizationDao, type OrganizationSelectTableRecordType, type OrganizationWithLogoType } from './organization.dao.js';
 export { OrganizationHasUserDao, type OrganizationHasUserWithOrganizationType } from './organization-has-user.dao.js';
 export { BranchDao, type BranchSelectTableRecordType } from './branch.dao.js';
 export { UserInBranchDao } from './user-in-branch.dao.js';
@@ -38,5 +38,5 @@ export { LeaveDao, type LeaveWithUserType } from './leave.dao.js';
 export { EmployeeLeaveCounterDao, type EmployeeLeaveCounterWithUserType } from './employee-leave-counter.dao.js';
 export { PayrollPayslipDao, type PayrollPayslipWithUserType, type PayrollPayslipWithDetailsType } from './payroll-payslip.dao.js';
 export { UserInviteDao } from './user-invite.dao.js';
-export { OrganizationSettingDao, type OrganizationSettingWithLogoType } from './organization-setting.dao.js';
+export { OrganizationSettingDao, type OrganizationSettingSelectTableRecordType } from './organization-setting.dao.js';
 export { OrganizationHasDocumentDao, type OrganizationHasDocumentWithMediaType } from './organization-has-document.dao.js';

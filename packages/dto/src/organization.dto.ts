@@ -20,14 +20,11 @@ const OrganizationSettingBaseFieldsSchema = z.object({
   paternityLeaveInDays: z.number().int().min(0),
 });
 
-export const OrganizationSettingUpsertSchema = OrganizationSettingBaseFieldsSchema.extend({
-  logo: UpsertMediaSchema,
-});
+export const OrganizationSettingUpsertSchema = OrganizationSettingBaseFieldsSchema;
 export type OrganizationSettingUpsertType = z.infer<typeof OrganizationSettingUpsertSchema>;
 
 export const OrganizationSettingResponseSchema = OrganizationSettingBaseFieldsSchema.extend({
   id: z.number(),
-  logo: MediaResponseSchema,
 });
 export type OrganizationSettingResponseType = z.infer<typeof OrganizationSettingResponseSchema>;
 
@@ -49,6 +46,7 @@ export type OrganizationDocumentResponseType = z.infer<typeof OrganizationDocume
 
 export const OrganizationCreateRequestSchema = OrganizationBaseFieldsSchema.extend({
   email: z.string().email('Valid email is required'),
+  logo: UpsertMediaSchema.optional(),
   settings: OrganizationSettingUpsertSchema.optional(),
   documents: z.array(OrganizationDocumentUpsertSchema).optional(),
 });
@@ -56,6 +54,7 @@ export type OrganizationCreateRequestType = z.infer<typeof OrganizationCreateReq
 
 export const OrganizationUpdateRequestSchema = OrganizationBaseFieldsSchema.extend({
   id: z.number(),
+  logo: UpsertMediaSchema.optional(),
   settings: OrganizationSettingUpsertSchema.optional(),
   documents: z.array(OrganizationDocumentUpsertSchema).optional(),
   removeDocumentIds: z.array(z.number()).optional(),
@@ -70,6 +69,7 @@ export const OrganizationResponseSchema = OrganizationBaseFieldsSchema.extend({
 export type OrganizationResponseType = z.infer<typeof OrganizationResponseSchema>;
 
 export const OrganizationDetailResponseSchema = OrganizationResponseSchema.extend({
+  logo: MediaResponseSchema.nullable(),
   settings: OrganizationSettingResponseSchema.nullable(),
   documents: z.array(OrganizationDocumentResponseSchema),
 });

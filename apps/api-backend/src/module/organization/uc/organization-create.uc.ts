@@ -107,21 +107,21 @@ export class OrganizationCreateUc extends BaseOrganizationUc implements IUseCase
         tx,
       });
 
-      // Create settings if provided
-      if (params.dto.settings) {
+      // Create logo if provided
+      if (params.dto.logo) {
         const logoFile = await this.mediaService.moveTempFileAndGetKey({
-          media: params.dto.settings.logo,
+          media: params.dto.logo,
           mediaPlacement: 'organization',
           relationId: organizationId,
-          isImage: params.dto.settings.logo.type === MediaTypeDtoEnum.image,
+          isImage: params.dto.logo.type === MediaTypeDtoEnum.image,
         });
 
         if (logoFile) {
           const logoId = await this.mediaDao.create({
             data: {
               key: logoFile.newKey,
-              name: params.dto.settings.logo.name,
-              type: mediaTypeDtoEnumToDbEnum(params.dto.settings.logo.type),
+              name: params.dto.logo.name,
+              type: mediaTypeDtoEnumToDbEnum(params.dto.logo.type),
               size: logoFile.size,
               ext: logoFile.ext,
               organization: { connect: { id: organizationId } },
@@ -129,21 +129,29 @@ export class OrganizationCreateUc extends BaseOrganizationUc implements IUseCase
             tx,
           });
 
-          await this.organizationSettingDao.create({
-            data: {
-              organization: { connect: { id: organizationId } },
-              logo: { connect: { id: logoId } },
-              noOfDaysInMonth: noOfDaysInMonthDtoEnumToDbEnum(params.dto.settings.noOfDaysInMonth),
-              totalLeaveInDays: params.dto.settings.totalLeaveInDays,
-              sickLeaveInDays: params.dto.settings.sickLeaveInDays,
-              earnedLeaveInDays: params.dto.settings.earnedLeaveInDays,
-              casualLeaveInDays: params.dto.settings.casualLeaveInDays,
-              maternityLeaveInDays: params.dto.settings.maternityLeaveInDays,
-              paternityLeaveInDays: params.dto.settings.paternityLeaveInDays,
-            },
+          await this.organizationDao.update({
+            id: organizationId,
+            data: { logo: { connect: { id: logoId } } },
             tx,
           });
         }
+      }
+
+      // Create settings if provided
+      if (params.dto.settings) {
+        await this.organizationSettingDao.create({
+          data: {
+            organization: { connect: { id: organizationId } },
+            noOfDaysInMonth: noOfDaysInMonthDtoEnumToDbEnum(params.dto.settings.noOfDaysInMonth),
+            totalLeaveInDays: params.dto.settings.totalLeaveInDays,
+            sickLeaveInDays: params.dto.settings.sickLeaveInDays,
+            earnedLeaveInDays: params.dto.settings.earnedLeaveInDays,
+            casualLeaveInDays: params.dto.settings.casualLeaveInDays,
+            maternityLeaveInDays: params.dto.settings.maternityLeaveInDays,
+            paternityLeaveInDays: params.dto.settings.paternityLeaveInDays,
+          },
+          tx,
+        });
       }
 
       // Create documents if provided

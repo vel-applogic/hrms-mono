@@ -29,6 +29,18 @@ export class OrganizationDao extends BaseDao {
     return dbRec;
   }
 
+  public async getByIdWithLogoOrThrow(params: { id: number; tx?: Prisma.TransactionClient }): Promise<OrganizationWithLogoType> {
+    const pc = this.getPrismaClient(params.tx);
+    const dbRec = await pc.organization.findUnique({
+      where: { id: params.id },
+      include: { logo: true },
+    });
+    if (!dbRec) {
+      throw new DbRecordNotFoundError('Organization not found');
+    }
+    return dbRec;
+  }
+
   public async findAll(params?: { tx?: Prisma.TransactionClient }): Promise<OrganizationSelectTableRecordType[]> {
     const pc = this.getPrismaClient(params?.tx);
     return pc.organization.findMany({ orderBy: { name: 'asc' } });
@@ -91,3 +103,7 @@ type OrganizationInsertTableRecordType = Prisma.OrganizationCreateInput;
 type OrganizationUpdateTableRecordType = Prisma.OrganizationUpdateInput;
 
 export type { OrganizationSelectTableRecordType };
+
+export type OrganizationWithLogoType = Prisma.OrganizationGetPayload<{
+  include: { logo: true };
+}>;

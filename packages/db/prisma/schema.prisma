@@ -69,8 +69,10 @@ model UserVerifyEmail {
 
 // ORGANIZATION
 model Organization {
-  id   Int    @id @default(autoincrement())
-  name String
+  id     Int    @id @default(autoincrement())
+  name   String
+  logoId Int?   @map("logo_id")
+  logo   Media? @relation("OrganizationLogo", fields: [logoId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -122,8 +124,6 @@ model OrganizationSetting {
   id                   Int                   @id @default(autoincrement())
   organizationId       Int                   @map("organization_id")
   organization         Organization          @relation(fields: [organizationId], references: [id])
-  logoId               Int                   @map("logo_id")
-  logo                 Media                 @relation(fields: [logoId], references: [id])
   noOfDaysInMonth      NoOfDaysInMonthDbEnum @default(thirty) @map("no_of_days_in_month")
   totalLeaveInDays     Int                   @default(24) @map("total_leave_in_days")
   sickLeaveInDays      Int                   @default(10) @map("sick_leave_in_days")
@@ -579,7 +579,7 @@ model Media {
   policyHasMedias             PolicyHasMedia[]
   employeeHasMedias           EmployeeHasMedia[]
   leaveHasMedias              LeaveHasMedia[]
-  OrganizationSetting         OrganizationSetting[]
+  organizationLogos           Organization[]              @relation("OrganizationLogo")
   organizationHasDocuments    OrganizationHasDocument[]
   employyBgvFeedbackHasMedias employyBgvFeedbackHasMedia[]
 

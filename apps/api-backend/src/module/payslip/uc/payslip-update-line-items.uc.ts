@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import type { PayslipDetailResponseType, PayslipUpdateLineItemsRequestType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, PayrollPayslipDao, PrismaService } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, OrganizationDao, PayrollPayslipDao, PrismaService } from '@repo/nest-lib';
 import type { PayrollPayslipWithDetailsType } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
+
+import { S3Service } from '../../../external-service/s3.service.js';
 
 type Params = {
   currentUser: CurrentUserType;
@@ -16,6 +18,8 @@ export class PayslipUpdateLineItemsUc implements IUseCase<Params, PayslipDetailR
     private readonly prisma: PrismaService,
     private readonly logger: CommonLoggerService,
     private readonly payrollPayslipDao: PayrollPayslipDao,
+    private readonly organizationDao: OrganizationDao,
+    private readonly s3Service: S3Service,
   ) {}
 
   async execute(params: Params): Promise<PayslipDetailResponseType> {
@@ -42,10 +46,13 @@ export class PayslipUpdateLineItemsUc implements IUseCase<Params, PayslipDetailR
       throw new ApiError('Failed to update payslip line items', 500);
     }
 
-    return this.mapToDetail(updated);
+    const org = await this.organizationDao.getByIdWithLogoOrThrow({ id: params.currentUser.organizationId });
+    const companyLogoUrl = org.logo ? await this.s3Service.getSignedUrl(org.logo.key) : null;
+
+    return this.mapToDetail(updated, org.name, companyLogoUrl);
   }
 
-  private mapToDetail(p: PayrollPayslipWithDetailsType): PayslipDetailResponseType {
+  private mapToDetail(p: PayrollPayslipWithDetailsType, companyName: string, companyLogoUrl: string | null): PayslipDetailResponseType {
     return {
       id: p.id,
       employeeId: p.userId,
@@ -53,6 +60,8 @@ export class PayslipUpdateLineItemsUc implements IUseCase<Params, PayslipDetailR
       employeeLastname: p.user.lastname,
       employeeEmail: p.user.email,
       employeeDesignation: p.user.employees?.[0]?.designation ?? '',
+      companyName,
+      companyLogoUrl,
       month: p.month,
       year: p.year,
       grossAmount: p.grossAmount,

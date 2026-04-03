@@ -3,7 +3,8 @@ import type {
   CurrentUserType,
   OrganizationHasDocumentWithMediaType,
   OrganizationSelectTableRecordType,
-  OrganizationSettingWithLogoType,
+  OrganizationSettingSelectTableRecordType,
+  OrganizationWithLogoType,
 } from '@repo/nest-lib';
 import {
   BaseUc,
@@ -46,19 +47,32 @@ export class BaseOrganizationUc extends BaseUc {
   }
 
   protected async dbToOrganizationDetailResponse(
-    dbRec: OrganizationSelectTableRecordType,
-    setting: OrganizationSettingWithLogoType | undefined,
+    dbRec: OrganizationWithLogoType,
+    setting: OrganizationSettingSelectTableRecordType | undefined,
     documents: OrganizationHasDocumentWithMediaType[],
   ): Promise<OrganizationDetailResponseType> {
     return {
       ...this.dbToOrganizationResponse(dbRec),
-      settings: setting ? await this.dbToSettingResponse(setting) : null,
+      logo: dbRec.logo ? await this.dbToLogoResponse(dbRec.logo) : null,
+      settings: setting ? this.dbToSettingResponse(setting) : null,
       documents: await Promise.all(documents.map((doc) => this.dbToDocumentResponse(doc))),
     };
   }
 
-  private async dbToSettingResponse(setting: OrganizationSettingWithLogoType): Promise<OrganizationDetailResponseType['settings']> {
-    const logoUrl = await this.s3Service.getSignedUrl(setting.logo.key);
+  private async dbToLogoResponse(logo: NonNullable<OrganizationWithLogoType['logo']>): Promise<MediaResponseType> {
+    const logoUrl = await this.s3Service.getSignedUrl(logo.key);
+    return {
+      id: logo.id,
+      key: logo.key,
+      name: logo.name,
+      type: mediaTypeDbEnumToDtoEnum(logo.type),
+      size: logo.size,
+      ext: logo.ext,
+      urlFull: logoUrl,
+    };
+  }
+
+  private dbToSettingResponse(setting: OrganizationSettingSelectTableRecordType): OrganizationDetailResponseType['settings'] {
     return {
       id: setting.id,
       noOfDaysInMonth: noOfDaysInMonthDbEnumToDtoEnum(setting.noOfDaysInMonth),
@@ -68,15 +82,6 @@ export class BaseOrganizationUc extends BaseUc {
       casualLeaveInDays: setting.casualLeaveInDays,
       maternityLeaveInDays: setting.maternityLeaveInDays,
       paternityLeaveInDays: setting.paternityLeaveInDays,
-      logo: {
-        id: setting.logo.id,
-        key: setting.logo.key,
-        name: setting.logo.name,
-        type: mediaTypeDbEnumToDtoEnum(setting.logo.type),
-        size: setting.logo.size,
-        ext: setting.logo.ext,
-        urlFull: logoUrl,
-      },
     };
   }
 
@@ -111,7 +116,7 @@ export class BaseOrganizationUc extends BaseUc {
 
   protected async getOrganizationDetailById(id: number): Promise<OrganizationDetailResponseType> {
     try {
-      const dbRec = await this.organizationDao.getByIdOrThrow({ id });
+      const dbRec = await this.organizationDao.getByIdWithLogoOrThrow({ id });
       const [setting, documents] = await Promise.all([
         this.organizationSettingDao.findByOrganizationId({ organizationId: id }),
         this.organizationHasDocumentDao.findByOrganizationId({ organizationId: id }),

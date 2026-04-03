@@ -32,11 +32,10 @@ export class OrganizationSettingDao extends BaseDao {
     });
   }
 
-  public async findByOrganizationId(params: { organizationId: number; tx?: Prisma.TransactionClient }): Promise<OrganizationSettingWithLogoType | undefined> {
+  public async findByOrganizationId(params: { organizationId: number; tx?: Prisma.TransactionClient }): Promise<OrganizationSettingSelectTableRecordType | undefined> {
     const pc = this.getPrismaClient(params.tx);
     const dbRec = await pc.organizationSetting.findFirst({
       where: { organizationId: params.organizationId },
-      include: { logo: true },
     });
     return dbRec ?? undefined;
   }
@@ -45,7 +44,6 @@ export class OrganizationSettingDao extends BaseDao {
 // Type definitions
 type OrganizationSettingInsertTableRecordType = Prisma.OrganizationSettingCreateInput;
 type OrganizationSettingUpdateTableRecordType = Prisma.OrganizationSettingUpdateInput;
+type OrganizationSettingSelectTableRecordType = Prisma.OrganizationSettingGetPayload<{}>;
 
-export type OrganizationSettingWithLogoType = Prisma.OrganizationSettingGetPayload<{
-  include: { logo: true };
-}>;
+export type { OrganizationSettingSelectTableRecordType };

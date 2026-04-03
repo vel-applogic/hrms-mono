@@ -32,7 +32,14 @@ export function PayslipViewDrawer({ open, onOpenChange, payslipId }: Props) {
     }
   }, [open, payslipId]);
 
-  const htmlContent = payslip ? renderPayslipHtml(buildPayslipTemplateData(payslip)) : '';
+  const htmlContent = payslip
+    ? renderPayslipHtml(
+        buildPayslipTemplateData(payslip, {
+          companyName: payslip.companyName,
+          companyLogoUrl: payslip.companyLogoUrl,
+        }),
+      )
+    : '';
 
   const handleIframeLoad = () => {
     const doc = iframeRef.current?.contentDocument;
