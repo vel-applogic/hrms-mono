@@ -7,7 +7,7 @@ export const UserBaseFieldsSchema = z.object({
   email: z.string().email(),
   firstname: z.string().min(1),
   lastname: z.string().min(1),
-  roles: z.array(z.nativeEnum(UserRoleDtoEnum)),
+  roles: z.array(z.enum(UserRoleDtoEnum)),
 });
 
 export const AdminUserCreateRequestSchema = z.object({
@@ -24,6 +24,8 @@ export type AdminUserUpdateRequestType = z.infer<typeof AdminUserUpdateRequestSc
 
 export const AdminUserListResponseSchema = UserBaseFieldsSchema.extend({
   id: z.number(),
+  firstname: z.string(),
+  lastname: z.string(),
   isActive: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -32,6 +34,8 @@ export type AdminUserListResponseType = z.infer<typeof AdminUserListResponseSche
 
 export const AdminUserDetailResponseSchema = UserBaseFieldsSchema.extend({
   id: z.number(),
+  firstname: z.string(),
+  lastname: z.string(),
   isActive: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -46,7 +50,7 @@ export type AdminUserStatsResponseType = z.infer<typeof AdminUserStatsResponseSc
 export const AdminUsersSortableColumns = ['firstname', 'lastname', 'email', 'role', 'isActive', 'createdAt', 'updatedAt'] as const;
 
 export const UserFilterRequestSchema = FilterRequestSchema.extend({
-  role: z.nativeEnum(UserRoleDtoEnum).optional(),
+  role: z.enum(UserRoleDtoEnum).optional(),
   isActive: z.boolean().optional(),
 });
 export type UserFilterRequestType = z.infer<typeof UserFilterRequestSchema>;
