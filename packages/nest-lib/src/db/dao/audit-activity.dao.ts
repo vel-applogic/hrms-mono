@@ -145,8 +145,8 @@ export class AuditActivityDao extends BaseDao {
     };
   }
 
-  public async getDistinctEventGroups(): Promise<AuditEventGroupDbEnum[]> {
-    const pc = this.getPrismaClient();
+  public async getDistinctEventGroups(params?: { tx?: Prisma.TransactionClient }): Promise<AuditEventGroupDbEnum[]> {
+    const pc = this.getPrismaClient(params?.tx);
     const results = await pc.auditActivity.findMany({
       select: {
         eventGroup: true,
@@ -159,8 +159,8 @@ export class AuditActivityDao extends BaseDao {
     return results.map((r) => r.eventGroup);
   }
 
-  public async getDistinctEventTypes(): Promise<AuditEventTypeDbEnum[]> {
-    const pc = this.getPrismaClient();
+  public async getDistinctEventTypes(params?: { tx?: Prisma.TransactionClient }): Promise<AuditEventTypeDbEnum[]> {
+    const pc = this.getPrismaClient(params?.tx);
     const results = await pc.auditActivity.findMany({
       select: {
         eventType: true,
