@@ -20,7 +20,7 @@ const tabs = [
   { label: 'Candidates', href: '/candidate', superAdminOnly: false },
   { label: 'Employees', href: '/employee', superAdminOnly: false },
   { label: 'Payroll', href: '/payroll/compensation', superAdminOnly: false },
-  { label: 'Leaves', href: '/leaves/counter', superAdminOnly: false },
+  { label: 'Leaves & Holidays', href: '/leaves/counter', superAdminOnly: false },
 ];
 
 interface Props {

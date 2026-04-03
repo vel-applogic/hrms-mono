@@ -1,14 +1,8 @@
 'use client';
 
 import type { LeaveCounterResponseType } from '@repo/dto';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/shadcn/select';
 import { DataTableSimple } from '@repo/ui/container/datatable/datatable';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/ui/component/shadcn/select';
 import { ColDef } from 'ag-grid-community';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -51,8 +45,7 @@ export const LeaveCounterData = ({ counters, financialYear, financialYearOptions
       {
         headerName: 'Employee',
         flex: 2,
-        valueGetter: (params) =>
-          params.data ? `${params.data.user.firstname} ${params.data.user.lastname}` : '',
+        valueGetter: (params) => (params.data ? `${params.data.user.firstname} ${params.data.user.lastname}` : ''),
       },
       {
         headerName: 'Email',
@@ -97,10 +90,7 @@ export const LeaveCounterData = ({ counters, financialYear, financialYearOptions
         cellRenderer: (params: { data?: LeaveCounterResponseType }) => {
           if (!params.data) return null;
           return (
-            <Link
-              href={`/employee/${params.data.userId}/leave?financialYear=${params.data.financialYear}`}
-              className='text-primary hover:underline'
-            >
+            <Link href={`/employee/${params.data.userId}/leave?financialYear=${params.data.financialYear}`} className='text-primary hover:underline'>
               View
             </Link>
           );
@@ -111,7 +101,7 @@ export const LeaveCounterData = ({ counters, financialYear, financialYearOptions
   );
 
   return (
-    <div className='flex h-full flex-col gap-4 pt-4'>
+    <div className='flex h-full flex-col gap-4'>
       <div className='flex items-center justify-between'>
         <span className='text-xl font-medium tracking-tight text-foreground'>Leave Counters</span>
         <div className='flex items-center gap-3'>

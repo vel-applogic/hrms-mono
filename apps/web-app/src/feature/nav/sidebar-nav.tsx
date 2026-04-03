@@ -12,7 +12,7 @@ const navItems = [
   { label: 'Candidates', href: '/candidate', icon: UserRound, superAdminOnly: false },
   { label: 'Employees', href: '/employee', icon: Briefcase, superAdminOnly: false },
   { label: 'Payroll', href: '/payroll/compensation', icon: HandCoins, superAdminOnly: false },
-  { label: 'Leaves', href: '/leaves', icon: CalendarDays, superAdminOnly: false },
+  { label: 'Leaves & Holidays', href: '/leaves', icon: CalendarDays, superAdminOnly: false },
 ];
 
 interface Props {

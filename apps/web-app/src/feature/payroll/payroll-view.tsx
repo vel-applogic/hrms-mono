@@ -36,7 +36,7 @@ export function PayrollView({ children }: Props) {
           })}
         </div>
 
-        <div className='min-h-0 flex-1 pb-4 pt-4'>{children}</div>
+        <div className='min-h-0 flex-1 pb-4'>{children}</div>
       </div>
     </div>
   );
