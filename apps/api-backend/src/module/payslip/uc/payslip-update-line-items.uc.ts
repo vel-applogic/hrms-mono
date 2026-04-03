@@ -49,10 +49,10 @@ export class PayslipUpdateLineItemsUc implements IUseCase<Params, PayslipDetailR
     const org = await this.organizationDao.getByIdWithLogoOrThrow({ id: params.currentUser.organizationId });
     const companyLogoUrl = org.logo ? await this.s3Service.getSignedUrl(org.logo.key) : null;
 
-    return this.mapToDetail(updated, org.name, companyLogoUrl);
+    return this.mapToDetail(updated, org.name, companyLogoUrl, { symbol: org.currency.symbol, code: org.currency.code });
   }
 
-  private mapToDetail(p: PayrollPayslipWithDetailsType, companyName: string, companyLogoUrl: string | null): PayslipDetailResponseType {
+  private mapToDetail(p: PayrollPayslipWithDetailsType, companyName: string, companyLogoUrl: string | null, currency: { symbol: string | null; code: string }): PayslipDetailResponseType {
     return {
       id: p.id,
       employeeId: p.userId,
@@ -67,6 +67,8 @@ export class PayslipUpdateLineItemsUc implements IUseCase<Params, PayslipDetailR
       grossAmount: p.grossAmount,
       netAmount: p.netAmount,
       deductionAmount: p.deductionAmount,
+      currencySymbol: currency.symbol,
+      currencyCode: currency.code,
       createdAt: p.createdAt.toISOString(),
       updatedAt: p.updatedAt.toISOString(),
       lineItems: p.payrollPayslipLineItems.map((li) => ({

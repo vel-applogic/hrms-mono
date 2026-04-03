@@ -2,8 +2,8 @@ import type { MediaResponseType, OrganizationDetailResponseType, OrganizationRes
 import type {
   CurrentUserType,
   OrganizationHasDocumentWithMediaType,
-  OrganizationSelectTableRecordType,
   OrganizationSettingSelectTableRecordType,
+  OrganizationWithCurrencyType,
   OrganizationWithLogoType,
 } from '@repo/nest-lib';
 import {
@@ -37,10 +37,16 @@ export class BaseOrganizationUc extends BaseUc {
     }
   }
 
-  protected dbToOrganizationResponse(dbRec: OrganizationSelectTableRecordType): OrganizationResponseType {
+  protected dbToOrganizationResponse(dbRec: OrganizationWithCurrencyType): OrganizationResponseType {
     return {
       id: dbRec.id,
       name: dbRec.name,
+      currency: {
+        id: dbRec.currency.id,
+        code: dbRec.currency.code,
+        name: dbRec.currency.name,
+        symbol: dbRec.currency.symbol,
+      },
       createdAt: dbRec.createdAt.toISOString(),
       updatedAt: dbRec.updatedAt.toISOString(),
     };

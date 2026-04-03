@@ -51,7 +51,7 @@ export class OrganizationUpdateUc extends BaseOrganizationUc implements IUseCase
     await this.transaction(async (tx) => {
       await this.organizationDao.update({
         id: params.dto.id,
-        data: { name: params.dto.name },
+        data: { name: params.dto.name, currency: { connect: { id: params.dto.currencyId } } },
         tx,
       });
 

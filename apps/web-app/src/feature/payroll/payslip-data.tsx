@@ -19,8 +19,9 @@ import { PayslipViewDrawer } from './payslip-view.drawer';
 
 const MONTH_LABELS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-function formatAmount(value: number) {
-  return `₹${value.toLocaleString('en-IN')}`;
+function formatAmount(value: number, currencySymbol: string | null | undefined, currencyCode: string | undefined) {
+  const prefix = currencySymbol ?? currencyCode ?? '';
+  return `${prefix} ${value.toLocaleString('en-IN')}`;
 }
 
 function DownloadButton({ onDownload }: { onDownload: () => Promise<void> }) {
@@ -151,19 +152,19 @@ export function PayslipData() {
       headerName: 'Gross',
       field: 'grossAmount',
       width: 120,
-      valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : ''),
+      valueFormatter: (p) => (p.value != null ? formatAmount(p.value, p.data?.currencySymbol, p.data?.currencyCode) : ''),
     },
     {
       headerName: 'Deductions',
       field: 'deductionAmount',
       width: 120,
-      valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : ''),
+      valueFormatter: (p) => (p.value != null ? formatAmount(p.value, p.data?.currencySymbol, p.data?.currencyCode) : ''),
     },
     {
       headerName: 'Net Pay',
       field: 'netAmount',
       width: 120,
-      valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : ''),
+      valueFormatter: (p) => (p.value != null ? formatAmount(p.value, p.data?.currencySymbol, p.data?.currencyCode) : ''),
       cellStyle: { fontWeight: '600' },
     },
     {

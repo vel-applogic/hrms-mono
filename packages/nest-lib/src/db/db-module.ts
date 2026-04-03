@@ -5,6 +5,7 @@ import {
   CandidateDao,
   CandidateHasMediaDao,
   CandidateHasFeedbackDao,
+  CurrencyDao,
   LeaveDao,
   MediaDao,
   PayrollPayslipDao,
@@ -38,6 +39,7 @@ import { UserForgotPasswordDao } from './dao/user-forgot-password.dao.js';
   providers: [
     PrismaService,
     AuditService,
+    CurrencyDao,
     UserDao,
     OrganizationDao,
     OrganizationHasUserDao,
@@ -70,6 +72,7 @@ import { UserForgotPasswordDao } from './dao/user-forgot-password.dao.js';
   exports: [
     PrismaService,
     AuditService,
+    CurrencyDao,
     UserDao,
     OrganizationDao,
     OrganizationHasUserDao,

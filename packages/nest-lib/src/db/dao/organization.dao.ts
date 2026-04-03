@@ -15,13 +15,16 @@ export class OrganizationDao extends BaseDao {
     super(prisma);
   }
 
-  public async findById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<OrganizationSelectTableRecordType | undefined> {
+  public async findById(params: { id: number; tx?: Prisma.TransactionClient }): Promise<OrganizationWithCurrencyType | undefined> {
     const pc = this.getPrismaClient(params.tx);
-    const dbRec = await pc.organization.findUnique({ where: { id: params.id } });
+    const dbRec = await pc.organization.findUnique({
+      where: { id: params.id },
+      include: { currency: true },
+    });
     return dbRec ?? undefined;
   }
 
-  public async getByIdOrThrow(params: { id: number; tx?: Prisma.TransactionClient }): Promise<OrganizationSelectTableRecordType> {
+  public async getByIdOrThrow(params: { id: number; tx?: Prisma.TransactionClient }): Promise<OrganizationWithCurrencyType> {
     const dbRec = await this.findById(params);
     if (!dbRec) {
       throw new DbRecordNotFoundError('Organization not found');
@@ -33,7 +36,7 @@ export class OrganizationDao extends BaseDao {
     const pc = this.getPrismaClient(params.tx);
     const dbRec = await pc.organization.findUnique({
       where: { id: params.id },
-      include: { logo: true },
+      include: { logo: true, currency: true },
     });
     if (!dbRec) {
       throw new DbRecordNotFoundError('Organization not found');
@@ -41,9 +44,9 @@ export class OrganizationDao extends BaseDao {
     return dbRec;
   }
 
-  public async findAll(params?: { tx?: Prisma.TransactionClient }): Promise<OrganizationSelectTableRecordType[]> {
+  public async findAll(params?: { tx?: Prisma.TransactionClient }): Promise<OrganizationWithCurrencyType[]> {
     const pc = this.getPrismaClient(params?.tx);
-    return pc.organization.findMany({ orderBy: { name: 'asc' } });
+    return pc.organization.findMany({ orderBy: { name: 'asc' }, include: { currency: true } });
   }
 
   public async findByName(params: { name: string; tx?: Prisma.TransactionClient }): Promise<OrganizationSelectTableRecordType | undefined> {
@@ -56,7 +59,7 @@ export class OrganizationDao extends BaseDao {
     filterDto: OrganizationFilterRequestType;
     orderBy?: OrderByParam;
     tx?: Prisma.TransactionClient;
-  }): Promise<{ totalRecords: number; dbRecords: OrganizationSelectTableRecordType[] }> {
+  }): Promise<{ totalRecords: number; dbRecords: OrganizationWithCurrencyType[] }> {
     const pc = this.getPrismaClient(params.tx);
     const { take, skip } = this.getPagination({ pageNo: params.filterDto.pagination.page, pageSize: params.filterDto.pagination.limit });
 
@@ -67,7 +70,7 @@ export class OrganizationDao extends BaseDao {
 
     const [totalRecords, dbRecords] = await Promise.all([
       pc.organization.count({ where }),
-      pc.organization.findMany({ where, orderBy: params.orderBy ?? { createdAt: 'desc' }, take, skip }),
+      pc.organization.findMany({ where, orderBy: params.orderBy ?? { createdAt: 'desc' }, take, skip, include: { currency: true } }),
     ]);
 
     return { totalRecords, dbRecords };
@@ -104,6 +107,10 @@ type OrganizationUpdateTableRecordType = Prisma.OrganizationUpdateInput;
 
 export type { OrganizationSelectTableRecordType };
 
+export type OrganizationWithCurrencyType = Prisma.OrganizationGetPayload<{
+  include: { currency: true };
+}>;
+
 export type OrganizationWithLogoType = Prisma.OrganizationGetPayload<{
-  include: { logo: true };
+  include: { logo: true; currency: true };
 }>;

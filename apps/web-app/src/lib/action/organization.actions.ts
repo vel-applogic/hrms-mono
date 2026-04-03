@@ -1,6 +1,7 @@
 'use server';
 
 import type {
+  CurrencyResponseType,
   OrganizationCreateRequestType,
   OrganizationDetailResponseType,
   OrganizationResponseType,
@@ -11,6 +12,10 @@ import { revalidatePath } from 'next/cache';
 
 import { organizationService } from '@/lib/service/organization.service';
 import { ActionResult, extractActionError } from '@/lib/util/action-result';
+
+export async function listCurrencies(): Promise<CurrencyResponseType[]> {
+  return organizationService.listCurrencies();
+}
 
 export async function getOrganizationById(id: number): Promise<ActionResult<OrganizationDetailResponseType>> {
   try {

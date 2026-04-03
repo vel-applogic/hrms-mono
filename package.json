@@ -17,6 +17,7 @@
     "db:client-generate": "turbo db:client-generate",
     "db:migrations-create": "turbo db:migrations-create",
     "db:migrations-apply": "turbo db:migrations-apply",
+    "db:seed-currency": "dotenv -e .env -- bash -c 'psql \"$DATABASE_URL\" -f seed-data/postgres/seed-currency.sql'",
     "test:unit": "turbo test:unit"
   },
   "pnpm": {

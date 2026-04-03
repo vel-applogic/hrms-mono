@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { CurrencyResponseSchema } from './currency.dto.js';
 import { MediaTypeDtoEnum, NoOfDaysInMonthDtoEnum } from './enum.js';
 import { MediaResponseSchema, UpsertMediaSchema } from './media.dto.js';
 import { FilterRequestSchema } from './pagination-filter.dto.js';
@@ -46,6 +47,7 @@ export type OrganizationDocumentResponseType = z.infer<typeof OrganizationDocume
 
 export const OrganizationCreateRequestSchema = OrganizationBaseFieldsSchema.extend({
   email: z.string().email('Valid email is required'),
+  currencyId: z.number(),
   logo: UpsertMediaSchema.optional(),
   settings: OrganizationSettingUpsertSchema.optional(),
   documents: z.array(OrganizationDocumentUpsertSchema).optional(),
@@ -54,6 +56,7 @@ export type OrganizationCreateRequestType = z.infer<typeof OrganizationCreateReq
 
 export const OrganizationUpdateRequestSchema = OrganizationBaseFieldsSchema.extend({
   id: z.number(),
+  currencyId: z.number(),
   logo: UpsertMediaSchema.optional(),
   settings: OrganizationSettingUpsertSchema.optional(),
   documents: z.array(OrganizationDocumentUpsertSchema).optional(),
@@ -63,6 +66,7 @@ export type OrganizationUpdateRequestType = z.infer<typeof OrganizationUpdateReq
 
 export const OrganizationResponseSchema = OrganizationBaseFieldsSchema.extend({
   id: z.number(),
+  currency: CurrencyResponseSchema,
   createdAt: z.string(),
   updatedAt: z.string(),
 });

@@ -76,6 +76,7 @@ export class Seeder {
         organisation = await this.prisma.organization.create({
           data: {
             name: userData.organizationName,
+            currency: { connect: { id: 1 } },
           },
         });
       }

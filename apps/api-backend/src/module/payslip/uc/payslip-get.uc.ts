@@ -36,10 +36,10 @@ export class PayslipGetUc implements IUseCase<Params, PayslipDetailResponseType>
       org.logo ? this.s3Service.getSignedUrl(org.logo.key) : null,
     ]);
 
-    return this.mapToDetail(payslip, pdfSignedUrl, org.name, companyLogoUrl);
+    return this.mapToDetail(payslip, pdfSignedUrl, org.name, companyLogoUrl, { symbol: org.currency.symbol, code: org.currency.code });
   }
 
-  private mapToDetail(p: PayrollPayslipWithDetailsType, pdfSignedUrl: string | null, companyName: string, companyLogoUrl: string | null): PayslipDetailResponseType {
+  private mapToDetail(p: PayrollPayslipWithDetailsType, pdfSignedUrl: string | null, companyName: string, companyLogoUrl: string | null, currency: { symbol: string | null; code: string }): PayslipDetailResponseType {
     return {
       id: p.id,
       employeeId: p.userId,
@@ -54,6 +54,8 @@ export class PayslipGetUc implements IUseCase<Params, PayslipDetailResponseType>
       grossAmount: p.grossAmount,
       netAmount: p.netAmount,
       deductionAmount: p.deductionAmount,
+      currencySymbol: currency.symbol,
+      currencyCode: currency.code,
       pdfSignedUrl,
       createdAt: p.createdAt.toISOString(),
       updatedAt: p.updatedAt.toISOString(),

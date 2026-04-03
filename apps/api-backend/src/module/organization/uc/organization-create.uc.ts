@@ -65,7 +65,7 @@ export class OrganizationCreateUc extends BaseOrganizationUc implements IUseCase
 
     const { organizationId, userId, inviteKey } = await this.transaction(async (tx) => {
       const organizationId = await this.organizationDao.create({
-        data: { name: params.dto.name },
+        data: { name: params.dto.name, currency: { connect: { id: params.dto.currencyId } } },
         tx,
       });
 

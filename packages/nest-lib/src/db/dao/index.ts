@@ -1,7 +1,8 @@
 export { BaseDao } from './_base.dao.js';
 export type { OrderByParam } from './_base.dao.js';
 export { UserDao, type UserSelectTableRecordType } from './user.dao.js';
-export { OrganizationDao, type OrganizationSelectTableRecordType, type OrganizationWithLogoType } from './organization.dao.js';
+export { CurrencyDao, type CurrencySelectTableRecordType } from './currency.dao.js';
+export { OrganizationDao, type OrganizationSelectTableRecordType, type OrganizationWithCurrencyType, type OrganizationWithLogoType } from './organization.dao.js';
 export { OrganizationHasUserDao, type OrganizationHasUserWithOrganizationType } from './organization-has-user.dao.js';
 export { BranchDao, type BranchSelectTableRecordType } from './branch.dao.js';
 export { UserInBranchDao } from './user-in-branch.dao.js';

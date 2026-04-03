@@ -16,8 +16,9 @@ const MONTH_LABELS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
-function formatAmount(value: number) {
-  return `₹${value.toLocaleString('en-IN')}`;
+function formatAmount(value: number, currencySymbol: string | null | undefined, currencyCode: string | undefined) {
+  const prefix = currencySymbol ?? currencyCode ?? '';
+  return `${prefix} ${value.toLocaleString('en-IN')}`;
 }
 
 interface LineItemDraft {
@@ -139,7 +140,7 @@ export function PayslipEditLineItemsDrawer({ open, onOpenChange, payslipId, onSu
         <div className='flex items-center justify-between'>
           <div className='text-sm'>
             <span className='text-muted-foreground'>Net Pay: </span>
-            <span className='font-semibold text-primary'>{formatAmount(getGross() - getTotalDeductions())}</span>
+            <span className='font-semibold text-primary'>{formatAmount(getGross() - getTotalDeductions(), payslip?.currencySymbol, payslip?.currencyCode)}</span>
           </div>
           <div className='flex gap-3'>
             <Button variant='outline' onClick={() => onOpenChange(false)} disabled={loading || fetchLoading}>
@@ -193,7 +194,7 @@ export function PayslipEditLineItemsDrawer({ open, onOpenChange, payslipId, onSu
                   </button>
                   {earnings.length > 0 && (
                     <span className='text-sm text-muted-foreground'>
-                      Gross: <strong className='text-foreground'>{formatAmount(getGross())}</strong>
+                      Gross: <strong className='text-foreground'>{formatAmount(getGross(), payslip?.currencySymbol, payslip?.currencyCode)}</strong>
                     </span>
                   )}
                 </div>
@@ -226,7 +227,7 @@ export function PayslipEditLineItemsDrawer({ open, onOpenChange, payslipId, onSu
                   </button>
                   {deductions.length > 0 && (
                     <span className='text-sm text-muted-foreground'>
-                      Total Deductions: <strong className='text-destructive'>{formatAmount(getTotalDeductions())}</strong>
+                      Total Deductions: <strong className='text-destructive'>{formatAmount(getTotalDeductions(), payslip?.currencySymbol, payslip?.currencyCode)}</strong>
                     </span>
                   )}
                 </div>
@@ -258,7 +259,7 @@ function LineItemRow({ item, onUpdate, onRemove }: LineItemRowProps) {
         />
       </div>
       <div className='flex flex-col gap-1'>
-        <Label className='text-xs text-muted-foreground'>Amount (₹)</Label>
+        <Label className='text-xs text-muted-foreground'>Amount</Label>
         <Input
           type='number'
           min={0}

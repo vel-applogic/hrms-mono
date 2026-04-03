@@ -1,4 +1,6 @@
 import {
+  CurrencyResponseSchema,
+  CurrencyResponseType,
   OrganizationCreateRequestType,
   OrganizationDetailResponseSchema,
   OrganizationDetailResponseType,
@@ -18,6 +20,13 @@ import { BaseService } from './_base.service';
 class OrganizationService extends BaseService {
   constructor() {
     super(CreateAxiosInstance(process.env.NEXT_PUBLIC_API_URL_ADMIN!));
+  }
+
+  async listCurrencies(): Promise<CurrencyResponseType[]> {
+    return this.get<CurrencyResponseType[]>({
+      url: '/api/organization/currency',
+      responseSchema: CurrencyResponseSchema.array(),
+    });
   }
 
   async search(params: OrganizationFilterRequestType): Promise<PaginatedResponseType<OrganizationResponseType>> {

@@ -1,5 +1,6 @@
 export {
   BaseDao,
+  CurrencyDao,
   UserDao,
   OrganizationDao,
   OrganizationHasUserDao,
@@ -28,8 +29,10 @@ export {
 } from './dao/index.js';
 export type {
   OrderByParam,
+  CurrencySelectTableRecordType,
   UserSelectTableRecordType,
   OrganizationSelectTableRecordType,
+  OrganizationWithCurrencyType,
   OrganizationWithLogoType,
   OrganizationSettingSelectTableRecordType,
   OrganizationHasDocumentWithMediaType,

@@ -68,17 +68,17 @@ function toWords(n: number): string {
   return toWords(Math.floor(n / 10000000)) + ' Crore' + (n % 10000000 ? ' ' + toWords(n % 10000000) : '');
 }
 
-function numberToWords(amount: number): string {
-  if (amount === 0) return 'Zero Rupees Only';
-  const rupees = Math.floor(amount);
-  const paise = Math.round((amount - rupees) * 100);
-  let result = toWords(rupees) + ' Rupees';
-  if (paise > 0) result += ' and ' + toWords(paise) + ' Paise';
+function numberToWords(amount: number, currencyName: string = 'Rupees', subunitName: string = 'Paise'): string {
+  if (amount === 0) return `Zero ${currencyName} Only`;
+  const whole = Math.floor(amount);
+  const fraction = Math.round((amount - whole) * 100);
+  let result = toWords(whole) + ' ' + currencyName;
+  if (fraction > 0) result += ' and ' + toWords(fraction) + ' ' + subunitName;
   return result + ' Only';
 }
 
-function formatAmount(value: number): string {
-  return `\u20B9${value.toLocaleString('en-IN')}`;
+function formatAmount(value: number, currencyPrefix: string): string {
+  return `${currencyPrefix} ${value.toLocaleString('en-IN')}`;
 }
 
 // ── Data builder ─────────────────────────────────────────────────────────────
@@ -88,7 +88,9 @@ type PayslipDataInput = Pick<PayslipDetailResponseType, 'month' | 'year' | 'empl
   companyLogoUrl?: string | null;
 };
 
-export function buildPayslipTemplateData(payslip: PayslipDataInput, options: { companyName?: string; companyAddress?: string; companyLogoUrl?: string | null } = {}): PayslipTemplateData {
+export function buildPayslipTemplateData(payslip: PayslipDataInput, options: { companyName?: string; companyAddress?: string; companyLogoUrl?: string | null; currencySymbol?: string | null; currencyCode?: string } = {}): PayslipTemplateData {
+  const currencyPrefix = options.currencySymbol ?? options.currencyCode ?? '\u20B9';
+
   const earnings = payslip.lineItems.filter((li) => li.type === 'earning');
   const deductions = payslip.lineItems.filter((li) => li.type === 'deduction');
   const lopItem = deductions.find((li) => li.title === 'Loss of Pay');
@@ -100,9 +102,9 @@ export function buildPayslipTemplateData(payslip: PayslipDataInput, options: { c
   const maxRows = Math.max(earnings.length, deductions.length);
   const tableRows: PayslipTemplateTableRow[] = Array.from({ length: maxRows }, (_, i) => ({
     earningTitle: earnings[i]?.title ?? '',
-    earningAmount: earnings[i] ? formatAmount(earnings[i]!.amount) : '',
+    earningAmount: earnings[i] ? formatAmount(earnings[i]!.amount, currencyPrefix) : '',
     deductionTitle: deductions[i]?.title ?? '',
-    deductionAmount: deductions[i] ? formatAmount(deductions[i]!.amount) : '',
+    deductionAmount: deductions[i] ? formatAmount(deductions[i]!.amount, currencyPrefix) : '',
   }));
 
   return {
@@ -116,11 +118,11 @@ export function buildPayslipTemplateData(payslip: PayslipDataInput, options: { c
     employeeEmail: payslip.employeeEmail,
     employeeId: payslip.employeeId,
     employeeDesignation: payslip.employeeDesignation,
-    netAmountFormatted: formatAmount(payslip.netAmount),
+    netAmountFormatted: formatAmount(payslip.netAmount, currencyPrefix),
     paidDays,
     lopDays,
-    grossAmountFormatted: formatAmount(payslip.grossAmount),
-    deductionAmountFormatted: formatAmount(payslip.deductionAmount),
+    grossAmountFormatted: formatAmount(payslip.grossAmount, currencyPrefix),
+    deductionAmountFormatted: formatAmount(payslip.deductionAmount, currencyPrefix),
     netAmountWordsFormatted: numberToWords(payslip.netAmount),
     tableRows,
   };

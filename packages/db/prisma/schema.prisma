@@ -7,6 +7,42 @@ datasource db {
   provider = "postgresql"
 }
 
+// MEDIA
+model Media {
+  id             Int             @id @default(autoincrement())
+  organizationId Int             @map("organization_id")
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+  key            String
+  thumbnailKey   String?         @map("thumbnail_key")
+  type           MediaTypeDbEnum
+  name           String
+  size           Int
+  ext            String
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  candidateHasMedias          CandidateHasMedia[]
+  policyHasMedias             PolicyHasMedia[]
+  employeeHasMedias           EmployeeHasMedia[]
+  leaveHasMedias              LeaveHasMedia[]
+  organizationLogos           Organization[]               @relation("OrganizationLogo")
+  organizationHasDocuments    OrganizationHasDocument[]
+  employyBgvFeedbackHasMedias employyBgvFeedbackHasMedia[]
+
+  @@map("media")
+}
+
+// CURRENCY
+model Currency {
+  id            Int            @id @default(autoincrement())
+  code          String
+  name          String
+  symbol        String?
+  organizations Organization[]
+
+  @@map("currency")
+}
+
 // USER
 
 model User {
@@ -69,10 +105,13 @@ model UserVerifyEmail {
 
 // ORGANIZATION
 model Organization {
-  id     Int    @id @default(autoincrement())
-  name   String
-  logoId Int?   @map("logo_id")
-  logo   Media? @relation("OrganizationLogo", fields: [logoId], references: [id])
+  id         Int      @id @default(autoincrement())
+  name       String
+  logoId     Int?     @map("logo_id")
+  logo       Media?   @relation("OrganizationLogo", fields: [logoId], references: [id])
+  website    String?  @map("website")
+  currencyId Int      @map("currency_id")
+  currency   Currency @relation(fields: [currencyId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -559,31 +598,6 @@ model PolicyHasMedia {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("policy_has_media")
-}
-
-// MEDIA
-model Media {
-  id             Int             @id @default(autoincrement())
-  organizationId Int             @map("organization_id")
-  organization   Organization    @relation(fields: [organizationId], references: [id])
-  key            String
-  thumbnailKey   String?         @map("thumbnail_key")
-  type           MediaTypeDbEnum
-  name           String
-  size           Int
-  ext            String
-  createdAt      DateTime        @default(now()) @map("created_at")
-  updatedAt      DateTime        @updatedAt @map("updated_at")
-
-  candidateHasMedias          CandidateHasMedia[]
-  policyHasMedias             PolicyHasMedia[]
-  employeeHasMedias           EmployeeHasMedia[]
-  leaveHasMedias              LeaveHasMedia[]
-  organizationLogos           Organization[]              @relation("OrganizationLogo")
-  organizationHasDocuments    OrganizationHasDocument[]
-  employyBgvFeedbackHasMedias employyBgvFeedbackHasMedia[]
-
-  @@map("media")
 }
 
 // AUDIT

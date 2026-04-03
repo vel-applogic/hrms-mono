@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
+  CurrencyResponseType,
   MediaTypeDtoEnum,
   NoOfDaysInMonthDtoEnum,
   OrganizationDocumentResponseType,
@@ -19,7 +20,7 @@ import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { FileUpload, ImageUpload } from '@/container/s3-file-upload/s3-file-upload';
-import { createOrganization, getOrganizationById, updateOrganization } from '@/lib/action/organization.actions';
+import { createOrganization, getOrganizationById, listCurrencies, updateOrganization } from '@/lib/action/organization.actions';
 
 const SettingsSchema = z.object({
   noOfDaysInMonth: z.nativeEnum(NoOfDaysInMonthDtoEnum),
@@ -33,6 +34,7 @@ const SettingsSchema = z.object({
 
 const BaseFormSchema = z.object({
   name: z.string().min(1, 'Name is required').trim(),
+  currencyId: z.number({ error: 'Currency is required' }),
   settings: SettingsSchema,
 });
 
@@ -79,6 +81,11 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
   const [documents, setDocuments] = useState<UpsertMediaType[]>([]);
   const [existingDocuments, setExistingDocuments] = useState<OrganizationDocumentResponseType[]>([]);
   const [removeDocumentIds, setRemoveDocumentIds] = useState<number[]>([]);
+  const [currencies, setCurrencies] = useState<CurrencyResponseType[]>([]);
+
+  useEffect(() => {
+    listCurrencies().then(setCurrencies).catch(() => {});
+  }, []);
 
   const createForm = useForm<CreateFormType>({
     resolver: zodResolver(CreateFormSchema),
@@ -99,7 +106,7 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
       setRemoveDocumentIds([]);
 
       if (organization) {
-        updateForm.reset({ name: organization.name, settings: DEFAULT_SETTINGS });
+        updateForm.reset({ name: organization.name, currencyId: organization.currency.id, settings: DEFAULT_SETTINGS });
         setFetchingDetail(true);
 
         getOrganizationById(organization.id).then((result) => {
@@ -109,6 +116,7 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
             if (detail.settings) {
               updateForm.reset({
                 name: organization.name,
+                currencyId: detail.currency.id,
                 settings: {
                   noOfDaysInMonth: detail.settings.noOfDaysInMonth,
                   totalLeaveInDays: detail.settings.totalLeaveInDays,
@@ -190,6 +198,7 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
       const result = await createOrganization({
         name: data.name,
         email: data.email,
+        currencyId: data.currencyId,
         logo: buildLogoPayload(),
         settings: buildSettingsPayload(data),
         documents: buildDocumentsPayload(),
@@ -217,6 +226,7 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
       const result = await updateOrganization(organization.id, {
         id: organization.id,
         name: data.name,
+        currencyId: data.currencyId,
         logo: buildLogoPayload(),
         settings: buildSettingsPayload(data),
         documents: buildDocumentsPayload(),
@@ -241,6 +251,37 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
     setRemoveDocumentIds((prev) => [...prev, doc.id]);
     setExistingDocuments((prev) => prev.filter((d) => d.id !== doc.id));
   };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const renderCurrencyField = (form: UseFormReturn<any>) => (
+    <div className='flex flex-col gap-2'>
+      <Label htmlFor='currencyId'>Currency</Label>
+      <Controller
+        name='currencyId'
+        control={form.control}
+        render={({ field }) => (
+          <Select
+            value={field.value != null ? String(field.value) : undefined}
+            onValueChange={(v) => field.onChange(Number(v))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder='Select currency' />
+            </SelectTrigger>
+            <SelectContent>
+              {currencies.map((c) => (
+                <SelectItem key={c.id} value={String(c.id)}>
+                  {c.symbol ? `${c.symbol} - ${c.name} (${c.code})` : `${c.name} (${c.code})`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      />
+      {form.formState.errors.currencyId && (
+        <p className='text-sm text-destructive'>{form.formState.errors.currencyId.message as string}</p>
+      )}
+    </div>
+  );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderSettingsFields = (form: UseFormReturn<any>) => (
@@ -356,6 +397,8 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
             {updateForm.formState.errors.name && <p className='text-sm text-destructive'>{updateForm.formState.errors.name.message}</p>}
           </div>
 
+          {renderCurrencyField(updateForm)}
+
           <div className='flex flex-col gap-2'>
             <Label>Logo</Label>
             <ImageUpload
@@ -380,6 +423,8 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
             <Input id='name' placeholder='e.g. Acme Corp' {...createForm.register('name')} />
             {createForm.formState.errors.name && <p className='text-sm text-destructive'>{createForm.formState.errors.name.message}</p>}
           </div>
+
+          {renderCurrencyField(createForm)}
 
           <div className='flex flex-col gap-2'>
             <Label>Logo</Label>

@@ -9,7 +9,7 @@ import { buildPayslipTemplateData } from '@repo/shared';
 
 import { S3Service } from '../../../external-service/s3.service.js';
 import { PdfGeneratorService } from '../../../service/pdf/pdf-generator.service.js';
-import { BasePayslipUc } from './_base-payslip.uc.js';
+import { BasePayslipUc, CurrencyInfo } from './_base-payslip.uc.js';
 
 type Params = {
   currentUser: CurrentUserType;
@@ -37,7 +37,9 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     const { month, year, force, employeeIds } = params.dto;
     this.logger.i('Generating payslips', { month, year, employeeIds, force });
 
-    const { existingPayslips, targetUserIds } = await this.validate(params, params.currentUser.organizationId);
+    const org = await this.organizationDao.getByIdOrThrow({ id: params.currentUser.organizationId });
+    const currency: CurrencyInfo = { symbol: org.currency.symbol, code: org.currency.code };
+    const { existingPayslips, targetUserIds } = await this.validate(params, params.currentUser.organizationId, currency);
 
     if (existingPayslips.length > 0 && !force) {
       return {
@@ -114,9 +116,9 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     return { generated, skipped, alreadyExisting: false };
   }
 
-  private async generateAndUploadPdf(payslip: PayrollPayslipWithDetailsType, orgData: { companyName: string; companyLogoUrl: string | null }): Promise<void> {
+  private async generateAndUploadPdf(payslip: PayrollPayslipWithDetailsType, orgData: { companyName: string; companyLogoUrl: string | null; currencySymbol: string | null; currencyCode: string }): Promise<void> {
     try {
-      const pdfData = buildPayslipTemplateData(this.mapToDetail(payslip), orgData);
+      const pdfData = buildPayslipTemplateData(this.mapToDetail(payslip), { companyName: orgData.companyName, companyLogoUrl: orgData.companyLogoUrl, currencySymbol: orgData.currencySymbol, currencyCode: orgData.currencyCode });
       const pdfBuffer = await this.pdfGeneratorService.generatePayslipPdf(pdfData);
       await this.s3Service.uploadBuffer({ s3Key: payslip.pdfS3Key, buffer: pdfBuffer, contentType: 'application/pdf' });
     } catch (err) {
@@ -124,13 +126,13 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     }
   }
 
-  private async getOrganizationData(organizationId: number): Promise<{ companyName: string; companyLogoUrl: string | null }> {
+  private async getOrganizationData(organizationId: number): Promise<{ companyName: string; companyLogoUrl: string | null; currencySymbol: string | null; currencyCode: string }> {
     try {
       const org = await this.organizationDao.getByIdWithLogoOrThrow({ id: organizationId });
       const companyLogoUrl = org.logo ? await this.s3Service.getSignedUrl(org.logo.key) : null;
-      return { companyName: org.name, companyLogoUrl };
+      return { companyName: org.name, companyLogoUrl, currencySymbol: org.currency.symbol, currencyCode: org.currency.code };
     } catch {
-      return { companyName: 'Company Name', companyLogoUrl: null };
+      return { companyName: 'Company Name', companyLogoUrl: null, currencySymbol: '₹', currencyCode: 'INR' };
     }
   }
 
@@ -164,7 +166,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     };
   }
 
-  private async validate(params: Params, organizationId: number): Promise<{ existingPayslips: PayslipListResponseType[]; targetUserIds: number[] }> {
+  private async validate(params: Params, organizationId: number, currency: CurrencyInfo): Promise<{ existingPayslips: PayslipListResponseType[]; targetUserIds: number[] }> {
     let targetUserIds: number[];
     if (params.dto.employeeIds?.length) {
       targetUserIds = params.dto.employeeIds;
@@ -184,7 +186,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
       organizationId,
     });
 
-    const existingPayslips = dbExistingPayslips.map((p) => this.dbToPayslipListResponse(p));
+    const existingPayslips = dbExistingPayslips.map((p) => this.dbToPayslipListResponse(p, currency));
     return { existingPayslips, targetUserIds };
   }
 
