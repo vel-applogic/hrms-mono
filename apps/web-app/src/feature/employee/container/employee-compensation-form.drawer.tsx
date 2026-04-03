@@ -6,6 +6,7 @@ import { Input } from '@repo/ui/component/ui/input';
 import { Label } from '@repo/ui/component/ui/label';
 import { Drawer } from '@repo/ui/container/drawer/drawer';
 import { cn } from '@repo/ui/lib/utils';
+import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { createEmployeeCompensation, updateEmployeeCompensation } from '@/lib/action/employee-compensation.actions';
@@ -22,15 +23,27 @@ interface Props {
   onSuccess: (compensation: EmployeeCompensationResponseType) => void;
 }
 
+type LineItemForm = { title: string; amount: string };
+
 type FieldErrors = {
-  gross?: string;
   effectiveFrom?: string;
   effectiveTill?: string;
+  lineItems?: string;
 };
 
 export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId, compensation, onSuccess }: Props) {
   const isEditing = !!compensation;
-  const [gross, setGross] = useState(compensation?.gross?.toString() ?? '');
+
+  const defaultLineItems = (): LineItemForm[] =>
+    compensation?.lineItems?.length
+      ? compensation.lineItems.map((li) => ({ title: li.title, amount: String(li.amount) }))
+      : [
+          { title: 'Basic', amount: '' },
+          { title: 'HRA', amount: '' },
+          { title: 'Other Allowances', amount: '' },
+        ];
+
+  const [lineItems, setLineItems] = useState<LineItemForm[]>(defaultLineItems);
   const [effectiveFrom, setEffectiveFrom] = useState(compensation?.effectiveFrom ?? '');
   const [effectiveTill, setEffectiveTill] = useState(compensation?.effectiveTill ?? '');
   const [loading, setLoading] = useState(false);
@@ -39,7 +52,7 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
 
   useEffect(() => {
     if (open) {
-      setGross(compensation?.gross?.toString() ?? '');
+      setLineItems(defaultLineItems());
       setEffectiveFrom(compensation?.effectiveFrom ?? '');
       setEffectiveTill(compensation?.effectiveTill ?? '');
       setError('');
@@ -47,32 +60,49 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
     }
   }, [open, compensation]);
 
-  const { basic, hra, otherAllowances } = useMemo(() => {
-    const grossNum = parseFloat(gross);
-    if (isNaN(grossNum) || grossNum < 0) {
-      return { basic: 0, hra: 0, otherAllowances: 0 };
-    }
-    const grossRounded = Math.round(grossNum);
-    const b = Math.round(grossRounded * 0.4);
-    const h = Math.round(grossRounded * 0.2);
-    let o = Math.round(grossRounded * 0.2);
-    const sum = b + h + o;
-    const diff = grossRounded - sum;
-    o += diff;
-    return { basic: b, hra: h, otherAllowances: o };
-  }, [gross]);
+  const grossAmount = useMemo(() => {
+    return lineItems.reduce((sum, li) => {
+      const num = parseFloat(li.amount);
+      return sum + (isNaN(num) ? 0 : num);
+    }, 0);
+  }, [lineItems]);
+
+  const updateLineItem = (index: number, field: keyof LineItemForm, value: string) => {
+    setLineItems((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
+    if (fieldErrors.lineItems) setFieldErrors((prev) => ({ ...prev, lineItems: undefined }));
+  };
+
+  const addLineItem = () => {
+    setLineItems((prev) => [...prev, { title: '', amount: '' }]);
+  };
+
+  const removeLineItem = (index: number) => {
+    if (lineItems.length <= 1) return;
+    setLineItems((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async () => {
     const errors: FieldErrors = {};
-    const grossNum = parseFloat(gross);
-    if (!gross.trim()) {
-      errors.gross = 'Gross is required';
-    } else if (isNaN(grossNum) || grossNum < 0) {
-      errors.gross = 'Gross must be a valid positive number';
-    }
     if (!isEditing && !effectiveFrom) {
       errors.effectiveFrom = 'Effective from is required';
     }
+
+    const validLineItems = lineItems.filter((li) => li.title.trim() || li.amount.trim());
+    if (validLineItems.length === 0) {
+      errors.lineItems = 'At least one line item is required';
+    }
+    for (const li of validLineItems) {
+      if (!li.title.trim()) {
+        errors.lineItems = 'All line items must have a title';
+        break;
+      }
+      const num = parseFloat(li.amount);
+      if (isNaN(num) || num < 0) {
+        errors.lineItems = 'All line items must have a valid positive amount';
+        break;
+      }
+    }
+
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       setError('');
@@ -81,33 +111,30 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
     setFieldErrors({});
     setLoading(true);
     setError('');
+
+    const parsedLineItems = validLineItems.map((li) => ({
+      title: li.title.trim(),
+      amount: parseFloat(li.amount),
+    }));
+
     try {
       if (isEditing && compensation) {
         const result = await updateEmployeeCompensation(compensation.id, {
-          basic,
-          hra,
-          otherAllowances,
-          gross: grossNum,
           effectiveFrom: effectiveFrom || undefined,
           effectiveTill: effectiveTill || undefined,
           isActive: compensation.isActive,
+          lineItems: parsedLineItems,
         });
         onSuccess(result);
       } else {
         const result = await createEmployeeCompensation({
           employeeId,
-          basic,
-          hra,
-          otherAllowances,
-          gross: grossNum,
           effectiveFrom,
           effectiveTill: effectiveTill || undefined,
+          lineItems: parsedLineItems,
         });
         onSuccess(result);
       }
-      setGross('');
-      setEffectiveFrom('');
-      setEffectiveTill('');
       onOpenChange(false);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An error occurred';
@@ -125,7 +152,7 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
-      setGross(compensation?.gross?.toString() ?? '');
+      setLineItems(defaultLineItems());
       setEffectiveFrom(compensation?.effectiveFrom ?? '');
       setEffectiveTill(compensation?.effectiveTill ?? '');
       setError('');
@@ -156,24 +183,7 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
         {hasFieldErrors && <p className='rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive'>Please check the below errors to proceed</p>}
         {error && !hasFieldErrors && <p className='text-sm text-destructive'>{error}</p>}
 
-        <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
-          <div className='flex flex-col gap-2'>
-            <Label htmlFor='gross'>Gross</Label>
-            <Input
-              id='gross'
-              type='number'
-              min={0}
-              step={1}
-              value={gross}
-              onChange={(e) => {
-                setGross(e.target.value);
-                if (fieldErrors.gross) setFieldErrors((prev) => ({ ...prev, gross: undefined }));
-              }}
-              placeholder='0'
-              className={cn(fieldErrors.gross && 'border-destructive')}
-            />
-            {fieldErrors.gross && <p className='text-sm text-destructive'>{fieldErrors.gross}</p>}
-          </div>
+        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
           <div className='flex flex-col gap-2'>
             <Label htmlFor='effectiveFrom'>Effective from</Label>
             <Input
@@ -206,16 +216,54 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
 
         <hr className='border-border' />
 
-        <div className='flex flex-col gap-2'>
-          <p className='text-sm text-muted-foreground'>
-            Basic (40%): <span className='font-medium text-foreground'>{gross ? formatAmount(basic) : '—'}</span>
-          </p>
-          <p className='text-sm text-muted-foreground'>
-            HRA (20%): <span className='font-medium text-foreground'>{gross ? formatAmount(hra) : '—'}</span>
-          </p>
-          <p className='text-sm text-muted-foreground'>
-            Other allowance (20%): <span className='font-medium text-foreground'>{gross ? formatAmount(otherAllowances) : '—'}</span>
-          </p>
+        <div className='flex flex-col gap-3'>
+          <div className='flex items-center justify-between'>
+            <Label>Line items</Label>
+            <Button type='button' variant='outline' size='sm' onClick={addLineItem}>
+              <Plus className='mr-1 h-3.5 w-3.5' />
+              Add item
+            </Button>
+          </div>
+          {fieldErrors.lineItems && <p className='text-sm text-destructive'>{fieldErrors.lineItems}</p>}
+
+          {lineItems.map((item, index) => (
+            <div key={index} className='flex items-start gap-3'>
+              <div className='flex flex-1 flex-col gap-1'>
+                <Input
+                  placeholder='Title (e.g. Basic, HRA)'
+                  value={item.title}
+                  onChange={(e) => updateLineItem(index, 'title', e.target.value)}
+                />
+              </div>
+              <div className='flex w-36 flex-col gap-1'>
+                <Input
+                  type='number'
+                  min={0}
+                  step={1}
+                  placeholder='Amount'
+                  value={item.amount}
+                  onChange={(e) => updateLineItem(index, 'amount', e.target.value)}
+                />
+              </div>
+              <Button
+                type='button'
+                variant='ghost'
+                size='icon'
+                className='mt-0.5 h-8 w-8 shrink-0 text-destructive hover:text-destructive'
+                onClick={() => removeLineItem(index)}
+                disabled={lineItems.length <= 1}
+              >
+                <Trash2 className='h-3.5 w-3.5' />
+              </Button>
+            </div>
+          ))}
+        </div>
+
+        <hr className='border-border' />
+
+        <div className='flex items-center justify-between'>
+          <p className='text-sm font-medium text-muted-foreground'>Total (Gross)</p>
+          <p className='text-lg font-semibold'>{formatAmount(grossAmount)}</p>
         </div>
       </div>
     </Drawer>

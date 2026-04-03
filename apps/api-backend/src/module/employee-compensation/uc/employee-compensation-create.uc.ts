@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { EmployeeCompensationCreateRequestType, EmployeeCompensationResponseType } from '@repo/dto';
 import { CommonLoggerService, CurrentUserType, IUseCase, PrismaService, PayrollCompensationDao, EmployeeDao } from '@repo/nest-lib';
+import type { PayrollCompensationWithLineItemsType } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 import { parseDateOnly, validateEffectiveFromNoOverlap } from './_employee-compensation-validation.helper.js';
@@ -28,6 +29,7 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
     this.logger.i('Creating employee compensation', { employeeId: params.dto.employeeId });
 
     const { newEffectiveFrom, mostRecent } = await this.validate(params);
+    const grossAmount = params.dto.lineItems.reduce((sum, item) => sum + item.amount, 0);
 
     const createdId = await this.prisma.$transaction(async (tx) => {
       if (mostRecent) {
@@ -55,13 +57,16 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
         data: {
           user: { connect: { id: params.dto.employeeId } },
           organization: { connect: { id: params.currentUser.organizationId } },
-          basic: params.dto.basic,
-          hra: params.dto.hra,
-          otherAllowances: params.dto.otherAllowances,
-          gross: params.dto.gross,
+          grossAmount,
           effectiveFrom: newEffectiveFrom,
           effectiveTill: params.dto.effectiveTill ? parseDateOnly(params.dto.effectiveTill) : undefined,
           isActive: true,
+          payrollCompensationLineItems: {
+            create: params.dto.lineItems.map((item) => ({
+              title: item.title,
+              amount: item.amount,
+            })),
+          },
         },
         tx,
       });
@@ -70,19 +75,7 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
     const created = await this.payrollCompensationDao.getById({ id: createdId, organizationId: params.currentUser.organizationId });
     if (!created) throw new ApiError('Failed to fetch created compensation', 500);
 
-    return {
-      id: created.id,
-      employeeId: created.userId,
-      basic: created.basic,
-      hra: created.hra,
-      otherAllowances: created.otherAllowances,
-      gross: created.gross,
-      effectiveFrom: created.effectiveFrom.toISOString().split('T')[0]!,
-      effectiveTill: created.effectiveTill?.toISOString().split('T')[0] ?? undefined,
-      isActive: created.isActive,
-      createdAt: created.createdAt.toISOString(),
-      updatedAt: created.updatedAt.toISOString(),
-    };
+    return this.mapToResponse(created);
   }
 
   private async validate(params: Params): Promise<ValidateResult> {
@@ -106,6 +99,24 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
     return {
       newEffectiveFrom,
       mostRecent: mostRecent ? { id: mostRecent.id, effectiveFrom: mostRecent.effectiveFrom, effectiveTill: mostRecent.effectiveTill } : undefined,
+    };
+  }
+
+  private mapToResponse(c: PayrollCompensationWithLineItemsType): EmployeeCompensationResponseType {
+    return {
+      id: c.id,
+      employeeId: c.userId,
+      grossAmount: c.grossAmount,
+      effectiveFrom: c.effectiveFrom.toISOString().split('T')[0]!,
+      effectiveTill: c.effectiveTill?.toISOString().split('T')[0] ?? undefined,
+      isActive: c.isActive,
+      lineItems: c.payrollCompensationLineItems.map((li) => ({
+        id: li.id,
+        title: li.title,
+        amount: li.amount,
+      })),
+      createdAt: c.createdAt.toISOString(),
+      updatedAt: c.updatedAt.toISOString(),
     };
   }
 }

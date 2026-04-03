@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma, PayrollCompensation } from '@repo/db';
+import type { Prisma, PayrollCompensationLineItem } from '@repo/db';
 import { DbOperationError, DbRecordNotFoundError } from '@repo/shared';
 
 import { TrackQuery } from '../../decorator/track-query.decorator.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { BaseDao } from './_base.dao.js';
+
+const lineItemsInclude = { payrollCompensationLineItems: true } as const;
 
 @Injectable()
 @TrackQuery()
@@ -27,10 +29,32 @@ export class PayrollCompensationDao extends BaseDao {
     await pc.payrollCompensation.update({ where: { id: params.id }, data: params.data });
   }
 
-  public async getById(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<PayrollCompensationSelectTableRecordType | undefined> {
+  public async replaceLineItems(params: {
+    compensationId: number;
+    lineItems: Array<{ title: string; amount: number }>;
+    grossAmount: number;
+    tx: Prisma.TransactionClient;
+  }): Promise<void> {
+    const pc = this.getPrismaClient(params.tx);
+    await pc.payrollCompensationLineItem.deleteMany({ where: { payrollCompensationId: params.compensationId } });
+    await pc.payrollCompensationLineItem.createMany({
+      data: params.lineItems.map((item) => ({
+        payrollCompensationId: params.compensationId,
+        title: item.title,
+        amount: item.amount,
+      })),
+    });
+    await pc.payrollCompensation.update({
+      where: { id: params.compensationId },
+      data: { grossAmount: params.grossAmount },
+    });
+  }
+
+  public async getById(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<PayrollCompensationWithLineItemsType | undefined> {
     const pc = this.getPrismaClient(params.tx);
     const result = await pc.payrollCompensation.findFirst({
       where: { id: params.id, organizationId: params.organizationId },
+      include: lineItemsInclude,
     });
     return result ?? undefined;
   }
@@ -43,18 +67,20 @@ export class PayrollCompensationDao extends BaseDao {
     if (!dbRecord) {
       throw new DbRecordNotFoundError('PayrollCompensation not found');
     }
+    await pc.payrollCompensationLineItem.deleteMany({ where: { payrollCompensationId: params.id } });
     await pc.payrollCompensation.delete({
       where: { id: params.id, organizationId: params.organizationId },
     });
   }
 
-  public async findByUserIdOrderedByEffectiveFromDesc(params: { userId: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<PayrollCompensation[]> {
+  public async findByUserIdOrderedByEffectiveFromDesc(params: { userId: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<PayrollCompensationWithLineItemsType[]> {
     const pc = this.getPrismaClient(params.tx);
     return pc.payrollCompensation.findMany({
       where: {
         userId: params.userId,
         organizationId: params.organizationId,
       },
+      include: lineItemsInclude,
       orderBy: { effectiveFrom: 'desc' },
     });
   }
@@ -77,7 +103,7 @@ export class PayrollCompensationDao extends BaseDao {
     page: number;
     limit: number;
     tx?: Prisma.TransactionClient;
-  }): Promise<{ dbRecords: PayrollCompensation[]; totalRecords: number }> {
+  }): Promise<{ dbRecords: PayrollCompensationWithLineItemsType[]; totalRecords: number }> {
     const pc = this.getPrismaClient(params.tx);
     const { take, skip } = this.getPagination({
       pageNo: params.page,
@@ -93,6 +119,7 @@ export class PayrollCompensationDao extends BaseDao {
       pc.payrollCompensation.count({ where }),
       pc.payrollCompensation.findMany({
         where,
+        include: lineItemsInclude,
         orderBy: { effectiveFrom: 'desc' },
         take,
         skip,
@@ -123,7 +150,10 @@ export class PayrollCompensationDao extends BaseDao {
       pc.payrollCompensation.count({ where }),
       pc.payrollCompensation.findMany({
         where,
-        include: { user: { select: { firstname: true, lastname: true, email: true } } },
+        include: {
+          ...lineItemsInclude,
+          user: { select: { firstname: true, lastname: true, email: true } },
+        },
         orderBy: { user: { firstname: 'asc' } },
         take,
         skip,
@@ -140,6 +170,10 @@ type PayrollCompensationInsertTableRecordType = Prisma.PayrollCompensationCreate
 type PayrollCompensationUpdateTableRecordType = Prisma.PayrollCompensationUpdateInput;
 
 // Return types extending Prisma types
-export type PayrollCompensationWithEmployeeInfoType = PayrollCompensationSelectTableRecordType & {
+export type PayrollCompensationWithLineItemsType = PayrollCompensationSelectTableRecordType & {
+  payrollCompensationLineItems: PayrollCompensationLineItem[];
+};
+
+export type PayrollCompensationWithEmployeeInfoType = PayrollCompensationWithLineItemsType & {
   user: { firstname: string; lastname: string; email: string };
 };

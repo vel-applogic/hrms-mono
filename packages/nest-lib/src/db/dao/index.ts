@@ -24,8 +24,8 @@ export {
   EmployeeHasMediaDao,
   type EmployeeHasMediaWithMediaType,
 } from './employee-has-media.dao.js';
-export { PayrollCompensationDao } from './payroll-compensation.dao.js';
-export { PayrollDeductionDao } from './payroll-deduction.dao.js';
+export { PayrollCompensationDao, type PayrollCompensationWithLineItemsType, type PayrollCompensationWithEmployeeInfoType } from './payroll-compensation.dao.js';
+export { PayrollDeductionDao, type PayrollDeductionWithLineItemsType } from './payroll-deduction.dao.js';
 export {
   EmployeeFeedbackDao,
   type EmployeeFeedbackWithCreatedByType,

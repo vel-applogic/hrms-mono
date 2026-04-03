@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from '@repo/ui/component/shadcn/select';
 import { Drawer } from '@repo/ui/container/drawer/drawer';
+import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { createEmployeeDeduction, updateEmployeeDeduction } from '@/lib/action/employee-deduction.actions';
@@ -46,23 +47,35 @@ interface Props {
   onSuccess: (deduction: EmployeeDeductionResponseType) => void;
 }
 
+type LineItemForm = {
+  type: PayrollDeductionTypeDtoEnum;
+  frequency: PayrollDeductionFrequencyDtoEnum;
+  amount: string;
+  otherTitle: string;
+  specificMonth: string;
+};
+
 type FieldErrors = {
-  type?: string;
-  otherTitle?: string;
-  frequency?: string;
-  specificMonth?: string;
-  amount?: string;
   effectiveFrom?: string;
   effectiveTill?: string;
+  lineItems?: string;
 };
 
 export function EmployeeDeductionFormDrawer({ open, onOpenChange, employeeId, deduction, onSuccess }: Props) {
   const isEditing = !!deduction;
-  const [type, setType] = useState<PayrollDeductionTypeDtoEnum>(deduction?.type ?? 'providentFund');
-  const [frequency, setFrequency] = useState<PayrollDeductionFrequencyDtoEnum>(deduction?.frequency ?? 'monthly');
-  const [amount, setAmount] = useState(deduction?.amount?.toString() ?? '');
-  const [otherTitle, setOtherTitle] = useState(deduction?.otherTitle ?? '');
-  const [specificMonth, setSpecificMonth] = useState(deduction?.specificMonth ?? '');
+
+  const defaultLineItems = (): LineItemForm[] =>
+    deduction?.lineItems?.length
+      ? deduction.lineItems.map((li) => ({
+          type: li.type as PayrollDeductionTypeDtoEnum,
+          frequency: li.frequency as PayrollDeductionFrequencyDtoEnum,
+          amount: String(li.amount),
+          otherTitle: li.otherTitle ?? '',
+          specificMonth: li.specificMonth ?? '',
+        }))
+      : [{ type: 'providentFund', frequency: 'monthly', amount: '', otherTitle: '', specificMonth: '' }];
+
+  const [lineItems, setLineItems] = useState<LineItemForm[]>(defaultLineItems);
   const [effectiveFrom, setEffectiveFrom] = useState(deduction?.effectiveFrom ?? '');
   const [effectiveTill, setEffectiveTill] = useState(deduction?.effectiveTill ?? '');
   const [isActive, setIsActive] = useState(deduction?.isActive ?? true);
@@ -72,11 +85,7 @@ export function EmployeeDeductionFormDrawer({ open, onOpenChange, employeeId, de
 
   useEffect(() => {
     if (open) {
-      setType(deduction?.type ?? 'providentFund');
-      setFrequency(deduction?.frequency ?? 'monthly');
-      setAmount(deduction?.amount?.toString() ?? '');
-      setOtherTitle(deduction?.otherTitle ?? '');
-      setSpecificMonth(deduction?.specificMonth ?? '');
+      setLineItems(defaultLineItems());
       setEffectiveFrom(deduction?.effectiveFrom ?? '');
       setEffectiveTill(deduction?.effectiveTill ?? '');
       setIsActive(deduction?.isActive ?? true);
@@ -85,27 +94,50 @@ export function EmployeeDeductionFormDrawer({ open, onOpenChange, employeeId, de
     }
   }, [open, deduction]);
 
+  const updateLineItem = (index: number, field: keyof LineItemForm, value: string) => {
+    setLineItems((prev) =>
+      prev.map((item, i) => {
+        if (i !== index) return item;
+        const updated = { ...item, [field]: value };
+        if (field === 'frequency' && value !== 'specificMonth') {
+          updated.specificMonth = '';
+        }
+        return updated;
+      }),
+    );
+    if (fieldErrors.lineItems) setFieldErrors((prev) => ({ ...prev, lineItems: undefined }));
+  };
+
+  const addLineItem = () => {
+    setLineItems((prev) => [...prev, { type: 'providentFund', frequency: 'monthly', amount: '', otherTitle: '', specificMonth: '' }]);
+  };
+
+  const removeLineItem = (index: number) => {
+    if (lineItems.length <= 1) return;
+    setLineItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async () => {
     const errors: FieldErrors = {};
-    const amountNum = parseFloat(amount);
-    if (!amount.trim()) {
-      errors.amount = 'Amount is required';
-    } else if (isNaN(amountNum) || amountNum < 0) {
-      errors.amount = 'Amount must be a valid positive number';
-    }
     if (!isEditing && !effectiveFrom) {
       errors.effectiveFrom = 'Effective from is required';
     }
-    if (type === 'other' && !otherTitle.trim()) {
-      errors.otherTitle = 'Title is required when type is Other';
-    }
-    if (frequency === 'specificMonth') {
-      if (!specificMonth.trim()) {
-        errors.specificMonth = 'Specific month date is required when frequency is Specific Month';
-      } else if (fieldErrors.specificMonth) {
-        errors.specificMonth = fieldErrors.specificMonth;
+
+    for (const li of lineItems) {
+      if (!li.amount.trim() || isNaN(parseFloat(li.amount)) || parseFloat(li.amount) < 0) {
+        errors.lineItems = 'All line items must have a valid positive amount';
+        break;
+      }
+      if (li.type === 'other' && !li.otherTitle.trim()) {
+        errors.lineItems = 'Title is required when type is Other';
+        break;
+      }
+      if (li.frequency === 'specificMonth' && !li.specificMonth.trim()) {
+        errors.lineItems = 'Specific month is required when frequency is Specific Month';
+        break;
       }
     }
+
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       setError('');
@@ -114,40 +146,34 @@ export function EmployeeDeductionFormDrawer({ open, onOpenChange, employeeId, de
     setFieldErrors({});
     setLoading(true);
     setError('');
-    try {
-      const basePayload = {
-        type,
-        frequency,
-        amount: amountNum,
-        effectiveFrom: effectiveFrom || undefined,
-        effectiveTill: effectiveTill || undefined,
-      };
-      const payloadWithConditionals = {
-        ...basePayload,
-        otherTitle: type === 'other' ? otherTitle : undefined,
-        ...(frequency === 'specificMonth' ? { specificMonth: specificMonth } : {}),
-      };
 
+    const parsedLineItems = lineItems.map((li) => ({
+      type: li.type,
+      frequency: li.frequency,
+      amount: parseFloat(li.amount),
+      otherTitle: li.type === 'other' ? li.otherTitle : undefined,
+      specificMonth: li.frequency === 'specificMonth' ? li.specificMonth : undefined,
+    }));
+
+    try {
       if (isEditing && deduction) {
         const result = await updateEmployeeDeduction(deduction.id, {
-          ...payloadWithConditionals,
+          effectiveFrom: effectiveFrom || undefined,
+          effectiveTill: effectiveTill || undefined,
           isActive,
+          lineItems: parsedLineItems,
         });
         onSuccess(result);
       } else {
         const result = await createEmployeeDeduction({
           employeeId,
-          ...payloadWithConditionals,
           effectiveFrom,
+          effectiveTill: effectiveTill || undefined,
           isActive,
+          lineItems: parsedLineItems,
         });
         onSuccess(result);
       }
-      setAmount('');
-      setEffectiveFrom('');
-      setEffectiveTill('');
-      setOtherTitle('');
-      setSpecificMonth('');
       onOpenChange(false);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An error occurred';
@@ -165,11 +191,7 @@ export function EmployeeDeductionFormDrawer({ open, onOpenChange, employeeId, de
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
-      setType(deduction?.type ?? 'providentFund');
-      setFrequency(deduction?.frequency ?? 'monthly');
-      setAmount(deduction?.amount?.toString() ?? '');
-      setOtherTitle(deduction?.otherTitle ?? '');
-      setSpecificMonth(deduction?.specificMonth ?? '');
+      setLineItems(defaultLineItems());
       setEffectiveFrom(deduction?.effectiveFrom ?? '');
       setEffectiveTill(deduction?.effectiveTill ?? '');
       setIsActive(deduction?.isActive ?? true);
@@ -205,120 +227,7 @@ export function EmployeeDeductionFormDrawer({ open, onOpenChange, employeeId, de
         )}
         {error && !hasFieldErrors && <p className='text-sm text-destructive'>{error}</p>}
 
-        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-          <div className='flex flex-col gap-2'>
-            <Label htmlFor='type'>Type</Label>
-            <Select value={type} onValueChange={(v) => setType(v as PayrollDeductionTypeDtoEnum)}>
-              <SelectTrigger id='type' className={cn(fieldErrors.type && 'border-destructive')}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {(Object.keys(DEDUCTION_TYPE_LABELS) as PayrollDeductionTypeDtoEnum[]).map((k) => (
-                  <SelectItem key={k} value={k}>
-                    {DEDUCTION_TYPE_LABELS[k]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {fieldErrors.type && <p className='text-sm text-destructive'>{fieldErrors.type}</p>}
-          </div>
-          {type === 'other' && (
-            <div className='flex flex-col gap-2'>
-              <Label htmlFor='otherTitle'>Title</Label>
-              <Input
-                id='otherTitle'
-                value={otherTitle}
-                onChange={(e) => {
-                  setOtherTitle(e.target.value);
-                  if (fieldErrors.otherTitle) setFieldErrors((prev) => ({ ...prev, otherTitle: undefined }));
-                }}
-                placeholder='Enter deduction title'
-                className={cn(fieldErrors.otherTitle && 'border-destructive')}
-              />
-              {fieldErrors.otherTitle && <p className='text-sm text-destructive'>{fieldErrors.otherTitle}</p>}
-            </div>
-          )}
-        </div>
-
-        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-          <div className='flex flex-col gap-2'>
-            <Label htmlFor='frequency'>Frequency</Label>
-            <Select
-              value={frequency}
-              onValueChange={(v) => {
-                const newFreq = v as PayrollDeductionFrequencyDtoEnum;
-                setFrequency(newFreq);
-                if (newFreq !== 'specificMonth') setSpecificMonth('');
-                if (fieldErrors.specificMonth) setFieldErrors((prev) => ({ ...prev, specificMonth: undefined }));
-              }}
-            >
-              <SelectTrigger id='frequency' className={cn(fieldErrors.frequency && 'border-destructive')}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {(Object.keys(DEDUCTION_FREQUENCY_LABELS) as PayrollDeductionFrequencyDtoEnum[]).map((k) => (
-                  <SelectItem key={k} value={k}>
-                    {DEDUCTION_FREQUENCY_LABELS[k]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {fieldErrors.frequency && <p className='text-sm text-destructive'>{fieldErrors.frequency}</p>}
-          </div>
-          {frequency === 'specificMonth' && (
-            <div className='flex flex-col gap-2'>
-              <Label htmlFor='specificMonth'>Specific month</Label>
-              <MonthYearPicker
-                value={specificMonth}
-                onChange={(v) => {
-                  setSpecificMonth(v);
-                  if (fieldErrors.specificMonth) setFieldErrors((prev) => ({ ...prev, specificMonth: undefined }));
-                }}
-                onError={(err) =>
-                  setFieldErrors((prev) => (err ? { ...prev, specificMonth: err } : { ...prev, specificMonth: undefined }))
-                }
-              />
-              {fieldErrors.specificMonth && <p className='text-sm text-destructive'>{fieldErrors.specificMonth}</p>}
-            </div>
-          )}
-        </div>
-
-        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-          <div className='flex flex-col gap-2'>
-            <Label htmlFor='status'>Status</Label>
-            <Select
-              value={isActive ? 'active' : 'inactive'}
-              onValueChange={(v) => setIsActive(v === 'active')}
-            >
-              <SelectTrigger id='status'>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='active'>Active</SelectItem>
-                <SelectItem value='inactive'>Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
         <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
-          <div className='flex flex-col gap-2'>
-            <Label htmlFor='amount'>Amount (₹)</Label>
-            <Input
-              id='amount'
-              type='number'
-              min={0}
-              step={1}
-              value={amount}
-              onChange={(e) => {
-                setAmount(e.target.value);
-                if (fieldErrors.amount) setFieldErrors((prev) => ({ ...prev, amount: undefined }));
-              }}
-              placeholder='0'
-              className={cn(fieldErrors.amount && 'border-destructive')}
-            />
-            {fieldErrors.amount && <p className='text-sm text-destructive'>{fieldErrors.amount}</p>}
-          </div>
           <div className='flex flex-col gap-2'>
             <Label htmlFor='effectiveFrom'>Effective from</Label>
             <Input
@@ -347,6 +256,132 @@ export function EmployeeDeductionFormDrawer({ open, onOpenChange, employeeId, de
             />
             {fieldErrors.effectiveTill && <p className='text-sm text-destructive'>{fieldErrors.effectiveTill}</p>}
           </div>
+          <div className='flex flex-col gap-2'>
+            <Label htmlFor='status'>Status</Label>
+            <Select
+              value={isActive ? 'active' : 'inactive'}
+              onValueChange={(v) => setIsActive(v === 'active')}
+            >
+              <SelectTrigger id='status'>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='active'>Active</SelectItem>
+                <SelectItem value='inactive'>Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <hr className='border-border' />
+
+        <div className='flex flex-col gap-3'>
+          <div className='flex items-center justify-between'>
+            <Label>Line items</Label>
+            <Button type='button' variant='outline' size='sm' onClick={addLineItem}>
+              <Plus className='mr-1 h-3.5 w-3.5' />
+              Add item
+            </Button>
+          </div>
+          {fieldErrors.lineItems && <p className='text-sm text-destructive'>{fieldErrors.lineItems}</p>}
+
+          {lineItems.map((item, index) => (
+            <div key={index} className='rounded-md border border-border p-3'>
+              <div className='mb-3 flex items-center justify-between'>
+                <span className='text-xs font-medium text-muted-foreground'>Item {index + 1}</span>
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='icon'
+                  className='h-6 w-6 text-destructive hover:text-destructive'
+                  onClick={() => removeLineItem(index)}
+                  disabled={lineItems.length <= 1}
+                >
+                  <Trash2 className='h-3 w-3' />
+                </Button>
+              </div>
+              <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                <div className='flex flex-col gap-1'>
+                  <Label className='text-xs'>Type</Label>
+                  <Select
+                    value={item.type}
+                    onValueChange={(v) => updateLineItem(index, 'type', v)}
+                  >
+                    <SelectTrigger className='h-9'>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(Object.keys(DEDUCTION_TYPE_LABELS) as PayrollDeductionTypeDtoEnum[]).map((k) => (
+                        <SelectItem key={k} value={k}>
+                          {DEDUCTION_TYPE_LABELS[k]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className='flex flex-col gap-1'>
+                  <Label className='text-xs'>Frequency</Label>
+                  <Select
+                    value={item.frequency}
+                    onValueChange={(v) => updateLineItem(index, 'frequency', v)}
+                  >
+                    <SelectTrigger className='h-9'>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(Object.keys(DEDUCTION_FREQUENCY_LABELS) as PayrollDeductionFrequencyDtoEnum[]).map((k) => (
+                        <SelectItem key={k} value={k}>
+                          {DEDUCTION_FREQUENCY_LABELS[k]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className='flex flex-col gap-1'>
+                  <Label className='text-xs'>Amount (₹)</Label>
+                  <Input
+                    type='number'
+                    min={0}
+                    step={1}
+                    value={item.amount}
+                    onChange={(e) => updateLineItem(index, 'amount', e.target.value)}
+                    placeholder='0'
+                    className='h-9'
+                  />
+                </div>
+                {item.type === 'other' && (
+                  <div className='flex flex-col gap-1'>
+                    <Label className='text-xs'>Title</Label>
+                    <Input
+                      value={item.otherTitle}
+                      onChange={(e) => updateLineItem(index, 'otherTitle', e.target.value)}
+                      placeholder='Enter deduction title'
+                      className='h-9'
+                    />
+                  </div>
+                )}
+                {item.frequency === 'specificMonth' && (
+                  <div className='flex flex-col gap-1'>
+                    <Label className='text-xs'>Specific month</Label>
+                    <MonthYearPicker
+                      value={item.specificMonth}
+                      onChange={(v) => updateLineItem(index, 'specificMonth', v)}
+                      onError={() => {}}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <hr className='border-border' />
+
+        <div className='flex items-center justify-between'>
+          <p className='text-sm font-medium text-muted-foreground'>Total deduction</p>
+          <p className='text-lg font-semibold'>
+            ₹{lineItems.reduce((sum, li) => sum + (parseFloat(li.amount) || 0), 0).toLocaleString()}
+          </p>
         </div>
       </div>
     </Drawer>

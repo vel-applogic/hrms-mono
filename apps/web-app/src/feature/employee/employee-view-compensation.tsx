@@ -25,13 +25,11 @@ function formatAmount(value: number) {
 function CompensationWidget({
   title,
   compensation,
-  employeeId,
   onEdit,
   onDelete,
 }: {
   title: string;
   compensation: EmployeeCompensationResponseType | null;
-  employeeId: number;
   onEdit?: (compensation: EmployeeCompensationResponseType) => void;
   onDelete?: (compensation: EmployeeCompensationResponseType) => void;
 }) {
@@ -56,23 +54,17 @@ function CompensationWidget({
         )}
       </div>
       <h3 className='mb-3 text-sm font-medium text-muted-foreground'>{title}</h3>
-      <div className='grid gap-3 sm:grid-cols-2 md:grid-cols-5'>
+      <div className='grid gap-3 sm:grid-cols-2 md:grid-cols-4'>
         <div className='flex flex-col gap-1'>
           <Label className='text-muted-foreground'>Gross</Label>
-          <p className='text-lg font-medium'>{formatAmount(compensation.gross)}</p>
+          <p className='text-lg font-medium'>{formatAmount(compensation.grossAmount)}</p>
         </div>
-        <div className='flex flex-col gap-1'>
-          <Label className='text-muted-foreground'>Basic</Label>
-          <p className='text-lg font-medium'>{formatAmount(compensation.basic)}</p>
-        </div>
-        <div className='flex flex-col gap-1'>
-          <Label className='text-muted-foreground'>HRA</Label>
-          <p className='text-lg font-medium'>{formatAmount(compensation.hra)}</p>
-        </div>
-        <div className='flex flex-col gap-1'>
-          <Label className='text-muted-foreground'>Other Allowance</Label>
-          <p className='text-lg font-medium'>{formatAmount(compensation.otherAllowances)}</p>
-        </div>
+        {compensation.lineItems.map((li) => (
+          <div key={li.id} className='flex flex-col gap-1'>
+            <Label className='text-muted-foreground'>{li.title}</Label>
+            <p className='text-lg font-medium'>{formatAmount(li.amount)}</p>
+          </div>
+        ))}
         <div className='flex flex-col gap-1'>
           <Label className='text-muted-foreground'>Effective from</Label>
           <p className='text-lg font-medium'>{compensation.effectiveFrom}</p>
@@ -86,6 +78,17 @@ const actionOptions: ActionOption[] = [
   { name: 'Edit', icon: Pencil, variant: 'outline' },
   { name: 'Delete', icon: Trash2, variant: 'outline-danger' },
 ];
+
+type CompensationRow = {
+  id: number;
+  grossAmount: number;
+  lineItemsSummary: string;
+  effectiveFrom: string;
+  effectiveTill: string | null | undefined;
+  isActive: boolean;
+  createdAt: string;
+  _original: EmployeeCompensationResponseType;
+};
 
 export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
   const router = useRouter();
@@ -110,7 +113,19 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
     return sorted[0]!;
   }, [compensations]);
 
-  const tableRows = useMemo(() => compensations.filter((c) => c.id !== recentCompensation?.id), [compensations, recentCompensation?.id]);
+  const tableRows = useMemo(() => {
+    const filtered = compensations.filter((c) => c.id !== recentCompensation?.id);
+    return filtered.map((c): CompensationRow => ({
+      id: c.id,
+      grossAmount: c.grossAmount,
+      lineItemsSummary: c.lineItems.map((li) => `${li.title}: ${formatAmount(li.amount)}`).join(', '),
+      effectiveFrom: c.effectiveFrom,
+      effectiveTill: c.effectiveTill,
+      isActive: c.isActive,
+      createdAt: c.createdAt,
+      _original: c,
+    }));
+  }, [compensations, recentCompensation?.id]);
 
   const paginatedRows = useMemo(() => {
     const start = (tablePage - 1) * tablePageSize;
@@ -179,18 +194,16 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
     router.refresh();
   };
 
-  const handleActionClick = useCallback((action: string, data: EmployeeCompensationResponseType) => {
-    if (action === 'Edit') setEditingCompensation(data);
-    if (action === 'Delete') setDeletingCompensation(data);
+  const handleActionClick = useCallback((action: string, data: CompensationRow) => {
+    if (action === 'Edit') setEditingCompensation(data._original);
+    if (action === 'Delete') setDeletingCompensation(data._original);
   }, []);
 
-  const colDefs = useMemo<ColDef<EmployeeCompensationResponseType>[]>(
+  const colDefs = useMemo<ColDef<CompensationRow>[]>(
     () => [
       { headerName: 'Created at', field: 'createdAt', width: 150, cellRenderer: DateTimeRenderer },
-      { headerName: 'Gross', field: 'gross', width: 120, valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : '') },
-      { headerName: 'Basic', field: 'basic', width: 120, valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : '') },
-      { headerName: 'HRA', field: 'hra', width: 120, valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : '') },
-      { headerName: 'Other Allowance', field: 'otherAllowances', width: 140, valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : '') },
+      { headerName: 'Gross', field: 'grossAmount', width: 120, valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : '') },
+      { headerName: 'Line items', field: 'lineItemsSummary', flex: 1, minWidth: 200 },
       { headerName: 'Effective from', field: 'effectiveFrom', width: 130 },
       { headerName: 'Effective till', field: 'effectiveTill', width: 130, valueFormatter: (p) => p.value ?? '—' },
       {
@@ -212,10 +225,10 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
         pinned: 'right',
         width: 90,
         cellClass: '!flex items-center !justify-center',
-        cellRenderer: ActionsIconCellRenderer<EmployeeCompensationResponseType>,
+        cellRenderer: ActionsIconCellRenderer<CompensationRow>,
         cellRendererParams: {
           options: actionOptions,
-        } satisfies Partial<ActionsIconCellRendererParams<EmployeeCompensationResponseType>>,
+        } satisfies Partial<ActionsIconCellRendererParams<CompensationRow>>,
       },
     ],
     [],
@@ -236,7 +249,6 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
           <CompensationWidget
             title='Recent compensation'
             compensation={recentCompensation}
-            employeeId={employeeId}
             onEdit={(c) => setEditingCompensation(c)}
             onDelete={(c) => setDeletingCompensation(c)}
           />
@@ -247,7 +259,7 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
         <div className='flex min-h-0 flex-1 flex-col'>
           <h3 className='mb-3 text-sm font-medium text-muted-foreground'>Compensation history</h3>
           <div className='min-h-[200px] flex-1'>
-            <DataTableSimple<EmployeeCompensationResponseType>
+            <DataTableSimple<CompensationRow>
               tableKey='employee-compensation-history'
               rowData={paginatedRows}
               pagination={{

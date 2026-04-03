@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import type { PayrollCompensation, PayrollDeduction } from '@repo/db';
 import { Prisma } from '@repo/db';
 import type { PayslipDetailResponseType, PayslipGenerateRequestType, PayslipGenerateResponseType, PayslipListResponseType } from '@repo/dto';
 import { PrismaService } from '@repo/nest-lib';
 import { CommonLoggerService, CurrentUserType, IUseCase, LeaveDao, PayrollPayslipDao, PayrollCompensationDao, PayrollDeductionDao, EmployeeDao } from '@repo/nest-lib';
-import type { PayrollPayslipWithDetailsType } from '@repo/nest-lib';
+import type { PayrollPayslipWithDetailsType, PayrollCompensationWithLineItemsType, PayrollDeductionWithLineItemsType } from '@repo/nest-lib';
 import { ApiBadRequestError } from '@repo/shared';
 import { buildPayslipTemplateData } from '@repo/shared';
 
@@ -39,7 +38,6 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
 
     const { existingPayslips, targetUserIds } = await this.validate(params, params.currentUser.organizationId);
 
-    // return if payslips already exist and force is not true
     if (existingPayslips.length > 0 && !force) {
       return {
         generated: 0,
@@ -55,7 +53,6 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     const lastDay = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
     const totalDaysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
 
-    // Fetch user names to compute deterministic S3 keys before the transaction
     const users = await this.prisma.user.findMany({
       where: { id: { in: targetUserIds } },
       select: { id: true, firstname: true, lastname: true },
@@ -75,31 +72,23 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
           continue;
         }
 
-        // Only the latest compensation (the one open-ended) may have no effectiveTill
-        const openEndedComps = overlappingComps.filter((c: PayrollCompensation) => !c.effectiveTill);
+        const openEndedComps = overlappingComps.filter((c) => !c.effectiveTill);
         if (openEndedComps.length > 1) {
           throw new ApiBadRequestError(`Employee ${userId} has ${openEndedComps.length} compensations with no end date. Only the latest compensation can have no end date.`);
         }
 
         const applicableDeductions = await this.getApplicableDeductions({ userId, lastDay, firstDay, year, month, organizationId });
 
-        const { totalBasic, totalHra, totalOtherAllowances, totalGross } = this.getSalaryComponents({ overlappingComps, firstDay, totalDaysInMonth, year, month });
+        const earningLineItems = this.getEarningLineItems({ overlappingComps, firstDay, totalDaysInMonth, year, month });
 
-        const earningLineItems = [
-          { type: 'earning' as const, title: 'Basic', amount: totalBasic },
-          { type: 'earning' as const, title: 'HRA', amount: totalHra },
-          { type: 'earning' as const, title: 'Other Allowances', amount: totalOtherAllowances },
-        ].filter((e) => e.amount > 0);
+        const deductionLineItems = this.getDeductionLineItems(applicableDeductions, year, month);
 
-        const deductionLineItems = applicableDeductions.map((d: PayrollDeduction) => ({
-          type: 'deduction' as const,
-          title: d.type === 'other' ? (d.otherTitle ?? 'Other') : this.getDeductionLabel(d.type),
-          amount: d.amount,
-        }));
-
+        const totalGross = earningLineItems.reduce((s, e) => s + e.amount, 0);
         const lopDaysCount = await this.leaveDao.sumLopDaysByUserIdAndDateRange({ userId, startDate: firstDay, endDate: lastDay, organizationId });
         const lopAmount = lopDaysCount > 0 ? Math.round((totalGross / totalDaysInMonth) * lopDaysCount) : 0;
-        deductionLineItems.push({ type: 'deduction' as const, title: 'Loss of Pay', amount: lopAmount });
+        if (lopAmount > 0) {
+          deductionLineItems.push({ type: 'deduction' as const, title: 'Loss of Pay', amount: lopAmount });
+        }
 
         const grossAmount = earningLineItems.reduce((s, e) => s + e.amount, 0);
         const deductionAmount = deductionLineItems.reduce((s, d) => s + d.amount, 0);
@@ -118,7 +107,6 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
       }
     });
 
-    // Generate PDFs and upload to S3 in parallel after the transaction
     await Promise.all(createdPayslips.map((p) => this.generateAndUploadPdf(p)));
 
     return { generated, skipped, alreadyExisting: false };
@@ -130,7 +118,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
       const pdfBuffer = await this.pdfGeneratorService.generatePayslipPdf(pdfData);
       await this.s3Service.uploadBuffer({ s3Key: payslip.pdfS3Key, buffer: pdfBuffer, contentType: 'application/pdf' });
     } catch (err) {
-      this.logger.e('Failed to generate/upload payslip PDF', { payslipId: payslip.id, error: err });
+      this.logger.e('Failed to generate/upload payslip PDF', { payslipId: payslip.id, error: String(err) });
     }
   }
 
@@ -221,18 +209,19 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     });
   }
 
-  // Calculate pro-rated earnings from each overlapping compensation
-  // Values in DB are yearly; monthly = value / 12, then pro-rated by active calendar days
-  private getSalaryComponents(params: { overlappingComps: PayrollCompensation[]; firstDay: Date; totalDaysInMonth: number; year: number; month: number }): {
-    totalBasic: number;
-    totalHra: number;
-    totalOtherAllowances: number;
-    totalGross: number;
-  } {
-    let totalBasic = 0;
-    let totalHra = 0;
-    let totalOtherAllowances = 0;
-    let totalGross = 0;
+  /**
+   * Build earning line items from compensation line items, pro-rated by active calendar days.
+   * Compensation amounts are yearly; monthly = value / 12, then pro-rated.
+   */
+  private getEarningLineItems(params: {
+    overlappingComps: PayrollCompensationWithLineItemsType[];
+    firstDay: Date;
+    totalDaysInMonth: number;
+    year: number;
+    month: number;
+  }): Array<{ type: 'earning'; title: string; amount: number }> {
+    // Aggregate amounts by line item title across all overlapping compensations
+    const titleAmountMap = new Map<string, number>();
 
     for (const comp of params.overlappingComps) {
       const compFrom = new Date(comp.effectiveFrom);
@@ -252,16 +241,43 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
 
       const prorataFactor = (endDay - startDay + 1) / params.totalDaysInMonth;
 
-      totalBasic += Math.round((comp.basic / 12) * prorataFactor);
-      totalHra += Math.round((comp.hra / 12) * prorataFactor);
-      totalOtherAllowances += Math.round((comp.otherAllowances / 12) * prorataFactor);
-      totalGross += Math.round((comp.gross / 12) * prorataFactor);
+      for (const lineItem of comp.payrollCompensationLineItems) {
+        const prorated = Math.round((lineItem.amount / 12) * prorataFactor);
+        const current = titleAmountMap.get(lineItem.title) ?? 0;
+        titleAmountMap.set(lineItem.title, current + prorated);
+      }
     }
 
-    return { totalBasic, totalHra, totalOtherAllowances, totalGross };
+    return Array.from(titleAmountMap.entries())
+      .filter(([, amount]) => amount > 0)
+      .map(([title, amount]) => ({ type: 'earning' as const, title, amount }));
   }
 
-  private async getApplicableDeductions(params: { userId: number; lastDay: Date; firstDay: Date; year: number; month: number; organizationId: number }): Promise<PayrollDeduction[]> {
+  /**
+   * Build deduction line items from applicable deduction records.
+   * For line items with specificMonth frequency, only include if their specificMonth matches the target month.
+   * For monthly/yearly line items, include all.
+   */
+  private getDeductionLineItems(applicableDeductions: PayrollDeductionWithLineItemsType[], year: number, month: number): Array<{ type: 'deduction'; title: string; amount: number }> {
+    const items: Array<{ type: 'deduction'; title: string; amount: number }> = [];
+    for (const deduction of applicableDeductions) {
+      for (const li of deduction.payrollDeductionLineItems) {
+        if (li.frequency === 'specificMonth') {
+          if (!li.specificMonth) continue;
+          const sm = new Date(li.specificMonth);
+          if (sm.getUTCFullYear() !== year || sm.getUTCMonth() + 1 !== month) continue;
+        }
+        items.push({
+          type: 'deduction',
+          title: li.type === 'other' ? (li.otherTitle ?? 'Other') : this.getDeductionLabel(li.type),
+          amount: li.amount,
+        });
+      }
+    }
+    return items;
+  }
+
+  private async getApplicableDeductions(params: { userId: number; lastDay: Date; firstDay: Date; year: number; month: number; organizationId: number }): Promise<PayrollDeductionWithLineItemsType[]> {
     const allDeductions = await this.payrollDeductionDao.findByUserIdWithPagination({
       userId: params.userId,
       page: 1,
@@ -269,7 +285,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
       organizationId: params.organizationId,
     });
 
-    return allDeductions.dbRecords.filter((d: PayrollDeduction) => {
+    return allDeductions.dbRecords.filter((d) => {
       if (!d.isActive) return false;
 
       const dFrom = new Date(d.effectiveFrom);
@@ -280,23 +296,13 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
       const hasStarted = dFrom <= params.lastDay;
       const hasNotEnded = !dTill || dTill >= params.firstDay;
 
-      if (d.frequency === 'specificMonth') {
-        if (!d.specificMonth) return false;
-        const sm = new Date(d.specificMonth);
-        return sm.getUTCFullYear() === params.year && sm.getUTCMonth() + 1 === params.month;
-      }
-
-      if (d.frequency === 'yearly') {
-        return dFrom.getUTCFullYear() <= params.year && (!dTill || dTill.getUTCFullYear() >= params.year);
-      }
-
       return hasStarted && hasNotEnded;
     });
   }
 
-  private async getCompensations(params: { userId: number; lastDay: Date; firstDay: Date; organizationId: number }): Promise<PayrollCompensation[]> {
+  private async getCompensations(params: { userId: number; lastDay: Date; firstDay: Date; organizationId: number }): Promise<PayrollCompensationWithLineItemsType[]> {
     const allCompensations = await this.payrollCompensationDao.findByUserIdOrderedByEffectiveFromDesc({ userId: params.userId, organizationId: params.organizationId });
-    return allCompensations.filter((c: PayrollCompensation) => {
+    return allCompensations.filter((c) => {
       const compFrom = new Date(c.effectiveFrom);
       compFrom.setUTCHours(0, 0, 0, 0);
       const compTill = c.effectiveTill ? new Date(c.effectiveTill) : null;
@@ -319,6 +325,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
       insurance: 'Insurance',
       professionalTax: 'Professional Tax',
       loan: 'Loan',
+      lop: 'LOP',
     };
     return labels[type] ?? type;
   }

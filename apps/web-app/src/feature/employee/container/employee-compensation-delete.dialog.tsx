@@ -48,7 +48,7 @@ export function EmployeeCompensationDeleteDialog({ open, onOpenChange, compensat
           <DialogTitle>Delete compensation</DialogTitle>
           <DialogDescription>
             Are you sure you want to delete this compensation entry? This will permanently remove the record (Gross:{' '}
-            {compensation ? formatAmount(compensation.gross) : ''}, Effective from: {compensation?.effectiveFrom ?? ''}).
+            {compensation ? formatAmount(compensation.grossAmount) : ''}, Effective from: {compensation?.effectiveFrom ?? ''}).
             This action cannot be undone.
           </DialogDescription>
         </DialogHeader>

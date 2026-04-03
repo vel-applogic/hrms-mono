@@ -32,16 +32,18 @@ export class EmployeeCompensationListUc implements IUseCase<Params, PaginatedRes
       limit: params.filterDto.pagination.limit,
     });
 
-    const results = dbRecords.map((c) => ({
+    const results: EmployeeCompensationResponseType[] = dbRecords.map((c) => ({
       id: c.id,
       employeeId: c.userId,
-      basic: c.basic,
-      hra: c.hra,
-      otherAllowances: c.otherAllowances,
-      gross: c.gross,
+      grossAmount: c.grossAmount,
       effectiveFrom: c.effectiveFrom.toISOString().split('T')[0]!,
       effectiveTill: c.effectiveTill?.toISOString().split('T')[0] ?? undefined,
       isActive: c.isActive,
+      lineItems: c.payrollCompensationLineItems.map((li) => ({
+        id: li.id,
+        title: li.title,
+        amount: li.amount,
+      })),
       createdAt: c.createdAt.toISOString(),
       updatedAt: c.updatedAt.toISOString(),
     }));

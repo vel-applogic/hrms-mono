@@ -29,27 +29,17 @@ export function PayrollCompensationData({ data, searchParams }: Props) {
     },
     {
       headerName: 'Gross',
-      field: 'gross',
+      field: 'grossAmount',
       width: 120,
       valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : ''),
     },
     {
-      headerName: 'Basic',
-      field: 'basic',
-      width: 120,
-      valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : ''),
-    },
-    {
-      headerName: 'HRA',
-      field: 'hra',
-      width: 120,
-      valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : ''),
-    },
-    {
-      headerName: 'Other Allowance',
-      field: 'otherAllowances',
-      width: 140,
-      valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : ''),
+      headerName: 'Line items',
+      flex: 2,
+      valueGetter: (params) => {
+        if (!params.data) return '';
+        return params.data.lineItems.map((li) => `${li.title}: ${formatAmount(li.amount)}`).join(', ');
+      },
     },
     {
       headerName: 'Effective from',

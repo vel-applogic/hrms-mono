@@ -7,38 +7,43 @@ export const EmployeeCompensationFilterRequestSchema = FilterRequestSchema.exten
 });
 export type EmployeeCompensationFilterRequestType = z.infer<typeof EmployeeCompensationFilterRequestSchema>;
 
+const EmployeeCompensationLineItemUpsertSchema = z.object({
+  title: z.string().min(1, 'Title is required').trim(),
+  amount: z.number().min(0),
+});
+export type EmployeeCompensationLineItemUpsertType = z.infer<typeof EmployeeCompensationLineItemUpsertSchema>;
+
 export const EmployeeCompensationCreateRequestSchema = z.object({
   employeeId: z.number(),
-  basic: z.number().min(0),
-  hra: z.number().min(0),
-  otherAllowances: z.number().min(0),
-  gross: z.number().min(0),
   effectiveFrom: z.string(),
   effectiveTill: z.string().optional().nullable(),
+  lineItems: z.array(EmployeeCompensationLineItemUpsertSchema).min(1, 'At least one line item is required'),
 });
 export type EmployeeCompensationCreateRequestType = z.infer<typeof EmployeeCompensationCreateRequestSchema>;
 
 export const EmployeeCompensationUpdateRequestSchema = z.object({
-  basic: z.number().min(0),
-  hra: z.number().min(0),
-  otherAllowances: z.number().min(0),
-  gross: z.number().min(0),
   effectiveFrom: z.string().optional(),
   effectiveTill: z.string().optional().nullable(),
   isActive: z.boolean().optional(),
+  lineItems: z.array(EmployeeCompensationLineItemUpsertSchema).min(1, 'At least one line item is required').optional(),
 });
 export type EmployeeCompensationUpdateRequestType = z.infer<typeof EmployeeCompensationUpdateRequestSchema>;
+
+const EmployeeCompensationLineItemResponseSchema = z.object({
+  id: z.number(),
+  title: z.string(),
+  amount: z.number(),
+});
+export type EmployeeCompensationLineItemResponseType = z.infer<typeof EmployeeCompensationLineItemResponseSchema>;
 
 export const EmployeeCompensationResponseSchema = z.object({
   id: z.number(),
   employeeId: z.number(),
-  basic: z.number(),
-  hra: z.number(),
-  otherAllowances: z.number(),
-  gross: z.number(),
+  grossAmount: z.number(),
   effectiveFrom: z.string(),
   effectiveTill: z.string().optional().nullable(),
   isActive: z.boolean(),
+  lineItems: z.array(EmployeeCompensationLineItemResponseSchema),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

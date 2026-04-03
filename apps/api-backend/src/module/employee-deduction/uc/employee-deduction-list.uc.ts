@@ -1,17 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import type {
-  EmployeeDeductionFilterRequestType,
-  EmployeeDeductionResponseType,
-  PaginatedResponseType,
-} from '@repo/dto';
-import type { PayrollDeduction } from '@repo/db';
-import {
-  PayrollDeductionDao,
-  EmployeeDao,
-  CommonLoggerService,
-  CurrentUserType,
-  IUseCase,
-} from '@repo/nest-lib';
+import type { EmployeeDeductionFilterRequestType, EmployeeDeductionResponseType, PaginatedResponseType } from '@repo/dto';
+import { CommonLoggerService, CurrentUserType, EmployeeDao, IUseCase, PayrollDeductionDao } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 type Params = {
@@ -42,17 +31,20 @@ export class EmployeeDeductionListUc implements IUseCase<Params, PaginatedRespon
       limit: params.filterDto.pagination.limit,
     });
 
-    const results = dbRecords.map((d: PayrollDeduction) => ({
+    const results: EmployeeDeductionResponseType[] = dbRecords.map((d) => ({
       id: d.id,
       employeeId: d.userId,
-      type: d.type,
-      frequency: d.frequency,
-      amount: d.amount,
-      otherTitle: d.otherTitle,
-      specificMonth: d.specificMonth?.toISOString().split('T')[0] ?? undefined,
       effectiveFrom: d.effectiveFrom.toISOString().split('T')[0]!,
       effectiveTill: d.effectiveTill?.toISOString().split('T')[0] ?? undefined,
       isActive: d.isActive,
+      lineItems: d.payrollDeductionLineItems.map((li) => ({
+        id: li.id,
+        type: li.type,
+        frequency: li.frequency,
+        amount: li.amount,
+        otherTitle: li.otherTitle,
+        specificMonth: li.specificMonth?.toISOString().split('T')[0] ?? undefined,
+      })),
       createdAt: d.createdAt.toISOString(),
       updatedAt: d.updatedAt.toISOString(),
     }));

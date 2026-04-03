@@ -1,23 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import type {
-  EmployeeDeductionResponseType,
-  EmployeeDeductionUpdateRequestType,
-} from '@repo/dto';
+import type { EmployeeDeductionResponseType, EmployeeDeductionUpdateRequestType } from '@repo/dto';
 import type { Prisma } from '@repo/db';
-import {
-  CommonLoggerService,
-  CurrentUserType,
-  IUseCase,
-  PayrollDeductionDao,
-  PrismaService,
-} from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, PayrollDeductionDao, PrismaService } from '@repo/nest-lib';
+import type { PayrollDeductionWithLineItemsType } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
-import {
-  parseDateOnly,
-  parseMonthYearToFirstDay,
-  validateEffectiveFromBeforeTill,
-} from './_employee-deduction-validation.helper.js';
+import { parseDateOnly, parseMonthYearToFirstDay, validateEffectiveFromBeforeTill } from './_employee-deduction-validation.helper.js';
 
 type Params = {
   currentUser: CurrentUserType;
@@ -51,33 +39,7 @@ export class EmployeeDeductionUpdateUc implements IUseCase<Params, EmployeeDeduc
 
     validateEffectiveFromBeforeTill(newEffectiveFrom, newEffectiveTill);
 
-    const newType = params.dto.type ?? existing.type;
-    const newFrequency = params.dto.frequency ?? existing.frequency;
-
-    const resolvedOtherTitle = params.dto.otherTitle !== undefined ? params.dto.otherTitle : existing.otherTitle;
-    if (newType === 'other' && !resolvedOtherTitle?.trim()) {
-      throw new ApiError('Title is required when type is Other', 400);
-    }
-    const hasSpecificMonth =
-      (params.dto.specificMonth != null && params.dto.specificMonth.trim().length > 0) || existing.specificMonth != null;
-    if (newFrequency === 'specificMonth' && !hasSpecificMonth) {
-      throw new ApiError('Specific month date is required when frequency is Specific Month', 400);
-    }
-
     const updateData: Prisma.PayrollDeductionUpdateInput = {};
-    if (params.dto.type !== undefined) updateData.type = params.dto.type;
-    if (params.dto.frequency !== undefined) updateData.frequency = params.dto.frequency;
-    if (params.dto.amount !== undefined) updateData.amount = params.dto.amount;
-    if (params.dto.type !== undefined && params.dto.type !== 'other') {
-      updateData.otherTitle = null;
-    } else if (params.dto.otherTitle !== undefined) {
-      updateData.otherTitle = params.dto.otherTitle;
-    }
-    if (params.dto.frequency !== undefined && params.dto.frequency !== 'specificMonth') {
-      updateData.specificMonth = null;
-    } else if (params.dto.specificMonth !== undefined) {
-      updateData.specificMonth = params.dto.specificMonth ? parseMonthYearToFirstDay(params.dto.specificMonth) : null;
-    }
     if (params.dto.effectiveFrom !== undefined) updateData.effectiveFrom = parseDateOnly(params.dto.effectiveFrom);
     if (params.dto.effectiveTill !== undefined) updateData.effectiveTill = params.dto.effectiveTill ? parseDateOnly(params.dto.effectiveTill) : null;
     if (params.dto.isActive !== undefined) updateData.isActive = params.dto.isActive;
@@ -88,24 +50,45 @@ export class EmployeeDeductionUpdateUc implements IUseCase<Params, EmployeeDeduc
         data: updateData,
         tx,
       });
+
+      if (params.dto.lineItems) {
+        await this.payrollDeductionDao.replaceLineItems({
+          deductionId: params.id,
+          lineItems: params.dto.lineItems.map((item) => ({
+            type: item.type,
+            frequency: item.frequency,
+            amount: item.amount,
+            otherTitle: item.type === 'other' ? (item.otherTitle ?? null) : null,
+            specificMonth: item.frequency === 'specificMonth' && item.specificMonth ? parseMonthYearToFirstDay(item.specificMonth) : null,
+          })),
+          tx,
+        });
+      }
     });
 
     const updated = await this.payrollDeductionDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!updated) throw new ApiError('Failed to fetch updated deduction', 500);
 
+    return this.mapToResponse(updated);
+  }
+
+  private mapToResponse(d: PayrollDeductionWithLineItemsType): EmployeeDeductionResponseType {
     return {
-      id: updated.id,
-      employeeId: updated.userId,
-      type: updated.type,
-      frequency: updated.frequency,
-      amount: updated.amount,
-      otherTitle: updated.otherTitle,
-      specificMonth: updated.specificMonth?.toISOString().split('T')[0] ?? undefined,
-      effectiveFrom: updated.effectiveFrom.toISOString().split('T')[0]!,
-      effectiveTill: updated.effectiveTill?.toISOString().split('T')[0] ?? undefined,
-      isActive: updated.isActive,
-      createdAt: updated.createdAt.toISOString(),
-      updatedAt: updated.updatedAt.toISOString(),
+      id: d.id,
+      employeeId: d.userId,
+      effectiveFrom: d.effectiveFrom.toISOString().split('T')[0]!,
+      effectiveTill: d.effectiveTill?.toISOString().split('T')[0] ?? undefined,
+      isActive: d.isActive,
+      lineItems: d.payrollDeductionLineItems.map((li) => ({
+        id: li.id,
+        type: li.type,
+        frequency: li.frequency,
+        amount: li.amount,
+        otherTitle: li.otherTitle,
+        specificMonth: li.specificMonth?.toISOString().split('T')[0] ?? undefined,
+      })),
+      createdAt: d.createdAt.toISOString(),
+      updatedAt: d.updatedAt.toISOString(),
     };
   }
 }

@@ -33,12 +33,6 @@ const DEDUCTION_TYPE_LABELS: Record<string, string> = {
   other: 'Other',
 };
 
-const DEDUCTION_FREQUENCY_LABELS: Record<string, string> = {
-  monthly: 'Monthly',
-  yearly: 'Yearly',
-  specificMonth: 'Specific Month',
-};
-
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function formatMonthYear(value: string | undefined): string {
@@ -54,14 +48,31 @@ function formatAmount(value: number) {
   return `₹${value.toLocaleString()}`;
 }
 
-function getTypeLabel(d: EmployeeDeductionResponseType) {
-  return d.type === 'other' ? `Other: ${d.otherTitle ?? 'Other'}` : (DEDUCTION_TYPE_LABELS[d.type] ?? d.type);
+function getLineItemsSummary(d: EmployeeDeductionResponseType): string {
+  return d.lineItems
+    .map((li) => {
+      const label = li.type === 'other' ? `Other: ${li.otherTitle ?? 'Other'}` : (DEDUCTION_TYPE_LABELS[li.type] ?? li.type);
+      const monthSuffix = li.frequency === 'specificMonth' && li.specificMonth ? ` [${formatMonthYear(li.specificMonth)}]` : '';
+      return `${label} (${formatAmount(li.amount)})${monthSuffix}`;
+    })
+    .join(', ');
 }
 
 const actionOptions: ActionOption[] = [
   { name: 'Edit', icon: Pencil, variant: 'outline' },
   { name: 'Delete', icon: Trash2, variant: 'outline-danger' },
 ];
+
+type DeductionRow = {
+  id: number;
+  lineItemsSummary: string;
+  totalAmount: number;
+  effectiveFrom: string;
+  effectiveTill: string | null | undefined;
+  isActive: boolean;
+  createdAt: string;
+  _original: EmployeeDeductionResponseType;
+};
 
 interface Props {
   employeeId: number;
@@ -85,10 +96,23 @@ export function EmployeeViewDeduction({ employeeId, initialPage }: Props) {
   const tablePage = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
   const tablePageSize = Math.max(5, Math.min(100, parseInt(searchParams.get('pageSize') ?? String(TABLE_PAGE_SIZE), 10)));
 
+  const tableRows = useMemo((): DeductionRow[] => {
+    return deductions.map((d) => ({
+      id: d.id,
+      lineItemsSummary: getLineItemsSummary(d),
+      totalAmount: d.lineItems.reduce((sum, li) => sum + li.amount, 0),
+      effectiveFrom: d.effectiveFrom,
+      effectiveTill: d.effectiveTill,
+      isActive: d.isActive,
+      createdAt: d.createdAt,
+      _original: d,
+    }));
+  }, [deductions]);
+
   const paginatedRows = useMemo(() => {
     const start = (tablePage - 1) * tablePageSize;
-    return deductions.slice(start, start + tablePageSize);
-  }, [deductions, tablePage, tablePageSize]);
+    return tableRows.slice(start, start + tablePageSize);
+  }, [tableRows, tablePage, tablePageSize]);
 
   const loadMore = useCallback(async () => {
     if (!hasMore || loadingMore) return;
@@ -153,19 +177,17 @@ export function EmployeeViewDeduction({ employeeId, initialPage }: Props) {
   };
 
   const handleActionClick = useCallback(
-    (action: string, data: EmployeeDeductionResponseType) => {
-      if (action === 'Edit') setEditingDeduction(data);
-      if (action === 'Delete') setDeletingDeduction(data);
+    (action: string, data: DeductionRow) => {
+      if (action === 'Edit') setEditingDeduction(data._original);
+      if (action === 'Delete') setDeletingDeduction(data._original);
     },
     [],
   );
 
-  const colDefs = useMemo<ColDef<EmployeeDeductionResponseType>[]>(
+  const colDefs = useMemo<ColDef<DeductionRow>[]>(
     () => [
-      { headerName: 'Type', field: 'type', width: 150, valueGetter: (p) => (p.data ? getTypeLabel(p.data) : '') },
-      { headerName: 'Frequency', field: 'frequency', width: 120, valueFormatter: (p) => (p.value ? DEDUCTION_FREQUENCY_LABELS[p.value] ?? p.value : '') },
-      { headerName: 'Amount', field: 'amount', width: 120, valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : '') },
-      { headerName: 'Specific month', field: 'specificMonth', width: 130, valueFormatter: (p) => formatMonthYear(p.value) },
+      { headerName: 'Line items', field: 'lineItemsSummary', flex: 1, minWidth: 250 },
+      { headerName: 'Total', field: 'totalAmount', width: 120, valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : '') },
       { headerName: 'Effective from', field: 'effectiveFrom', width: 130 },
       { headerName: 'Effective till', field: 'effectiveTill', width: 130, valueFormatter: (p) => (p.value ?? '—') },
       {
@@ -188,10 +210,10 @@ export function EmployeeViewDeduction({ employeeId, initialPage }: Props) {
         pinned: 'right',
         width: 90,
         cellClass: '!flex items-center !justify-center',
-        cellRenderer: ActionsIconCellRenderer<EmployeeDeductionResponseType>,
+        cellRenderer: ActionsIconCellRenderer<DeductionRow>,
         cellRendererParams: {
           options: actionOptions,
-        } satisfies Partial<ActionsIconCellRendererParams<EmployeeDeductionResponseType>>,
+        } satisfies Partial<ActionsIconCellRendererParams<DeductionRow>>,
       },
     ],
     [],
@@ -210,7 +232,7 @@ export function EmployeeViewDeduction({ employeeId, initialPage }: Props) {
       {deductions.length > 0 ? (
         <div className='flex min-h-0 flex-1 flex-col'>
           <div className='min-h-[200px] flex-1'>
-            <DataTableSimple<EmployeeDeductionResponseType>
+            <DataTableSimple<DeductionRow>
               tableKey='employee-deduction'
               rowData={paginatedRows}
               pagination={{

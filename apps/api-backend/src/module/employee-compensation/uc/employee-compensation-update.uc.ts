@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { EmployeeCompensationResponseType, EmployeeCompensationUpdateRequestType } from '@repo/dto';
 import type { Prisma } from '@repo/db';
 import { CommonLoggerService, CurrentUserType, IUseCase, PrismaService, PayrollCompensationDao } from '@repo/nest-lib';
+import type { PayrollCompensationWithLineItemsType } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 import { parseDateOnly, validateEffectiveFromBeforeTill, validateEffectiveRangeNoOverlap } from './_employee-compensation-validation.helper.js';
@@ -33,10 +34,6 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
 
     await this.prisma.$transaction(async (tx) => {
       const updateData: Prisma.PayrollCompensationUpdateInput = {
-        basic: params.dto.basic,
-        hra: params.dto.hra,
-        otherAllowances: params.dto.otherAllowances,
-        gross: params.dto.gross,
         effectiveFrom: params.dto.effectiveFrom ? parseDateOnly(params.dto.effectiveFrom) : undefined,
         effectiveTill: params.dto.effectiveTill !== undefined ? (params.dto.effectiveTill ? parseDateOnly(params.dto.effectiveTill) : null) : undefined,
         isActive: params.dto.isActive,
@@ -64,24 +61,22 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
         data: updateData,
         tx,
       });
+
+      if (params.dto.lineItems) {
+        const grossAmount = params.dto.lineItems.reduce((sum, item) => sum + item.amount, 0);
+        await this.payrollCompensationDao.replaceLineItems({
+          compensationId: params.id,
+          lineItems: params.dto.lineItems.map((item) => ({ title: item.title, amount: item.amount })),
+          grossAmount,
+          tx,
+        });
+      }
     });
 
     const updated = await this.payrollCompensationDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!updated) throw new ApiError('Failed to fetch updated compensation', 500);
 
-    return {
-      id: updated.id,
-      employeeId: updated.userId,
-      basic: updated.basic,
-      hra: updated.hra,
-      otherAllowances: updated.otherAllowances,
-      gross: updated.gross,
-      effectiveFrom: updated.effectiveFrom.toISOString().split('T')[0]!,
-      effectiveTill: updated.effectiveTill?.toISOString().split('T')[0] ?? undefined,
-      isActive: updated.isActive,
-      createdAt: updated.createdAt.toISOString(),
-      updatedAt: updated.updatedAt.toISOString(),
-    };
+    return this.mapToResponse(updated);
   }
 
   private async validate(params: Params): Promise<ValidateResult> {
@@ -108,6 +103,24 @@ export class EmployeeCompensationUpdateUc implements IUseCase<Params, EmployeeCo
       newEffectiveFrom,
       effectiveFromChanged: !!params.dto.effectiveFrom,
       mostRecent: mostRecent ? { id: mostRecent.id, effectiveFrom: mostRecent.effectiveFrom, effectiveTill: mostRecent.effectiveTill } : undefined,
+    };
+  }
+
+  private mapToResponse(c: PayrollCompensationWithLineItemsType): EmployeeCompensationResponseType {
+    return {
+      id: c.id,
+      employeeId: c.userId,
+      grossAmount: c.grossAmount,
+      effectiveFrom: c.effectiveFrom.toISOString().split('T')[0]!,
+      effectiveTill: c.effectiveTill?.toISOString().split('T')[0] ?? undefined,
+      isActive: c.isActive,
+      lineItems: c.payrollCompensationLineItems.map((li) => ({
+        id: li.id,
+        title: li.title,
+        amount: li.amount,
+      })),
+      createdAt: c.createdAt.toISOString(),
+      updatedAt: c.updatedAt.toISOString(),
     };
   }
 }
