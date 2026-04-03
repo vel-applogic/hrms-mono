@@ -18,6 +18,7 @@ export interface PayslipTemplateData {
   companyEmails: string;
   companyWebsites: string;
   monthLabel: string;
+  monthShortLabel: string;
   year: number;
   employeeFirstname: string;
   employeeLastname: string;
@@ -36,6 +37,7 @@ export interface PayslipTemplateData {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const MONTH_LABELS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTH_SHORT_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const ONES = [
   '',
@@ -118,6 +120,7 @@ export function buildPayslipTemplateData(payslip: PayslipDataInput, options: { c
     companyEmails: options.companyEmails?.join(', ') ?? '',
     companyWebsites: options.companyWebsites?.join(', ') ?? '',
     monthLabel: MONTH_LABELS[payslip.month - 1] ?? '',
+    monthShortLabel: MONTH_SHORT_LABELS[payslip.month - 1] ?? '',
     year: payslip.year,
     employeeFirstname: payslip.employeeFirstname,
     employeeLastname: payslip.employeeLastname,
@@ -156,25 +159,29 @@ export const PAYSLIP_HTML_TEMPLATE = `<!DOCTYPE html>
 
     /* ── Header ──────────────────────────────────────────────── */
     .header {
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
       border-bottom: 1px solid #e5e7eb;
       padding: 20px 24px;
     }
-    .logo-box {
-      width: 64px; height: 64px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      border: 1px solid #d1d5db; background: #f3f4f6;
-      color: #9ca3af; font-size: 10px; border-radius: 4px;
-      overflow: hidden;
+    .header-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
     }
-    .logo-box img {
-      width: 100%; height: 100%; object-fit: contain;
+    .header-right {
+      text-align: right;
+      flex-shrink: 0;
     }
-    .company-name { font-size: 14px; font-weight: 700; color: #111827; }
-    .company-address { font-size: 10px; color: #6b7280; margin-top: 2px; }
-    .pay-month { margin-top: 6px; font-weight: 600; color: #374151; font-size: 12px; }
+    .logo-img {
+      width: 150px; height: auto;
+      object-fit: contain; display: block;
+    }
+    .company-name { font-size: 14px; font-weight: 700; color: #111827; text-transform: uppercase; }
+    .header-details {
+      margin-top: 10px;
+    }
+    .company-info { font-size: 10px; color: #6b7280; margin-top: 2px; }
+    .pay-month-label { font-size: 10px; color: #9ca3af; }
+    .pay-month-value { font-size: 16px; font-weight: 700; color: #111827; margin-top: 2px; }
 
     /* ── Employee + Net Pay ──────────────────────────────────── */
     .emp-net { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid #e5e7eb; }
@@ -232,14 +239,21 @@ export const PAYSLIP_HTML_TEMPLATE = `<!DOCTYPE html>
 <div class="payslip">
 
   <div class="header">
-    {{#if companyLogoUrl}}<div class="logo-box"><img src="{{companyLogoUrl}}" alt="Logo" /></div>{{else}}<div class="logo-box">Logo</div>{{/if}}
-    <div>
-      <p class="company-name">{{companyName}}</p>
-      {{#if companyAddress}}<p class="company-address">{{companyAddress}}</p>{{/if}}
-      {{#if companyPhones}}<p class="company-address">Phone: {{companyPhones}}</p>{{/if}}
-      {{#if companyEmails}}<p class="company-address">Email: {{companyEmails}}</p>{{/if}}
-      {{#if companyWebsites}}<p class="company-address">Website: {{companyWebsites}}</p>{{/if}}
-      <p class="pay-month">Payslip for the Month of {{monthLabel}} {{year}}</p>
+    <div class="header-top">
+      <div>
+        {{#if companyLogoUrl}}<img class="logo-img" src="{{companyLogoUrl}}" alt="Logo" />{{else}}<p class="company-name">{{companyName}}</p>{{/if}}
+      </div>
+      <div class="header-right">
+        <p class="pay-month-label">Payslip For the Month</p>
+        <p class="pay-month-value">{{monthShortLabel}} {{year}}</p>
+      </div>
+    </div>
+    <div class="header-details">
+      {{#if companyLogoUrl}}<p class="company-name">{{companyName}}</p>{{/if}}
+      {{#if companyAddress}}<p class="company-info">{{companyAddress}}</p>{{/if}}
+      {{#if companyPhones}}<p class="company-info">Phone: {{companyPhones}}</p>{{/if}}
+      {{#if companyEmails}}<p class="company-info">Email: {{companyEmails}}</p>{{/if}}
+      {{#if companyWebsites}}<p class="company-info">Website: {{companyWebsites}}</p>{{/if}}
     </div>
   </div>
 
