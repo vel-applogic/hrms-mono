@@ -31,6 +31,7 @@ export {
   ContactDao,
   OrganizationHasAddressDao,
   OrganizationHasContactDao,
+  HolidayDao,
 } from './dao/index.js';
 export type {
   OrderByParam,
@@ -46,6 +47,7 @@ export type {
   ContactSelectTableRecordType,
   OrganizationHasAddressWithAddressType,
   OrganizationHasContactWithContactType,
+  HolidaySelectTableRecordType,
   BranchSelectTableRecordType,
   PolicyDetailRecordType,
   PolicyListRecordType,

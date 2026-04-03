@@ -22,3 +22,4 @@ export * from './address.dto.js';
 export * from './contact.dto.js';
 export * from './organization.dto.js';
 export * from './payslip.dto.js';
+export * from './holiday.dto.js';

@@ -8,6 +8,7 @@ import {
   CandidateStatus,
   ContactType,
   EmployeeStatusEnum,
+  HolidayType,
   LeaveStatusEnum,
   LeaveTypeEnum,
   MediaTypeDbEnum,
@@ -25,6 +26,7 @@ import {
   CandidateStatusDtoEnum,
   ContactTypeDtoEnum,
   EmployeeStatusDtoEnum,
+  HolidayTypeDtoEnum,
   LeaveStatusDtoEnum,
   LeaveTypeDtoEnum,
   MediaTypeDtoEnum,
@@ -430,6 +432,34 @@ export function contactTypeDbEnumToDtoEnum(dbEnum: ContactType): ContactTypeDtoE
   }
 
   return dtoEnum;
+}
+
+export function holidayTypeDbEnumToDtoEnum(dbEnum: HolidayType): HolidayTypeDtoEnum {
+  const mapping: Record<HolidayType, HolidayTypeDtoEnum> = {
+    national: HolidayTypeDtoEnum.national,
+    state: HolidayTypeDtoEnum.state,
+  };
+
+  const dtoEnum = mapping[dbEnum];
+  if (!dtoEnum) {
+    throw new Error(`Unknown HolidayType: ${dbEnum}`);
+  }
+
+  return dtoEnum;
+}
+
+export function holidayTypeDtoEnumToDbEnum(dtoEnum: HolidayTypeDtoEnum): HolidayType {
+  const mapping: Record<HolidayTypeDtoEnum, HolidayType> = {
+    [HolidayTypeDtoEnum.national]: 'national',
+    [HolidayTypeDtoEnum.state]: 'state',
+  };
+
+  const dbEnum = mapping[dtoEnum];
+  if (!dbEnum) {
+    throw new Error(`Unknown HolidayTypeDtoEnum: ${dtoEnum}`);
+  }
+
+  return dbEnum;
 }
 
 export function contactTypeDtoEnumToDbEnum(dtoEnum: ContactTypeDtoEnum): ContactType {

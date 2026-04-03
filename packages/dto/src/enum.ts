@@ -119,6 +119,11 @@ export enum ContactTypeDtoEnum {
   socialMediaLink = 'socialMediaLink',
 }
 
+export enum HolidayTypeDtoEnum {
+  national = 'national',
+  state = 'state',
+}
+
 export enum NoOfDaysInMonthDtoEnum {
   dynamic = 'dynamic',
   thirty = 'thirty',

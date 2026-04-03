@@ -31,6 +31,7 @@ import {
   BranchDao,
   UserInBranchDao,
   UserInviteDao,
+  HolidayDao,
 } from './dao/index.js';
 import { PrismaService } from './prisma/prisma.service.js';
 import { AuditService } from '../service/audit.service.js';
@@ -78,6 +79,7 @@ import { UserForgotPasswordDao } from './dao/user-forgot-password.dao.js';
     UserForgotPasswordDao,
     UserVerifyEmailDao,
     UserInviteDao,
+    HolidayDao,
   ],
   exports: [
     PrismaService,
@@ -116,6 +118,7 @@ import { UserForgotPasswordDao } from './dao/user-forgot-password.dao.js';
     UserForgotPasswordDao,
     UserVerifyEmailDao,
     UserInviteDao,
+    HolidayDao,
   ],
 })
 export class CommonDbModule {}

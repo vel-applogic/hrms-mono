@@ -21,6 +21,7 @@ import { PayslipModule } from './module/payslip/payslip.module.js';
 import { LeaveModule } from './module/leave/leave.module.js';
 import { MediaModule } from './module/media/media.module.js';
 import { OrganizationModule } from './module/organization/organization.module.js';
+import { HolidayModule } from './module/holiday/holiday.module.js';
 import { SeederModule } from './module/seeder/seeder.module.js';
 import { PolicyModule } from './module/policy/policy.module.js';
 import { ServiceModule } from './service/service.module.js';
@@ -44,6 +45,7 @@ import { ServiceModule } from './service/service.module.js';
     EmployeeDeductionModule,
     PayslipModule,
     LeaveModule,
+    HolidayModule,
     PolicyModule,
     SeederModule,
     ExternalServiceModule,

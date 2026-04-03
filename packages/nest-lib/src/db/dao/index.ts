@@ -46,3 +46,4 @@ export { ContactDao, type ContactSelectTableRecordType } from './contact.dao.js'
 export { CountryDao, type CountrySelectTableRecordType } from './country.dao.js';
 export { OrganizationHasAddressDao, type OrganizationHasAddressWithAddressType } from './organization-has-address.dao.js';
 export { OrganizationHasContactDao, type OrganizationHasContactWithContactType } from './organization-has-contact.dao.js';
+export { HolidayDao, type HolidaySelectTableRecordType } from './holiday.dao.js';
