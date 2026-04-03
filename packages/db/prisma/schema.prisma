@@ -35,12 +35,22 @@ model Media {
 // CURRENCY
 model Currency {
   id            Int            @id @default(autoincrement())
-  code          String
+  code          String         @unique
   name          String
   symbol        String?
   organizations Organization[]
 
   @@map("currency")
+}
+
+// COUNTRY
+
+model Country {
+  id   Int    @id @default(autoincrement())
+  name String
+  code String @unique
+
+  @@map("country")
 }
 
 // USER
@@ -133,6 +143,7 @@ model Organization {
   settings                 OrganizationSetting[]
   organizationHasDocuments OrganizationHasDocument[]
   employeeBgvFeedbacks     employeeBgvFeedback[]
+  countryId                Int?
 
   @@map("organization")
 }

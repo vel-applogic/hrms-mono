@@ -11,24 +11,6 @@ services:
     volumes:
       - hrms_postgres_data:/var/lib/postgresql/data
 
-  postgres-seed:
-    container_name: hrms_postgres_seed
-    image: postgres:17
-    depends_on:
-      postgres:
-        condition: service_started
-    volumes:
-      - ./seed-data/postgres/seed-currency.sql:/seed-currency.sql:ro
-    entrypoint: >
-      /bin/sh -c "
-        echo 'Waiting for postgres...';
-        until pg_isready -h postgres -U postgres; do sleep 1; done;
-        echo 'Seeding currency data...';
-        PGPASSWORD=password psql -h postgres -U postgres -d hrms_db -f /seed-currency.sql 2>/dev/null || echo 'Seed skipped (table may not exist yet - run migrations first)';
-        echo 'Done.';
-      "
-    restart: 'no'
-
   mailcrab:
     container_name: hrms_mailcrab
     image: marlonb/mailcrab
