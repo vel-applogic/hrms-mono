@@ -1,4 +1,6 @@
 import {
+  CountryResponseSchema,
+  CountryResponseType,
   CurrencyResponseSchema,
   CurrencyResponseType,
   OrganizationCreateRequestType,
@@ -26,6 +28,13 @@ class OrganizationService extends BaseService {
     return this.get<CurrencyResponseType[]>({
       url: '/api/organization/currency',
       responseSchema: CurrencyResponseSchema.array(),
+    });
+  }
+
+  async listCountries(): Promise<CountryResponseType[]> {
+    return this.get<CountryResponseType[]>({
+      url: '/api/organization/country',
+      responseSchema: CountryResponseSchema.array(),
     });
   }
 

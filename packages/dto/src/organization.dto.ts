@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { AddressResponseSchema, AddressUpsertSchema } from './address.dto.js';
+import { ContactResponseSchema, ContactUpsertSchema } from './contact.dto.js';
 import { CurrencyResponseSchema } from './currency.dto.js';
 import { MediaTypeDtoEnum, NoOfDaysInMonthDtoEnum } from './enum.js';
 import { MediaResponseSchema, UpsertMediaSchema } from './media.dto.js';
@@ -51,6 +53,8 @@ export const OrganizationCreateRequestSchema = OrganizationBaseFieldsSchema.exte
   logo: UpsertMediaSchema.optional(),
   settings: OrganizationSettingUpsertSchema.optional(),
   documents: z.array(OrganizationDocumentUpsertSchema).optional(),
+  address: AddressUpsertSchema.optional(),
+  contacts: z.array(ContactUpsertSchema).optional(),
 });
 export type OrganizationCreateRequestType = z.infer<typeof OrganizationCreateRequestSchema>;
 
@@ -61,6 +65,9 @@ export const OrganizationUpdateRequestSchema = OrganizationBaseFieldsSchema.exte
   settings: OrganizationSettingUpsertSchema.optional(),
   documents: z.array(OrganizationDocumentUpsertSchema).optional(),
   removeDocumentIds: z.array(z.number()).optional(),
+  address: AddressUpsertSchema.optional(),
+  contacts: z.array(ContactUpsertSchema).optional(),
+  removeContactIds: z.array(z.number()).optional(),
 });
 export type OrganizationUpdateRequestType = z.infer<typeof OrganizationUpdateRequestSchema>;
 
@@ -76,6 +83,8 @@ export const OrganizationDetailResponseSchema = OrganizationResponseSchema.exten
   logo: MediaResponseSchema.nullable(),
   settings: OrganizationSettingResponseSchema.nullable(),
   documents: z.array(OrganizationDocumentResponseSchema),
+  address: AddressResponseSchema.nullable(),
+  contacts: z.array(ContactResponseSchema),
 });
 export type OrganizationDetailResponseType = z.infer<typeof OrganizationDetailResponseSchema>;
 

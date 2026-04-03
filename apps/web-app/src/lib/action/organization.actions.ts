@@ -1,6 +1,7 @@
 'use server';
 
 import type {
+  CountryResponseType,
   CurrencyResponseType,
   OrganizationCreateRequestType,
   OrganizationDetailResponseType,
@@ -15,6 +16,10 @@ import { ActionResult, extractActionError } from '@/lib/util/action-result';
 
 export async function listCurrencies(): Promise<CurrencyResponseType[]> {
   return organizationService.listCurrencies();
+}
+
+export async function listCountries(): Promise<CountryResponseType[]> {
+  return organizationService.listCountries();
 }
 
 export async function getOrganizationById(id: number): Promise<ActionResult<OrganizationDetailResponseType>> {

@@ -2,25 +2,30 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
+  ContactTypeDtoEnum,
+  CountryResponseType,
   CurrencyResponseType,
   MediaTypeDtoEnum,
   NoOfDaysInMonthDtoEnum,
+  ContactResponseType,
   OrganizationDocumentResponseType,
   OrganizationResponseType,
   UpsertMediaType,
 } from '@repo/dto';
+import { contactTypeDtoEnumToReadableLabel } from '@repo/shared';
 import { Button } from '@repo/ui/component/ui/button';
 import { Input } from '@repo/ui/component/ui/input';
 import { Label } from '@repo/ui/component/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/ui/select';
+import { SelectSearchSingle } from '@repo/ui/component/select-search';
 import { Drawer } from '@repo/ui/container/drawer/drawer';
-import { Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Controller, UseFormReturn, useForm } from 'react-hook-form';
+import { Controller, UseFormReturn, useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { FileUpload, ImageUpload } from '@/container/s3-file-upload/s3-file-upload';
-import { createOrganization, getOrganizationById, listCurrencies, updateOrganization } from '@/lib/action/organization.actions';
+import { createOrganization, getOrganizationById, listCountries, listCurrencies, updateOrganization } from '@/lib/action/organization.actions';
 
 const SettingsSchema = z.object({
   noOfDaysInMonth: z.nativeEnum(NoOfDaysInMonthDtoEnum),
@@ -32,10 +37,27 @@ const SettingsSchema = z.object({
   paternityLeaveInDays: z.number().int().min(0),
 });
 
+const AddressSchema = z.object({
+  countryId: z.number({ error: 'Country is required' }),
+  addressLine1: z.string().min(1, 'Address line 1 is required').trim(),
+  addressLine2: z.string().trim(),
+  city: z.string().min(1, 'City is required').trim(),
+  state: z.string().min(1, 'State is required').trim(),
+  postalCode: z.string().min(1, 'Postal code is required').trim(),
+});
+
+const ContactSchema = z.object({
+  id: z.number().optional(),
+  contact: z.string().min(1, 'Contact is required').trim(),
+  contactType: z.nativeEnum(ContactTypeDtoEnum),
+});
+
 const BaseFormSchema = z.object({
   name: z.string().min(1, 'Name is required').trim(),
   currencyId: z.number({ error: 'Currency is required' }),
   settings: SettingsSchema,
+  address: AddressSchema.optional(),
+  contacts: z.array(ContactSchema),
 });
 
 const CreateFormSchema = BaseFormSchema.extend({
@@ -57,11 +79,25 @@ const DEFAULT_SETTINGS = {
   paternityLeaveInDays: 10,
 };
 
+const DEFAULT_ADDRESS = {
+  countryId: undefined as unknown as number,
+  addressLine1: '',
+  addressLine2: '',
+  city: '',
+  state: '',
+  postalCode: '',
+};
+
 const NO_OF_DAYS_OPTIONS: { value: NoOfDaysInMonthDtoEnum; label: string }[] = [
   { value: NoOfDaysInMonthDtoEnum.dynamic, label: 'Dynamic' },
   { value: NoOfDaysInMonthDtoEnum.thirty, label: '30 Days' },
   { value: NoOfDaysInMonthDtoEnum.thirtyOne, label: '31 Days' },
 ];
+
+const CONTACT_TYPE_OPTIONS = Object.values(ContactTypeDtoEnum).map((value) => ({
+  value,
+  label: contactTypeDtoEnumToReadableLabel(value),
+}));
 
 interface Props {
   open: boolean;
@@ -81,21 +117,30 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
   const [documents, setDocuments] = useState<UpsertMediaType[]>([]);
   const [existingDocuments, setExistingDocuments] = useState<OrganizationDocumentResponseType[]>([]);
   const [removeDocumentIds, setRemoveDocumentIds] = useState<number[]>([]);
+  const [removeContactIds, setRemoveContactIds] = useState<number[]>([]);
   const [currencies, setCurrencies] = useState<CurrencyResponseType[]>([]);
+  const [countries, setCountries] = useState<CountryResponseType[]>([]);
+  const [showAddress, setShowAddress] = useState(false);
 
   useEffect(() => {
-    listCurrencies().then(setCurrencies).catch(() => {});
+    Promise.all([listCurrencies(), listCountries()]).then(([c, co]) => {
+      setCurrencies(c);
+      setCountries(co);
+    }).catch(() => {});
   }, []);
 
   const createForm = useForm<CreateFormType>({
     resolver: zodResolver(CreateFormSchema),
-    defaultValues: { name: '', email: '', settings: DEFAULT_SETTINGS },
+    defaultValues: { name: '', email: '', settings: DEFAULT_SETTINGS, contacts: [] },
   });
 
   const updateForm = useForm<UpdateFormType>({
     resolver: zodResolver(UpdateFormSchema),
-    defaultValues: { name: '', settings: DEFAULT_SETTINGS },
+    defaultValues: { name: '', settings: DEFAULT_SETTINGS, contacts: [] },
   });
+
+  const createContactsField = useFieldArray({ control: createForm.control, name: 'contacts' });
+  const updateContactsField = useFieldArray({ control: updateForm.control, name: 'contacts' });
 
   useEffect(() => {
     if (open) {
@@ -104,30 +149,50 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
       setDocuments([]);
       setExistingDocuments([]);
       setRemoveDocumentIds([]);
+      setRemoveContactIds([]);
+      setShowAddress(false);
 
       if (organization) {
-        updateForm.reset({ name: organization.name, currencyId: organization.currency.id, settings: DEFAULT_SETTINGS });
+        updateForm.reset({ name: organization.name, currencyId: organization.currency.id, settings: DEFAULT_SETTINGS, contacts: [] });
         setFetchingDetail(true);
 
         getOrganizationById(organization.id).then((result) => {
           setFetchingDetail(false);
           if (result.ok) {
             const detail = result.data;
-            if (detail.settings) {
-              updateForm.reset({
-                name: organization.name,
-                currencyId: detail.currency.id,
-                settings: {
-                  noOfDaysInMonth: detail.settings.noOfDaysInMonth,
-                  totalLeaveInDays: detail.settings.totalLeaveInDays,
-                  sickLeaveInDays: detail.settings.sickLeaveInDays,
-                  earnedLeaveInDays: detail.settings.earnedLeaveInDays,
-                  casualLeaveInDays: detail.settings.casualLeaveInDays,
-                  maternityLeaveInDays: detail.settings.maternityLeaveInDays,
-                  paternityLeaveInDays: detail.settings.paternityLeaveInDays,
-                },
-              });
+            const formData: UpdateFormType = {
+              name: organization.name,
+              currencyId: detail.currency.id,
+              settings: detail.settings ? {
+                noOfDaysInMonth: detail.settings.noOfDaysInMonth,
+                totalLeaveInDays: detail.settings.totalLeaveInDays,
+                sickLeaveInDays: detail.settings.sickLeaveInDays,
+                earnedLeaveInDays: detail.settings.earnedLeaveInDays,
+                casualLeaveInDays: detail.settings.casualLeaveInDays,
+                maternityLeaveInDays: detail.settings.maternityLeaveInDays,
+                paternityLeaveInDays: detail.settings.paternityLeaveInDays,
+              } : DEFAULT_SETTINGS,
+              contacts: detail.contacts.map((c: ContactResponseType) => ({
+                id: c.id,
+                contact: c.contact,
+                contactType: c.contactType,
+              })),
+            };
+
+            if (detail.address) {
+              formData.address = {
+                countryId: detail.address.countryId,
+                addressLine1: detail.address.addressLine1,
+                addressLine2: detail.address.addressLine2,
+                city: detail.address.city,
+                state: detail.address.state,
+                postalCode: detail.address.postalCode,
+              };
+              setShowAddress(true);
             }
+
+            updateForm.reset(formData);
+
             if (detail.logo) {
               setLogo({
                 id: detail.logo.id,
@@ -140,7 +205,7 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
           }
         });
       } else {
-        createForm.reset({ name: '', email: '', settings: DEFAULT_SETTINGS });
+        createForm.reset({ name: '', email: '', settings: DEFAULT_SETTINGS, contacts: [] });
       }
     }
   }, [open, organization, createForm, updateForm]);
@@ -191,6 +256,27 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
     }));
   };
 
+  const buildContactsPayload = (data: CreateFormType | UpdateFormType) => {
+    if (data.contacts.length === 0) return undefined;
+    return data.contacts.map((c) => ({
+      id: c.id,
+      contact: c.contact,
+      contactType: c.contactType,
+    }));
+  };
+
+  const buildAddressPayload = (data: CreateFormType | UpdateFormType) => {
+    if (!data.address || !showAddress) return undefined;
+    return {
+      countryId: data.address.countryId,
+      addressLine1: data.address.addressLine1,
+      addressLine2: data.address.addressLine2,
+      city: data.address.city,
+      state: data.address.state,
+      postalCode: data.address.postalCode,
+    };
+  };
+
   const handleCreateSubmit = async (data: CreateFormType) => {
     setLoading(true);
     setError('');
@@ -202,6 +288,8 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
         logo: buildLogoPayload(),
         settings: buildSettingsPayload(data),
         documents: buildDocumentsPayload(),
+        address: buildAddressPayload(data),
+        contacts: buildContactsPayload(data),
       });
 
       if (!result.ok) {
@@ -231,6 +319,9 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
         settings: buildSettingsPayload(data),
         documents: buildDocumentsPayload(),
         removeDocumentIds: removeDocumentIds.length > 0 ? removeDocumentIds : undefined,
+        address: buildAddressPayload(data),
+        contacts: buildContactsPayload(data),
+        removeContactIds: removeContactIds.length > 0 ? removeContactIds : undefined,
       });
 
       if (!result.ok) {
@@ -252,6 +343,18 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
     setExistingDocuments((prev) => prev.filter((d) => d.id !== doc.id));
   };
 
+  const currencyOptions = currencies.map((c) => ({
+    value: String(c.id),
+    label: c.symbol ? `${c.symbol} - ${c.name} (${c.code})` : `${c.name} (${c.code})`,
+    keywords: [c.code, c.name, c.symbol ?? ''],
+  }));
+
+  const countryOptions = countries.map((c) => ({
+    value: String(c.id),
+    label: `${c.name} (${c.code})`,
+    keywords: [c.code, c.name],
+  }));
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderCurrencyField = (form: UseFormReturn<any>) => (
     <div className='flex flex-col gap-2'>
@@ -260,21 +363,13 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
         name='currencyId'
         control={form.control}
         render={({ field }) => (
-          <Select
+          <SelectSearchSingle
             value={field.value != null ? String(field.value) : undefined}
-            onValueChange={(v) => field.onChange(Number(v))}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder='Select currency' />
-            </SelectTrigger>
-            <SelectContent>
-              {currencies.map((c) => (
-                <SelectItem key={c.id} value={String(c.id)}>
-                  {c.symbol ? `${c.symbol} - ${c.name} (${c.code})` : `${c.name} (${c.code})`}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            options={currencyOptions}
+            placeholder='Select currency'
+            searchPlaceholder='Search currency...'
+            onChange={(v) => field.onChange(Number(v))}
+          />
         )}
       />
       {form.formState.errors.currencyId && (
@@ -336,6 +431,155 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
           <Input type='number' {...form.register('settings.paternityLeaveInDays', { valueAsNumber: true })} />
         </div>
       </div>
+    </div>
+  );
+
+  const renderAddressFields = (form: UseFormReturn<CreateFormType> | UseFormReturn<UpdateFormType>) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const f = form as UseFormReturn<any>;
+    const addressErrors = f.formState.errors.address as Record<string, { message?: string }> | undefined;
+
+    return (
+      <div className='flex flex-col gap-4 rounded-lg border border-border p-4'>
+        <div className='flex items-center justify-between'>
+          <span className='text-sm font-semibold'>Address</span>
+          {!showAddress && (
+            <Button type='button' variant='outline' size='sm' onClick={() => {
+              setShowAddress(true);
+              f.setValue('address', DEFAULT_ADDRESS);
+            }}>
+              <Plus className='mr-1 h-3 w-3' /> Add address
+            </Button>
+          )}
+        </div>
+
+        {showAddress && (
+          <div className='flex flex-col gap-4'>
+            <div className='flex flex-col gap-2'>
+              <Label>Country</Label>
+              <Controller
+                name='address.countryId'
+                control={f.control}
+                render={({ field }) => (
+                  <SelectSearchSingle
+                    value={field.value != null ? String(field.value) : undefined}
+                    options={countryOptions}
+                    placeholder='Select country'
+                    searchPlaceholder='Search country...'
+                    onChange={(v) => field.onChange(Number(v))}
+                  />
+                )}
+              />
+            </div>
+
+            <div className='flex flex-col gap-2'>
+              <Label>Address line 1</Label>
+              <Input {...f.register('address.addressLine1')} placeholder='Street address' />
+              {addressErrors?.addressLine1 && (
+                <p className='text-sm text-destructive'>{addressErrors.addressLine1.message}</p>
+              )}
+            </div>
+
+            <div className='flex flex-col gap-2'>
+              <Label>Address line 2</Label>
+              <Input {...f.register('address.addressLine2')} placeholder='Apt, suite, etc.' />
+            </div>
+
+            <div className='grid grid-cols-2 gap-4'>
+              <div className='flex flex-col gap-2'>
+                <Label>City</Label>
+                <Input {...f.register('address.city')} placeholder='City' />
+                {addressErrors?.city && (
+                  <p className='text-sm text-destructive'>{addressErrors.city.message}</p>
+                )}
+              </div>
+              <div className='flex flex-col gap-2'>
+                <Label>State</Label>
+                <Input {...f.register('address.state')} placeholder='State' />
+                {addressErrors?.state && (
+                  <p className='text-sm text-destructive'>{addressErrors.state.message}</p>
+                )}
+              </div>
+            </div>
+
+            <div className='flex flex-col gap-2'>
+              <Label>Postal code</Label>
+              <Input {...f.register('address.postalCode')} placeholder='Postal code' />
+              {addressErrors?.postalCode && (
+                <p className='text-sm text-destructive'>{addressErrors.postalCode.message}</p>
+              )}
+            </div>
+
+            <Button type='button' variant='ghost' size='sm' className='self-end text-destructive' onClick={() => {
+              setShowAddress(false);
+              f.setValue('address', undefined);
+            }}>
+              <Trash2 className='mr-1 h-3 w-3' /> Remove address
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const renderContactsFields = (form: UseFormReturn<any>, contactsFieldArray: any) => (
+    <div className='flex flex-col gap-4 rounded-lg border border-border p-4'>
+      <div className='flex items-center justify-between'>
+        <span className='text-sm font-semibold'>Contacts</span>
+        <Button type='button' variant='outline' size='sm' onClick={() => contactsFieldArray.append({ contact: '', contactType: ContactTypeDtoEnum.phone })}>
+          <Plus className='mr-1 h-3 w-3' /> Add contact
+        </Button>
+      </div>
+
+      {contactsFieldArray.fields.map((field: Record<string, string>, index: number) => (
+        <div key={field.id} className='flex items-start gap-3 rounded-md border border-border p-3'>
+          <div className='flex flex-1 flex-col gap-3'>
+            <div className='flex flex-col gap-2'>
+              <Label>Type</Label>
+              <Controller
+                name={`contacts.${index}.contactType`}
+                control={form.control}
+                render={({ field: selectField }) => (
+                  <Select value={selectField.value} onValueChange={selectField.onChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder='Select type' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CONTACT_TYPE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+            <div className='flex flex-col gap-2'>
+              <Label>Contact</Label>
+              <Input {...form.register(`contacts.${index}.contact`)} placeholder='Enter contact' />
+            </div>
+          </div>
+          <button
+            type='button'
+            onClick={() => {
+              const contactId = form.getValues(`contacts.${index}.id`);
+              if (contactId) {
+                setRemoveContactIds((prev) => [...prev, contactId as number]);
+              }
+              contactsFieldArray.remove(index);
+            }}
+            className='mt-7 text-destructive hover:text-destructive/80'
+          >
+            <Trash2 className='h-4 w-4' />
+          </button>
+        </div>
+      ))}
+
+      {contactsFieldArray.fields.length === 0 && (
+        <p className='text-sm text-muted-foreground'>No contacts added</p>
+      )}
     </div>
   );
 
@@ -411,6 +655,8 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
             />
           </div>
 
+          {renderAddressFields(updateForm)}
+          {renderContactsFields(updateForm, updateContactsField)}
           {renderSettingsFields(updateForm)}
           {renderDocumentsSection()}
         </form>
@@ -445,6 +691,8 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
             <p className='text-xs text-muted-foreground'>This user will be invited as admin of the organization</p>
           </div>
 
+          {renderAddressFields(createForm)}
+          {renderContactsFields(createForm, createContactsField)}
           {renderSettingsFields(createForm)}
           {renderDocumentsSection()}
         </form>

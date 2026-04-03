@@ -4,10 +4,14 @@ import type { OrganizationCreateRequestType, OrganizationResponseType } from '@r
 import { MediaTypeDtoEnum } from '@repo/dto';
 import type { CurrentUserType } from '@repo/nest-lib';
 import {
+  AddressDao,
   CommonLoggerService,
+  ContactDao,
   IUseCase,
   MediaDao,
   OrganizationDao,
+  OrganizationHasAddressDao,
+  OrganizationHasContactDao,
   OrganizationHasDocumentDao,
   OrganizationHasUserDao,
   OrganizationSettingDao,
@@ -15,7 +19,7 @@ import {
   UserDao,
   UserInviteDao,
 } from '@repo/nest-lib';
-import { mediaTypeDtoEnumToDbEnum, noOfDaysInMonthDtoEnumToDbEnum } from '@repo/nest-lib';
+import { contactTypeDtoEnumToDbEnum, mediaTypeDtoEnumToDbEnum, noOfDaysInMonthDtoEnumToDbEnum } from '@repo/nest-lib';
 import { ApiFieldValidationError } from '@repo/shared';
 
 import { AppConfigService } from '#src/config/app-config.service.js';
@@ -39,6 +43,10 @@ export class OrganizationCreateUc extends BaseOrganizationUc implements IUseCase
     organizationDao: OrganizationDao,
     organizationSettingDao: OrganizationSettingDao,
     organizationHasDocumentDao: OrganizationHasDocumentDao,
+    organizationHasAddressDao: OrganizationHasAddressDao,
+    organizationHasContactDao: OrganizationHasContactDao,
+    addressDao: AddressDao,
+    contactDao: ContactDao,
     s3Service: S3Service,
     private readonly userDao: UserDao,
     private readonly organizationHasUserDao: OrganizationHasUserDao,
@@ -49,7 +57,7 @@ export class OrganizationCreateUc extends BaseOrganizationUc implements IUseCase
     private readonly emailService: EmailService,
     private readonly appConfigService: AppConfigService,
   ) {
-    super(prisma, logger, organizationDao, organizationSettingDao, organizationHasDocumentDao, s3Service);
+    super(prisma, logger, organizationDao, organizationSettingDao, organizationHasDocumentDao, organizationHasAddressDao, organizationHasContactDao, addressDao, contactDao, s3Service);
   }
 
   async execute(params: Params): Promise<OrganizationResponseType> {
@@ -186,6 +194,54 @@ export class OrganizationCreateUc extends BaseOrganizationUc implements IUseCase
               tx,
             });
           }
+        }
+      }
+
+      // Create address if provided
+      if (params.dto.address) {
+        const addressId = await this.addressDao.create({
+          data: {
+            organization: { connect: { id: organizationId } },
+            country: { connect: { id: params.dto.address.countryId } },
+            addressLine1: params.dto.address.addressLine1,
+            addressLine2: params.dto.address.addressLine2,
+            city: params.dto.address.city,
+            state: params.dto.address.state,
+            postalCode: params.dto.address.postalCode,
+            latitude: params.dto.address.latitude,
+            longitude: params.dto.address.longitude,
+          },
+          tx,
+        });
+
+        await this.organizationHasAddressDao.create({
+          data: {
+            organization: { connect: { id: organizationId } },
+            address: { connect: { id: addressId } },
+          },
+          tx,
+        });
+      }
+
+      // Create contacts if provided
+      if (params.dto.contacts && params.dto.contacts.length > 0) {
+        for (const contactDto of params.dto.contacts) {
+          const contactId = await this.contactDao.create({
+            data: {
+              organization: { connect: { id: organizationId } },
+              contact: contactDto.contact,
+              contactType: contactTypeDtoEnumToDbEnum(contactDto.contactType),
+            },
+            tx,
+          });
+
+          await this.organizationHasContactDao.create({
+            data: {
+              organization: { connect: { id: organizationId } },
+              contact: { connect: { id: contactId } },
+            },
+            tx,
+          });
         }
       }
 

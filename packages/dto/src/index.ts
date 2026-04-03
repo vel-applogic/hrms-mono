@@ -17,5 +17,8 @@ export * from './employee-deduction.dto.js';
 export * from './leave.dto.js';
 export * from './policy.dto.js';
 export * from './currency.dto.js';
+export * from './country.dto.js';
+export * from './address.dto.js';
+export * from './contact.dto.js';
 export * from './organization.dto.js';
 export * from './payslip.dto.js';

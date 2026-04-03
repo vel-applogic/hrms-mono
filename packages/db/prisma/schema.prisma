@@ -46,11 +46,56 @@ model Currency {
 // COUNTRY
 
 model Country {
-  id   Int    @id @default(autoincrement())
-  name String
-  code String @unique
+  id        Int       @id @default(autoincrement())
+  name      String
+  code      String    @unique
+  addresses Address[]
 
   @@map("country")
+}
+
+// ADDRESS
+model Address {
+  id             Int          @id @default(autoincrement())
+  organizationId Int          @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  countryId      Int          @map("country_id")
+  country        Country      @relation(fields: [countryId], references: [id])
+  addressLine1   String       @map("address_line_1")
+  addressLine2   String       @map("address_line_2")
+  city           String       @map("city")
+  state          String       @map("state")
+  postalCode     String       @map("postal_code")
+  latitude       Float?       @map("latitude")
+  longitude      Float?       @map("longitude")
+
+  createdAt                DateTime                 @default(now()) @map("created_at")
+  updatedAt                DateTime                 @updatedAt @map("updated_at")
+  organizationHasAddresses OrganizationHasAddress[]
+
+  @@map("address")
+}
+
+// CONTACT
+
+enum ContactType {
+  phone
+  email
+  website
+  socialMediaLink
+}
+
+model Contact {
+  id                      Int                      @id @default(autoincrement())
+  organizationId          Int                      @map("organization_id")
+  organization            Organization             @relation(fields: [organizationId], references: [id])
+  contact                 String                   @map("contact_number")
+  contactType             ContactType              @map("contact_type")
+  createdAt               DateTime                 @default(now()) @map("created_at")
+  updatedAt               DateTime                 @updatedAt @map("updated_at")
+  organizationHasContacts OrganizationHasContact[]
+
+  @@map("contact")
 }
 
 // USER
@@ -143,9 +188,40 @@ model Organization {
   settings                 OrganizationSetting[]
   organizationHasDocuments OrganizationHasDocument[]
   employeeBgvFeedbacks     employeeBgvFeedback[]
-  countryId                Int?
+  addresses                Address[]
+  contacts                 Contact[]
+  organizationHasContacts  OrganizationHasContact[]
+  organizationHasAddresses OrganizationHasAddress[]
 
   @@map("organization")
+}
+
+model OrganizationHasContact {
+  id             Int          @id @default(autoincrement())
+  organizationId Int          @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  contactId      Int          @map("contact_id")
+  contact        Contact      @relation(fields: [contactId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([organizationId, contactId])
+  @@map("organization_has_contact")
+}
+
+model OrganizationHasAddress {
+  id             Int          @id @default(autoincrement())
+  organizationId Int          @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  addressId      Int          @map("address_id")
+  address        Address      @relation(fields: [addressId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([organizationId, addressId])
+  @@map("organization_has_address")
 }
 
 model OrganizationHasUser {

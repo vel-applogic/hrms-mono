@@ -41,3 +41,8 @@ export { PayrollPayslipDao, type PayrollPayslipWithUserType, type PayrollPayslip
 export { UserInviteDao } from './user-invite.dao.js';
 export { OrganizationSettingDao, type OrganizationSettingSelectTableRecordType } from './organization-setting.dao.js';
 export { OrganizationHasDocumentDao, type OrganizationHasDocumentWithMediaType } from './organization-has-document.dao.js';
+export { AddressDao, type AddressWithCountryType } from './address.dao.js';
+export { ContactDao, type ContactSelectTableRecordType } from './contact.dao.js';
+export { CountryDao, type CountrySelectTableRecordType } from './country.dao.js';
+export { OrganizationHasAddressDao, type OrganizationHasAddressWithAddressType } from './organization-has-address.dao.js';
+export { OrganizationHasContactDao, type OrganizationHasContactWithContactType } from './organization-has-contact.dao.js';

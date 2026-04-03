@@ -3,15 +3,19 @@ import type { OrganizationResponseType, OrganizationUpdateRequestType } from '@r
 import { MediaTypeDtoEnum } from '@repo/dto';
 import type { CurrentUserType } from '@repo/nest-lib';
 import {
+  AddressDao,
   CommonLoggerService,
+  ContactDao,
   IUseCase,
   MediaDao,
   OrganizationDao,
+  OrganizationHasAddressDao,
+  OrganizationHasContactDao,
   OrganizationHasDocumentDao,
   OrganizationSettingDao,
   PrismaService,
 } from '@repo/nest-lib';
-import { mediaTypeDtoEnumToDbEnum, noOfDaysInMonthDtoEnumToDbEnum } from '@repo/nest-lib';
+import { contactTypeDtoEnumToDbEnum, mediaTypeDtoEnumToDbEnum, noOfDaysInMonthDtoEnumToDbEnum } from '@repo/nest-lib';
 import { ApiFieldValidationError } from '@repo/shared';
 
 import { S3Service } from '#src/external-service/s3.service.js';
@@ -32,11 +36,15 @@ export class OrganizationUpdateUc extends BaseOrganizationUc implements IUseCase
     organizationDao: OrganizationDao,
     organizationSettingDao: OrganizationSettingDao,
     organizationHasDocumentDao: OrganizationHasDocumentDao,
+    organizationHasAddressDao: OrganizationHasAddressDao,
+    organizationHasContactDao: OrganizationHasContactDao,
+    addressDao: AddressDao,
+    contactDao: ContactDao,
     s3Service: S3Service,
     private readonly mediaDao: MediaDao,
     private readonly mediaService: MediaService,
   ) {
-    super(prisma, logger, organizationDao, organizationSettingDao, organizationHasDocumentDao, s3Service);
+    super(prisma, logger, organizationDao, organizationSettingDao, organizationHasDocumentDao, organizationHasAddressDao, organizationHasContactDao, addressDao, contactDao, s3Service);
   }
 
   async execute(params: Params): Promise<OrganizationResponseType> {
@@ -167,6 +175,83 @@ export class OrganizationUpdateUc extends BaseOrganizationUc implements IUseCase
                 organization: { connect: { id: params.dto.id } },
                 document: { connect: { id: mediaId } },
                 mediaType: mediaTypeDtoEnumToDbEnum(doc.mediaType),
+              },
+              tx,
+            });
+          }
+        }
+      }
+
+      // Handle address — replace existing with new (single address)
+      if (params.dto.address) {
+        // Remove existing address links and addresses
+        const existingAddressLinks = await this.organizationHasAddressDao.findByOrganizationId({ organizationId: params.dto.id, tx });
+        if (existingAddressLinks.length > 0) {
+          await this.organizationHasAddressDao.deleteByOrganizationId({ organizationId: params.dto.id, tx });
+          for (const link of existingAddressLinks) {
+            await this.addressDao.deleteByIdOrThrow({ id: link.address.id, tx });
+          }
+        }
+
+        // Create new address
+        const addressId = await this.addressDao.create({
+          data: {
+            organization: { connect: { id: params.dto.id } },
+            country: { connect: { id: params.dto.address.countryId } },
+            addressLine1: params.dto.address.addressLine1,
+            addressLine2: params.dto.address.addressLine2,
+            city: params.dto.address.city,
+            state: params.dto.address.state,
+            postalCode: params.dto.address.postalCode,
+            latitude: params.dto.address.latitude,
+            longitude: params.dto.address.longitude,
+          },
+          tx,
+        });
+
+        await this.organizationHasAddressDao.create({
+          data: {
+            organization: { connect: { id: params.dto.id } },
+            address: { connect: { id: addressId } },
+          },
+          tx,
+        });
+      }
+
+      // Remove contacts if requested
+      if (params.dto.removeContactIds && params.dto.removeContactIds.length > 0) {
+        await this.organizationHasContactDao.deleteManyByContactIds({ contactIds: params.dto.removeContactIds, tx });
+        await this.contactDao.deleteManyByIds({ ids: params.dto.removeContactIds, tx });
+      }
+
+      // Add/update contacts if provided
+      if (params.dto.contacts && params.dto.contacts.length > 0) {
+        for (const contactDto of params.dto.contacts) {
+          if (contactDto.id) {
+            // Update existing contact
+            await this.contactDao.update({
+              id: contactDto.id,
+              data: {
+                contact: contactDto.contact,
+                contactType: contactTypeDtoEnumToDbEnum(contactDto.contactType),
+              },
+              tx,
+            });
+          } else {
+            // Create new contact
+            const contactId = await this.contactDao.create({
+              data: {
+                organization: { connect: { id: params.dto.id } },
+                contact: contactDto.contact,
+                contactType: contactTypeDtoEnumToDbEnum(contactDto.contactType),
+              },
+              tx,
+            });
+
+            await this.organizationHasContactDao.create({
+              data: {
+                organization: { connect: { id: params.dto.id } },
+                contact: { connect: { id: contactId } },
               },
               tx,
             });

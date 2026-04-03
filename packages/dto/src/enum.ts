@@ -112,6 +112,13 @@ export enum EmployeeFeedbackTrendDtoEnum {
   neutral = 'neutral',
 }
 
+export enum ContactTypeDtoEnum {
+  phone = 'phone',
+  email = 'email',
+  website = 'website',
+  socialMediaLink = 'socialMediaLink',
+}
+
 export enum NoOfDaysInMonthDtoEnum {
   dynamic = 'dynamic',
   thirty = 'thirty',

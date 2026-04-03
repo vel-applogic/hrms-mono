@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put } from '@nestjs/common';
 import type {
+  CountryResponseType,
   CurrencyResponseType,
   OrganizationCreateRequestType,
   OrganizationDetailResponseType,
@@ -17,6 +18,7 @@ import {
 import type { CurrentUserType } from '@repo/nest-lib';
 import { CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
 
+import { CountryListUc } from './uc/country-list.uc.js';
 import { CurrencyListUc } from './uc/currency-list.uc.js';
 import { OrganizationCreateUc } from './uc/organization-create.uc.js';
 import { OrganizationDeleteUc } from './uc/organization-delete.uc.js';
@@ -28,6 +30,7 @@ import { OrganizationUpdateUc } from './uc/organization-update.uc.js';
 export class OrganizationController {
   constructor(
     private readonly currencyListUc: CurrencyListUc,
+    private readonly countryListUc: CountryListUc,
     private readonly searchUc: OrganizationSearchUc,
     private readonly getUc: OrganizationGetUc,
     private readonly createUc: OrganizationCreateUc,
@@ -38,6 +41,11 @@ export class OrganizationController {
   @Get('/currency')
   async listCurrencies(): Promise<CurrencyResponseType[]> {
     return this.currencyListUc.execute();
+  }
+
+  @Get('/country')
+  async listCountries(): Promise<CountryResponseType[]> {
+    return this.countryListUc.execute();
   }
 
   @Post()

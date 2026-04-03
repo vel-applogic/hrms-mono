@@ -2,7 +2,18 @@ import { Injectable } from '@nestjs/common';
 import type { OrganizationFilterRequestType, OrganizationResponseType, PaginatedResponseType } from '@repo/dto';
 import { OrganizationSortableColumns } from '@repo/dto';
 import type { CurrentUserType } from '@repo/nest-lib';
-import { CommonLoggerService, IUseCase, OrganizationDao, OrganizationHasDocumentDao, OrganizationSettingDao, PrismaService } from '@repo/nest-lib';
+import {
+  AddressDao,
+  CommonLoggerService,
+  ContactDao,
+  IUseCase,
+  OrganizationDao,
+  OrganizationHasAddressDao,
+  OrganizationHasContactDao,
+  OrganizationHasDocumentDao,
+  OrganizationSettingDao,
+  PrismaService,
+} from '@repo/nest-lib';
 
 import { S3Service } from '#src/external-service/s3.service.js';
 
@@ -21,9 +32,13 @@ export class OrganizationSearchUc extends BaseOrganizationUc implements IUseCase
     organizationDao: OrganizationDao,
     organizationSettingDao: OrganizationSettingDao,
     organizationHasDocumentDao: OrganizationHasDocumentDao,
+    organizationHasAddressDao: OrganizationHasAddressDao,
+    organizationHasContactDao: OrganizationHasContactDao,
+    addressDao: AddressDao,
+    contactDao: ContactDao,
     s3Service: S3Service,
   ) {
-    super(prisma, logger, organizationDao, organizationSettingDao, organizationHasDocumentDao, s3Service);
+    super(prisma, logger, organizationDao, organizationSettingDao, organizationHasDocumentDao, organizationHasAddressDao, organizationHasContactDao, addressDao, contactDao, s3Service);
   }
 
   async execute(params: Params): Promise<PaginatedResponseType<OrganizationResponseType>> {

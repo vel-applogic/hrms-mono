@@ -4,6 +4,7 @@ import { ExternalServiceModule } from '#src/external-service/external-service.mo
 import { ServiceModule } from '#src/service/service.module.js';
 
 import { OrganizationController } from './organization.controller.js';
+import { CountryListUc } from './uc/country-list.uc.js';
 import { CurrencyListUc } from './uc/currency-list.uc.js';
 import { OrganizationCreateUc } from './uc/organization-create.uc.js';
 import { OrganizationDeleteUc } from './uc/organization-delete.uc.js';
@@ -16,6 +17,7 @@ import { OrganizationUpdateUc } from './uc/organization-update.uc.js';
   controllers: [OrganizationController],
   providers: [
     CurrencyListUc,
+    CountryListUc,
     OrganizationSearchUc,
     OrganizationGetUc,
     OrganizationCreateUc,

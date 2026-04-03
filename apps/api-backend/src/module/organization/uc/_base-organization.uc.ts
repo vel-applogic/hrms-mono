@@ -1,20 +1,32 @@
-import type { MediaResponseType, OrganizationDetailResponseType, OrganizationResponseType } from '@repo/dto';
 import type {
+  AddressResponseType,
+  ContactResponseType,
+  MediaResponseType,
+  OrganizationDetailResponseType,
+  OrganizationResponseType,
+} from '@repo/dto';
+import type {
+  ContactSelectTableRecordType,
   CurrentUserType,
+  OrganizationHasAddressWithAddressType,
   OrganizationHasDocumentWithMediaType,
   OrganizationSettingSelectTableRecordType,
   OrganizationWithCurrencyType,
   OrganizationWithLogoType,
 } from '@repo/nest-lib';
 import {
+  AddressDao,
   BaseUc,
   CommonLoggerService,
+  ContactDao,
   OrganizationDao,
+  OrganizationHasAddressDao,
+  OrganizationHasContactDao,
   OrganizationHasDocumentDao,
   OrganizationSettingDao,
   PrismaService,
 } from '@repo/nest-lib';
-import { mediaTypeDbEnumToDtoEnum, noOfDaysInMonthDbEnumToDtoEnum } from '@repo/nest-lib';
+import { contactTypeDbEnumToDtoEnum, mediaTypeDbEnumToDtoEnum, noOfDaysInMonthDbEnumToDtoEnum } from '@repo/nest-lib';
 import { ApiBadRequestError, DbRecordNotFoundError } from '@repo/shared';
 
 import { S3Service } from '#src/external-service/s3.service.js';
@@ -26,6 +38,10 @@ export class BaseOrganizationUc extends BaseUc {
     protected readonly organizationDao: OrganizationDao,
     protected readonly organizationSettingDao: OrganizationSettingDao,
     protected readonly organizationHasDocumentDao: OrganizationHasDocumentDao,
+    protected readonly organizationHasAddressDao: OrganizationHasAddressDao,
+    protected readonly organizationHasContactDao: OrganizationHasContactDao,
+    protected readonly addressDao: AddressDao,
+    protected readonly contactDao: ContactDao,
     protected readonly s3Service: S3Service,
   ) {
     super(prisma, logger);
@@ -56,12 +72,44 @@ export class BaseOrganizationUc extends BaseUc {
     dbRec: OrganizationWithLogoType,
     setting: OrganizationSettingSelectTableRecordType | undefined,
     documents: OrganizationHasDocumentWithMediaType[],
+    addressLinks: OrganizationHasAddressWithAddressType[],
+    contacts: ContactSelectTableRecordType[],
   ): Promise<OrganizationDetailResponseType> {
     return {
       ...this.dbToOrganizationResponse(dbRec),
       logo: dbRec.logo ? await this.dbToLogoResponse(dbRec.logo) : null,
       settings: setting ? this.dbToSettingResponse(setting) : null,
       documents: await Promise.all(documents.map((doc) => this.dbToDocumentResponse(doc))),
+      address: addressLinks.length > 0 ? this.dbToAddressResponse(addressLinks[0]) : null,
+      contacts: contacts.map((c) => this.dbToContactResponse(c)),
+    };
+  }
+
+  private dbToAddressResponse(orgAddress: OrganizationHasAddressWithAddressType): AddressResponseType {
+    const addr = orgAddress.address;
+    return {
+      id: addr.id,
+      countryId: addr.countryId,
+      addressLine1: addr.addressLine1,
+      addressLine2: addr.addressLine2,
+      city: addr.city,
+      state: addr.state,
+      postalCode: addr.postalCode,
+      latitude: addr.latitude ?? undefined,
+      longitude: addr.longitude ?? undefined,
+      country: {
+        id: addr.country.id,
+        name: addr.country.name,
+        code: addr.country.code,
+      },
+    };
+  }
+
+  private dbToContactResponse(contact: ContactSelectTableRecordType): ContactResponseType {
+    return {
+      id: contact.id,
+      contact: contact.contact,
+      contactType: contactTypeDbEnumToDtoEnum(contact.contactType),
     };
   }
 
@@ -123,11 +171,13 @@ export class BaseOrganizationUc extends BaseUc {
   protected async getOrganizationDetailById(id: number): Promise<OrganizationDetailResponseType> {
     try {
       const dbRec = await this.organizationDao.getByIdWithLogoOrThrow({ id });
-      const [setting, documents] = await Promise.all([
+      const [setting, documents, addressLinks, contacts] = await Promise.all([
         this.organizationSettingDao.findByOrganizationId({ organizationId: id }),
         this.organizationHasDocumentDao.findByOrganizationId({ organizationId: id }),
+        this.organizationHasAddressDao.findByOrganizationId({ organizationId: id }),
+        this.contactDao.findByOrganizationId({ organizationId: id }),
       ]);
-      return this.dbToOrganizationDetailResponse(dbRec, setting, documents);
+      return this.dbToOrganizationDetailResponse(dbRec, setting, documents, addressLinks, contacts);
     } catch (error) {
       if (error instanceof DbRecordNotFoundError) {
         throw new ApiBadRequestError('Organization not found');

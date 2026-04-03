@@ -1,6 +1,7 @@
 'use client';
 
 import type { OrganizationDetailResponseType } from '@repo/dto';
+import { contactTypeDtoEnumToReadableLabel } from '@repo/shared';
 import { Button } from '@repo/ui/component/ui/button';
 import { Label } from '@repo/ui/component/ui/label';
 import { Pencil } from 'lucide-react';
@@ -78,6 +79,60 @@ export function OrganizationViewInfo({ organizationId }: Props) {
           <Label className='text-muted-foreground'>Updated at</Label>
           <p className='text-sm font-medium'>{new Date(organization.updatedAt).toLocaleDateString()}</p>
         </div>
+      </div>
+
+      {/* Address */}
+      <div className='mt-8'>
+        <h3 className='mb-4 text-base font-medium'>Address</h3>
+        {organization.address ? (
+          <div className='grid gap-4 md:grid-cols-2'>
+            <div className='flex flex-col gap-1'>
+              <Label className='text-muted-foreground'>Address line 1</Label>
+              <p className='text-sm font-medium'>{organization.address.addressLine1}</p>
+            </div>
+            {organization.address.addressLine2 && (
+              <div className='flex flex-col gap-1'>
+                <Label className='text-muted-foreground'>Address line 2</Label>
+                <p className='text-sm font-medium'>{organization.address.addressLine2}</p>
+              </div>
+            )}
+            <div className='flex flex-col gap-1'>
+              <Label className='text-muted-foreground'>City</Label>
+              <p className='text-sm font-medium'>{organization.address.city}</p>
+            </div>
+            <div className='flex flex-col gap-1'>
+              <Label className='text-muted-foreground'>State</Label>
+              <p className='text-sm font-medium'>{organization.address.state}</p>
+            </div>
+            <div className='flex flex-col gap-1'>
+              <Label className='text-muted-foreground'>Postal code</Label>
+              <p className='text-sm font-medium'>{organization.address.postalCode}</p>
+            </div>
+            <div className='flex flex-col gap-1'>
+              <Label className='text-muted-foreground'>Country</Label>
+              <p className='text-sm font-medium'>{organization.address.country.name}</p>
+            </div>
+          </div>
+        ) : (
+          <p className='text-sm text-muted-foreground'>No address configured</p>
+        )}
+      </div>
+
+      {/* Contacts */}
+      <div className='mt-8'>
+        <h3 className='mb-4 text-base font-medium'>Contacts</h3>
+        {organization.contacts && organization.contacts.length > 0 ? (
+          <div className='flex flex-col gap-3'>
+            {organization.contacts.map((contact) => (
+              <div key={contact.id} className='flex items-center gap-4 rounded-md border border-border px-4 py-3'>
+                <span className='min-w-[100px] text-sm text-muted-foreground'>{contactTypeDtoEnumToReadableLabel(contact.contactType)}</span>
+                <span className='text-sm font-medium'>{contact.contact}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className='text-sm text-muted-foreground'>No contacts configured</p>
+        )}
       </div>
 
       <OrganizationUpsertDrawer open={editDrawerOpen} onOpenChange={setEditDrawerOpen} organization={organization} onSuccess={handleEditSuccess} />

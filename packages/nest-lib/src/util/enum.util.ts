@@ -6,6 +6,7 @@ import {
   CandidateProgress,
   CandidateSource,
   CandidateStatus,
+  ContactType,
   EmployeeStatusEnum,
   LeaveStatusEnum,
   LeaveTypeEnum,
@@ -22,6 +23,7 @@ import {
   CandidateProgressDtoEnum,
   CandidateSourceDtoEnum,
   CandidateStatusDtoEnum,
+  ContactTypeDtoEnum,
   EmployeeStatusDtoEnum,
   LeaveStatusDtoEnum,
   LeaveTypeDtoEnum,
@@ -409,6 +411,38 @@ export function mediaTypeDtoEnumToDbEnum(dtoEnum: MediaTypeDtoEnum): MediaTypeDb
   const dbEnum = mapping[dtoEnum];
   if (!dbEnum) {
     throw new Error(`Unknown MediaTypeDtoEnum: ${dtoEnum}`);
+  }
+
+  return dbEnum;
+}
+
+export function contactTypeDbEnumToDtoEnum(dbEnum: ContactType): ContactTypeDtoEnum {
+  const mapping: Record<ContactType, ContactTypeDtoEnum> = {
+    phone: ContactTypeDtoEnum.phone,
+    email: ContactTypeDtoEnum.email,
+    website: ContactTypeDtoEnum.website,
+    socialMediaLink: ContactTypeDtoEnum.socialMediaLink,
+  };
+
+  const dtoEnum = mapping[dbEnum];
+  if (!dtoEnum) {
+    throw new Error(`Unknown ContactType: ${dbEnum}`);
+  }
+
+  return dtoEnum;
+}
+
+export function contactTypeDtoEnumToDbEnum(dtoEnum: ContactTypeDtoEnum): ContactType {
+  const mapping: Record<ContactTypeDtoEnum, ContactType> = {
+    [ContactTypeDtoEnum.phone]: 'phone',
+    [ContactTypeDtoEnum.email]: 'email',
+    [ContactTypeDtoEnum.website]: 'website',
+    [ContactTypeDtoEnum.socialMediaLink]: 'socialMediaLink',
+  };
+
+  const dbEnum = mapping[dtoEnum];
+  if (!dbEnum) {
+    throw new Error(`Unknown ContactTypeDtoEnum: ${dtoEnum}`);
   }
 
   return dbEnum;
