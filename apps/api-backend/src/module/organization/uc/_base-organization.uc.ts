@@ -1,10 +1,4 @@
-import type {
-  AddressResponseType,
-  ContactResponseType,
-  MediaResponseType,
-  OrganizationDetailResponseType,
-  OrganizationResponseType,
-} from '@repo/dto';
+import type { AddressResponseType, ContactResponseType, MediaResponseType, OrganizationDetailResponseType, OrganizationResponseType } from '@repo/dto';
 import type {
   ContactSelectTableRecordType,
   CurrentUserType,
@@ -45,12 +39,6 @@ export class BaseOrganizationUc extends BaseUc {
     protected readonly s3Service: S3Service,
   ) {
     super(prisma, logger);
-  }
-
-  protected assertSuperAdmin(currentUser: CurrentUserType): void {
-    if (!currentUser.isSuperAdmin) {
-      throw new ApiBadRequestError('Only super admins can access this resource');
-    }
   }
 
   protected dbToOrganizationResponse(dbRec: OrganizationWithCurrencyType): OrganizationResponseType {

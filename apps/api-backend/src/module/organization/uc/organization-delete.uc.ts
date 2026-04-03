@@ -38,7 +38,18 @@ export class OrganizationDeleteUc extends BaseOrganizationUc implements IUseCase
     contactDao: ContactDao,
     s3Service: S3Service,
   ) {
-    super(prisma, logger, organizationDao, organizationSettingDao, organizationHasDocumentDao, organizationHasAddressDao, organizationHasContactDao, addressDao, contactDao, s3Service);
+    super(
+      prisma,
+      logger,
+      organizationDao,
+      organizationSettingDao,
+      organizationHasDocumentDao,
+      organizationHasAddressDao,
+      organizationHasContactDao,
+      addressDao,
+      contactDao,
+      s3Service,
+    );
   }
 
   async execute(params: Params): Promise<OperationStatusResponseType> {

@@ -13,6 +13,7 @@ import {
   OrganizationSettingDao,
   PrismaService,
 } from '@repo/nest-lib';
+import { ApiBadRequestError } from '@repo/shared';
 
 import { S3Service } from '#src/external-service/s3.service.js';
 
@@ -37,11 +38,22 @@ export class OrganizationGetUc extends BaseOrganizationUc implements IUseCase<Pa
     contactDao: ContactDao,
     s3Service: S3Service,
   ) {
-    super(prisma, logger, organizationDao, organizationSettingDao, organizationHasDocumentDao, organizationHasAddressDao, organizationHasContactDao, addressDao, contactDao, s3Service);
+    super(
+      prisma,
+      logger,
+      organizationDao,
+      organizationSettingDao,
+      organizationHasDocumentDao,
+      organizationHasAddressDao,
+      organizationHasContactDao,
+      addressDao,
+      contactDao,
+      s3Service,
+    );
   }
 
   async execute(params: Params): Promise<OrganizationDetailResponseType> {
-    this.assertSuperAdmin(params.currentUser);
+    this.assertOwnOrganization(params.currentUser, params.id);
     this.logger.i('Getting organization', { id: params.id });
     return await this.getOrganizationDetailById(params.id);
   }

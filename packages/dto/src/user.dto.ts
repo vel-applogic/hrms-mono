@@ -5,8 +5,8 @@ import { FilterRequestSchema } from './pagination-filter.dto.js';
 
 export const UserBaseFieldsSchema = z.object({
   email: z.string().email(),
-  firstname: z.string().min(1),
-  lastname: z.string().min(1),
+  firstname: z.string(),
+  lastname: z.string(),
   roles: z.array(z.enum(UserRoleDtoEnum)),
 });
 
@@ -24,8 +24,6 @@ export type AdminUserUpdateRequestType = z.infer<typeof AdminUserUpdateRequestSc
 
 export const AdminUserListResponseSchema = UserBaseFieldsSchema.extend({
   id: z.number(),
-  firstname: z.string(),
-  lastname: z.string(),
   isActive: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),

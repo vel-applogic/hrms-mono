@@ -16,7 +16,7 @@ import {
   PrismaService,
 } from '@repo/nest-lib';
 import { contactTypeDtoEnumToDbEnum, mediaTypeDtoEnumToDbEnum, noOfDaysInMonthDtoEnumToDbEnum } from '@repo/nest-lib';
-import { ApiFieldValidationError } from '@repo/shared';
+import { ApiBadRequestError, ApiFieldValidationError } from '@repo/shared';
 
 import { S3Service } from '#src/external-service/s3.service.js';
 import { MediaService } from '#src/service/media.service.js';
@@ -44,11 +44,22 @@ export class OrganizationUpdateUc extends BaseOrganizationUc implements IUseCase
     private readonly mediaDao: MediaDao,
     private readonly mediaService: MediaService,
   ) {
-    super(prisma, logger, organizationDao, organizationSettingDao, organizationHasDocumentDao, organizationHasAddressDao, organizationHasContactDao, addressDao, contactDao, s3Service);
+    super(
+      prisma,
+      logger,
+      organizationDao,
+      organizationSettingDao,
+      organizationHasDocumentDao,
+      organizationHasAddressDao,
+      organizationHasContactDao,
+      addressDao,
+      contactDao,
+      s3Service,
+    );
   }
 
   async execute(params: Params): Promise<OrganizationResponseType> {
-    this.assertSuperAdmin(params.currentUser);
+    this.assertOwnOrganization(params.currentUser, params.dto.id);
     this.logger.i('Updating organization', { id: params.dto.id });
 
     const existing = await this.organizationDao.findByName({ name: params.dto.name });

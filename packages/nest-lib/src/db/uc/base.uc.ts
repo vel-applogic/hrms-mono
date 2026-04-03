@@ -6,6 +6,8 @@ import type { FilterSortRequestType, AuditActivityFieldChangeType, AdminUserDeta
 import { UserRoleDtoEnum } from '@repo/dto';
 import deepDiff from 'deep-diff';
 import { userRoleDbEnumToDtoEnum } from '../../util/enum.util.js';
+import { ApiBadRequestError } from '@repo/shared';
+import { CurrentUserType } from '../../type/user.type.js';
 
 const { diff } = deepDiff;
 
@@ -18,6 +20,31 @@ export abstract class BaseUc {
     protected readonly prisma: PrismaService,
     protected readonly logger: CommonLoggerService,
   ) {}
+
+  protected assertSuperAdmin(currentUser: CurrentUserType): void {
+    if (currentUser.isSuperAdmin) {
+      return;
+    }
+    throw new ApiBadRequestError('Only super admins can access this resource');
+  }
+
+  protected assertAdmin(currentUser: CurrentUserType): void {
+    if (currentUser.isSuperAdmin) {
+      return;
+    }
+    if (!currentUser.roles.includes(UserRoleDtoEnum.admin)) {
+      throw new ApiBadRequestError('Only admins can access this resource');
+    }
+  }
+
+  protected assertOwnOrganization(currentUser: CurrentUserType, organizationId: number): void {
+    if (currentUser.isSuperAdmin) {
+      return;
+    }
+    if (currentUser.organizationId !== organizationId) {
+      throw new ApiBadRequestError('Only the owner of the organization can access this resource');
+    }
+  }
 
   protected transaction<T>(fn: (ctx: Prisma.TransactionClient) => Promise<T>, options?: { timeout?: number }): Promise<T> {
     return this.prisma.$transaction(fn, options);

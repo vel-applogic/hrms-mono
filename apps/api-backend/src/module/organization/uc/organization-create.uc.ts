@@ -57,7 +57,18 @@ export class OrganizationCreateUc extends BaseOrganizationUc implements IUseCase
     private readonly emailService: EmailService,
     private readonly appConfigService: AppConfigService,
   ) {
-    super(prisma, logger, organizationDao, organizationSettingDao, organizationHasDocumentDao, organizationHasAddressDao, organizationHasContactDao, addressDao, contactDao, s3Service);
+    super(
+      prisma,
+      logger,
+      organizationDao,
+      organizationSettingDao,
+      organizationHasDocumentDao,
+      organizationHasAddressDao,
+      organizationHasContactDao,
+      addressDao,
+      contactDao,
+      s3Service,
+    );
   }
 
   async execute(params: Params): Promise<OrganizationResponseType> {
