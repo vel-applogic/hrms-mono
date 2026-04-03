@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@repo/db';
 import type { PayslipGenerateRequestType, PayslipGenerateResponseType, PayslipListResponseType } from '@repo/dto';
 import { PrismaService } from '@repo/nest-lib';
-import { CommonLoggerService, CurrentUserType, IUseCase, LeaveDao, PayrollPayslipDao, PayrollCompensationDao, PayrollDeductionDao, EmployeeDao, OrganizationDao } from '@repo/nest-lib';
+import { CommonLoggerService, ContactDao, CurrentUserType, IUseCase, LeaveDao, OrganizationHasAddressDao, PayrollPayslipDao, PayrollCompensationDao, PayrollDeductionDao, EmployeeDao, OrganizationDao } from '@repo/nest-lib';
 import type { PayrollPayslipWithDetailsType, PayrollCompensationWithLineItemsType, PayrollDeductionWithLineItemsType } from '@repo/nest-lib';
 import { ApiBadRequestError } from '@repo/shared';
 import { buildPayslipTemplateData } from '@repo/shared';
@@ -16,6 +16,17 @@ type Params = {
   dto: PayslipGenerateRequestType;
 };
 
+type OrgData = {
+  companyName: string;
+  companyLogoUrl: string | null;
+  currencySymbol: string | null;
+  currencyCode: string;
+  companyAddress: string;
+  companyPhones: string[];
+  companyEmails: string[];
+  companyWebsites: string[];
+};
+
 @Injectable()
 export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params, PayslipGenerateResponseType> {
   constructor(
@@ -27,6 +38,8 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     private readonly payrollDeductionDao: PayrollDeductionDao,
     private readonly leaveDao: LeaveDao,
     private readonly organizationDao: OrganizationDao,
+    private readonly organizationHasAddressDao: OrganizationHasAddressDao,
+    private readonly contactDao: ContactDao,
     private readonly pdfGeneratorService: PdfGeneratorService,
     private readonly s3Service: S3Service,
   ) {
@@ -116,9 +129,18 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     return { generated, skipped, alreadyExisting: false };
   }
 
-  private async generateAndUploadPdf(payslip: PayrollPayslipWithDetailsType, orgData: { companyName: string; companyLogoUrl: string | null; currencySymbol: string | null; currencyCode: string }): Promise<void> {
+  private async generateAndUploadPdf(payslip: PayrollPayslipWithDetailsType, orgData: OrgData): Promise<void> {
     try {
-      const pdfData = buildPayslipTemplateData(this.mapToDetail(payslip), { companyName: orgData.companyName, companyLogoUrl: orgData.companyLogoUrl, currencySymbol: orgData.currencySymbol, currencyCode: orgData.currencyCode });
+      const pdfData = buildPayslipTemplateData(this.mapToDetail(payslip), {
+        companyName: orgData.companyName,
+        companyLogoUrl: orgData.companyLogoUrl,
+        currencySymbol: orgData.currencySymbol,
+        currencyCode: orgData.currencyCode,
+        companyAddress: orgData.companyAddress,
+        companyPhones: orgData.companyPhones,
+        companyEmails: orgData.companyEmails,
+        companyWebsites: orgData.companyWebsites,
+      });
       const pdfBuffer = await this.pdfGeneratorService.generatePayslipPdf(pdfData);
       await this.s3Service.uploadBuffer({ s3Key: payslip.pdfS3Key, buffer: pdfBuffer, contentType: 'application/pdf' });
     } catch (err) {
@@ -126,13 +148,29 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     }
   }
 
-  private async getOrganizationData(organizationId: number): Promise<{ companyName: string; companyLogoUrl: string | null; currencySymbol: string | null; currencyCode: string }> {
+  private async getOrganizationData(organizationId: number): Promise<OrgData> {
     try {
       const org = await this.organizationDao.getByIdWithLogoOrThrow({ id: organizationId });
-      const companyLogoUrl = org.logo ? await this.s3Service.getSignedUrl(org.logo.key) : null;
-      return { companyName: org.name, companyLogoUrl, currencySymbol: org.currency.symbol, currencyCode: org.currency.code };
+      const [companyLogoUrl, addressLinks, contacts] = await Promise.all([
+        org.logo ? this.s3Service.getSignedUrl(org.logo.key) : Promise.resolve(null),
+        this.organizationHasAddressDao.findByOrganizationId({ organizationId }),
+        this.contactDao.findByOrganizationId({ organizationId }),
+      ]);
+
+      let companyAddress = '';
+      if (addressLinks.length > 0) {
+        const addr = addressLinks[0].address;
+        const parts = [addr.addressLine1, addr.addressLine2, addr.city, addr.state, addr.postalCode, addr.country.name].filter((p) => p?.length);
+        companyAddress = parts.join(', ');
+      }
+
+      const companyPhones = contacts.filter((c) => c.contactType === 'phone').map((c) => c.contact);
+      const companyEmails = contacts.filter((c) => c.contactType === 'email').map((c) => c.contact);
+      const companyWebsites = contacts.filter((c) => c.contactType === 'website').map((c) => c.contact);
+
+      return { companyName: org.name, companyLogoUrl, currencySymbol: org.currency.symbol, currencyCode: org.currency.code, companyAddress, companyPhones, companyEmails, companyWebsites };
     } catch {
-      return { companyName: 'Company Name', companyLogoUrl: null, currencySymbol: '₹', currencyCode: 'INR' };
+      return { companyName: 'Company Name', companyLogoUrl: null, currencySymbol: '₹', currencyCode: 'INR', companyAddress: '', companyPhones: [], companyEmails: [], companyWebsites: [] };
     }
   }
 

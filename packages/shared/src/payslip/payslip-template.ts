@@ -14,6 +14,9 @@ export interface PayslipTemplateData {
   companyName: string;
   companyAddress: string;
   companyLogoUrl: string | null;
+  companyPhones: string;
+  companyEmails: string;
+  companyWebsites: string;
   monthLabel: string;
   year: number;
   employeeFirstname: string;
@@ -88,7 +91,7 @@ type PayslipDataInput = Pick<PayslipDetailResponseType, 'month' | 'year' | 'empl
   companyLogoUrl?: string | null;
 };
 
-export function buildPayslipTemplateData(payslip: PayslipDataInput, options: { companyName?: string; companyAddress?: string; companyLogoUrl?: string | null; currencySymbol?: string | null; currencyCode?: string } = {}): PayslipTemplateData {
+export function buildPayslipTemplateData(payslip: PayslipDataInput, options: { companyName?: string; companyAddress?: string; companyLogoUrl?: string | null; currencySymbol?: string | null; currencyCode?: string; companyPhones?: string[]; companyEmails?: string[]; companyWebsites?: string[] } = {}): PayslipTemplateData {
   const currencyPrefix = options.currencySymbol ?? options.currencyCode ?? '\u20B9';
 
   const earnings = payslip.lineItems.filter((li) => li.type === 'earning');
@@ -109,8 +112,11 @@ export function buildPayslipTemplateData(payslip: PayslipDataInput, options: { c
 
   return {
     companyName: options.companyName ?? payslip.companyName ?? 'Company Name',
-    companyAddress: options.companyAddress ?? 'Company Address',
+    companyAddress: options.companyAddress ?? '',
     companyLogoUrl: options.companyLogoUrl ?? payslip.companyLogoUrl ?? null,
+    companyPhones: options.companyPhones?.join(', ') ?? '',
+    companyEmails: options.companyEmails?.join(', ') ?? '',
+    companyWebsites: options.companyWebsites?.join(', ') ?? '',
     monthLabel: MONTH_LABELS[payslip.month - 1] ?? '',
     year: payslip.year,
     employeeFirstname: payslip.employeeFirstname,
@@ -229,7 +235,10 @@ export const PAYSLIP_HTML_TEMPLATE = `<!DOCTYPE html>
     {{#if companyLogoUrl}}<div class="logo-box"><img src="{{companyLogoUrl}}" alt="Logo" /></div>{{else}}<div class="logo-box">Logo</div>{{/if}}
     <div>
       <p class="company-name">{{companyName}}</p>
-      <p class="company-address">{{companyAddress}}</p>
+      {{#if companyAddress}}<p class="company-address">{{companyAddress}}</p>{{/if}}
+      {{#if companyPhones}}<p class="company-address">Phone: {{companyPhones}}</p>{{/if}}
+      {{#if companyEmails}}<p class="company-address">Email: {{companyEmails}}</p>{{/if}}
+      {{#if companyWebsites}}<p class="company-address">Website: {{companyWebsites}}</p>{{/if}}
       <p class="pay-month">Payslip for the Month of {{monthLabel}} {{year}}</p>
     </div>
   </div>

@@ -37,6 +37,10 @@ export function PayslipViewDrawer({ open, onOpenChange, payslipId }: Props) {
         buildPayslipTemplateData(payslip, {
           companyName: payslip.companyName,
           companyLogoUrl: payslip.companyLogoUrl,
+          companyAddress: payslip.companyAddress,
+          companyPhones: payslip.companyPhones,
+          companyEmails: payslip.companyEmails,
+          companyWebsites: payslip.companyWebsites,
           currencySymbol: payslip.currencySymbol,
           currencyCode: payslip.currencyCode,
         }),
