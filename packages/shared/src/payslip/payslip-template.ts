@@ -159,26 +159,25 @@ export const PAYSLIP_HTML_TEMPLATE = `<!DOCTYPE html>
 
     /* ── Header ──────────────────────────────────────────────── */
     .header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
       border-bottom: 1px solid #e5e7eb;
       padding: 20px 24px;
     }
-    .header-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-    }
-    .header-right {
-      text-align: right;
-      flex-shrink: 0;
-    }
+    .header-logo { flex-shrink: 0; }
     .logo-img {
       width: 150px; height: auto;
       object-fit: contain; display: block;
     }
-    .company-name { font-size: 14px; font-weight: 700; color: #111827; text-transform: uppercase; }
-    .header-details {
-      margin-top: 10px;
+    .header-center { flex: 1; }
+    .header-right {
+      text-align: right;
+      flex-shrink: 0;
+      align-self: flex-end;
+      padding-left: 24px;
     }
+    .company-name { font-size: 14px; font-weight: 700; color: #111827; text-transform: uppercase; }
     .company-info { font-size: 10px; color: #6b7280; margin-top: 2px; }
     .pay-month-label { font-size: 10px; color: #9ca3af; }
     .pay-month-value { font-size: 16px; font-weight: 700; color: #111827; margin-top: 2px; }
@@ -239,21 +238,17 @@ export const PAYSLIP_HTML_TEMPLATE = `<!DOCTYPE html>
 <div class="payslip">
 
   <div class="header">
-    <div class="header-top">
-      <div>
-        {{#if companyLogoUrl}}<img class="logo-img" src="{{companyLogoUrl}}" alt="Logo" />{{else}}<p class="company-name">{{companyName}}</p>{{/if}}
-      </div>
-      <div class="header-right">
-        <p class="pay-month-label">Payslip For the Month</p>
-        <p class="pay-month-value">{{monthShortLabel}} {{year}}</p>
-      </div>
-    </div>
-    <div class="header-details">
-      {{#if companyLogoUrl}}<p class="company-name">{{companyName}}</p>{{/if}}
+    {{#if companyLogoUrl}}<div class="header-logo"><img class="logo-img" src="{{companyLogoUrl}}" alt="Logo" /></div>{{/if}}
+    <div class="header-center">
+      <p class="company-name">{{companyName}}</p>
       {{#if companyAddress}}<p class="company-info">{{companyAddress}}</p>{{/if}}
       {{#if companyPhones}}<p class="company-info">Phone: {{companyPhones}}</p>{{/if}}
       {{#if companyEmails}}<p class="company-info">Email: {{companyEmails}}</p>{{/if}}
       {{#if companyWebsites}}<p class="company-info">Website: {{companyWebsites}}</p>{{/if}}
+    </div>
+    <div class="header-right">
+      <p class="pay-month-label">Payslip For the Month</p>
+      <p class="pay-month-value">{{monthShortLabel}} {{year}}</p>
     </div>
   </div>
 
