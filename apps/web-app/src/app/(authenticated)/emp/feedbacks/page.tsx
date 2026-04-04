@@ -16,8 +16,8 @@ export default async function EmpFeedbacksPage() {
   }).catch(() => ({ results: [], totalRecords: 0, page: 1, limit: 10 }));
 
   return (
-    <div className='flex h-full flex-col gap-4 pt-4'>
-      <div className='center-container flex min-h-0 flex-1 flex-col pb-4'>
+    <div className='flex h-full flex-col gap-4'>
+      <div className='center-container flex min-h-0 flex-1 flex-col'>
         <EmployeeViewFeedbacks employeeId={employeeId} initialPage={initialPage} readOnly />
       </div>
     </div>

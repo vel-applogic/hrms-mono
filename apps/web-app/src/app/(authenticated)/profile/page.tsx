@@ -31,11 +31,7 @@ export default async function ProfilePage(props: Props) {
   const profile = await accountService.getProfile();
 
   return (
-    <div className='flex h-full flex-col gap-4 pt-4'>
-      <div className='center-container flex items-center justify-between'>
-        <span className='text-xl font-medium tracking-tight text-foreground'>Profile</span>
-      </div>
-
+    <div className='flex h-full flex-col gap-4'>
       <div className='center-container flex flex-1 flex-col gap-4'>
         <div className='flex items-center gap-2.5 border-b border-border'>
           {tabs.map((t) => {

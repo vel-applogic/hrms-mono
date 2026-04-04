@@ -41,7 +41,7 @@
 }
 
 @utility center-container {
-  @apply mx-auto w-full max-w-[2200px] px-4 md:px-8;
+  @apply mx-auto w-full max-w-[2200px];
 }
 
 @layer base {
@@ -101,18 +101,16 @@
 /* ag-grid theme overrides */
 .ag-theme-quartz {
   --ag-font-family: 'DM Sans', sans-serif;
-  --ag-header-background-color: #077f8c;
+  --ag-header-background-color: #077f8c59;
   --ag-border-color: #e5e7eb;
-  --ag-header-text-color: #ffffff;
+  --ag-header-text-color: #065f69;
   --ag-foreground-color: #1a1a2e;
   --ag-background-color: #ffffff;
   --ag-wrapper-border-radius: 0;
 
   .ag-root-wrapper {
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    border-radius: 6px 6px 0 0;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   }
 
   .ag-cell-auto-height {

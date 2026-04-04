@@ -23,7 +23,7 @@ interface Props {
 
 export function CandidateView({ candidate, initialFeedbackPage, activeTab }: Props) {
   return (
-    <div className='flex h-full flex-col gap-4 pt-4'>
+    <div className='flex h-full flex-col gap-4'>
       <div className='center-container flex items-center justify-between'>
         <div className='flex items-center gap-3'>
           <Link href='/candidate'>

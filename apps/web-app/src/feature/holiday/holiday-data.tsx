@@ -175,12 +175,7 @@ export function HolidayData({ data, searchParams, years, selectedYear, readOnly 
 
   return (
     <div className='flex h-full flex-col gap-4'>
-      <div className='flex items-center justify-between'>
-        <span className='text-sm font-medium text-muted-foreground'>
-          {data.totalRecords > 0
-            ? `Showing records: ${(data.page - 1) * data.limit + 1} - ${Math.min(data.page * data.limit, data.totalRecords)} of ${data.totalRecords}`
-            : 'No records found'}
-        </span>
+      <div className='flex items-center justify-between gap-3'>
         <div className='flex items-center gap-3'>
           <Select value={String(selectedYear)} onValueChange={handleYearChange}>
             <SelectTrigger className='h-10 w-[120px]'>
@@ -212,13 +207,13 @@ export function HolidayData({ data, searchParams, years, selectedYear, readOnly 
               className='w-full bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none'
             />
           </div>
-          {!readOnly && (
-            <Button className='shrink-0 rounded-[40px]' onClick={handleAddNew}>
-              <Plus className='h-4 w-4' />
-              Add holiday
-            </Button>
-          )}
         </div>
+        {!readOnly && (
+          <Button className='shrink-0 rounded-[40px]' onClick={handleAddNew}>
+            <Plus className='h-4 w-4' />
+            Add holiday
+          </Button>
+        )}
       </div>
 
       <div className='min-h-0 flex-1'>

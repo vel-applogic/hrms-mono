@@ -36,12 +36,10 @@ export default async function UserPage(props: Props) {
   }
 
   const data = await userService.search(filterRequest);
-  const stats = await userService.getStats();
 
   return (
-    <div className='center-container flex h-full flex-col py-4'>
-      {/* <UserList /> */}
-      <UserData data={data} searchParams={validatedParams} stats={stats} />
+    <div className='flex h-full flex-col'>
+      <UserData data={data} searchParams={validatedParams} />
     </div>
   );
 }

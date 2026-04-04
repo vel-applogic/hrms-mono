@@ -30,7 +30,7 @@ export function PolicyViewPage({ policy, backHref }: Props) {
   const items = parseContent(policy.content);
 
   return (
-    <div className='flex h-full flex-col gap-4 pt-4'>
+    <div className='flex h-full flex-col gap-4'>
       <div className='center-container flex items-center gap-3'>
         <Link href={backHref}>
           <Button variant='ghost' size='icon' className='shrink-0'>

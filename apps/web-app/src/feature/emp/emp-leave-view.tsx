@@ -23,12 +23,8 @@ export function EmpLeaveView({ children }: Props) {
   };
 
   return (
-    <div className='flex h-full flex-col gap-4 pt-4'>
-      <div className='center-container flex items-center justify-between'>
-        <span className='text-xl font-medium tracking-tight text-foreground'>Leaves & Holidays</span>
-      </div>
-
-      <div className='flex min-h-0 flex-1 flex-col gap-4 pl-8 pr-8'>
+    <div className='flex h-full flex-col gap-4'>
+      <div className='flex min-h-0 flex-1 flex-col gap-4'>
         <div className='flex items-center gap-2.5 border-b border-border'>
           {TABS.map((tab) => {
             const active = isActive(tab.href);

@@ -100,21 +100,8 @@ export const EmployeeData = ({ data, searchParams }: Props) => {
     (searchParams.employeeStatus?.length ?? 0) > 0;
 
   return (
-    <div className='flex h-full flex-col gap-4 pt-4'>
-      <div className='center-container flex items-center justify-between'>
-        <span className='text-xl font-medium tracking-tight text-foreground'>Employees</span>
-        <Button className='shrink-0 rounded-[40px]' onClick={handleAddNew}>
-          <Plus className='h-4 w-4' />
-          Add new employee
-        </Button>
-      </div>
-
+    <div className='flex h-full flex-col gap-4'>
       <div className='center-container flex items-center justify-between gap-3'>
-        <span className='text-sm font-medium text-muted-foreground'>
-          {data.totalRecords > 0
-            ? `Showing records: ${(data.page - 1) * data.limit + 1} - ${Math.min(data.page * data.limit, data.totalRecords)} of ${data.totalRecords}`
-            : 'No records found'}
-        </span>
         <div className='flex items-center gap-3'>
           {hasActiveFilters && (
             <Button variant='outline' size='sm' onClick={handleClearAll} className='shrink-0'>
@@ -142,9 +129,13 @@ export const EmployeeData = ({ data, searchParams }: Props) => {
             />
           </div>
         </div>
+        <Button className='shrink-0 rounded-[40px]' onClick={handleAddNew}>
+          <Plus className='h-4 w-4' />
+          Add new employee
+        </Button>
       </div>
 
-      <div className='center-container flex flex-1 flex-col min-h-0 pb-4'>
+      <div className='center-container flex flex-1 flex-col min-h-0'>
         <EmployeeDataTableClient data={data} sort={sort} onEdit={handleEdit} onDelete={handleDelete} onRefresh={() => refresh()} />
       </div>
 

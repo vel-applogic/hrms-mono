@@ -87,25 +87,8 @@ export const PolicyData = ({ data, searchParams, readOnly, basePath }: Props) =>
     searchText.trim().length > 0 || (searchParams.search?.trim().length ?? 0) > 0;
 
   return (
-    <div className='flex h-full flex-col gap-4 pt-4'>
+    <div className='flex h-full flex-col gap-4'>
       <div className='center-container flex items-center justify-between'>
-        <span className='text-xl font-medium tracking-tight text-foreground'>Policies</span>
-        {!readOnly && (
-          <Link href='/policy/create'>
-            <Button className='rounded-[40px]'>
-              <Plus className='h-4 w-4' />
-              Add new policy
-            </Button>
-          </Link>
-        )}
-      </div>
-
-      <div className='center-container flex items-center justify-between'>
-        <span className='text-sm font-medium text-muted-foreground'>
-          {data.totalRecords > 0
-            ? `Showing records: ${(data.page - 1) * data.limit + 1} - ${Math.min(data.page * data.limit, data.totalRecords)} of ${data.totalRecords}`
-            : 'No records found'}
-        </span>
         <div className='flex items-center gap-3'>
           {hasActiveFilters && (
             <Button variant='outline' size='sm' onClick={handleClearAll} className='shrink-0'>
@@ -132,9 +115,17 @@ export const PolicyData = ({ data, searchParams, readOnly, basePath }: Props) =>
             />
           </div>
         </div>
+        {!readOnly && (
+          <Link href='/policy/create'>
+            <Button className='rounded-[40px]'>
+              <Plus className='h-4 w-4' />
+              Add new policy
+            </Button>
+          </Link>
+        )}
       </div>
 
-      <div className='center-container flex flex-1 flex-col min-h-0 pb-4'>
+      <div className='center-container flex flex-1 flex-col min-h-0'>
         <PolicyDataTableClient data={data} sort={sort} basePath={basePath} onEdit={readOnly ? undefined : handleEdit} onDelete={readOnly ? undefined : handleDelete} />
       </div>
 

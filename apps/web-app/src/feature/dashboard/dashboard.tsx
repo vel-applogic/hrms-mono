@@ -240,8 +240,6 @@ export function Dashboard({ hideAdminWidgets }: DashboardProps) {
 
   return (
     <div className='flex flex-col gap-6'>
-      <h1 className='text-xl font-medium tracking-tight'>Dashboard</h1>
-
       {/* Row 1: Key stats */}
       <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
         {!hideAdminWidgets && <StatCard icon={Users} label='Employees' value={data.loaded ? data.employeeCount : null} />}

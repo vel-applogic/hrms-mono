@@ -1,6 +1,6 @@
 'use client';
 
-import { AdminUserListResponseType, AdminUserStatsResponseType, PaginatedResponseType, SearchParamsType } from '@repo/dto';
+import { AdminUserListResponseType, PaginatedResponseType, SearchParamsType } from '@repo/dto';
 import { Button } from '@repo/ui/component/ui/button';
 import { SelectOption, SelectSearchSingle } from '@repo/ui/component/select-search';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -14,10 +14,9 @@ import { UserDataTableClient } from './user.datatable';
 interface Props {
   data: PaginatedResponseType<AdminUserListResponseType>;
   searchParams: SearchParamsType;
-  stats: AdminUserStatsResponseType;
 }
 
-export const UserData = ({ data, searchParams, stats }: Props) => {
+export const UserData = ({ data, searchParams }: Props) => {
   const pathname = usePathname();
   const currentSearchParams = useSearchParams();
   const { replace, refresh } = useRouter();
@@ -75,29 +74,9 @@ export const UserData = ({ data, searchParams, stats }: Props) => {
     { label: 'Inactive', value: 'inactive' },
   ];
 
-  const statCards = [
-    { label: 'Total users', value: stats.totalUsers.toLocaleString() },
-    { label: 'Online users', value: '24' },
-    { label: 'Ave. time spent / user / day', value: '1h 13m' },
-  ];
-
   return (
     <div className='flex h-full flex-col gap-4'>
-      <h2 className='text-xl font-medium tracking-tight text-foreground'>Overview</h2>
-
-      <div className='grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5'>
-        {statCards.map((card, i) => (
-          <div key={i} className='flex flex-col overflow-hidden rounded-lg bg-card'>
-            <div className='flex flex-col gap-2 px-4 py-3 md:px-5'>
-              <span className='text-xl font-medium tracking-tight text-foreground md:text-2xl'>{card.value}</span>
-              <span className='text-sm text-muted-foreground md:text-base'>{card.label}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
       <div className='flex items-center justify-between'>
-        <span className='text-xl font-medium tracking-tight text-foreground'>Users</span>
         <div className='flex items-center gap-3'>
           <SelectSearchSingle
             value={searchParams.status}
@@ -132,6 +111,8 @@ export const UserData = ({ data, searchParams, stats }: Props) => {
               className='w-full bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none'
             />
           </div>
+        </div>
+        <div>
           <Button onClick={() => setInviteOpen(true)}>
             Invite User
           </Button>

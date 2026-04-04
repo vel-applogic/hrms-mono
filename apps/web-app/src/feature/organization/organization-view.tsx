@@ -20,7 +20,7 @@ interface Props {
 
 export function OrganizationView({ organization, activeTab }: Props) {
   return (
-    <div className='flex h-full flex-col gap-4 pt-4'>
+    <div className='flex h-full flex-col gap-4'>
       <div className='center-container flex items-center justify-between'>
         <div>
           <h1 className='text-xl font-medium tracking-tight text-foreground'>{organization.name}</h1>

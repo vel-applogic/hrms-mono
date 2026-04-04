@@ -186,29 +186,27 @@ const DataTableContainer = <T,>(props: DataTableContainerProps<T>) => {
   const theme = useMemo(() => {
     return datatableTheme.withParams({
       spacing: 10,
-      rowHoverColor: '#E4E9E6',
+      rowHoverColor: '#077f8c14',
       headerHeight: '50px',
       fontFamily: 'DM Sans',
-      selectedRowBackgroundColor: '#E4E9E6',
-      checkboxCheckedBackgroundColor: '#1B4332',
+      selectedRowBackgroundColor: '#edf2f7',
+      checkboxCheckedBackgroundColor: '#077f8c',
       checkboxCheckedShapeColor: 'white',
       checkboxUncheckedBackgroundColor: 'transparent',
-      checkboxUncheckedBorderColor: '#C8D3CD',
-      wrapperBorderRadius: 0,
-      borderRadius: 0,
-      headerTextColor: '#d4e8dc',
-      headerFontWeight: '700',
+      checkboxUncheckedBorderColor: '#d1d5db',
+      wrapperBorderRadius: 6,
+      borderRadius: 6,
+      headerTextColor: '#065f69',
+      headerFontWeight: '600',
+      headerFontSize: 13,
       backgroundColor: '#FFFFFF',
       chromeBackgroundColor: '#FFFFFF',
-      foregroundColor: '#0F1F16',
-      headerBackgroundColor: '#1e5a40',
-      headerColumnBorder: { style: 'solid', color: '#2a7a56' },
-      rowBorder: { style: 'solid', color: '#C8D3CD' },
-      columnBorder: { style: 'solid', color: '#C8D3CD' },
-      wrapperBorder: {
-        width: 1,
-        color: '#C8D3CD',
-      },
+      foregroundColor: '#1a1a2e',
+      headerBackgroundColor: '#077f8c59',
+      headerColumnBorder: false,
+      rowBorder: { style: 'solid', color: '#e5e7eb' },
+      columnBorder: false,
+      wrapperBorder: false,
     });
   }, []);
 
@@ -459,7 +457,7 @@ const DataTableContainer = <T,>(props: DataTableContainerProps<T>) => {
           }
         />
       </div>
-      {props.pagination != null ? (
+      {props.pagination ? (
         props.footerActions ? (
           <DataTableFooterSimple
             page={props.pagination.page}
@@ -478,7 +476,7 @@ const DataTableContainer = <T,>(props: DataTableContainerProps<T>) => {
 
 const DataTableFooterSimple = (props: { total: number; pageSize: number; page: number; tableKey: string; footerActions: React.ReactNode }) => {
   return (
-    <div className='rounded-b-xl border border-t-0 border-border bg-[#077f8c] px-4 py-4 text-[#d4e8dc]'>
+    <div className='min-h-[52px] rounded-b-md border-t border-border bg-[#077f8c59] px-4 py-3 text-foreground'>
       <div className='flex flex-row items-center justify-between'>
         <DataTableSimplePagination page={props.page} pageSize={props.pageSize} total={props.total} tableKey={props.tableKey} />
         {props.footerActions}
@@ -489,7 +487,7 @@ const DataTableFooterSimple = (props: { total: number; pageSize: number; page: n
 
 const DataTableFooterFull = (props: { total: number; pageSize: number; page: number; tableKey: string }) => {
   return (
-    <div className='rounded-b-xl border border-t-0 border-border bg-[#077f8c] px-4 py-4 text-[#d4e8dc]'>
+    <div className='min-h-[52px] rounded-b-md border-t border-border bg-[#077f8c59] px-4 py-3 text-foreground'>
       <DataTableFullPagination page={props.page} pageSize={props.pageSize} total={props.total} tableKey={props.tableKey} />
     </div>
   );

@@ -84,7 +84,7 @@ export const OrganizationData = ({ data, searchParams }: Props) => {
     (searchParams.search?.trim().length ?? 0) > 0;
 
   return (
-    <div className='flex h-full flex-col gap-4 pt-4'>
+    <div className='flex h-full flex-col gap-4'>
       <div className='center-container flex items-center justify-between'>
         <span className='text-xl font-medium tracking-tight text-foreground'>Organizations</span>
         <Button className='shrink-0 rounded-[40px]' onClick={handleAddNew}>
@@ -127,7 +127,7 @@ export const OrganizationData = ({ data, searchParams }: Props) => {
         </div>
       </div>
 
-      <div className='center-container flex flex-1 flex-col min-h-0 pb-4'>
+      <div className='center-container flex flex-1 flex-col min-h-0'>
         <OrganizationDataTableClient data={data} sort={sort} onEdit={handleEdit} onDelete={handleDelete} />
       </div>
 

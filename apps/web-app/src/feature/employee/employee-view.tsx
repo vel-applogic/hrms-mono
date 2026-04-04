@@ -48,7 +48,7 @@ interface Props {
 
 export function EmployeeView({ employee, initialFeedbackPage, initialCompensationPage, initialDeductionPage, initialLeavePage, initialBgvPage, initialPayslipPage, initialLeaveFinancialYear, activeTab }: Props) {
   return (
-    <div className='flex h-full flex-col gap-4 pt-4'>
+    <div className='flex h-full flex-col gap-4'>
       <div className='center-container flex items-center justify-between'>
         <div className='flex items-center gap-3'>
           <Link href='/employee'>
@@ -80,7 +80,7 @@ export function EmployeeView({ employee, initialFeedbackPage, initialCompensatio
           })}
         </div>
 
-        <div className='min-h-0 flex-1 pt-4'>
+        <div className='min-h-0 flex-1'>
           {activeTab === 'details' && <EmployeeViewBasicDetails employeeId={employee.id} />}
           {activeTab === 'documents' && <EmployeeViewDocuments employeeId={employee.id} />}
           {activeTab === 'feedbacks' && <EmployeeViewFeedbacks employeeId={employee.id} initialPage={initialFeedbackPage} />}

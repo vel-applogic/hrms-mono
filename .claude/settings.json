@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(ls /Users/vel/Applogic/Applogic/hrms-mono/node_modules/.pnpm/@tiptap+extension-image*)"
+      "Bash(ls /Users/vel/Applogic/Applogic/hrms-mono/node_modules/.pnpm/@tiptap+extension-image*)",
+      "Bash(xargs sed:*)"
     ],
     "additionalDirectories": [
       "/Users/vel/Applogic/Applogic/hrms-mono/apps/web-app/src/app/(authenticated)/policy/[id]"

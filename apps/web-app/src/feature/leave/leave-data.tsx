@@ -121,21 +121,8 @@ export const LeaveData = ({ data, employees, defaultFinancialYear, financialYear
   const employeeSelectOptions = employees.map((e) => ({ value: e.value, label: e.label }));
 
   return (
-    <div className='flex h-full flex-col gap-4 pt-4'>
-      <div className='flex items-center justify-between'>
-        <span className='text-xl font-medium tracking-tight text-foreground'>Leave Details for {currentFinancialYear}</span>
-        <Button className='shrink-0 rounded-[40px]' onClick={handleApplyLeave}>
-          <CalendarPlus className='h-4 w-4' />
-          Apply leave
-        </Button>
-      </div>
-
+    <div className='flex h-full flex-col gap-4'>
       <div className='flex items-center justify-between gap-3'>
-        <span className='text-sm font-medium text-muted-foreground'>
-          {data.totalRecords > 0
-            ? `Showing records: ${(data.page - 1) * data.limit + 1} - ${Math.min(data.page * data.limit, data.totalRecords)} of ${data.totalRecords}`
-            : 'No records found'}
-        </span>
         <div className='flex items-center gap-3'>
           {hasActiveFilters && (
             <Button variant='outline' size='sm' onClick={handleClearAll} className='shrink-0'>
@@ -183,9 +170,13 @@ export const LeaveData = ({ data, employees, defaultFinancialYear, financialYear
             />
           </div>
         </div>
+        <Button className='shrink-0 rounded-[40px]' onClick={handleApplyLeave}>
+          <CalendarPlus className='h-4 w-4' />
+          Apply leave
+        </Button>
       </div>
 
-      <div className='flex flex-1 flex-col min-h-0 pb-4'>
+      <div className='flex flex-1 flex-col min-h-0'>
         <LeaveDataTableClient
           data={data}
           currentUserId={currentUserId}

@@ -1,3 +1,3 @@
-import { colorSchemeDark, Theme, themeQuartz } from 'ag-grid-community';
+import { colorSchemeLight, Theme, themeQuartz } from 'ag-grid-community';
 
-export const datatableTheme: Theme = themeQuartz.withPart(colorSchemeDark);
+export const datatableTheme: Theme = themeQuartz.withPart(colorSchemeLight);

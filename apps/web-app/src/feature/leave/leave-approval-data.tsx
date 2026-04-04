@@ -33,12 +33,6 @@ export function LeaveApprovalData({ initialData }: Props) {
 
   return (
     <div className='flex h-full flex-col gap-4'>
-      <div className='flex items-center justify-between'>
-        <span className='text-sm text-muted-foreground'>
-          {data.totalRecords} pending approval{data.totalRecords !== 1 ? 's' : ''}
-        </span>
-      </div>
-
       {data.results.length > 0 ? (
         <div className='min-h-0 flex-1'>
           <LeaveDataTableClient

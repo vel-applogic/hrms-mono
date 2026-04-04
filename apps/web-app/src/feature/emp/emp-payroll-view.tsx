@@ -16,11 +16,7 @@ export function EmpPayrollView({ children }: Props) {
   const pathname = usePathname();
 
   return (
-    <div className='flex h-full flex-col gap-4 pt-4'>
-      <div className='center-container flex items-center justify-between'>
-        <span className='text-xl font-medium tracking-tight text-foreground'>Payroll</span>
-      </div>
-
+    <div className='flex h-full flex-col gap-4'>
       <div className='center-container flex min-h-0 flex-1 flex-col gap-4'>
         <div className='flex items-center gap-2.5 border-b border-border'>
           {TABS.map((tab) => {

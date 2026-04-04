@@ -128,7 +128,7 @@ export function EmpPayslipData({ employeeId, initialPage }: Props) {
   ];
 
   return (
-    <div className='flex h-full flex-col gap-4 pt-4'>
+    <div className='flex h-full flex-col gap-4'>
       <div className='center-container flex items-center justify-between'>
         <span className='text-xl font-medium tracking-tight text-foreground'>Payslip</span>
         <span className='text-sm text-muted-foreground'>
@@ -136,7 +136,7 @@ export function EmpPayslipData({ employeeId, initialPage }: Props) {
         </span>
       </div>
 
-      <div className='center-container flex flex-1 flex-col min-h-0 pb-4'>
+      <div className='center-container flex flex-1 flex-col min-h-0'>
         {data.results.length > 0 ? (
           <DataTableSimple<PayslipListResponseType>
             tableKey='emp-payslip-table'

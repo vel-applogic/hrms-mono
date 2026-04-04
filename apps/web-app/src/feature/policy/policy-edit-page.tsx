@@ -110,7 +110,7 @@ export function PolicyEditPage({ policy, backHref }: Props) {
   };
 
   return (
-    <div className='flex h-full flex-col gap-4 pt-4'>
+    <div className='flex h-full flex-col gap-4'>
       <div className='center-container flex items-center justify-between'>
         <div className='flex items-center gap-3 min-w-0 flex-1'>
           <Link href={backHref}>
