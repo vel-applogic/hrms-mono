@@ -14,7 +14,8 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
 
   const currentUserName = session.user?.name ?? session.user?.email ?? 'User';
   const currentUserEmail = session.user?.email ?? '';
-  const roleBadgeLabel = session.user?.isSuperAdmin ? 'SU' : session.user?.roles?.includes('admin') ? 'ADMIN' : null;
+  const isAdmin = session.user?.roles?.includes('admin') ?? false;
+  const roleBadgeLabel = session.user?.isSuperAdmin ? 'SU' : isAdmin ? 'ADMIN' : null;
 
   return (
     <div className='flex h-screen bg-background'>
@@ -29,7 +30,7 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
         </div>
 
         {/* Navigation */}
-        <SidebarNav isSuperAdmin={session.user?.isSuperAdmin} />
+        <SidebarNav isSuperAdmin={session.user?.isSuperAdmin} isAdmin={isAdmin} />
 
         {/* User menu at bottom */}
         <div className='border-t border-white/10 p-3'>
@@ -46,7 +47,7 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
               <img src='/logo.png' alt='Hrms' width={130} />
               {roleBadgeLabel && <span className='hidden rounded bg-primary px-1.5 py-0.5 text-xs font-bold tracking-widest text-primary-foreground sm:inline'>{roleBadgeLabel}</span>}
             </div>
-            <MobileNav userName={currentUserName} userEmail={currentUserEmail} isSuperAdmin={session.user?.isSuperAdmin} />
+            <MobileNav userName={currentUserName} userEmail={currentUserEmail} isSuperAdmin={session.user?.isSuperAdmin} isAdmin={isAdmin} />
           </nav>
         </header>
 

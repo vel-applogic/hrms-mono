@@ -16,6 +16,7 @@ interface Props {
   data: PaginatedResponseType<LeaveResponseType>;
   currentUserId: number | null;
   isAdmin?: boolean;
+  hideEmployeeColumn?: boolean;
   onEdit: (leave: LeaveResponseType) => void;
   onView?: (leave: LeaveResponseType) => void;
   onRefresh?: () => void;
@@ -111,24 +112,32 @@ export const LeaveDataTableClient = (props: Props) => {
   }, [confirmModal, props]);
 
   const colDefs = useMemo<ColDef<LeaveResponseType>[]>(() => {
-    return [
+    const cols: ColDef<LeaveResponseType>[] = [
       {
         headerName: 'Id',
         field: 'id',
         width: 80,
       },
-      {
-        headerName: 'Employee',
-        flex: 2,
-        valueGetter: (params) =>
-          params.data ? `${params.data.user.firstname} ${params.data.user.lastname}` : '',
-      },
-      {
-        headerName: 'Email',
-        field: 'user.email',
-        flex: 2,
-        valueGetter: (params) => params.data?.user?.email ?? '',
-      },
+    ];
+
+    if (!props.hideEmployeeColumn) {
+      cols.push(
+        {
+          headerName: 'Employee',
+          flex: 2,
+          valueGetter: (params) =>
+            params.data ? `${params.data.user.firstname} ${params.data.user.lastname}` : '',
+        },
+        {
+          headerName: 'Email',
+          field: 'user.email',
+          flex: 2,
+          valueGetter: (params) => params.data?.user?.email ?? '',
+        },
+      );
+    }
+
+    cols.push(
       {
         headerName: 'Type',
         field: 'leaveType',
@@ -178,8 +187,10 @@ export const LeaveDataTableClient = (props: Props) => {
           onView: props.onView,
         },
       },
-    ] satisfies ColDef<LeaveResponseType>[];
-  }, [props.currentUserId, props.isAdmin, props.onView]);
+    );
+
+    return cols;
+  }, [props.currentUserId, props.isAdmin, props.onView, props.hideEmployeeColumn]);
 
   const getConfirmMessage = (action: ConfirmAction, leave: LeaveResponseType) => {
     const name = `${leave.user.firstname} ${leave.user.lastname}`;

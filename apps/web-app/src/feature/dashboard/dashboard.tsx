@@ -80,7 +80,11 @@ function getUpcomingAnniversaries(employees: EmployeeListResponseType[]): Dashbo
     .map(({ joiningMD: _, ...rest }) => rest);
 }
 
-export function Dashboard() {
+interface DashboardProps {
+  hideAdminWidgets?: boolean;
+}
+
+export function Dashboard({ hideAdminWidgets }: DashboardProps) {
   const { data: session } = useSession();
   const currentUserId = session?.user?.id ? Number(session.user.id) : null;
 
@@ -106,9 +110,7 @@ export function Dashboard() {
     if (!currentUserId) return;
 
     const fetchData = async () => {
-      const [employees, candidates, holidays, pendingLeaves, approvedLeaves, activeCompensations] = await Promise.all([
-        getEmployeesList(),
-        getCandidatesList(),
+      const [holidays, pendingLeaves, approvedLeaves] = await Promise.all([
         searchHolidays({
           year: new Date().getFullYear(),
           pagination: { page: 1, limit: 100 },
@@ -121,24 +123,8 @@ export function Dashboard() {
           pagination: { page: 1, limit: 500 },
           status: [LeaveStatusDtoEnum.approved],
         }),
-        searchPayrollActiveCompensations({
-          pagination: { page: 1, limit: 500 },
-        }),
       ]);
 
-      // Employee count by status
-      const employeesByStatus: Record<string, number> = {};
-      for (const emp of employees) {
-        employeesByStatus[emp.status] = (employeesByStatus[emp.status] ?? 0) + 1;
-      }
-
-      // Candidate count by status
-      const candidatesByStatus: Record<string, number> = {};
-      for (const c of candidates) {
-        candidatesByStatus[c.status] = (candidatesByStatus[c.status] ?? 0) + 1;
-      }
-
-      const newCandidateCount = candidates.filter((c) => c.status === CandidateStatusDtoEnum.new).length;
       const pendingLeaveCount = pendingLeaves.totalRecords;
 
       const today = new Date();
@@ -173,34 +159,65 @@ export function Dashboard() {
         .sort((a, b) => a.date.localeCompare(b.date))
         .slice(0, 2);
 
-      const upcomingAnniversaries = getUpcomingAnniversaries(employees);
+      // Admin-only data: employees, candidates, payroll
+      let employeeCount = 0;
+      let employeesByStatus: Record<string, number> = {};
+      let newCandidateCount = 0;
+      let candidatesByStatus: Record<string, number> = {};
+      let upcomingAnniversaries: DashboardData['upcomingAnniversaries'] = [];
+      let noReportingManager: NameEntry[] = [];
+      let totalPayrollCost = 0;
+      let currencySymbol = '₹';
+      let withoutCompensation: NameEntry[] = [];
+      let withoutDeduction: NameEntry[] = [];
 
-      const activeEmployees = employees.filter((e) => e.status === EmployeeStatusDtoEnum.active);
-      const noReportingManager = activeEmployees
-        .filter((e) => !e.reportToId)
-        .map((e) => ({ id: e.id, firstname: e.firstname, lastname: e.lastname }));
+      if (!hideAdminWidgets) {
+        const [employees, candidates, activeCompensations] = await Promise.all([
+          getEmployeesList(),
+          getCandidatesList(),
+          searchPayrollActiveCompensations({
+            pagination: { page: 1, limit: 500 },
+          }),
+        ]);
 
-      // Payroll: total cost + employees without compensation
-      const totalPayrollCost = activeCompensations.results.reduce((sum, c) => sum + c.grossAmount, 0);
-      const currencySymbol = activeCompensations.results[0]?.employeeCode ? '₹' : '₹';
-      const employeeIdsWithCompensation = new Set(activeCompensations.results.map((c) => c.employeeId));
-      const withoutCompensation = activeEmployees
-        .filter((e) => !employeeIdsWithCompensation.has(e.id))
-        .map((e) => ({ id: e.id, firstname: e.firstname, lastname: e.lastname }));
+        employeeCount = employees.length;
 
-      // Employees without deduction: check each active employee
-      const deductionChecks = await Promise.all(
-        activeEmployees.map(async (e) => {
-          const result = await searchEmployeeDeductions({ employeeId: e.id, pagination: { page: 1, limit: 1 } });
-          return { id: e.id, firstname: e.firstname, lastname: e.lastname, hasDeduction: result.totalRecords > 0 };
-        }),
-      );
-      const withoutDeduction = deductionChecks
-        .filter((d) => !d.hasDeduction)
-        .map((d) => ({ id: d.id, firstname: d.firstname, lastname: d.lastname }));
+        for (const emp of employees) {
+          employeesByStatus[emp.status] = (employeesByStatus[emp.status] ?? 0) + 1;
+        }
+
+        for (const c of candidates) {
+          candidatesByStatus[c.status] = (candidatesByStatus[c.status] ?? 0) + 1;
+        }
+
+        newCandidateCount = candidates.filter((c) => c.status === CandidateStatusDtoEnum.new).length;
+        upcomingAnniversaries = getUpcomingAnniversaries(employees);
+
+        const activeEmployees = employees.filter((e) => e.status === EmployeeStatusDtoEnum.active);
+        noReportingManager = activeEmployees
+          .filter((e) => !e.reportToId)
+          .map((e) => ({ id: e.id, firstname: e.firstname, lastname: e.lastname }));
+
+        totalPayrollCost = activeCompensations.results.reduce((sum, c) => sum + c.grossAmount, 0);
+        currencySymbol = activeCompensations.results[0]?.employeeCode ? '₹' : '₹';
+        const employeeIdsWithCompensation = new Set(activeCompensations.results.map((c) => c.employeeId));
+        withoutCompensation = activeEmployees
+          .filter((e) => !employeeIdsWithCompensation.has(e.id))
+          .map((e) => ({ id: e.id, firstname: e.firstname, lastname: e.lastname }));
+
+        const deductionChecks = await Promise.all(
+          activeEmployees.map(async (e) => {
+            const result = await searchEmployeeDeductions({ employeeId: e.id, pagination: { page: 1, limit: 1 } });
+            return { id: e.id, firstname: e.firstname, lastname: e.lastname, hasDeduction: result.totalRecords > 0 };
+          }),
+        );
+        withoutDeduction = deductionChecks
+          .filter((d) => !d.hasDeduction)
+          .map((d) => ({ id: d.id, firstname: d.firstname, lastname: d.lastname }));
+      }
 
       setData({
-        employeeCount: employees.length,
+        employeeCount,
         employeesByStatus,
         newCandidateCount,
         candidatesByStatus,
@@ -227,8 +244,8 @@ export function Dashboard() {
 
       {/* Row 1: Key stats */}
       <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-        <StatCard icon={Users} label='Employees' value={data.loaded ? data.employeeCount : null} />
-        <StatCard icon={UserRound} label='New Candidates' value={data.loaded ? data.newCandidateCount : null} />
+        {!hideAdminWidgets && <StatCard icon={Users} label='Employees' value={data.loaded ? data.employeeCount : null} />}
+        {!hideAdminWidgets && <StatCard icon={UserRound} label='New Candidates' value={data.loaded ? data.newCandidateCount : null} />}
         <StatCard icon={Clock} label='Leave Approvals Pending' value={data.loaded ? data.pendingLeaveCount : null} />
         <div className='rounded-lg border border-border bg-card p-5'>
           <div className='mb-3 flex items-center gap-2 text-muted-foreground'>
@@ -253,44 +270,46 @@ export function Dashboard() {
       </div>
 
       {/* Row 2: Employee status + Candidate status */}
-      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-        <div className='rounded-lg border border-border bg-card p-5 lg:col-span-2'>
-          <div className='mb-3 flex items-center gap-2 text-muted-foreground'>
-            <Users className='h-5 w-5' />
-            <span className='text-sm font-medium'>Employees by Status</span>
-          </div>
-          {!data.loaded ? (
-            <div className='h-12 animate-pulse rounded bg-muted' />
-          ) : (
-            <div className='flex flex-wrap gap-4'>
-              {Object.values(EmployeeStatusDtoEnum).map((status) => (
-                <div key={status} className='flex flex-col'>
-                  <span className='text-2xl font-semibold'>{data.employeesByStatus[status] ?? 0}</span>
-                  <span className='text-xs text-muted-foreground'>{EMPLOYEE_STATUS_LABELS[status] ?? status}</span>
-                </div>
-              ))}
+      {!hideAdminWidgets && (
+        <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+          <div className='rounded-lg border border-border bg-card p-5 lg:col-span-2'>
+            <div className='mb-3 flex items-center gap-2 text-muted-foreground'>
+              <Users className='h-5 w-5' />
+              <span className='text-sm font-medium'>Employees by Status</span>
             </div>
-          )}
-        </div>
-        <div className='rounded-lg border border-border bg-card p-5 lg:col-span-2'>
-          <div className='mb-3 flex items-center gap-2 text-muted-foreground'>
-            <UserRound className='h-5 w-5' />
-            <span className='text-sm font-medium'>Candidates by Status</span>
+            {!data.loaded ? (
+              <div className='h-12 animate-pulse rounded bg-muted' />
+            ) : (
+              <div className='flex flex-wrap gap-4'>
+                {Object.values(EmployeeStatusDtoEnum).map((status) => (
+                  <div key={status} className='flex flex-col'>
+                    <span className='text-2xl font-semibold'>{data.employeesByStatus[status] ?? 0}</span>
+                    <span className='text-xs text-muted-foreground'>{EMPLOYEE_STATUS_LABELS[status] ?? status}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          {!data.loaded ? (
-            <div className='h-12 animate-pulse rounded bg-muted' />
-          ) : (
-            <div className='flex flex-wrap gap-4'>
-              {Object.values(CandidateStatusDtoEnum).map((status) => (
-                <div key={status} className='flex flex-col'>
-                  <span className='text-2xl font-semibold'>{data.candidatesByStatus[status] ?? 0}</span>
-                  <span className='text-xs text-muted-foreground'>{CANDIDATE_STATUS_LABELS[status] ?? status}</span>
-                </div>
-              ))}
+          <div className='rounded-lg border border-border bg-card p-5 lg:col-span-2'>
+            <div className='mb-3 flex items-center gap-2 text-muted-foreground'>
+              <UserRound className='h-5 w-5' />
+              <span className='text-sm font-medium'>Candidates by Status</span>
             </div>
-          )}
+            {!data.loaded ? (
+              <div className='h-12 animate-pulse rounded bg-muted' />
+            ) : (
+              <div className='flex flex-wrap gap-4'>
+                {Object.values(CandidateStatusDtoEnum).map((status) => (
+                  <div key={status} className='flex flex-col'>
+                    <span className='text-2xl font-semibold'>{data.candidatesByStatus[status] ?? 0}</span>
+                    <span className='text-xs text-muted-foreground'>{CANDIDATE_STATUS_LABELS[status] ?? status}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Row 3: On leave today + Upcoming leaves this week */}
       <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
@@ -309,79 +328,83 @@ export function Dashboard() {
       </div>
 
       {/* Row 4: Anniversaries + No reporting manager */}
-      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-        <div className='rounded-lg border border-border bg-card p-5 lg:col-span-2'>
-          <div className='mb-3 flex items-center gap-2 text-muted-foreground'>
-            <Cake className='h-5 w-5' />
-            <span className='text-sm font-medium'>Upcoming Work Anniversaries</span>
-          </div>
-          {!data.loaded ? (
-            <div className='h-12 animate-pulse rounded bg-muted' />
-          ) : data.upcomingAnniversaries.length > 0 ? (
-            <div className='flex flex-col gap-2'>
-              {data.upcomingAnniversaries.map((e) => (
-                <div key={e.id} className='flex items-center justify-between'>
-                  <span className='text-sm font-medium'>{e.firstname} {e.lastname}</span>
-                  <span className='text-xs text-muted-foreground'>
-                    {formatDate(e.dateOfJoining)} &middot; {e.years} {e.years === 1 ? 'year' : 'years'}
-                  </span>
-                </div>
-              ))}
+      {!hideAdminWidgets && (
+        <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+          <div className='rounded-lg border border-border bg-card p-5 lg:col-span-2'>
+            <div className='mb-3 flex items-center gap-2 text-muted-foreground'>
+              <Cake className='h-5 w-5' />
+              <span className='text-sm font-medium'>Upcoming Work Anniversaries</span>
             </div>
-          ) : (
-            <p className='text-sm text-muted-foreground'>No upcoming anniversaries in the next 30 days</p>
-          )}
-        </div>
-        <div className='rounded-lg border border-border bg-card p-5 lg:col-span-2'>
-          <div className='mb-3 flex items-center gap-2 text-muted-foreground'>
-            <AlertTriangle className='h-5 w-5' />
-            <span className='text-sm font-medium'>No Reporting Manager</span>
+            {!data.loaded ? (
+              <div className='h-12 animate-pulse rounded bg-muted' />
+            ) : data.upcomingAnniversaries.length > 0 ? (
+              <div className='flex flex-col gap-2'>
+                {data.upcomingAnniversaries.map((e) => (
+                  <div key={e.id} className='flex items-center justify-between'>
+                    <span className='text-sm font-medium'>{e.firstname} {e.lastname}</span>
+                    <span className='text-xs text-muted-foreground'>
+                      {formatDate(e.dateOfJoining)} &middot; {e.years} {e.years === 1 ? 'year' : 'years'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className='text-sm text-muted-foreground'>No upcoming anniversaries in the next 30 days</p>
+            )}
           </div>
-          {!data.loaded ? (
-            <div className='h-12 animate-pulse rounded bg-muted' />
-          ) : (
-            <div className='flex items-start gap-6'>
-              <p className='text-3xl font-semibold'>{data.noReportingManager.length}</p>
-              {data.noReportingManager.length > 0 ? (
-                <p className='text-sm text-muted-foreground'>
-                  {data.noReportingManager.map((e) => `${e.firstname} ${e.lastname}`).join(', ')}
-                </p>
-              ) : (
-                <p className='text-sm text-muted-foreground'>All active employees have a reporting manager</p>
-              )}
+          <div className='rounded-lg border border-border bg-card p-5 lg:col-span-2'>
+            <div className='mb-3 flex items-center gap-2 text-muted-foreground'>
+              <AlertTriangle className='h-5 w-5' />
+              <span className='text-sm font-medium'>No Reporting Manager</span>
             </div>
-          )}
+            {!data.loaded ? (
+              <div className='h-12 animate-pulse rounded bg-muted' />
+            ) : (
+              <div className='flex items-start gap-6'>
+                <p className='text-3xl font-semibold'>{data.noReportingManager.length}</p>
+                {data.noReportingManager.length > 0 ? (
+                  <p className='text-sm text-muted-foreground'>
+                    {data.noReportingManager.map((e) => `${e.firstname} ${e.lastname}`).join(', ')}
+                  </p>
+                ) : (
+                  <p className='text-sm text-muted-foreground'>All active employees have a reporting manager</p>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Row 5: Payroll */}
-      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-        <div className='rounded-lg border border-border bg-card p-5'>
-          <div className='mb-2 flex items-center gap-2 text-muted-foreground'>
-            <DollarSign className='h-5 w-5' />
-            <span className='text-sm font-medium'>Total Payroll Cost</span>
+      {!hideAdminWidgets && (
+        <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+          <div className='rounded-lg border border-border bg-card p-5'>
+            <div className='mb-2 flex items-center gap-2 text-muted-foreground'>
+              <DollarSign className='h-5 w-5' />
+              <span className='text-sm font-medium'>Total Payroll Cost</span>
+            </div>
+            {!data.loaded ? (
+              <div className='h-9 w-16 animate-pulse rounded bg-muted' />
+            ) : (
+              <p className='text-3xl font-semibold'>{data.currencySymbol}{data.totalPayrollCost.toLocaleString('en-IN')}</p>
+            )}
           </div>
-          {!data.loaded ? (
-            <div className='h-9 w-16 animate-pulse rounded bg-muted' />
-          ) : (
-            <p className='text-3xl font-semibold'>{data.currencySymbol}{data.totalPayrollCost.toLocaleString('en-IN')}</p>
-          )}
+          <NameListWidget
+            icon={FileWarning}
+            label='Without Compensation'
+            entries={data.withoutCompensation}
+            loaded={data.loaded}
+            emptyMessage='All active employees have compensation'
+          />
+          <NameListWidget
+            icon={FileWarning}
+            label='Without Deduction'
+            entries={data.withoutDeduction}
+            loaded={data.loaded}
+            emptyMessage='All active employees have deductions'
+          />
         </div>
-        <NameListWidget
-          icon={FileWarning}
-          label='Without Compensation'
-          entries={data.withoutCompensation}
-          loaded={data.loaded}
-          emptyMessage='All active employees have compensation'
-        />
-        <NameListWidget
-          icon={FileWarning}
-          label='Without Deduction'
-          entries={data.withoutDeduction}
-          loaded={data.loaded}
-          emptyMessage='All active employees have deductions'
-        />
-      </div>
+      )}
     </div>
   );
 }

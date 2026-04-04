@@ -57,6 +57,28 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(SetRequestIdMiddleware).forRoutes('*');
     consumer.apply(AuthenticateMiddleware).forRoutes('*');
-    consumer.apply(AdminUserMiddleware).exclude('app/status', 'auth/{*path}').forRoutes('*');
+    consumer
+      .apply(AdminUserMiddleware)
+      .exclude(
+        'app/status',
+        'auth/{*path}',
+        'api/leave/{*path}',
+        'api/leave',
+        'api/holiday/{*path}',
+        'api/holiday',
+        'api/employee/{*path}',
+        'api/employee-compensation/{*path}',
+        'api/employee-deduction/{*path}',
+        'api/employee-feedback/{*path}',
+        'api/payslip/{*path}',
+        'api/payslip',
+        'api/policy/{*path}',
+        'api/policy',
+        'api/media/{*path}',
+        'api/media',
+        'api/account/{*path}',
+        'api/account',
+      )
+      .forRoutes('*');
   }
 }

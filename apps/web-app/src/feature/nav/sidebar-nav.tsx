@@ -1,11 +1,19 @@
 'use client';
 
 import { cn } from '@repo/ui/lib/utils';
-import { Briefcase, Building2, CalendarDays, FileText, HandCoins, LayoutDashboard, UserRound, Users } from 'lucide-react';
+import { Briefcase, Building2, CalendarDays, ClipboardList, FileText, HandCoins, LayoutDashboard, MessageSquare, Receipt, ScrollText, UserRound, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import type { LucideIcon } from 'lucide-react';
 
-const navItems = [
+interface NavItem {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  superAdminOnly: boolean;
+}
+
+const adminNavItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, superAdminOnly: false },
   { label: 'Organizations', href: '/organization', icon: Building2, superAdminOnly: true },
   { label: 'Users', href: '/user', icon: Users, superAdminOnly: false },
@@ -16,13 +24,27 @@ const navItems = [
   { label: 'Leaves & Holidays', href: '/leaves', icon: CalendarDays, superAdminOnly: false },
 ];
 
+const employeeNavItems: NavItem[] = [
+  { label: 'Dashboard', href: '/emp/dashboard', icon: LayoutDashboard, superAdminOnly: false },
+  { label: 'My Details', href: '/emp/details', icon: UserRound, superAdminOnly: false },
+  { label: 'Documents', href: '/emp/documents', icon: ScrollText, superAdminOnly: false },
+  { label: 'Feedbacks', href: '/emp/feedbacks', icon: MessageSquare, superAdminOnly: false },
+  { label: 'Payroll', href: '/emp/payroll', icon: HandCoins, superAdminOnly: false },
+  { label: 'Payslip', href: '/emp/payslip', icon: Receipt, superAdminOnly: false },
+  { label: 'Leaves & Holidays', href: '/emp/leave', icon: CalendarDays, superAdminOnly: false },
+  { label: 'Policies', href: '/emp/policy', icon: FileText, superAdminOnly: false },
+];
+
 interface Props {
   isSuperAdmin?: boolean;
+  isAdmin?: boolean;
 }
 
-export function SidebarNav({ isSuperAdmin }: Props) {
+export function SidebarNav({ isSuperAdmin, isAdmin }: Props) {
   const pathname = usePathname();
 
+  const isAdminOrSuperAdmin = isSuperAdmin || isAdmin;
+  const navItems = isAdminOrSuperAdmin ? adminNavItems : employeeNavItems;
   const visibleItems = navItems.filter((item) => !item.superAdminOnly || isSuperAdmin);
 
   return (

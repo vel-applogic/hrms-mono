@@ -13,7 +13,7 @@ import Link from 'next/link';
 
 import { OrgSwitcher } from '@/feature/org/org-switcher';
 
-const tabs = [
+const adminTabs = [
   { label: 'Dashboard', href: '/dashboard', superAdminOnly: false },
   { label: 'Organizations', href: '/organization', superAdminOnly: true },
   { label: 'Users', href: '/user', superAdminOnly: false },
@@ -24,13 +24,25 @@ const tabs = [
   { label: 'Leaves & Holidays', href: '/leaves/counter', superAdminOnly: false },
 ];
 
+const employeeTabs = [
+  { label: 'Dashboard', href: '/emp/dashboard', superAdminOnly: false },
+  { label: 'My Details', href: '/emp/details', superAdminOnly: false },
+  { label: 'Documents', href: '/emp/documents', superAdminOnly: false },
+  { label: 'Feedbacks', href: '/emp/feedbacks', superAdminOnly: false },
+  { label: 'Payroll', href: '/emp/payroll', superAdminOnly: false },
+  { label: 'Payslip', href: '/emp/payslip', superAdminOnly: false },
+  { label: 'Leaves & Holidays', href: '/emp/leave', superAdminOnly: false },
+  { label: 'Policies', href: '/emp/policy', superAdminOnly: false },
+];
+
 interface Props {
   userName: string;
   userEmail: string;
   isSuperAdmin?: boolean;
+  isAdmin?: boolean;
 }
 
-export function MobileNav({ userName, userEmail, isSuperAdmin }: Props) {
+export function MobileNav({ userName, userEmail, isSuperAdmin, isAdmin }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -47,7 +59,7 @@ export function MobileNav({ userName, userEmail, isSuperAdmin }: Props) {
           <OrgSwitcher />
         </div>
         <DropdownMenuSeparator className="bg-border" />
-        {tabs.filter((tab) => !tab.superAdminOnly || isSuperAdmin).map((tab) => (
+        {((isSuperAdmin || isAdmin) ? adminTabs : employeeTabs).filter((tab) => !tab.superAdminOnly || isSuperAdmin).map((tab) => (
           <DropdownMenuItem key={tab.href} asChild className="cursor-pointer">
             <Link href={tab.href}>{tab.label}</Link>
           </DropdownMenuItem>
