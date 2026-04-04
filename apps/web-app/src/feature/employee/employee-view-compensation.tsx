@@ -1,14 +1,12 @@
 'use client';
 
 import type { EmployeeCompensationResponseType, PaginatedResponseType } from '@repo/dto';
-import { DataTableSimple } from '@repo/ui/container/datatable/datatable';
-import { ActionOption, ActionsIconCellRenderer, ActionsIconCellRendererParams, BadgeRenderer, DateTimeRenderer } from '@repo/ui/container/datatable/datatable-cell-renderer';
 import { Button } from '@repo/ui/component/ui/button';
 import { Label } from '@repo/ui/component/ui/label';
+import { cn } from '@repo/ui/lib/utils';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ColDef } from 'ag-grid-community';
 
 import { searchEmployeeCompensations } from '@/lib/action/employee-compensation.actions';
 
@@ -16,45 +14,36 @@ import { EmployeeCompensationDeleteDialog } from './container/employee-compensat
 import { EmployeeCompensationFormDrawer } from './container/employee-compensation-form.drawer';
 
 const PAGE_SIZE = 10;
-const TABLE_PAGE_SIZE = 10;
 
 function formatAmount(value: number) {
   return `₹${value.toLocaleString()}`;
 }
 
-function CompensationWidget({
-  title,
+function CompensationCard({
   compensation,
   onEdit,
   onDelete,
 }: {
-  title: string;
-  compensation: EmployeeCompensationResponseType | null;
-  onEdit?: (compensation: EmployeeCompensationResponseType) => void;
-  onDelete?: (compensation: EmployeeCompensationResponseType) => void;
+  compensation: EmployeeCompensationResponseType;
+  onEdit: (compensation: EmployeeCompensationResponseType) => void;
+  onDelete: (compensation: EmployeeCompensationResponseType) => void;
 }) {
-  if (!compensation) return null;
   return (
-    <div className='relative rounded-md border border-border bg-muted/30 p-4'>
+    <div className={cn('relative rounded-md border border-border p-4', compensation.isActive ? 'bg-white dark:bg-white/5' : 'bg-muted/30')}>
       <div className='absolute right-1 top-1 flex items-center gap-1.5'>
-        {onEdit && (
-          <Button variant='ghost' size='icon' className='h-7 w-7' onClick={() => onEdit(compensation)}>
-            <Pencil className='h-3.5 w-3.5' />
-          </Button>
-        )}
-        {onDelete && (
-          <Button variant='ghost' size='icon' className='h-7 w-7 text-destructive hover:text-destructive' onClick={() => onDelete(compensation)}>
-            <Trash2 className='h-3.5 w-3.5' />
-          </Button>
-        )}
+        <Button variant='ghost' size='icon' className='h-7 w-7' onClick={() => onEdit(compensation)}>
+          <Pencil className='h-3.5 w-3.5' />
+        </Button>
+        <Button variant='ghost' size='icon' className='h-7 w-7 text-destructive hover:text-destructive' onClick={() => onDelete(compensation)}>
+          <Trash2 className='h-3.5 w-3.5' />
+        </Button>
         {compensation.isActive ? (
           <span className='rounded-md border border-green-500/30 bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-400'>Active</span>
         ) : (
           <span className='rounded-md border border-muted-foreground/30 bg-muted/50 px-2 py-0.5 text-xs font-medium text-muted-foreground'>Inactive</span>
         )}
       </div>
-      <h3 className='mb-3 text-sm font-medium text-muted-foreground'>{title}</h3>
-      <div className='grid gap-3 sm:grid-cols-2 md:grid-cols-4'>
+      <div className='grid gap-3 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5'>
         <div className='flex flex-col gap-1'>
           <Label className='text-muted-foreground'>Gross</Label>
           <p className='text-lg font-medium'>{formatAmount(compensation.grossAmount)}</p>
@@ -69,30 +58,17 @@ function CompensationWidget({
           <Label className='text-muted-foreground'>Effective from</Label>
           <p className='text-lg font-medium'>{compensation.effectiveFrom}</p>
         </div>
+        <div className='flex flex-col gap-1'>
+          <Label className='text-muted-foreground'>Effective till</Label>
+          <p className='text-lg font-medium'>{compensation.effectiveTill ?? '—'}</p>
+        </div>
       </div>
     </div>
   );
 }
 
-const actionOptions: ActionOption[] = [
-  { name: 'Edit', icon: Pencil, variant: 'outline' },
-  { name: 'Delete', icon: Trash2, variant: 'outline-danger' },
-];
-
-type CompensationRow = {
-  id: number;
-  grossAmount: number;
-  lineItemsSummary: string;
-  effectiveFrom: string;
-  effectiveTill: string | null | undefined;
-  isActive: boolean;
-  createdAt: string;
-  _original: EmployeeCompensationResponseType;
-};
-
 export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [compensations, setCompensations] = useState<EmployeeCompensationResponseType[]>(initialPage.results);
   const [page, setPage] = useState(initialPage.page);
   const [totalRecords, setTotalRecords] = useState(initialPage.totalRecords);
@@ -104,33 +80,11 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
 
   const hasMore = compensations.length < totalRecords;
 
-  const tablePage = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
-  const tablePageSize = Math.max(5, Math.min(100, parseInt(searchParams.get('pageSize') ?? String(TABLE_PAGE_SIZE), 10)));
-
-  const recentCompensation = useMemo(() => {
-    if (compensations.length === 0) return null;
-    const sorted = [...compensations].sort((a, b) => (b.effectiveFrom || '').localeCompare(a.effectiveFrom || ''));
-    return sorted[0]!;
+  const sortedCompensations = useMemo(() => {
+    return [...compensations].sort((a, b) => (b.effectiveFrom || '').localeCompare(a.effectiveFrom || ''));
   }, [compensations]);
 
-  const tableRows = useMemo(() => {
-    const filtered = compensations.filter((c) => c.id !== recentCompensation?.id);
-    return filtered.map((c): CompensationRow => ({
-      id: c.id,
-      grossAmount: c.grossAmount,
-      lineItemsSummary: c.lineItems.map((li) => `${li.title}: ${formatAmount(li.amount)}`).join(', '),
-      effectiveFrom: c.effectiveFrom,
-      effectiveTill: c.effectiveTill,
-      isActive: c.isActive,
-      createdAt: c.createdAt,
-      _original: c,
-    }));
-  }, [compensations, recentCompensation?.id]);
-
-  const paginatedRows = useMemo(() => {
-    const start = (tablePage - 1) * tablePageSize;
-    return tableRows.slice(start, start + tablePageSize);
-  }, [tableRows, tablePage, tablePageSize]);
+  const recentCompensation = sortedCompensations[0] ?? null;
 
   const loadMore = useCallback(async () => {
     if (!hasMore || loadingMore) return;
@@ -194,46 +148,6 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
     router.refresh();
   };
 
-  const handleActionClick = useCallback((action: string, data: CompensationRow) => {
-    if (action === 'Edit') setEditingCompensation(data._original);
-    if (action === 'Delete') setDeletingCompensation(data._original);
-  }, []);
-
-  const colDefs = useMemo<ColDef<CompensationRow>[]>(
-    () => [
-      { headerName: 'Created at', field: 'createdAt', width: 150, cellRenderer: DateTimeRenderer },
-      { headerName: 'Gross', field: 'grossAmount', width: 120, valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : '') },
-      { headerName: 'Line items', field: 'lineItemsSummary', flex: 1, minWidth: 200 },
-      { headerName: 'Effective from', field: 'effectiveFrom', width: 130 },
-      { headerName: 'Effective till', field: 'effectiveTill', width: 130, valueFormatter: (p) => p.value ?? '—' },
-      {
-        headerName: 'Status',
-        field: 'isActive',
-        width: 100,
-        cellRenderer: (params: { value?: boolean }) =>
-          params.value ? (
-            <BadgeRenderer text='Active' className='border border-green-500/30 bg-green-500/10 text-green-400' />
-          ) : (
-            <BadgeRenderer text='Inactive' className='border border-muted-foreground/30 bg-muted/50 text-muted-foreground' />
-          ),
-      },
-      {
-        headerName: 'Actions',
-        colId: 'actions',
-        sortable: false,
-        resizable: false,
-        pinned: 'right',
-        width: 90,
-        cellClass: '!flex items-center !justify-center',
-        cellRenderer: ActionsIconCellRenderer<CompensationRow>,
-        cellRendererParams: {
-          options: actionOptions,
-        } satisfies Partial<ActionsIconCellRendererParams<CompensationRow>>,
-      },
-    ],
-    [],
-  );
-
   return (
     <div className='flex h-full flex-col'>
       <div className='mb-6 flex items-center justify-between'>
@@ -244,46 +158,38 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
         </Button>
       </div>
 
-      {recentCompensation && (
-        <div className='mb-6'>
-          <CompensationWidget
-            title='Recent compensation'
-            compensation={recentCompensation}
-            onEdit={(c) => setEditingCompensation(c)}
-            onDelete={(c) => setDeletingCompensation(c)}
+      {sortedCompensations.length > 0 ? (
+        <>
+          <CompensationCard
+            compensation={sortedCompensations[0]!}
+            onEdit={(comp) => setEditingCompensation(comp)}
+            onDelete={(comp) => setDeletingCompensation(comp)}
           />
-        </div>
+          {sortedCompensations.length > 1 && (
+            <div className='mt-6 flex flex-col gap-4'>
+              <h3 className='text-sm font-medium text-muted-foreground'>Compensation history</h3>
+              {sortedCompensations.slice(1).map((c) => (
+                <CompensationCard
+                  key={c.id}
+                  compensation={c}
+                  onEdit={(comp) => setEditingCompensation(comp)}
+                  onDelete={(comp) => setDeletingCompensation(comp)}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      ) : (
+        <p className='py-4 text-sm text-muted-foreground'>No compensation records yet.</p>
       )}
 
-      {tableRows.length > 0 && (
-        <div className='flex min-h-0 flex-1 flex-col'>
-          <h3 className='mb-3 text-sm font-medium text-muted-foreground'>Compensation history</h3>
-          <div className='min-h-[200px] flex-1'>
-            <DataTableSimple<CompensationRow>
-              tableKey='employee-compensation-history'
-              rowData={paginatedRows}
-              pagination={{
-                page: tablePage,
-                pageSize: tablePageSize,
-                total: tableRows.length,
-              }}
-              colDefs={colDefs}
-              onActionClick={handleActionClick}
-              autoHeight
-            />
-          </div>
-        </div>
-      )}
-
-      {compensations.length === 0 && <p className='py-4 text-sm text-muted-foreground'>No compensation records yet.</p>}
-      {tableRows.length === 0 && compensations.length > 0 && <p className='py-4 text-sm text-muted-foreground'>No additional compensation entries beyond the recent one.</p>}
       {hasMore && (
         <div ref={sentinelRef} className='flex justify-center py-4'>
           {loadingMore && <span className='text-sm text-muted-foreground'>Loading...</span>}
         </div>
       )}
 
-      <EmployeeCompensationFormDrawer open={addDialogOpen} onOpenChange={setAddDialogOpen} employeeId={employeeId} onSuccess={handleAddSuccess} />
+      <EmployeeCompensationFormDrawer open={addDialogOpen} onOpenChange={setAddDialogOpen} employeeId={employeeId} lastCompensation={recentCompensation ?? undefined} onSuccess={handleAddSuccess} />
       <EmployeeCompensationFormDrawer
         open={!!editingCompensation}
         onOpenChange={(open) => !open && setEditingCompensation(null)}

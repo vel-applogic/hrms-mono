@@ -33,6 +33,32 @@ export class EmployeeDeductionCreateUc implements IUseCase<Params, EmployeeDeduc
     validateEffectiveFromBeforeTill(effectiveFrom, effectiveTill);
 
     const createdId = await this.prisma.$transaction(async (tx) => {
+      const existingDeductions = await this.payrollDeductionDao.findByUserIdOrderedByEffectiveFromDesc({
+        userId: params.dto.employeeId,
+        organizationId: params.currentUser.organizationId,
+        tx,
+      });
+
+      if (existingDeductions.length > 0) {
+        const mostRecent = existingDeductions[0]!;
+        if (effectiveFrom >= mostRecent.effectiveFrom) {
+          const oneDayBefore = new Date(effectiveFrom);
+          oneDayBefore.setUTCDate(oneDayBefore.getUTCDate() - 1);
+          await this.payrollDeductionDao.update({
+            id: mostRecent.id,
+            data: { effectiveTill: oneDayBefore, isActive: false },
+            tx,
+          });
+        }
+      }
+
+      await this.payrollDeductionDao.updateManyByUserId({
+        userId: params.dto.employeeId,
+        organizationId: params.currentUser.organizationId,
+        data: { isActive: false },
+        tx,
+      });
+
       return this.payrollDeductionDao.create({
         data: {
           user: { connect: { id: params.dto.employeeId } },

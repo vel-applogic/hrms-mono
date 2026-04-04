@@ -20,6 +20,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   employeeId: number;
   compensation?: EmployeeCompensationResponseType;
+  lastCompensation?: EmployeeCompensationResponseType;
   onSuccess: (compensation: EmployeeCompensationResponseType) => void;
 }
 
@@ -31,17 +32,22 @@ type FieldErrors = {
   lineItems?: string;
 };
 
-export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId, compensation, onSuccess }: Props) {
+export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId, compensation, lastCompensation, onSuccess }: Props) {
   const isEditing = !!compensation;
 
-  const defaultLineItems = (): LineItemForm[] =>
-    compensation?.lineItems?.length
-      ? compensation.lineItems.map((li) => ({ title: li.title, amount: String(li.amount) }))
-      : [
-          { title: 'Basic', amount: '' },
-          { title: 'HRA', amount: '' },
-          { title: 'Other Allowances', amount: '' },
-        ];
+  const defaultLineItems = (): LineItemForm[] => {
+    if (compensation?.lineItems?.length) {
+      return compensation.lineItems.map((li) => ({ title: li.title, amount: String(li.amount) }));
+    }
+    if (!isEditing && lastCompensation?.lineItems?.length) {
+      return lastCompensation.lineItems.map((li) => ({ title: li.title, amount: String(li.amount) }));
+    }
+    return [
+      { title: 'Basic', amount: '' },
+      { title: 'HRA', amount: '' },
+      { title: 'Other Allowances', amount: '' },
+    ];
+  };
 
   const [lineItems, setLineItems] = useState<LineItemForm[]>(defaultLineItems);
   const [effectiveFrom, setEffectiveFrom] = useState(compensation?.effectiveFrom ?? '');
@@ -58,7 +64,7 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
       setError('');
       setFieldErrors({});
     }
-  }, [open, compensation]);
+  }, [open, compensation, lastCompensation]);
 
   const grossAmount = useMemo(() => {
     return lineItems.reduce((sum, li) => {

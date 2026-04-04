@@ -50,6 +50,7 @@ export const EmployeeListResponseSchema = z.object({
   dateOfLeaving: z.string().optional().nullable(),
   isBgVerified: z.boolean(),
   candidateId: z.number().optional().nullable(),
+  reportToId: z.number().optional().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -60,7 +61,6 @@ export const EmployeeDetailResponseSchema = EmployeeListResponseSchema.extend({
   dob: z.string(),
   pan: z.string().optional().nullable(),
   aadhaar: z.string().optional().nullable(),
-  reportToId: z.number().optional().nullable(),
   reportTo: z
     .object({
       id: z.number(),

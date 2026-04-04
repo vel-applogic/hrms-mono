@@ -118,7 +118,7 @@ export function EmployeeViewLeave({ employeeId, initialData, initialFinancialYea
         <p className='py-4 text-sm text-muted-foreground'>No leave records found.</p>
       )}
 
-      <LeaveApplyDrawer open={drawerOpen} onOpenChange={setDrawerOpen} leave={editingLeave} onSuccess={() => fetchData(financialYear, statusFilter, page)} />
+      <LeaveApplyDrawer open={drawerOpen} onOpenChange={setDrawerOpen} leave={editingLeave} employeeId={employeeId} onSuccess={() => fetchData(financialYear, statusFilter, page)} />
     </div>
   );
 }

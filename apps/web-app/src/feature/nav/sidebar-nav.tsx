@@ -1,11 +1,12 @@
 'use client';
 
 import { cn } from '@repo/ui/lib/utils';
-import { Briefcase, Building2, CalendarDays, FileText, HandCoins, UserRound, Users } from 'lucide-react';
+import { Briefcase, Building2, CalendarDays, FileText, HandCoins, LayoutDashboard, UserRound, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const navItems = [
+  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, superAdminOnly: false },
   { label: 'Organizations', href: '/organization', icon: Building2, superAdminOnly: true },
   { label: 'Users', href: '/user', icon: Users, superAdminOnly: false },
   { label: 'Policies', href: '/policy', icon: FileText, superAdminOnly: false },

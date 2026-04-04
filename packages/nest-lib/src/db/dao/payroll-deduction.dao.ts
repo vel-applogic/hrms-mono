@@ -84,6 +84,30 @@ export class PayrollDeductionDao extends BaseDao {
     });
   }
 
+  public async findByUserIdOrderedByEffectiveFromDesc(params: { userId: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<PayrollDeductionWithLineItemsType[]> {
+    const pc = this.getPrismaClient(params.tx);
+    return pc.payrollDeduction.findMany({
+      where: {
+        userId: params.userId,
+        organizationId: params.organizationId,
+      },
+      include: lineItemsInclude,
+      orderBy: { effectiveFrom: 'desc' },
+    });
+  }
+
+  public async updateManyByUserId(params: { userId: number; organizationId: number; data: PayrollDeductionUpdateTableRecordType; tx: Prisma.TransactionClient }): Promise<number> {
+    const pc = this.getPrismaClient(params.tx);
+    const result = await pc.payrollDeduction.updateMany({
+      where: {
+        userId: params.userId,
+        organizationId: params.organizationId,
+      },
+      data: params.data,
+    });
+    return result.count;
+  }
+
   public async findByUserIdWithPagination(params: {
     userId: number;
     organizationId: number;

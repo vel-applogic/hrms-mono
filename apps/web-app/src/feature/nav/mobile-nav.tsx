@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { OrgSwitcher } from '@/feature/org/org-switcher';
 
 const tabs = [
+  { label: 'Dashboard', href: '/dashboard', superAdminOnly: false },
   { label: 'Organizations', href: '/organization', superAdminOnly: true },
   { label: 'Users', href: '/user', superAdminOnly: false },
   { label: 'Policies', href: '/policy', superAdminOnly: false },

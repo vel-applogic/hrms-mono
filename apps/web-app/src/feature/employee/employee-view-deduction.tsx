@@ -1,19 +1,12 @@
 'use client';
 
 import type { EmployeeDeductionResponseType, PaginatedResponseType } from '@repo/dto';
-import { DataTableSimple } from '@repo/ui/container/datatable/datatable';
-import {
-  ActionOption,
-  ActionsIconCellRenderer,
-  ActionsIconCellRendererParams,
-  BadgeRenderer,
-  DateTimeRenderer,
-} from '@repo/ui/container/datatable/datatable-cell-renderer';
 import { Button } from '@repo/ui/component/ui/button';
+import { Label } from '@repo/ui/component/ui/label';
+import { cn } from '@repo/ui/lib/utils';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ColDef } from 'ag-grid-community';
 
 import { searchEmployeeDeductions } from '@/lib/action/employee-deduction.actions';
 
@@ -21,7 +14,6 @@ import { EmployeeDeductionDeleteDialog } from './container/employee-deduction-de
 import { EmployeeDeductionFormDrawer } from './container/employee-deduction-form.drawer';
 
 const PAGE_SIZE = 10;
-const TABLE_PAGE_SIZE = 10;
 
 const DEDUCTION_TYPE_LABELS: Record<string, string> = {
   providentFund: 'Provident Fund',
@@ -48,31 +40,62 @@ function formatAmount(value: number) {
   return `₹${value.toLocaleString()}`;
 }
 
-function getLineItemsSummary(d: EmployeeDeductionResponseType): string {
-  return d.lineItems
-    .map((li) => {
-      const label = li.type === 'other' ? `Other: ${li.otherTitle ?? 'Other'}` : (DEDUCTION_TYPE_LABELS[li.type] ?? li.type);
-      const monthSuffix = li.frequency === 'specificMonth' && li.specificMonth ? ` [${formatMonthYear(li.specificMonth)}]` : '';
-      return `${label} (${formatAmount(li.amount)})${monthSuffix}`;
-    })
-    .join(', ');
+function DeductionCard({
+  deduction,
+  onEdit,
+  onDelete,
+}: {
+  deduction: EmployeeDeductionResponseType;
+  onEdit: (deduction: EmployeeDeductionResponseType) => void;
+  onDelete: (deduction: EmployeeDeductionResponseType) => void;
+}) {
+  const totalAmount = deduction.lineItems.reduce((sum, li) => sum + li.amount, 0);
+
+  return (
+    <div className={cn('relative rounded-md border border-border p-4', deduction.isActive ? 'bg-white dark:bg-white/5' : 'bg-muted/30')}>
+      <div className='absolute right-1 top-1 flex items-center gap-1.5'>
+        <Button variant='ghost' size='icon' className='h-7 w-7' onClick={() => onEdit(deduction)}>
+          <Pencil className='h-3.5 w-3.5' />
+        </Button>
+        <Button variant='ghost' size='icon' className='h-7 w-7 text-destructive hover:text-destructive' onClick={() => onDelete(deduction)}>
+          <Trash2 className='h-3.5 w-3.5' />
+        </Button>
+        {deduction.isActive ? (
+          <span className='rounded-md border border-green-500/30 bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-400'>Active</span>
+        ) : (
+          <span className='rounded-md border border-muted-foreground/30 bg-muted/50 px-2 py-0.5 text-xs font-medium text-muted-foreground'>Inactive</span>
+        )}
+      </div>
+      <div className='grid gap-3 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5'>
+        <div className='flex flex-col gap-1'>
+          <Label className='text-muted-foreground'>Total</Label>
+          <p className='text-lg font-medium'>{formatAmount(totalAmount)}</p>
+        </div>
+        {deduction.lineItems.map((li) => {
+          const label = li.type === 'other' ? `Other: ${li.otherTitle ?? 'Other'}` : (DEDUCTION_TYPE_LABELS[li.type] ?? li.type);
+          const monthSuffix = li.frequency === 'specificMonth' && li.specificMonth ? ` (${formatMonthYear(li.specificMonth)})` : '';
+          const frequencyLabel = li.frequency === 'monthly' ? '' : li.frequency === 'yearly' ? ' - Yearly' : '';
+          return (
+            <div key={li.id} className='flex flex-col gap-1'>
+              <Label className='text-muted-foreground'>
+                {label}{frequencyLabel}{monthSuffix}
+              </Label>
+              <p className='text-lg font-medium'>{formatAmount(li.amount)}</p>
+            </div>
+          );
+        })}
+        <div className='flex flex-col gap-1'>
+          <Label className='text-muted-foreground'>Effective from</Label>
+          <p className='text-lg font-medium'>{deduction.effectiveFrom}</p>
+        </div>
+        <div className='flex flex-col gap-1'>
+          <Label className='text-muted-foreground'>Effective till</Label>
+          <p className='text-lg font-medium'>{deduction.effectiveTill ?? '—'}</p>
+        </div>
+      </div>
+    </div>
+  );
 }
-
-const actionOptions: ActionOption[] = [
-  { name: 'Edit', icon: Pencil, variant: 'outline' },
-  { name: 'Delete', icon: Trash2, variant: 'outline-danger' },
-];
-
-type DeductionRow = {
-  id: number;
-  lineItemsSummary: string;
-  totalAmount: number;
-  effectiveFrom: string;
-  effectiveTill: string | null | undefined;
-  isActive: boolean;
-  createdAt: string;
-  _original: EmployeeDeductionResponseType;
-};
 
 interface Props {
   employeeId: number;
@@ -81,7 +104,6 @@ interface Props {
 
 export function EmployeeViewDeduction({ employeeId, initialPage }: Props) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [deductions, setDeductions] = useState<EmployeeDeductionResponseType[]>(initialPage.results);
   const [page, setPage] = useState(initialPage.page);
   const [totalRecords, setTotalRecords] = useState(initialPage.totalRecords);
@@ -93,26 +115,11 @@ export function EmployeeViewDeduction({ employeeId, initialPage }: Props) {
 
   const hasMore = deductions.length < totalRecords;
 
-  const tablePage = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
-  const tablePageSize = Math.max(5, Math.min(100, parseInt(searchParams.get('pageSize') ?? String(TABLE_PAGE_SIZE), 10)));
-
-  const tableRows = useMemo((): DeductionRow[] => {
-    return deductions.map((d) => ({
-      id: d.id,
-      lineItemsSummary: getLineItemsSummary(d),
-      totalAmount: d.lineItems.reduce((sum, li) => sum + li.amount, 0),
-      effectiveFrom: d.effectiveFrom,
-      effectiveTill: d.effectiveTill,
-      isActive: d.isActive,
-      createdAt: d.createdAt,
-      _original: d,
-    }));
+  const sortedDeductions = useMemo(() => {
+    return [...deductions].sort((a, b) => (b.effectiveFrom || '').localeCompare(a.effectiveFrom || ''));
   }, [deductions]);
 
-  const paginatedRows = useMemo(() => {
-    const start = (tablePage - 1) * tablePageSize;
-    return tableRows.slice(start, start + tablePageSize);
-  }, [tableRows, tablePage, tablePageSize]);
+  const recentDeduction = sortedDeductions[0] ?? null;
 
   const loadMore = useCallback(async () => {
     if (!hasMore || loadingMore) return;
@@ -176,49 +183,6 @@ export function EmployeeViewDeduction({ employeeId, initialPage }: Props) {
     router.refresh();
   };
 
-  const handleActionClick = useCallback(
-    (action: string, data: DeductionRow) => {
-      if (action === 'Edit') setEditingDeduction(data._original);
-      if (action === 'Delete') setDeletingDeduction(data._original);
-    },
-    [],
-  );
-
-  const colDefs = useMemo<ColDef<DeductionRow>[]>(
-    () => [
-      { headerName: 'Line items', field: 'lineItemsSummary', flex: 1, minWidth: 250 },
-      { headerName: 'Total', field: 'totalAmount', width: 120, valueFormatter: (p) => (p.value != null ? formatAmount(p.value) : '') },
-      { headerName: 'Effective from', field: 'effectiveFrom', width: 130 },
-      { headerName: 'Effective till', field: 'effectiveTill', width: 130, valueFormatter: (p) => (p.value ?? '—') },
-      {
-        headerName: 'Status',
-        field: 'isActive',
-        width: 100,
-        cellRenderer: (params: { value?: boolean }) =>
-          params.value ? (
-            <BadgeRenderer text='Active' className='border border-green-500/30 bg-green-500/10 text-green-400' />
-          ) : (
-            <BadgeRenderer text='Inactive' className='border border-muted-foreground/30 bg-muted/50 text-muted-foreground' />
-          ),
-      },
-      { headerName: 'Created at', field: 'createdAt', width: 150, cellRenderer: DateTimeRenderer },
-      {
-        headerName: 'Actions',
-        colId: 'actions',
-        sortable: false,
-        resizable: false,
-        pinned: 'right',
-        width: 90,
-        cellClass: '!flex items-center !justify-center',
-        cellRenderer: ActionsIconCellRenderer<DeductionRow>,
-        cellRendererParams: {
-          options: actionOptions,
-        } satisfies Partial<ActionsIconCellRendererParams<DeductionRow>>,
-      },
-    ],
-    [],
-  );
-
   return (
     <div className='flex h-full flex-col'>
       <div className='mb-6 flex items-center justify-between'>
@@ -229,23 +193,27 @@ export function EmployeeViewDeduction({ employeeId, initialPage }: Props) {
         </Button>
       </div>
 
-      {deductions.length > 0 ? (
-        <div className='flex min-h-0 flex-1 flex-col'>
-          <div className='min-h-[200px] flex-1'>
-            <DataTableSimple<DeductionRow>
-              tableKey='employee-deduction'
-              rowData={paginatedRows}
-              pagination={{
-                page: tablePage,
-                pageSize: tablePageSize,
-                total: deductions.length,
-              }}
-              colDefs={colDefs}
-              onActionClick={handleActionClick}
-              autoHeight
-            />
-          </div>
-        </div>
+      {sortedDeductions.length > 0 ? (
+        <>
+          <DeductionCard
+            deduction={sortedDeductions[0]!}
+            onEdit={(d) => setEditingDeduction(d)}
+            onDelete={(d) => setDeletingDeduction(d)}
+          />
+          {sortedDeductions.length > 1 && (
+            <div className='mt-6 flex flex-col gap-4'>
+              <h3 className='text-sm font-medium text-muted-foreground'>Deduction history</h3>
+              {sortedDeductions.slice(1).map((d) => (
+                <DeductionCard
+                  key={d.id}
+                  deduction={d}
+                  onEdit={(ded) => setEditingDeduction(ded)}
+                  onDelete={(ded) => setDeletingDeduction(ded)}
+                />
+              ))}
+            </div>
+          )}
+        </>
       ) : (
         <p className='py-4 text-sm text-muted-foreground'>No deduction records yet.</p>
       )}
@@ -260,6 +228,7 @@ export function EmployeeViewDeduction({ employeeId, initialPage }: Props) {
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
         employeeId={employeeId}
+        lastDeduction={recentDeduction ?? undefined}
         onSuccess={handleAddSuccess}
       />
       <EmployeeDeductionFormDrawer

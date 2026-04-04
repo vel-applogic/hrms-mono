@@ -44,6 +44,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   employeeId: number;
   deduction?: EmployeeDeductionResponseType;
+  lastDeduction?: EmployeeDeductionResponseType;
   onSuccess: (deduction: EmployeeDeductionResponseType) => void;
 }
 
@@ -61,19 +62,22 @@ type FieldErrors = {
   lineItems?: string;
 };
 
-export function EmployeeDeductionFormDrawer({ open, onOpenChange, employeeId, deduction, onSuccess }: Props) {
+export function EmployeeDeductionFormDrawer({ open, onOpenChange, employeeId, deduction, lastDeduction, onSuccess }: Props) {
   const isEditing = !!deduction;
 
-  const defaultLineItems = (): LineItemForm[] =>
-    deduction?.lineItems?.length
-      ? deduction.lineItems.map((li) => ({
-          type: li.type as PayrollDeductionTypeDtoEnum,
-          frequency: li.frequency as PayrollDeductionFrequencyDtoEnum,
-          amount: String(li.amount),
-          otherTitle: li.otherTitle ?? '',
-          specificMonth: li.specificMonth ?? '',
-        }))
-      : [{ type: 'providentFund', frequency: 'monthly', amount: '', otherTitle: '', specificMonth: '' }];
+  const defaultLineItems = (): LineItemForm[] => {
+    const source = deduction ?? (!isEditing ? lastDeduction : undefined);
+    if (source?.lineItems?.length) {
+      return source.lineItems.map((li) => ({
+        type: li.type as PayrollDeductionTypeDtoEnum,
+        frequency: li.frequency as PayrollDeductionFrequencyDtoEnum,
+        amount: String(li.amount),
+        otherTitle: li.otherTitle ?? '',
+        specificMonth: li.specificMonth ?? '',
+      }));
+    }
+    return [{ type: 'providentFund', frequency: 'monthly', amount: '', otherTitle: '', specificMonth: '' }];
+  };
 
   const [lineItems, setLineItems] = useState<LineItemForm[]>(defaultLineItems);
   const [effectiveFrom, setEffectiveFrom] = useState(deduction?.effectiveFrom ?? '');
@@ -92,7 +96,7 @@ export function EmployeeDeductionFormDrawer({ open, onOpenChange, employeeId, de
       setError('');
       setFieldErrors({});
     }
-  }, [open, deduction]);
+  }, [open, deduction, lastDeduction]);
 
   const updateLineItem = (index: number, field: keyof LineItemForm, value: string) => {
     setLineItems((prev) =>

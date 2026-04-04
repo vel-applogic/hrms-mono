@@ -96,6 +96,7 @@ export class BaseEmployeeUc extends BaseUc {
       status: employeeStatusDbEnumToDtoEnum(dbRec.status),
       isBgVerified: dbRec.isBgVerified,
       candidateId: dbRec.candidateId ?? null,
+      reportToId: dbRec.reportToId ?? null,
       dateOfJoining: dbRec.dateOfJoining.toISOString().split('T')[0]!,
       dateOfLeaving: dbRec.dateOfLeaving?.toISOString().split('T')[0] ?? null,
       createdAt: dbRec.createdAt.toISOString(),

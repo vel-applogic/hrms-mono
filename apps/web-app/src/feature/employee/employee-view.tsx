@@ -8,6 +8,7 @@ import type {
   EmployeeFeedbackResponseType,
   LeaveResponseType,
   PaginatedResponseType,
+  PayslipListResponseType,
 } from '@repo/dto';
 import { Button } from '@repo/ui/component/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -20,6 +21,7 @@ import { EmployeeViewDocuments } from './employee-view-documents';
 import { EmployeeViewFeedbacks } from './employee-view-feedbacks';
 import { EmployeeViewLeave } from './employee-view-leave';
 import { EmployeeViewBgv } from './employee-view-bgv';
+import { EmployeeViewPayslip } from './employee-view-payslip';
 
 const TABS = [
   { id: 'details' as const, label: 'Employee Details' },
@@ -28,6 +30,7 @@ const TABS = [
   { id: 'compensation' as const, label: 'Compensation' },
   { id: 'deduction' as const, label: 'Deduction' },
   { id: 'leave' as const, label: 'Leave' },
+  { id: 'payslip' as const, label: 'Payslip' },
   { id: 'bgv' as const, label: 'BGV' },
 ] as const;
 
@@ -38,11 +41,12 @@ interface Props {
   initialDeductionPage: PaginatedResponseType<EmployeeDeductionResponseType>;
   initialLeavePage: PaginatedResponseType<LeaveResponseType>;
   initialBgvPage: PaginatedResponseType<EmployeeBgvFeedbackResponseType>;
+  initialPayslipPage: PaginatedResponseType<PayslipListResponseType>;
   initialLeaveFinancialYear: string;
-  activeTab: 'details' | 'documents' | 'feedbacks' | 'compensation' | 'deduction' | 'leave' | 'bgv';
+  activeTab: 'details' | 'documents' | 'feedbacks' | 'compensation' | 'deduction' | 'leave' | 'payslip' | 'bgv';
 }
 
-export function EmployeeView({ employee, initialFeedbackPage, initialCompensationPage, initialDeductionPage, initialLeavePage, initialBgvPage, initialLeaveFinancialYear, activeTab }: Props) {
+export function EmployeeView({ employee, initialFeedbackPage, initialCompensationPage, initialDeductionPage, initialLeavePage, initialBgvPage, initialPayslipPage, initialLeaveFinancialYear, activeTab }: Props) {
   return (
     <div className='flex h-full flex-col gap-4 pt-4'>
       <div className='center-container flex items-center justify-between'>
@@ -83,6 +87,7 @@ export function EmployeeView({ employee, initialFeedbackPage, initialCompensatio
           {activeTab === 'compensation' && <EmployeeViewCompensation employeeId={employee.id} initialPage={initialCompensationPage} />}
           {activeTab === 'deduction' && <EmployeeViewDeduction employeeId={employee.id} initialPage={initialDeductionPage} />}
           {activeTab === 'leave' && <EmployeeViewLeave employeeId={employee.id} initialData={initialLeavePage} initialFinancialYear={initialLeaveFinancialYear} />}
+          {activeTab === 'payslip' && <EmployeeViewPayslip employeeId={employee.id} initialPage={initialPayslipPage} />}
           {activeTab === 'bgv' && <EmployeeViewBgv employeeId={employee.id} initialPage={initialBgvPage} />}
         </div>
       </div>

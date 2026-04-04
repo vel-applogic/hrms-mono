@@ -23,12 +23,13 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   leave?: LeaveResponseType | null;
+  employeeId?: number;
   onSuccess: () => void;
 }
 
 const FORM_ID = 'leave-apply-form';
 
-export function LeaveApplyDrawer({ open, onOpenChange, leave, onSuccess }: Props) {
+export function LeaveApplyDrawer({ open, onOpenChange, leave, employeeId, onSuccess }: Props) {
   const { data: session } = useSession();
   const currentUserId = session?.user?.id ? Number(session.user.id) : null;
   const isAdmin = session?.user?.roles?.includes('admin') ?? false;
@@ -59,7 +60,7 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, onSuccess }: Props
         });
       } else {
         form.reset({
-          userId: currentUserId ?? 0,
+          userId: employeeId ?? currentUserId ?? 0,
           leaveType: LeaveTypeDtoEnum.casual,
           startDate: '',
           endDate: '',
@@ -123,7 +124,7 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, onSuccess }: Props
         <EmployeeSelect
           value={form.watch('userId') && form.watch('userId') > 0 ? form.watch('userId') : undefined}
           onChange={(userId) => form.setValue('userId', userId)}
-          disabled={isEditing}
+          disabled={isEditing || !!employeeId}
           currentUserId={currentUserId}
           isAdmin={isAdmin}
         />
