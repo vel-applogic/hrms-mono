@@ -94,6 +94,23 @@ export const MarkdownEditor = ({ value, onChange, placeholder, className }: Mark
         <ToolbarButton onClick={() => editor.chain().focus().toggleUnderline().run()} active={activeMarks?.underline} title='Underline'>
           <Underline className='h-3.5 w-3.5' />
         </ToolbarButton>
+        <div className='mx-1 h-4 w-px bg-white/20' />
+        <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={activeMarks?.h1} title='Heading 1'>
+          <Heading1 className='h-3.5 w-3.5' />
+        </ToolbarButton>
+        <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} active={activeMarks?.h2} title='Heading 2'>
+          <Heading2 className='h-3.5 w-3.5' />
+        </ToolbarButton>
+        <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} active={activeMarks?.h3} title='Heading 3'>
+          <Heading3 className='h-3.5 w-3.5' />
+        </ToolbarButton>
+        <div className='mx-1 h-4 w-px bg-white/20' />
+        <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={activeMarks?.orderedList} title='Numbered List'>
+          <ListOrdered className='h-3.5 w-3.5' />
+        </ToolbarButton>
+        <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={activeMarks?.bulletList} title='Bullet List'>
+          <List className='h-3.5 w-3.5' />
+        </ToolbarButton>
       </div>
 
       <EditorContent editor={editor} />
