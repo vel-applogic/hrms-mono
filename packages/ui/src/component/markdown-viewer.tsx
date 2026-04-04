@@ -1,6 +1,7 @@
 'use client';
 
 import type { AnyExtension } from '@tiptap/react';
+import Image from '@tiptap/extension-image';
 import TextAlign from '@tiptap/extension-text-align';
 import { Underline as TiptapUnderline } from '@tiptap/extension-underline';
 import { EditorContent, useEditor } from '@tiptap/react';
@@ -9,6 +10,7 @@ import { useMemo } from 'react';
 import { Markdown } from 'tiptap-markdown';
 
 import { cn } from '../lib/utils';
+import './tiptap-content.css';
 
 interface MarkdownViewerProps {
   value: string;
@@ -23,6 +25,7 @@ export const MarkdownViewer = ({ value, className }: MarkdownViewerProps) => {
       StarterKit.configure({ strike: false }),
       TiptapUnderline,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      Image.configure({ inline: false, allowBase64: false }),
     ];
     if (!isHtml) {
       base.push(Markdown.configure({ html: true, breaks: true }));
@@ -37,7 +40,7 @@ export const MarkdownViewer = ({ value, className }: MarkdownViewerProps) => {
     content: value,
     editorProps: {
       attributes: {
-        class: 'outline-none prose prose-sm max-w-none',
+        class: 'outline-none tiptap-content',
       },
     },
   });

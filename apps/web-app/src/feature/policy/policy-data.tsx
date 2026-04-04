@@ -3,6 +3,7 @@
 import { PaginatedResponseType, PolicyDetailResponseType, PolicyListResponseType, SearchParamsType } from '@repo/dto';
 import { Button } from '@repo/ui/component/ui/button';
 import { Plus, X } from 'lucide-react';
+import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
@@ -59,11 +60,6 @@ export const PolicyData = ({ data, searchParams, readOnly, basePath }: Props) =>
     sVal: searchParams.sVal,
   };
 
-  const handleAddNew = () => {
-    setEditingPolicy(null);
-    setDrawerOpen(true);
-  };
-
   const handleEdit = (policy: PolicyDetailResponseType) => {
     setEditingPolicy(policy);
     setDrawerOpen(true);
@@ -95,10 +91,12 @@ export const PolicyData = ({ data, searchParams, readOnly, basePath }: Props) =>
       <div className='center-container flex items-center justify-between'>
         <span className='text-xl font-medium tracking-tight text-foreground'>Policies</span>
         {!readOnly && (
-          <Button className='rounded-[40px]' onClick={handleAddNew}>
-            <Plus className='h-4 w-4' />
-            Add new policy
-          </Button>
+          <Link href='/policy/create'>
+            <Button className='rounded-[40px]'>
+              <Plus className='h-4 w-4' />
+              Add new policy
+            </Button>
+          </Link>
         )}
       </div>
 

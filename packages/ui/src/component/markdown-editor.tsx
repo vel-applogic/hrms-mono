@@ -1,20 +1,23 @@
 'use client';
 
+import Image from '@tiptap/extension-image';
 import TextAlign from '@tiptap/extension-text-align';
 import { Underline as TiptapUnderline } from '@tiptap/extension-underline';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import { StarterKit } from '@tiptap/starter-kit';
-import { AlignCenter, AlignJustify, AlignLeft, AlignRight, Bold, Heading1, Heading2, Heading3, Italic, List, ListOrdered, Underline } from 'lucide-react';
+import { AlignCenter, AlignJustify, AlignLeft, AlignRight, Bold, Heading1, Heading2, Heading3, ImagePlus, Italic, List, ListOrdered, Underline } from 'lucide-react';
 import { useEffect, useRef } from 'react';
-import { Markdown } from 'tiptap-markdown';
 
 import { cn } from '../lib/utils';
+import './tiptap-content.css';
 
 interface MarkdownEditorProps {
   value: string;
   onChange: (value: string) => void;
+  onImageUpload?: (file: File) => Promise<string>;
   placeholder?: string;
   className?: string;
+  stickyToolbar?: boolean;
 }
 
 type ToolbarButtonProps = {
@@ -41,8 +44,9 @@ const ToolbarButton = ({ onClick, active, title, children }: ToolbarButtonProps)
   </button>
 );
 
-export const MarkdownEditor = ({ value, onChange, placeholder, className }: MarkdownEditorProps) => {
+export const MarkdownEditor = ({ value, onChange, onImageUpload, placeholder, className, stickyToolbar }: MarkdownEditorProps) => {
   const internalValue = useRef(value);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -50,12 +54,12 @@ export const MarkdownEditor = ({ value, onChange, placeholder, className }: Mark
       StarterKit.configure({ strike: false }),
       TiptapUnderline,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      Markdown.configure({ html: true, transformPastedText: true, breaks: true }),
+      Image.configure({ inline: false, allowBase64: false }),
     ],
     content: value,
     editorProps: {
       attributes: {
-        class: 'outline-none min-h-[80px] px-3 py-2 text-sm',
+        class: 'outline-none min-h-[80px] px-3 py-2 text-sm tiptap-content',
         ...(placeholder ? { 'data-placeholder': placeholder } : {}),
       },
     },
@@ -92,11 +96,27 @@ export const MarkdownEditor = ({ value, onChange, placeholder, className }: Mark
     }
   }, [value, editor]);
 
+  const handleImageInsert = async (file: File) => {
+    if (!editor || !onImageUpload) return;
+    const url = await onImageUpload(file);
+    if (url) {
+      editor.chain().focus().setImage({ src: url, alt: file.name }).run();
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      void handleImageInsert(file);
+    }
+    e.target.value = '';
+  };
+
   if (!editor) return null;
 
   return (
-    <div className={cn('w-full overflow-hidden rounded-md border border-input bg-white focus-within:ring-1 focus-within:ring-ring', className)}>
-      <div className='flex flex-wrap items-center gap-0.5 border-b border-input bg-primary px-2 py-1.5'>
+    <div className={cn('w-full rounded-md border border-input bg-white focus-within:ring-1 focus-within:ring-ring', !stickyToolbar && 'overflow-hidden', className)}>
+      <div className={cn('flex flex-wrap items-center gap-0.5 border-b border-input bg-primary px-2 py-1.5', stickyToolbar && 'sticky top-0 z-10 rounded-t-[inherit]')}>
         <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={activeMarks?.bold} title='Bold'>
           <Bold className='h-3.5 w-3.5' />
         </ToolbarButton>
@@ -136,6 +156,21 @@ export const MarkdownEditor = ({ value, onChange, placeholder, className }: Mark
         <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('justify').run()} active={activeMarks?.alignJustify} title='Justify'>
           <AlignJustify className='h-3.5 w-3.5' />
         </ToolbarButton>
+        {onImageUpload && (
+          <>
+            <div className='mx-1 h-4 w-px bg-white/20' />
+            <ToolbarButton onClick={() => fileInputRef.current?.click()} title='Insert Image'>
+              <ImagePlus className='h-3.5 w-3.5' />
+            </ToolbarButton>
+            <input
+              ref={fileInputRef}
+              type='file'
+              accept='image/jpeg,image/png,image/gif,image/webp'
+              className='hidden'
+              onChange={handleFileInputChange}
+            />
+          </>
+        )}
       </div>
 
       <EditorContent editor={editor} />

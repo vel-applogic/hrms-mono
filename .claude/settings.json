@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls /Users/vel/Applogic/Applogic/hrms-mono/node_modules/.pnpm/@tiptap+extension-image*)"
+    ],
+    "additionalDirectories": [
+      "/Users/vel/Applogic/Applogic/hrms-mono/apps/web-app/src/app/(authenticated)/policy/[id]"
+    ]
+  }
+}

@@ -9,7 +9,6 @@ import { Eye, Pencil, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 
-import { getPolicyById } from '@/lib/action/policy.actions';
 
 function PolicyTitleCellRenderer({ value }: ICellRendererParams<PolicyListResponseType>) {
   if (!value) return null;
@@ -29,11 +28,11 @@ interface Props {
 
 export const PolicyDataTableClient = (props: Props) => {
   const router = useRouter();
-  const hasEditActions = !!props.onEdit || !!props.onDelete;
-
   const actionOptions = useMemo<ActionOption[]>(() => {
     const options: ActionOption[] = [{ name: 'View', icon: Eye, variant: 'outline' }];
-    if (props.onEdit) options.push({ name: 'Edit', icon: Pencil, variant: 'outline' });
+    if (props.onEdit) {
+      options.push({ name: 'Edit', icon: Pencil, variant: 'outline' });
+    }
     if (props.onDelete) options.push({ name: 'Delete', icon: Trash2, variant: 'outline-danger' });
     return options;
   }, [props.onEdit, props.onDelete]);
@@ -100,11 +99,9 @@ export const PolicyDataTableClient = (props: Props) => {
         case 'View':
           router.push(`${props.basePath ?? '/policy'}/${data.id}`);
           break;
-        case 'Edit': {
-          const policy = await getPolicyById(data.id);
-          props.onEdit?.(policy);
+        case 'Edit':
+          router.push(`/policy/${data.id}/edit`);
           break;
-        }
         case 'Delete':
           props.onDelete?.(data);
           break;
