@@ -108,7 +108,13 @@ export function EmpLeaveData({ employeeId, initialData, initialFinancialYear }: 
         />
       </div>
 
-      <LeaveApplyDrawer open={drawerOpen} onOpenChange={setDrawerOpen} leave={editingLeave} employeeId={employeeId} onSuccess={() => fetchData(financialYear, statusFilter, page)} />
+      <LeaveApplyDrawer
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        leave={editingLeave}
+        employeeId={employeeId}
+        onSuccess={() => fetchData(financialYear, statusFilter, page)}
+      />
     </div>
   );
 }
