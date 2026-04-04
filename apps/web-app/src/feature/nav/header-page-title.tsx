@@ -17,7 +17,6 @@ const pageTitleMap: Record<string, string> = {
   '/emp/documents': 'Documents',
   '/emp/feedbacks': 'Feedbacks',
   '/emp/payroll': 'Payroll',
-  '/emp/payslip': 'Payslip',
   '/emp/leave': 'Leaves & Holidays',
   '/emp/policy': 'Policies',
 };

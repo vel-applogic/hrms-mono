@@ -117,12 +117,7 @@ export function PayrollCompensationData({ data, searchParams }: Props) {
 
   return (
     <div className='flex h-full flex-col gap-4'>
-      <div className='flex items-center justify-between'>
-        <span className='text-sm font-medium text-muted-foreground'>
-          {data.totalRecords > 0
-            ? `Showing records: ${(data.page - 1) * data.limit + 1} - ${Math.min(data.page * data.limit, data.totalRecords)} of ${data.totalRecords}`
-            : 'No records found'}
-        </span>
+      <div className='flex items-center justify-start'>
         <div className='flex h-10 w-[298px] shrink-0 items-center gap-3 rounded-[40px] border border-input bg-white px-4'>
           <svg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'>
             <path

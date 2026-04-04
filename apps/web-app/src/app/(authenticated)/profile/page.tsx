@@ -37,7 +37,7 @@ export default async function ProfilePage(props: Props) {
           {tabs.map((t) => {
             const isActive = tab === t.id;
             return (
-              <a key={t.id} href={`/profile?tab=${t.id}`} className='group relative flex h-[52px] items-center px-3 pb-2 pt-3'>
+              <a key={t.id} href={`/profile?tab=${t.id}`} className='group relative flex h-[52px] items-center px-3 pb-2'>
                 <span className={`text-sm font-bold tracking-widest transition-colors group-hover:text-foreground ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
                   {t.label}
                 </span>

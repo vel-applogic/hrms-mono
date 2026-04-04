@@ -263,17 +263,6 @@ export function PayslipData() {
         </div>
       </div>
 
-      {/* Record count */}
-      <div className='flex items-center justify-between'>
-        <span className='text-sm text-muted-foreground'>
-          {loading
-            ? 'Loading…'
-            : data && data.totalRecords > 0
-              ? `Showing ${(data.page - 1) * data.limit + 1}–${Math.min(data.page * data.limit, data.totalRecords)} of ${data.totalRecords} records`
-              : 'No payslips found'}
-        </span>
-      </div>
-
       {/* Table */}
       <div className='min-h-[300px] flex-1'>
         <DataTableSimple<PayslipListResponseType>

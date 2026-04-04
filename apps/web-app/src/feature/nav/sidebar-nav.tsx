@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@repo/ui/lib/utils';
-import { Briefcase, Building2, CalendarDays, ClipboardList, FileText, HandCoins, LayoutDashboard, MessageSquare, Receipt, ScrollText, UserRound, Users } from 'lucide-react';
+import { Briefcase, Building2, CalendarDays, ClipboardList, FileText, HandCoins, LayoutDashboard, MessageSquare, ScrollText, UserRound, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
@@ -30,7 +30,6 @@ const employeeNavItems: NavItem[] = [
   { label: 'Documents', href: '/emp/documents', icon: ScrollText, superAdminOnly: false },
   { label: 'Feedbacks', href: '/emp/feedbacks', icon: MessageSquare, superAdminOnly: false },
   { label: 'Payroll', href: '/emp/payroll', icon: HandCoins, superAdminOnly: false },
-  { label: 'Payslip', href: '/emp/payslip', icon: Receipt, superAdminOnly: false },
   { label: 'Leaves & Holidays', href: '/emp/leave', icon: CalendarDays, superAdminOnly: false },
   { label: 'Policies', href: '/emp/policy', icon: FileText, superAdminOnly: false },
 ];

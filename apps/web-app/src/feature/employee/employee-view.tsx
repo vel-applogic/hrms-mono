@@ -70,7 +70,7 @@ export function EmployeeView({ employee, initialFeedbackPage, initialCompensatio
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
-              <Link key={tab.id} href={`/employee/${employee.id}/${tab.id}`} className='group relative flex h-[52px] items-center px-3 pb-2 pt-3'>
+              <Link key={tab.id} href={`/employee/${employee.id}/${tab.id}`} className='group relative flex h-[52px] items-center px-3 pb-2'>
                 <span className={`text-sm font-bold tracking-widest transition-colors group-hover:text-foreground ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
                   {tab.label}
                 </span>

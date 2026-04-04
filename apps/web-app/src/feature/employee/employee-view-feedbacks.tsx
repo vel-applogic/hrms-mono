@@ -107,10 +107,6 @@ export function EmployeeViewFeedbacks({ employeeId, initialPage, readOnly }: Pro
 
   return (
     <div className='flex h-full flex-col'>
-      <div className='mb-6'>
-        <h2 className='text-lg font-medium'>Feedbacks</h2>
-      </div>
-
       <div className='mb-6 flex flex-wrap gap-4'>
         <div className='w-[200px] shrink-0 rounded-md border border-border bg-muted/30 p-4'>
           <Label className='text-muted-foreground'>Total points</Label>

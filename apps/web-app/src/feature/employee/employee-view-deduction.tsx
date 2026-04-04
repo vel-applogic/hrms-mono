@@ -188,15 +188,14 @@ export function EmployeeViewDeduction({ employeeId, initialPage, readOnly }: Pro
 
   return (
     <div className='flex h-full flex-col'>
-      <div className='mb-6 flex items-center justify-between'>
-        <h2 className='text-lg font-medium'>Deductions</h2>
-        {!readOnly && (
+      {!readOnly && (
+        <div className='mb-6 flex items-center justify-end'>
           <Button size='sm' onClick={() => setAddDialogOpen(true)}>
             <Plus className='h-4 w-4' />
             Add deduction
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
       {sortedDeductions.length > 0 ? (
         <>

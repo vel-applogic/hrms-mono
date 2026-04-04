@@ -62,15 +62,14 @@ export function EmployeeViewDocuments({ employeeId, readOnly }: Props) {
 
   return (
     <div className='flex flex-col gap-6'>
-      <div className='mb-6 flex items-center justify-between'>
-        <h2 className='text-lg font-medium'>Documents</h2>
-        {!readOnly && (
+      {!readOnly && (
+        <div className='mb-6 flex items-center justify-end'>
           <Button size='sm' onClick={() => setEditOpen(true)}>
             <Plus className='h-4 w-4' />
             Add/Edit Documents
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className='flex flex-col gap-6'>
         <div className='flex flex-col gap-2'>

@@ -35,7 +35,7 @@ export function LeaveView({ children }: Props) {
           {tabs.map((tab) => {
             const active = isActive(tab.href);
             return (
-              <Link key={tab.id} href={tab.href} className='group relative flex h-[52px] items-center px-3 pb-2 pt-3'>
+              <Link key={tab.id} href={tab.href} className='group relative flex h-[52px] items-center px-3 pb-2'>
                 <span className={`text-sm font-bold tracking-widest transition-colors group-hover:text-foreground ${active ? 'text-foreground' : 'text-muted-foreground'}`}>
                   {tab.label}
                 </span>

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const TABS = [
+  { id: 'payslip' as const, label: 'Payslip', href: '/emp/payroll/payslip' },
   { id: 'compensation' as const, label: 'Compensation', href: '/emp/payroll/compensation' },
   { id: 'deduction' as const, label: 'Deduction', href: '/emp/payroll/deduction' },
 ] as const;
@@ -22,7 +23,7 @@ export function EmpPayrollView({ children }: Props) {
           {TABS.map((tab) => {
             const isActive = pathname.startsWith(tab.href);
             return (
-              <Link key={tab.id} href={tab.href} className='group relative flex h-[52px] items-center px-3 pb-2 pt-3'>
+              <Link key={tab.id} href={tab.href} className='group relative flex h-[52px] items-center px-3 pb-2'>
                 <span className={`text-sm font-bold tracking-widest transition-colors group-hover:text-foreground ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
                   {tab.label}
                 </span>

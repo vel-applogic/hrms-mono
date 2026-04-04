@@ -66,14 +66,7 @@ export function EmpLeaveData({ employeeId, initialData, initialFinancialYear }: 
 
   return (
     <div className='flex h-full flex-col gap-4'>
-      <div className='flex items-center justify-between'>
-        <span className='text-sm font-medium text-muted-foreground'>
-          {loading
-            ? 'Loading...'
-            : data.totalRecords > 0
-              ? `${data.totalRecords} record${data.totalRecords !== 1 ? 's' : ''}`
-              : 'No records found'}
-        </span>
+      <div className='flex items-center justify-between gap-3'>
         <div className='flex items-center gap-3'>
           <LeaveStatusFilter values={statusFilter} onChange={handleStatusChange} />
           <Select value={financialYear} onValueChange={handleFyChange}>
@@ -88,17 +81,17 @@ export function EmpLeaveData({ employeeId, initialData, initialFinancialYear }: 
               ))}
             </SelectContent>
           </Select>
-          <Button
-            size='sm'
-            onClick={() => {
-              setEditingLeave(null);
-              setDrawerOpen(true);
-            }}
-          >
-            <CalendarPlus className='h-4 w-4' />
-            Apply leave
-          </Button>
         </div>
+        <Button
+          size='sm'
+          onClick={() => {
+            setEditingLeave(null);
+            setDrawerOpen(true);
+          }}
+        >
+          <CalendarPlus className='h-4 w-4' />
+          Apply leave
+        </Button>
       </div>
 
       <div className='flex flex-1 flex-col min-h-0 pb-4'>

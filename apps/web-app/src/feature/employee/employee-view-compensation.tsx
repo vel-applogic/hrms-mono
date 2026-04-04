@@ -152,15 +152,14 @@ export function EmployeeViewCompensation({ employeeId, initialPage, readOnly }: 
 
   return (
     <div className='flex h-full flex-col'>
-      <div className='mb-6 flex items-center justify-between'>
-        <h2 className='text-lg font-medium'>Compensation</h2>
-        {!readOnly && (
+      {!readOnly && (
+        <div className='mb-6 flex items-center justify-end'>
           <Button size='sm' onClick={() => setAddDialogOpen(true)}>
             <Plus className='h-4 w-4' />
             Add compensation
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
       {sortedCompensations.length > 0 ? (
         <>
