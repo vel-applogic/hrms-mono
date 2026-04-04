@@ -34,7 +34,7 @@ export default async function EmpHolidayPage(props: Props) {
 
   return (
     <div className='flex h-full flex-col'>
-      <HolidayData data={data} searchParams={validatedParams} years={yearOptions} selectedYear={yearParam} />
+      <HolidayData data={data} searchParams={validatedParams} years={yearOptions} selectedYear={yearParam} readOnly />
     </div>
   );
 }

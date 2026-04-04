@@ -10,7 +10,7 @@ import type {
 } from '@repo/dto';
 import { PolicyCreateRequestSchema, PolicyFilterRequestSchema, PolicyUpdateRequestSchema } from '@repo/dto';
 import type { CurrentUserType } from '@repo/nest-lib';
-import { CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
+import { AdminOnly, CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
 
 import { PolicyCreateUc } from './uc/policy-create.uc.js';
 import { PolicyDeleteUc } from './uc/policy-delete.uc.js';
@@ -28,6 +28,7 @@ export class PolicyController {
     private readonly deleteUc: PolicyDeleteUc,
   ) {}
 
+  @AdminOnly()
   @Post()
   async create(
     @Body(new ZodValidationPipe(PolicyCreateRequestSchema)) body: PolicyCreateRequestType,
@@ -44,6 +45,7 @@ export class PolicyController {
     return await this.searchUc.execute({ currentUser, filterDto });
   }
 
+  @AdminOnly()
   @Put(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -58,6 +60,7 @@ export class PolicyController {
     return this.getUc.execute({ currentUser, id });
   }
 
+  @AdminOnly()
   @Delete(':id')
   async delete(@Param('id', ParseIntPipe) id: number, @CurrentUser() currentUser: CurrentUserType): Promise<OperationStatusResponseType> {
     return this.deleteUc.execute({ currentUser, id });

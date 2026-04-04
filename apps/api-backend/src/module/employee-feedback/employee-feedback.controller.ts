@@ -13,7 +13,7 @@ import {
   EmployeeFeedbackUpdateRequestSchema,
 } from '@repo/dto';
 import type { CurrentUserType } from '@repo/nest-lib';
-import { CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
+import { AdminOnly, CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
 
 import { EmployeeFeedbackCreateUc } from './uc/employee-feedback-create.uc.js';
 import { EmployeeFeedbackDeleteUc } from './uc/employee-feedback-delete.uc.js';
@@ -37,6 +37,7 @@ export class EmployeeFeedbackController {
     return this.listUc.execute({ currentUser, filterDto });
   }
 
+  @AdminOnly()
   @Post()
   async create(
     @Body(new ZodValidationPipe(EmployeeFeedbackCreateRequestSchema)) body: EmployeeFeedbackCreateRequestType,
@@ -45,6 +46,7 @@ export class EmployeeFeedbackController {
     return this.createUc.execute({ currentUser, dto: body });
   }
 
+  @AdminOnly()
   @Put(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -54,6 +56,7 @@ export class EmployeeFeedbackController {
     return this.updateUc.execute({ currentUser, id, dto: body });
   }
 
+  @AdminOnly()
   @Delete(':id')
   async delete(
     @Param('id', ParseIntPipe) id: number,

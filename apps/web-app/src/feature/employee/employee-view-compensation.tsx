@@ -23,20 +23,22 @@ function CompensationCard({
   compensation,
   onEdit,
   onDelete,
+  readOnly,
 }: {
   compensation: EmployeeCompensationResponseType;
   onEdit: (compensation: EmployeeCompensationResponseType) => void;
   onDelete: (compensation: EmployeeCompensationResponseType) => void;
+  readOnly?: boolean;
 }) {
   return (
     <div className={cn('relative rounded-md border border-border p-4', compensation.isActive ? 'bg-white dark:bg-white/5' : 'bg-muted/30')}>
       <div className='absolute right-1 top-1 flex items-center gap-1.5'>
-        <Button variant='ghost' size='icon' className='h-7 w-7' onClick={() => onEdit(compensation)}>
+        {!readOnly && <Button variant='ghost' size='icon' className='h-7 w-7' onClick={() => onEdit(compensation)}>
           <Pencil className='h-3.5 w-3.5' />
-        </Button>
-        <Button variant='ghost' size='icon' className='h-7 w-7 text-destructive hover:text-destructive' onClick={() => onDelete(compensation)}>
+        </Button>}
+        {!readOnly && <Button variant='ghost' size='icon' className='h-7 w-7 text-destructive hover:text-destructive' onClick={() => onDelete(compensation)}>
           <Trash2 className='h-3.5 w-3.5' />
-        </Button>
+        </Button>}
         {compensation.isActive ? (
           <span className='rounded-md border border-green-500/30 bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-400'>Active</span>
         ) : (
@@ -67,7 +69,7 @@ function CompensationCard({
   );
 }
 
-export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
+export function EmployeeViewCompensation({ employeeId, initialPage, readOnly }: Props) {
   const router = useRouter();
   const [compensations, setCompensations] = useState<EmployeeCompensationResponseType[]>(initialPage.results);
   const [page, setPage] = useState(initialPage.page);
@@ -152,10 +154,12 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
     <div className='flex h-full flex-col'>
       <div className='mb-6 flex items-center justify-between'>
         <h2 className='text-lg font-medium'>Compensation</h2>
-        <Button size='sm' onClick={() => setAddDialogOpen(true)}>
-          <Plus className='h-4 w-4' />
-          Add compensation
-        </Button>
+        {!readOnly && (
+          <Button size='sm' onClick={() => setAddDialogOpen(true)}>
+            <Plus className='h-4 w-4' />
+            Add compensation
+          </Button>
+        )}
       </div>
 
       {sortedCompensations.length > 0 ? (
@@ -164,6 +168,7 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
             compensation={sortedCompensations[0]!}
             onEdit={(comp) => setEditingCompensation(comp)}
             onDelete={(comp) => setDeletingCompensation(comp)}
+            readOnly={readOnly}
           />
           {sortedCompensations.length > 1 && (
             <div className='mt-6 flex flex-col gap-4'>
@@ -174,6 +179,7 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
                   compensation={c}
                   onEdit={(comp) => setEditingCompensation(comp)}
                   onDelete={(comp) => setDeletingCompensation(comp)}
+                  readOnly={readOnly}
                 />
               ))}
             </div>
@@ -211,4 +217,5 @@ export function EmployeeViewCompensation({ employeeId, initialPage }: Props) {
 interface Props {
   employeeId: number;
   initialPage: PaginatedResponseType<EmployeeCompensationResponseType>;
+  readOnly?: boolean;
 }

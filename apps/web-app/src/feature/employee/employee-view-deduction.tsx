@@ -44,22 +44,24 @@ function DeductionCard({
   deduction,
   onEdit,
   onDelete,
+  readOnly,
 }: {
   deduction: EmployeeDeductionResponseType;
   onEdit: (deduction: EmployeeDeductionResponseType) => void;
   onDelete: (deduction: EmployeeDeductionResponseType) => void;
+  readOnly?: boolean;
 }) {
   const totalAmount = deduction.lineItems.reduce((sum, li) => sum + li.amount, 0);
 
   return (
     <div className={cn('relative rounded-md border border-border p-4', deduction.isActive ? 'bg-white dark:bg-white/5' : 'bg-muted/30')}>
       <div className='absolute right-1 top-1 flex items-center gap-1.5'>
-        <Button variant='ghost' size='icon' className='h-7 w-7' onClick={() => onEdit(deduction)}>
+        {!readOnly && <Button variant='ghost' size='icon' className='h-7 w-7' onClick={() => onEdit(deduction)}>
           <Pencil className='h-3.5 w-3.5' />
-        </Button>
-        <Button variant='ghost' size='icon' className='h-7 w-7 text-destructive hover:text-destructive' onClick={() => onDelete(deduction)}>
+        </Button>}
+        {!readOnly && <Button variant='ghost' size='icon' className='h-7 w-7 text-destructive hover:text-destructive' onClick={() => onDelete(deduction)}>
           <Trash2 className='h-3.5 w-3.5' />
-        </Button>
+        </Button>}
         {deduction.isActive ? (
           <span className='rounded-md border border-green-500/30 bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-400'>Active</span>
         ) : (
@@ -100,9 +102,10 @@ function DeductionCard({
 interface Props {
   employeeId: number;
   initialPage: PaginatedResponseType<EmployeeDeductionResponseType>;
+  readOnly?: boolean;
 }
 
-export function EmployeeViewDeduction({ employeeId, initialPage }: Props) {
+export function EmployeeViewDeduction({ employeeId, initialPage, readOnly }: Props) {
   const router = useRouter();
   const [deductions, setDeductions] = useState<EmployeeDeductionResponseType[]>(initialPage.results);
   const [page, setPage] = useState(initialPage.page);
@@ -187,10 +190,12 @@ export function EmployeeViewDeduction({ employeeId, initialPage }: Props) {
     <div className='flex h-full flex-col'>
       <div className='mb-6 flex items-center justify-between'>
         <h2 className='text-lg font-medium'>Deductions</h2>
-        <Button size='sm' onClick={() => setAddDialogOpen(true)}>
-          <Plus className='h-4 w-4' />
-          Add deduction
-        </Button>
+        {!readOnly && (
+          <Button size='sm' onClick={() => setAddDialogOpen(true)}>
+            <Plus className='h-4 w-4' />
+            Add deduction
+          </Button>
+        )}
       </div>
 
       {sortedDeductions.length > 0 ? (
@@ -199,6 +204,7 @@ export function EmployeeViewDeduction({ employeeId, initialPage }: Props) {
             deduction={sortedDeductions[0]!}
             onEdit={(d) => setEditingDeduction(d)}
             onDelete={(d) => setDeletingDeduction(d)}
+            readOnly={readOnly}
           />
           {sortedDeductions.length > 1 && (
             <div className='mt-6 flex flex-col gap-4'>
@@ -209,6 +215,7 @@ export function EmployeeViewDeduction({ employeeId, initialPage }: Props) {
                   deduction={d}
                   onEdit={(ded) => setEditingDeduction(ded)}
                   onDelete={(ded) => setDeletingDeduction(ded)}
+                  readOnly={readOnly}
                 />
               ))}
             </div>

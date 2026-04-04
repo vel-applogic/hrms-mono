@@ -16,7 +16,7 @@ import {
   EmployeeUpdateRequestSchema,
 } from '@repo/dto';
 import type { CurrentUserType } from '@repo/nest-lib';
-import { CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
+import { AdminOnly, CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
 
 import { EmployeeCreateUc } from './uc/employee-create.uc.js';
 import { EmployeeDeleteUc } from './uc/employee-delete.uc.js';
@@ -36,6 +36,7 @@ export class EmployeeController {
     private readonly deleteUc: EmployeeDeleteUc,
   ) {}
 
+  @AdminOnly()
   @Post()
   async create(
     @Body(new ZodValidationPipe(EmployeeCreateRequestSchema)) body: EmployeeCreateRequestType,
@@ -44,6 +45,7 @@ export class EmployeeController {
     return this.createUc.execute({ currentUser, dto: body });
   }
 
+  @AdminOnly()
   @Put(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -53,6 +55,7 @@ export class EmployeeController {
     return this.updateUc.execute({ currentUser, id, dto: body });
   }
 
+  @AdminOnly()
   @Patch(':id/documents')
   async updateDocuments(
     @Param('id', ParseIntPipe) id: number,
@@ -75,6 +78,7 @@ export class EmployeeController {
     return this.getUc.execute({ currentUser, id });
   }
 
+  @AdminOnly()
   @Delete(':id')
   async delete(@Param('id', ParseIntPipe) id: number, @CurrentUser() currentUser: CurrentUserType): Promise<OperationStatusResponseType> {
     return this.deleteUc.execute({ currentUser, id });

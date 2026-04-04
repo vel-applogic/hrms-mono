@@ -13,6 +13,7 @@ import { EmployeeDocumentsEditDrawer } from './container/employee-documents-edit
 
 interface Props {
   employeeId: number;
+  readOnly?: boolean;
 }
 
 function DocumentItem({ doc }: { doc: { id: number; name: string; urlFull: string } }) {
@@ -29,7 +30,7 @@ function DocumentItem({ doc }: { doc: { id: number; name: string; urlFull: strin
   );
 }
 
-export function EmployeeViewDocuments({ employeeId }: Props) {
+export function EmployeeViewDocuments({ employeeId, readOnly }: Props) {
   const router = useRouter();
   const [employee, setEmployee] = useState<EmployeeDetailResponseType | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,10 +64,12 @@ export function EmployeeViewDocuments({ employeeId }: Props) {
     <div className='flex flex-col gap-6'>
       <div className='mb-6 flex items-center justify-between'>
         <h2 className='text-lg font-medium'>Documents</h2>
-        <Button size='sm' onClick={() => setEditOpen(true)}>
-          <Plus className='h-4 w-4' />
-          Add/Edit Documents
-        </Button>
+        {!readOnly && (
+          <Button size='sm' onClick={() => setEditOpen(true)}>
+            <Plus className='h-4 w-4' />
+            Add/Edit Documents
+          </Button>
+        )}
       </div>
 
       <div className='flex flex-col gap-6'>

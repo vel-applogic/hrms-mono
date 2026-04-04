@@ -10,7 +10,7 @@ import type {
 } from '@repo/dto';
 import { PayslipFilterRequestSchema, PayslipGenerateRequestSchema, PayslipUpdateLineItemsRequestSchema } from '@repo/dto';
 import type { CurrentUserType } from '@repo/nest-lib';
-import { CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
+import { AdminOnly, CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
 
 import { PayslipDownloadUc } from './uc/payslip-download.uc.js';
 import { PayslipGenerateUc } from './uc/payslip-generate.uc.js';
@@ -36,6 +36,7 @@ export class PayslipController {
     return this.listUc.execute({ currentUser, filterDto });
   }
 
+  @AdminOnly()
   @Post('/generate')
   async generate(
     @CurrentUser() currentUser: CurrentUserType,
@@ -55,6 +56,7 @@ export class PayslipController {
     return this.getUc.execute({ currentUser, id });
   }
 
+  @AdminOnly()
   @Put(':id/line-items')
   async updateLineItems(
     @Param('id', ParseIntPipe) id: number,

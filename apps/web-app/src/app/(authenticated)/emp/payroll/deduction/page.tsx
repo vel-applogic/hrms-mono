@@ -17,7 +17,7 @@ export default async function EmpPayrollDeductionPage() {
 
   return (
     <div className='flex h-full flex-col'>
-      <EmployeeViewDeduction employeeId={employeeId} initialPage={initialPage} />
+      <EmployeeViewDeduction employeeId={employeeId} initialPage={initialPage} readOnly />
     </div>
   );
 }

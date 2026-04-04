@@ -24,9 +24,10 @@ interface Props {
   searchParams: SearchParamsType;
   years: number[];
   selectedYear: number;
+  readOnly?: boolean;
 }
 
-export function HolidayData({ data, searchParams, years, selectedYear }: Props) {
+export function HolidayData({ data, searchParams, years, selectedYear, readOnly }: Props) {
   const pathname = usePathname();
   const currentSearchParams = useSearchParams();
   const { replace, refresh } = useRouter();
@@ -142,12 +143,12 @@ export function HolidayData({ data, searchParams, years, selectedYear }: Props) 
         return params.data.types.map((t) => holidayTypeDtoEnumToReadableLabel(t)).join(', ');
       },
     },
-    {
+    ...(!readOnly ? [{
       headerName: '',
       colId: 'actions',
       sortable: false,
       resizable: false,
-      pinned: 'right',
+      pinned: 'right' as const,
       width: 100,
       cellRenderer: (params: { data?: HolidayResponseType }) => {
         if (!params.data) return null;
@@ -169,7 +170,7 @@ export function HolidayData({ data, searchParams, years, selectedYear }: Props) 
           </div>
         );
       },
-    },
+    }] : []),
   ];
 
   return (
@@ -211,10 +212,12 @@ export function HolidayData({ data, searchParams, years, selectedYear }: Props) 
               className='w-full bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none'
             />
           </div>
-          <Button className='shrink-0 rounded-[40px]' onClick={handleAddNew}>
-            <Plus className='h-4 w-4' />
-            Add holiday
-          </Button>
+          {!readOnly && (
+            <Button className='shrink-0 rounded-[40px]' onClick={handleAddNew}>
+              <Plus className='h-4 w-4' />
+              Add holiday
+            </Button>
+          )}
         </div>
       </div>
 

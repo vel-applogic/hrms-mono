@@ -1,5 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { CommonDbModule, CommonLoggerModule } from '@repo/nest-lib';
+import { APP_GUARD } from '@nestjs/core';
+import { AdminOnlyGuard, CommonDbModule, CommonLoggerModule } from '@repo/nest-lib';
 
 import { AppConfigModule } from './config/app-config.module.js';
 import { ExternalServiceModule } from './external-service/external-service.module.js';
@@ -27,6 +28,12 @@ import { PolicyModule } from './module/policy/policy.module.js';
 import { ServiceModule } from './service/service.module.js';
 
 @Module({
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AdminOnlyGuard,
+    },
+  ],
   imports: [
     CommonLoggerModule.forRoot(),
     AppConfigModule,

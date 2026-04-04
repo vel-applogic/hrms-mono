@@ -33,10 +33,10 @@ function getActions(
   if (onView) {
     actions.push({ name: 'View', icon: Eye, variant: 'outline' });
   }
-  if (leave.status !== 'approved') {
+  if (isAdmin && leave.status !== 'approved') {
     actions.push({ name: 'Approve', icon: CheckCircle, variant: 'outline' });
   }
-  if (leave.status !== 'rejected') {
+  if (isAdmin && leave.status !== 'rejected') {
     actions.push({ name: 'Reject', icon: ThumbsDown, variant: 'outline-danger' });
   }
   if (leave.status !== 'cancelled' && (isAdmin || (leave.status === 'pending' && currentUserId && leave.userId === currentUserId))) {

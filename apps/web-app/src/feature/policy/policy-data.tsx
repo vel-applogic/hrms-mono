@@ -13,9 +13,10 @@ import { PolicyDataTableClient } from './policy.datatable';
 interface Props {
   data: PaginatedResponseType<PolicyListResponseType>;
   searchParams: SearchParamsType;
+  readOnly?: boolean;
 }
 
-export const PolicyData = ({ data, searchParams }: Props) => {
+export const PolicyData = ({ data, searchParams, readOnly }: Props) => {
   const pathname = usePathname();
   const currentSearchParams = useSearchParams();
   const { replace, refresh } = useRouter();
@@ -92,10 +93,12 @@ export const PolicyData = ({ data, searchParams }: Props) => {
     <div className='flex h-full flex-col gap-4 pt-4'>
       <div className='center-container flex items-center justify-between'>
         <span className='text-xl font-medium tracking-tight text-foreground'>Policies</span>
-        <Button className='rounded-[40px]' onClick={handleAddNew}>
-          <Plus className='h-4 w-4' />
-          Add new policy
-        </Button>
+        {!readOnly && (
+          <Button className='rounded-[40px]' onClick={handleAddNew}>
+            <Plus className='h-4 w-4' />
+            Add new policy
+          </Button>
+        )}
       </div>
 
       <div className='center-container flex items-center justify-between'>
@@ -133,7 +136,7 @@ export const PolicyData = ({ data, searchParams }: Props) => {
       </div>
 
       <div className='center-container flex flex-1 flex-col min-h-0 pb-4'>
-        <PolicyDataTableClient data={data} sort={sort} onEdit={handleEdit} onDelete={handleDelete} />
+        <PolicyDataTableClient data={data} sort={sort} onEdit={readOnly ? undefined : handleEdit} onDelete={readOnly ? undefined : handleDelete} />
       </div>
 
       <PolicyUpsertDrawer open={drawerOpen} onOpenChange={setDrawerOpen} policy={editingPolicy} onSuccess={handleDrawerSuccess} />

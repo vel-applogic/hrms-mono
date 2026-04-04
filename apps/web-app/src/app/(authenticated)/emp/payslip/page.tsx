@@ -17,7 +17,7 @@ export default async function EmpPayslipPage() {
 
   return (
     <div className='flex h-full flex-col px-4 py-4 md:px-11'>
-      <EmployeeViewPayslip employeeId={employeeId} initialPage={initialPage} />
+      <EmployeeViewPayslip employeeId={employeeId} initialPage={initialPage} readOnly />
     </div>
   );
 }

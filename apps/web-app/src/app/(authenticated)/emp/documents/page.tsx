@@ -11,7 +11,7 @@ export default async function EmpDocumentsPage() {
 
   return (
     <div className='flex h-full flex-col px-4 py-4 md:px-11'>
-      <EmployeeViewDocuments employeeId={employeeId} />
+      <EmployeeViewDocuments employeeId={employeeId} readOnly />
     </div>
   );
 }

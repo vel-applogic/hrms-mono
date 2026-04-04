@@ -13,9 +13,10 @@ import { EmployeeUpsertDrawer } from './container/employee-upsert.drawer';
 
 interface Props {
   employeeId: number;
+  readOnly?: boolean;
 }
 
-export function EmployeeViewBasicDetails({ employeeId }: Props) {
+export function EmployeeViewBasicDetails({ employeeId, readOnly }: Props) {
   const router = useRouter();
   const [employee, setEmployee] = useState<EmployeeDetailResponseType | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,10 +50,12 @@ export function EmployeeViewBasicDetails({ employeeId }: Props) {
     <>
       <div className='mb-6 flex items-center justify-between'>
         <h2 className='text-lg font-medium'>Employee Details</h2>
-        <Button size='sm' onClick={() => setEditDrawerOpen(true)}>
-          <Pencil className='h-4 w-4' />
-          Edit
-        </Button>
+        {!readOnly && (
+          <Button size='sm' onClick={() => setEditDrawerOpen(true)}>
+            <Pencil className='h-4 w-4' />
+            Edit
+          </Button>
+        )}
       </div>
 
       <div className='flex gap-6'>

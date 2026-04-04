@@ -9,4 +9,6 @@ export * from './util/index.js';
 export * from './service/base-s3.service.js';
 export * from './decorator/current-user.decorator.js';
 export * from './decorator/track-query.decorator.js';
+export * from './decorator/admin-only.decorator.js';
+export * from './guard/admin-only.guard.js';
 export * from './service/audit.service.js';

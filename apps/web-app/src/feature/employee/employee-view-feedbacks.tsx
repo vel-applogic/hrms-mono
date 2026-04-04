@@ -30,9 +30,10 @@ function formatTimelineDate(iso: string): string {
 interface Props {
   employeeId: number;
   initialPage: PaginatedResponseType<EmployeeFeedbackResponseType>;
+  readOnly?: boolean;
 }
 
-export function EmployeeViewFeedbacks({ employeeId, initialPage }: Props) {
+export function EmployeeViewFeedbacks({ employeeId, initialPage, readOnly }: Props) {
   const router = useRouter();
   const [feedbacks, setFeedbacks] = useState<EmployeeFeedbackResponseType[]>(initialPage.results);
   const [page, setPage] = useState(initialPage.page);
@@ -139,10 +140,12 @@ export function EmployeeViewFeedbacks({ employeeId, initialPage }: Props) {
                 <div className='z-10 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-primary bg-background' />
               </div>
               <div className='flex min-w-0 flex-1 items-center justify-start pt-0.5'>
-                <Button size='sm' onClick={() => setAddDialogOpen(true)}>
-                  <Plus className='h-4 w-4' />
-                  Add new
-                </Button>
+                {!readOnly && (
+                  <Button size='sm' onClick={() => setAddDialogOpen(true)}>
+                    <Plus className='h-4 w-4' />
+                    Add new
+                  </Button>
+                )}
               </div>
             </div>
             {feedbacks.map((feedback) => (
@@ -160,14 +163,16 @@ export function EmployeeViewFeedbacks({ employeeId, initialPage }: Props) {
                       {feedback.point != null && ` • ${feedback.point} pts`}
                       {' • '}by {feedback.givenBy.firstname} {feedback.givenBy.lastname}
                     </p>
-                    <div className='flex items-center gap-0.5'>
-                      <Button variant='ghost' size='icon' className='h-6 w-6' onClick={() => setEditingFeedback(feedback)}>
-                        <Pencil className='h-3 w-3' />
-                      </Button>
-                      <Button variant='ghost' size='icon' className='h-6 w-6 text-destructive hover:text-destructive' onClick={() => setDeletingFeedback(feedback)}>
-                        <Trash2 className='h-3 w-3' />
-                      </Button>
-                    </div>
+                    {!readOnly && (
+                      <div className='flex items-center gap-0.5'>
+                        <Button variant='ghost' size='icon' className='h-6 w-6' onClick={() => setEditingFeedback(feedback)}>
+                          <Pencil className='h-3 w-3' />
+                        </Button>
+                        <Button variant='ghost' size='icon' className='h-6 w-6 text-destructive hover:text-destructive' onClick={() => setDeletingFeedback(feedback)}>
+                          <Trash2 className='h-3 w-3' />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

@@ -17,7 +17,7 @@ export default async function EmpPayrollCompensationPage() {
 
   return (
     <div className='flex h-full flex-col'>
-      <EmployeeViewCompensation employeeId={employeeId} initialPage={initialPage} />
+      <EmployeeViewCompensation employeeId={employeeId} initialPage={initialPage} readOnly />
     </div>
   );
 }

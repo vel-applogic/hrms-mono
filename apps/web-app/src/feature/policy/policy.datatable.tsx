@@ -21,8 +21,8 @@ interface Props {
     sKey?: string;
     sVal?: string;
   };
-  onEdit: (policy: PolicyDetailResponseType) => void;
-  onDelete: (policy: PolicyListResponseType) => void;
+  onEdit?: (policy: PolicyDetailResponseType) => void;
+  onDelete?: (policy: PolicyListResponseType) => void;
 }
 
 const actionOptions: ActionOption[] = [
@@ -31,8 +31,10 @@ const actionOptions: ActionOption[] = [
 ];
 
 export const PolicyDataTableClient = (props: Props) => {
+  const hasActions = !!props.onEdit || !!props.onDelete;
+
   const colDefs = useMemo<ColDef<PolicyListResponseType>[]>(() => {
-    return [
+    const cols: ColDef<PolicyListResponseType>[] = [
       {
         headerName: 'Id',
         field: 'id',
@@ -68,7 +70,10 @@ export const PolicyDataTableClient = (props: Props) => {
         comparator: DummySort,
         cellRenderer: DateTimeRenderer,
       },
-      {
+    ];
+
+    if (hasActions) {
+      cols.push({
         headerName: 'Actions',
         colId: 'actions',
         sortable: false,
@@ -80,20 +85,22 @@ export const PolicyDataTableClient = (props: Props) => {
         cellRendererParams: {
           options: actionOptions,
         } satisfies Partial<ActionsIconCellRendererParams<PolicyListResponseType>>,
-      },
-    ] satisfies ColDef<PolicyListResponseType>[];
-  }, [props.sort.sKey, props.sort.sVal]);
+      });
+    }
+
+    return cols;
+  }, [props.sort.sKey, props.sort.sVal, hasActions]);
 
   const onActionClick = useCallback(
     async (action: string, data: PolicyListResponseType) => {
       switch (action) {
         case 'Edit': {
           const policy = await getPolicyById(data.id);
-          props.onEdit(policy);
+          props.onEdit?.(policy);
           break;
         }
         case 'Delete':
-          props.onDelete(data);
+          props.onDelete?.(data);
           break;
       }
     },

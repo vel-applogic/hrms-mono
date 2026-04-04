@@ -46,9 +46,10 @@ function DownloadButton({ onDownload }: { onDownload: () => Promise<void> }) {
 interface Props {
   employeeId: number;
   initialPage: PaginatedResponseType<PayslipListResponseType>;
+  readOnly?: boolean;
 }
 
-export function EmployeeViewPayslip({ employeeId, initialPage }: Props) {
+export function EmployeeViewPayslip({ employeeId, initialPage, readOnly }: Props) {
   const [data, setData] = useState(initialPage);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(initialPage.page);
@@ -142,13 +143,15 @@ export function EmployeeViewPayslip({ employeeId, initialPage }: Props) {
               <Eye className='h-4 w-4' />
             </button>
             <DownloadButton onDownload={() => handleDownloadPdf(payslipId)} />
-            <button
-              onClick={() => setEditPayslipId(payslipId)}
-              className='inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground'
-              title='Edit line items'
-            >
-              <Pencil className='h-4 w-4' />
-            </button>
+            {!readOnly && (
+              <button
+                onClick={() => setEditPayslipId(payslipId)}
+                className='inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground'
+                title='Edit line items'
+              >
+                <Pencil className='h-4 w-4' />
+              </button>
+            )}
           </div>
         );
       },
