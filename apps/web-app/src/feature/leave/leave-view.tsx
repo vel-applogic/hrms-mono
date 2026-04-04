@@ -2,10 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
-const TABS = [
-  { id: 'leaves' as const, label: 'Leaves', href: '/leaves' },
-  { id: 'holiday' as const, label: 'Holidays', href: '/leaves/holiday' },
+const BASE_TABS = [
+  { id: 'leaves' as const, label: 'Leaves', href: '/leaves', adminOnly: false },
+  { id: 'approvals' as const, label: 'Awaiting Leave Approvals', href: '/leaves/approvals', adminOnly: true },
+  { id: 'holiday' as const, label: 'Holidays', href: '/leaves/holiday', adminOnly: false },
 ] as const;
 
 interface Props {
@@ -14,6 +16,10 @@ interface Props {
 
 export function LeaveView({ children }: Props) {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.isSuperAdmin || session?.user?.roles?.includes('admin');
+
+  const tabs = BASE_TABS.filter((tab) => !tab.adminOnly || isAdmin);
 
   const isActive = (href: string) => {
     if (href === '/leaves') {
@@ -30,7 +36,7 @@ export function LeaveView({ children }: Props) {
 
       <div className='flex min-h-0 flex-1 flex-col gap-4 pl-8 pr-8'>
         <div className='flex items-center gap-2.5 border-b border-border'>
-          {TABS.map((tab) => {
+          {tabs.map((tab) => {
             const active = isActive(tab.href);
             return (
               <Link key={tab.id} href={tab.href} className='group relative flex h-[52px] items-center px-3 pb-2 pt-3'>
