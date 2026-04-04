@@ -381,12 +381,15 @@ export function Dashboard({ hideAdminWidgets }: DashboardProps) {
           <div className='rounded-lg border border-border bg-card p-5'>
             <div className='mb-2 flex items-center gap-2 text-muted-foreground'>
               <DollarSign className='h-5 w-5' />
-              <span className='text-sm font-medium'>Total Payroll Cost</span>
+              <span className='text-sm font-medium'>Monthly Payroll Cost</span>
             </div>
             {!data.loaded ? (
               <div className='h-9 w-16 animate-pulse rounded bg-muted' />
             ) : (
-              <p className='text-3xl font-semibold'>{data.currencySymbol}{data.totalPayrollCost.toLocaleString('en-IN')}</p>
+              <div>
+                <p className='text-3xl font-semibold'>{data.currencySymbol}{Math.round(data.totalPayrollCost / 12).toLocaleString('en-IN')}</p>
+                <p className='mt-1 text-xs text-muted-foreground'>Yearly: {data.currencySymbol}{data.totalPayrollCost.toLocaleString('en-IN')}</p>
+              </div>
             )}
           </div>
           <NameListWidget
