@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-import { EmployeeViewPayslip } from '@/feature/employee/employee-view-payslip';
+import { EmpPayslipData } from '@/feature/emp/emp-payslip-data';
 import { auth } from '@/lib/auth/auth';
 import { searchPayslips } from '@/lib/action/payslip.actions';
 
@@ -16,8 +16,8 @@ export default async function EmpPayslipPage() {
   }).catch(() => ({ results: [], totalRecords: 0, page: 1, limit: 50 }));
 
   return (
-    <div className='flex h-full flex-col px-4 py-4 md:px-11'>
-      <EmployeeViewPayslip employeeId={employeeId} initialPage={initialPage} readOnly />
+    <div className='flex h-full flex-col'>
+      <EmpPayslipData employeeId={employeeId} initialPage={initialPage} />
     </div>
   );
 }

@@ -50,8 +50,9 @@ export function SidebarNav({ isSuperAdmin, isAdmin }: Props) {
   return (
     <nav className='flex flex-1 flex-col gap-1 px-3 py-2'>
       {visibleItems.map((item) => {
-        const baseSegment = '/' + item.href.split('/')[1];
-        const isActive = pathname.startsWith(baseSegment);
+        const isActive = item.href.startsWith('/emp/')
+          ? pathname === item.href || pathname.startsWith(item.href + '/')
+          : pathname.startsWith('/' + item.href.split('/')[1]);
         const Icon = item.icon;
         return (
           <Link

@@ -3,11 +3,10 @@
 import type { PayslipDetailResponseType, PayslipListResponseType, PaginatedResponseType } from '@repo/dto';
 import { DataTableSimple } from '@repo/ui/container/datatable/datatable';
 import { ColDef } from 'ag-grid-community';
-import { Download, Eye, Loader2, Pencil } from 'lucide-react';
+import { Download, Eye, Loader2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import { getPayslipPdfSignedUrl, searchPayslips } from '@/lib/action/payslip.actions';
-import { PayslipEditLineItemsDrawer } from '@/feature/payroll/payslip-edit-line-items.drawer';
 import { PayslipViewDrawer } from '@/feature/payroll/payslip-view.drawer';
 
 const MONTH_LABELS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -46,15 +45,12 @@ function DownloadButton({ onDownload }: { onDownload: () => Promise<void> }) {
 interface Props {
   employeeId: number;
   initialPage: PaginatedResponseType<PayslipListResponseType>;
-  readOnly?: boolean;
 }
 
-export function EmployeeViewPayslip({ employeeId, initialPage, readOnly }: Props) {
+export function EmpPayslipData({ employeeId, initialPage }: Props) {
   const [data, setData] = useState(initialPage);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(initialPage.page);
   const [viewPayslipId, setViewPayslipId] = useState<number | null>(null);
-  const [editPayslipId, setEditPayslipId] = useState<number | null>(null);
 
   const fetchData = useCallback(async (p: number) => {
     setLoading(true);
@@ -64,7 +60,6 @@ export function EmployeeViewPayslip({ employeeId, initialPage, readOnly }: Props
         employeeIds: [employeeId],
       });
       setData(result);
-      setPage(p);
     } finally {
       setLoading(false);
     }
@@ -73,22 +68,6 @@ export function EmployeeViewPayslip({ employeeId, initialPage, readOnly }: Props
   const handleDownloadPdf = async (payslipId: number) => {
     const signedUrl = await getPayslipPdfSignedUrl(payslipId);
     window.open(signedUrl, '_blank', 'noopener,noreferrer');
-  };
-
-  const handleEditSuccess = (updated: PayslipDetailResponseType) => {
-    setData((prev) => ({
-      ...prev,
-      results: prev.results.map((p) =>
-        p.id === updated.id
-          ? {
-              ...p,
-              grossAmount: updated.grossAmount,
-              deductionAmount: updated.deductionAmount,
-              netAmount: updated.netAmount,
-            }
-          : p,
-      ),
-    }));
   };
 
   const colDefs: ColDef<PayslipListResponseType>[] = [
@@ -128,7 +107,7 @@ export function EmployeeViewPayslip({ employeeId, initialPage, readOnly }: Props
       sortable: false,
       resizable: false,
       pinned: 'right',
-      width: 120,
+      width: 80,
       cellRenderer: (params: { data?: PayslipListResponseType }) => {
         if (!params.data) return null;
         const payslipId = params.data.id;
@@ -142,15 +121,6 @@ export function EmployeeViewPayslip({ employeeId, initialPage, readOnly }: Props
               <Eye className='h-4 w-4' />
             </button>
             <DownloadButton onDownload={() => handleDownloadPdf(payslipId)} />
-            {!readOnly && (
-              <button
-                onClick={() => setEditPayslipId(payslipId)}
-                className='inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground'
-                title='Edit line items'
-              >
-                <Pencil className='h-4 w-4' />
-              </button>
-            )}
           </div>
         );
       },
@@ -158,18 +128,18 @@ export function EmployeeViewPayslip({ employeeId, initialPage, readOnly }: Props
   ];
 
   return (
-    <div className='flex h-full flex-col'>
-      <div className='mb-4 flex items-center justify-between'>
-        <h2 className='text-lg font-medium'>Payslips</h2>
+    <div className='flex h-full flex-col gap-4 pt-4'>
+      <div className='center-container flex items-center justify-between'>
+        <span className='text-xl font-medium tracking-tight text-foreground'>Payslip</span>
         <span className='text-sm text-muted-foreground'>
           {loading ? 'Loading...' : `${data.totalRecords} record${data.totalRecords !== 1 ? 's' : ''}`}
         </span>
       </div>
 
-      {data.results.length > 0 ? (
-        <div className='min-h-[300px] flex-1'>
+      <div className='center-container flex flex-1 flex-col min-h-0 pb-4'>
+        {data.results.length > 0 ? (
           <DataTableSimple<PayslipListResponseType>
-            tableKey='employee-payslip-table'
+            tableKey='emp-payslip-table'
             rowData={data.results}
             colDefs={colDefs}
             pagination={{
@@ -177,12 +147,11 @@ export function EmployeeViewPayslip({ employeeId, initialPage, readOnly }: Props
               pageSize: data.limit,
               total: data.totalRecords,
             }}
-            autoHeight
           />
-        </div>
-      ) : (
-        <p className='py-4 text-sm text-muted-foreground'>No payslip records found.</p>
-      )}
+        ) : (
+          <p className='py-4 text-sm text-muted-foreground'>No payslip records found.</p>
+        )}
+      </div>
 
       <PayslipViewDrawer
         open={viewPayslipId != null}
@@ -190,15 +159,6 @@ export function EmployeeViewPayslip({ employeeId, initialPage, readOnly }: Props
           if (!open) setViewPayslipId(null);
         }}
         payslipId={viewPayslipId}
-      />
-
-      <PayslipEditLineItemsDrawer
-        open={editPayslipId != null}
-        onOpenChange={(open) => {
-          if (!open) setEditPayslipId(null);
-        }}
-        payslipId={editPayslipId}
-        onSuccess={handleEditSuccess}
       />
     </div>
   );

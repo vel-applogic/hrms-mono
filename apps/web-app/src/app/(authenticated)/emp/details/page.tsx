@@ -10,8 +10,10 @@ export default async function EmpDetailsPage() {
   const employeeId = Number(session.user.id);
 
   return (
-    <div className='flex h-full flex-col px-4 py-4 md:px-11'>
-      <EmployeeViewBasicDetails employeeId={employeeId} readOnly />
+    <div className='flex h-full flex-col gap-4 pt-4'>
+      <div className='center-container flex min-h-0 flex-1 flex-col pb-4'>
+        <EmployeeViewBasicDetails employeeId={employeeId} readOnly />
+      </div>
     </div>
   );
 }

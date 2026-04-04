@@ -138,15 +138,14 @@ export function PayslipData() {
       flex: 2,
     },
     {
-      headerName: 'Month',
-      field: 'month',
-      width: 110,
-      valueFormatter: (p) => (p.value != null ? MONTH_LABELS[p.value - 1] : ''),
-    },
-    {
-      headerName: 'Year',
-      field: 'year',
-      width: 80,
+      headerName: 'Period',
+      colId: 'period',
+      width: 160,
+      valueGetter: (p) => {
+        if (!p.data) return '';
+        const month = p.data.month != null ? MONTH_LABELS[p.data.month - 1] : '';
+        return `${month} ${p.data.year ?? ''}`.trim();
+      },
     },
     {
       headerName: 'Gross',

@@ -65,9 +65,15 @@ export function EmpLeaveData({ employeeId, initialData, initialFinancialYear }: 
   };
 
   return (
-    <div className='flex h-full flex-col'>
-      <div className='mb-6 flex items-center justify-between'>
-        <h2 className='text-lg font-medium'>My Leaves</h2>
+    <div className='flex h-full flex-col gap-4'>
+      <div className='flex items-center justify-between'>
+        <span className='text-sm font-medium text-muted-foreground'>
+          {loading
+            ? 'Loading...'
+            : data.totalRecords > 0
+              ? `${data.totalRecords} record${data.totalRecords !== 1 ? 's' : ''}`
+              : 'No records found'}
+        </span>
         <div className='flex items-center gap-3'>
           <LeaveStatusFilter values={statusFilter} onChange={handleStatusChange} />
           <Select value={financialYear} onValueChange={handleFyChange}>
@@ -95,28 +101,19 @@ export function EmpLeaveData({ employeeId, initialData, initialFinancialYear }: 
         </div>
       </div>
 
-      {loading ? (
-        <p className='py-4 text-sm text-muted-foreground'>Loading...</p>
-      ) : data.results.length > 0 ? (
-        <div className='flex min-h-0 flex-1 flex-col'>
-          <div className='min-h-[200px] flex-1'>
-            <LeaveDataTableClient
-              data={data}
-              currentUserId={currentUserId}
-              isAdmin={false}
-              hideEmployeeColumn
-              autoHeight
-              onEdit={(leave) => {
-                setEditingLeave(leave);
-                setDrawerOpen(true);
-              }}
-              onRefresh={() => fetchData(financialYear, statusFilter, page)}
-            />
-          </div>
-        </div>
-      ) : (
-        <p className='py-4 text-sm text-muted-foreground'>No leave records found.</p>
-      )}
+      <div className='flex flex-1 flex-col min-h-0 pb-4'>
+        <LeaveDataTableClient
+          data={data}
+          currentUserId={currentUserId}
+          isAdmin={false}
+          hideEmployeeColumn
+          onEdit={(leave) => {
+            setEditingLeave(leave);
+            setDrawerOpen(true);
+          }}
+          onRefresh={() => fetchData(financialYear, statusFilter, page)}
+        />
+      </div>
 
       <LeaveApplyDrawer open={drawerOpen} onOpenChange={setDrawerOpen} leave={editingLeave} employeeId={employeeId} onSuccess={() => fetchData(financialYear, statusFilter, page)} />
     </div>
