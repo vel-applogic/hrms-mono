@@ -11,28 +11,18 @@ import type {
   PayslipListResponseType,
 } from '@repo/dto';
 import { Button } from '@repo/ui/component/ui/button';
+import { PageTabs } from '@repo/ui/component/ui/page-tabs';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 import { EmployeeViewBasicDetails } from './employee-view-basic-details';
+import { EmployeeViewBgv } from './employee-view-bgv';
 import { EmployeeViewCompensation } from './employee-view-compensation';
 import { EmployeeViewDeduction } from './employee-view-deduction';
 import { EmployeeViewDocuments } from './employee-view-documents';
 import { EmployeeViewFeedbacks } from './employee-view-feedbacks';
 import { EmployeeViewLeave } from './employee-view-leave';
-import { EmployeeViewBgv } from './employee-view-bgv';
 import { EmployeeViewPayslip } from './employee-view-payslip';
-
-const TABS = [
-  { id: 'details' as const, label: 'Employee Details' },
-  { id: 'documents' as const, label: 'Documents' },
-  { id: 'feedbacks' as const, label: 'Feedbacks' },
-  { id: 'compensation' as const, label: 'Compensation' },
-  { id: 'deduction' as const, label: 'Deduction' },
-  { id: 'leave' as const, label: 'Leave' },
-  { id: 'payslip' as const, label: 'Payslip' },
-  { id: 'bgv' as const, label: 'BGV' },
-] as const;
 
 interface Props {
   employee: EmployeeDetailResponseType;
@@ -47,6 +37,17 @@ interface Props {
 }
 
 export function EmployeeView({ employee, initialFeedbackPage, initialCompensationPage, initialDeductionPage, initialLeavePage, initialBgvPage, initialPayslipPage, initialLeaveFinancialYear, activeTab }: Props) {
+  const tabs = [
+    { id: 'details', label: 'Employee Details', href: `/employee/${employee.id}/details` },
+    { id: 'documents', label: 'Documents', href: `/employee/${employee.id}/documents` },
+    { id: 'feedbacks', label: 'Feedbacks', href: `/employee/${employee.id}/feedbacks` },
+    { id: 'compensation', label: 'Compensation', href: `/employee/${employee.id}/compensation` },
+    { id: 'deduction', label: 'Deduction', href: `/employee/${employee.id}/deduction` },
+    { id: 'leave', label: 'Leave', href: `/employee/${employee.id}/leave` },
+    { id: 'payslip', label: 'Payslip', href: `/employee/${employee.id}/payslip` },
+    { id: 'bgv', label: 'BGV', href: `/employee/${employee.id}/bgv` },
+  ];
+
   return (
     <div className='flex h-full flex-col gap-4'>
       <div className='center-container flex items-center justify-between'>
@@ -66,19 +67,7 @@ export function EmployeeView({ employee, initialFeedbackPage, initialCompensatio
       </div>
 
       <div className='center-container flex flex-col gap-4'>
-        <div className='flex items-center gap-2.5 border-b border-border'>
-          {TABS.map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <Link key={tab.id} href={`/employee/${employee.id}/${tab.id}`} className='group relative flex h-[52px] items-center px-3 pb-2'>
-                <span className={`text-sm font-bold tracking-widest transition-colors group-hover:text-foreground ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
-                  {tab.label}
-                </span>
-                {isActive && <span className='absolute -bottom-px left-0 right-0 h-[3px] bg-primary' />}
-              </Link>
-            );
-          })}
-        </div>
+        <PageTabs tabs={tabs} activeTabId={activeTab} />
 
         <div className='min-h-0 flex-1'>
           {activeTab === 'details' && <EmployeeViewBasicDetails employeeId={employee.id} />}

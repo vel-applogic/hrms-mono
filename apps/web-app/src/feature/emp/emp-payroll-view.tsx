@@ -1,38 +1,22 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { PageTabs } from '@repo/ui/component/ui/page-tabs';
 
 const TABS = [
-  { id: 'payslip' as const, label: 'Payslip', href: '/emp/payroll/payslip' },
-  { id: 'compensation' as const, label: 'Compensation', href: '/emp/payroll/compensation' },
-  { id: 'deduction' as const, label: 'Deduction', href: '/emp/payroll/deduction' },
-] as const;
+  { id: 'payslip', label: 'Payslip', href: '/emp/payroll/payslip' },
+  { id: 'compensation', label: 'Compensation', href: '/emp/payroll/compensation' },
+  { id: 'deduction', label: 'Deduction', href: '/emp/payroll/deduction' },
+];
 
 interface Props {
   children: React.ReactNode;
 }
 
 export function EmpPayrollView({ children }: Props) {
-  const pathname = usePathname();
-
   return (
     <div className='flex h-full flex-col gap-4'>
       <div className='center-container flex min-h-0 flex-1 flex-col gap-4'>
-        <div className='flex items-center gap-2.5 border-b border-border'>
-          {TABS.map((tab) => {
-            const isActive = pathname.startsWith(tab.href);
-            return (
-              <Link key={tab.id} href={tab.href} className='group relative flex h-[52px] items-center px-3 pb-2'>
-                <span className={`text-sm font-bold tracking-widest transition-colors group-hover:text-foreground ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
-                  {tab.label}
-                </span>
-                {isActive && <span className='absolute bottom-[-1px] left-0 right-0 h-[3px] bg-primary' />}
-              </Link>
-            );
-          })}
-        </div>
-
+        <PageTabs tabs={TABS} />
         <div className='min-h-0 flex-1 pb-4'>{children}</div>
       </div>
     </div>
