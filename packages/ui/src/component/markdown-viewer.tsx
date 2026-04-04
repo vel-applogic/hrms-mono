@@ -1,8 +1,11 @@
 'use client';
 
+import type { AnyExtension } from '@tiptap/react';
+import TextAlign from '@tiptap/extension-text-align';
+import { Underline as TiptapUnderline } from '@tiptap/extension-underline';
 import { EditorContent, useEditor } from '@tiptap/react';
 import { StarterKit } from '@tiptap/starter-kit';
-import { Underline as TiptapUnderline } from '@tiptap/extension-underline';
+import { useMemo } from 'react';
 import { Markdown } from 'tiptap-markdown';
 
 import { cn } from '../lib/utils';
@@ -13,14 +16,24 @@ interface MarkdownViewerProps {
 }
 
 export const MarkdownViewer = ({ value, className }: MarkdownViewerProps) => {
+  const isHtml = useMemo(() => /^\s*<[a-z]/i.test(value), [value]);
+
+  const extensions = useMemo<AnyExtension[]>(() => {
+    const base: AnyExtension[] = [
+      StarterKit.configure({ strike: false }),
+      TiptapUnderline,
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+    ];
+    if (!isHtml) {
+      base.push(Markdown.configure({ html: true, breaks: true }));
+    }
+    return base;
+  }, [isHtml]);
+
   const editor = useEditor({
     immediatelyRender: false,
     editable: false,
-    extensions: [
-      StarterKit.configure({ strike: false }),
-      TiptapUnderline,
-      Markdown.configure({ html: true, breaks: true }),
-    ],
+    extensions,
     content: value,
     editorProps: {
       attributes: {

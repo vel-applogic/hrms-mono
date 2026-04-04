@@ -40,8 +40,8 @@ export function PolicyViewPage({ policy, backHref }: Props) {
         <h1 className='text-xl font-medium tracking-tight text-foreground'>{policy.title}</h1>
       </div>
 
-      <div className='flex min-h-0 flex-1 justify-center overflow-y-auto pb-8'>
-        <div className='w-full max-w-[816px] rounded-lg border border-border bg-white px-16 py-14 shadow-[0_2px_12px_rgba(0,0,0,0.08)]'>
+      <div className='min-h-0 flex-1 overflow-y-auto px-4 pb-8'>
+        <div className='mx-auto w-full max-w-[816px] rounded-lg border border-border bg-white px-16 py-14 shadow-[0_2px_12px_rgba(0,0,0,0.08)]'>
           <h1 className='mb-8 text-center text-2xl font-bold text-foreground'>{policy.title}</h1>
 
           <div className='flex flex-col gap-6'>

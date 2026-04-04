@@ -1,9 +1,10 @@
 'use client';
 
+import TextAlign from '@tiptap/extension-text-align';
 import { Underline as TiptapUnderline } from '@tiptap/extension-underline';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import { StarterKit } from '@tiptap/starter-kit';
-import { Bold, Heading1, Heading2, Heading3, Italic, List, ListOrdered, Underline } from 'lucide-react';
+import { AlignCenter, AlignJustify, AlignLeft, AlignRight, Bold, Heading1, Heading2, Heading3, Italic, List, ListOrdered, Underline } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { Markdown } from 'tiptap-markdown';
 
@@ -48,6 +49,7 @@ export const MarkdownEditor = ({ value, onChange, placeholder, className }: Mark
     extensions: [
       StarterKit.configure({ strike: false }),
       TiptapUnderline,
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Markdown.configure({ html: true, transformPastedText: true, breaks: true }),
     ],
     content: value,
@@ -58,10 +60,9 @@ export const MarkdownEditor = ({ value, onChange, placeholder, className }: Mark
       },
     },
     onUpdate({ editor: e }) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const md = (e.storage as any).markdown.getMarkdown() as string;
-      internalValue.current = md;
-      onChange(md);
+      const html = e.getHTML();
+      internalValue.current = html;
+      onChange(html);
     },
   });
 
@@ -76,6 +77,10 @@ export const MarkdownEditor = ({ value, onChange, placeholder, className }: Mark
       h3: ctx.editor?.isActive('heading', { level: 3 }) ?? false,
       bulletList: ctx.editor?.isActive('bulletList') ?? false,
       orderedList: ctx.editor?.isActive('orderedList') ?? false,
+      alignLeft: ctx.editor?.isActive({ textAlign: 'left' }) ?? false,
+      alignCenter: ctx.editor?.isActive({ textAlign: 'center' }) ?? false,
+      alignRight: ctx.editor?.isActive({ textAlign: 'right' }) ?? false,
+      alignJustify: ctx.editor?.isActive({ textAlign: 'justify' }) ?? false,
     }),
   });
 
@@ -117,6 +122,19 @@ export const MarkdownEditor = ({ value, onChange, placeholder, className }: Mark
         </ToolbarButton>
         <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={activeMarks?.bulletList} title='Bullet List'>
           <List className='h-3.5 w-3.5' />
+        </ToolbarButton>
+        <div className='mx-1 h-4 w-px bg-white/20' />
+        <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('left').run()} active={activeMarks?.alignLeft} title='Align Left'>
+          <AlignLeft className='h-3.5 w-3.5' />
+        </ToolbarButton>
+        <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('center').run()} active={activeMarks?.alignCenter} title='Align Center'>
+          <AlignCenter className='h-3.5 w-3.5' />
+        </ToolbarButton>
+        <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('right').run()} active={activeMarks?.alignRight} title='Align Right'>
+          <AlignRight className='h-3.5 w-3.5' />
+        </ToolbarButton>
+        <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('justify').run()} active={activeMarks?.alignJustify} title='Justify'>
+          <AlignJustify className='h-3.5 w-3.5' />
         </ToolbarButton>
       </div>
 
