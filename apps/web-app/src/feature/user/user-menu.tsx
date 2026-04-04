@@ -9,10 +9,9 @@ import { signOut, useSession } from 'next-auth/react';
 interface Props {
   userName: string;
   userEmail: string;
-  variant?: 'default' | 'sidebar';
 }
 
-export function UserMenu({ userName, userEmail, variant = 'default' }: Props) {
+export function UserMenu({ userName, userEmail }: Props) {
   const { data: session, update } = useSession();
   const organisations = session?.user?.organisations ?? [];
   const currentOrgId = session?.user?.organizationId;
@@ -26,14 +25,14 @@ export function UserMenu({ userName, userEmail, variant = 'default' }: Props) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button className='flex w-full cursor-pointer items-center gap-3 text-left outline-none'>
-          <div className={`h-6 w-6 rounded-full ${variant === 'sidebar' ? 'bg-white/30' : 'bg-[#D9D9D9]'}`} />
+          <div className='h-6 w-6 rounded-full bg-primary/20' />
           <div className='flex min-w-0 flex-col items-start'>
-            <span className={`truncate text-sm ${variant === 'sidebar' ? 'text-white' : 'text-foreground'}`}>
+            <span className='truncate text-sm text-foreground'>
               {userName}
-              {userEmail && <span className={variant === 'sidebar' ? 'text-white/60' : 'text-muted-foreground'}> ({userEmail.toLowerCase()})</span>}
+              {userEmail && <span className='text-muted-foreground'> ({userEmail.toLowerCase()})</span>}
             </span>
             {currentOrg && (
-              <span className={`flex items-center gap-1 text-xs ${variant === 'sidebar' ? 'text-white/60' : 'text-muted-foreground'}`}>
+              <span className='flex items-center gap-1 text-xs text-muted-foreground'>
                 <Building2 className='h-3 w-3' />
                 {currentOrg.name}
               </span>

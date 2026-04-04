@@ -60,7 +60,7 @@ export function SidebarNav({ isSuperAdmin, isAdmin }: Props) {
             href={item.href}
             className={cn(
               'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-              isActive ? 'bg-white/15 text-white' : 'text-white/60 hover:bg-white/10 hover:text-white',
+              isActive ? 'bg-[--color-sidebar-active-bg] text-[--color-sidebar-active] font-semibold' : 'text-[--color-sidebar-foreground] hover:bg-[#e2e6ea] hover:text-foreground',
             )}
           >
             <Icon className='h-5 w-5 shrink-0' />
