@@ -5,7 +5,8 @@ import { DataTableSimple, DummySort, getSort } from '@repo/ui/container/datatabl
 import { ActionOption, ActionsIconCellRenderer, ActionsIconCellRendererParams, DateTimeRenderer } from '@repo/ui/container/datatable/datatable-cell-renderer';
 import { isSortable } from '@repo/ui/lib/utils';
 import { ColDef, ICellRendererParams } from 'ag-grid-community';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 
 import { getPolicyById } from '@/lib/action/policy.actions';
@@ -21,17 +22,21 @@ interface Props {
     sKey?: string;
     sVal?: string;
   };
+  basePath?: string;
   onEdit?: (policy: PolicyDetailResponseType) => void;
   onDelete?: (policy: PolicyListResponseType) => void;
 }
 
-const actionOptions: ActionOption[] = [
-  { name: 'Edit', icon: Pencil, variant: 'outline' },
-  { name: 'Delete', icon: Trash2, variant: 'outline-danger' },
-];
-
 export const PolicyDataTableClient = (props: Props) => {
-  const hasActions = !!props.onEdit || !!props.onDelete;
+  const router = useRouter();
+  const hasEditActions = !!props.onEdit || !!props.onDelete;
+
+  const actionOptions = useMemo<ActionOption[]>(() => {
+    const options: ActionOption[] = [{ name: 'View', icon: Eye, variant: 'outline' }];
+    if (props.onEdit) options.push({ name: 'Edit', icon: Pencil, variant: 'outline' });
+    if (props.onDelete) options.push({ name: 'Delete', icon: Trash2, variant: 'outline-danger' });
+    return options;
+  }, [props.onEdit, props.onDelete]);
 
   const colDefs = useMemo<ColDef<PolicyListResponseType>[]>(() => {
     const cols: ColDef<PolicyListResponseType>[] = [
@@ -72,28 +77,29 @@ export const PolicyDataTableClient = (props: Props) => {
       },
     ];
 
-    if (hasActions) {
-      cols.push({
-        headerName: 'Actions',
-        colId: 'actions',
-        sortable: false,
-        resizable: false,
-        pinned: 'right',
-        width: 20 + actionOptions.length * 40,
-        cellClass: '!flex items-center !justify-center',
-        cellRenderer: ActionsIconCellRenderer<PolicyListResponseType>,
-        cellRendererParams: {
-          options: actionOptions,
-        } satisfies Partial<ActionsIconCellRendererParams<PolicyListResponseType>>,
-      });
-    }
+    cols.push({
+      headerName: 'Actions',
+      colId: 'actions',
+      sortable: false,
+      resizable: false,
+      pinned: 'right',
+      width: 20 + actionOptions.length * 40,
+      cellClass: '!flex items-center !justify-center',
+      cellRenderer: ActionsIconCellRenderer<PolicyListResponseType>,
+      cellRendererParams: {
+        options: actionOptions,
+      } satisfies Partial<ActionsIconCellRendererParams<PolicyListResponseType>>,
+    });
 
     return cols;
-  }, [props.sort.sKey, props.sort.sVal, hasActions]);
+  }, [props.sort.sKey, props.sort.sVal, actionOptions]);
 
   const onActionClick = useCallback(
     async (action: string, data: PolicyListResponseType) => {
       switch (action) {
+        case 'View':
+          router.push(`${props.basePath ?? '/policy'}/${data.id}`);
+          break;
         case 'Edit': {
           const policy = await getPolicyById(data.id);
           props.onEdit?.(policy);
@@ -104,7 +110,7 @@ export const PolicyDataTableClient = (props: Props) => {
           break;
       }
     },
-    [props],
+    [props, router],
   );
 
   return (

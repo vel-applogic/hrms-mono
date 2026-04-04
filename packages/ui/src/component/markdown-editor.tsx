@@ -4,7 +4,7 @@ import { Underline as TiptapUnderline } from '@tiptap/extension-underline';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import { StarterKit } from '@tiptap/starter-kit';
 import { Bold, Heading1, Heading2, Heading3, Italic, List, ListOrdered, Underline } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Markdown } from 'tiptap-markdown';
 
 import { cn } from '../lib/utils';
@@ -41,9 +41,15 @@ const ToolbarButton = ({ onClick, active, title, children }: ToolbarButtonProps)
 );
 
 export const MarkdownEditor = ({ value, onChange, placeholder, className }: MarkdownEditorProps) => {
+  const internalValue = useRef(value);
+
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: [StarterKit.configure({ strike: false }), TiptapUnderline, Markdown.configure({ transformPastedText: true })],
+    extensions: [
+      StarterKit.configure({ strike: false }),
+      TiptapUnderline,
+      Markdown.configure({ html: true, transformPastedText: true, breaks: true }),
+    ],
     content: value,
     editorProps: {
       attributes: {
@@ -53,7 +59,9 @@ export const MarkdownEditor = ({ value, onChange, placeholder, className }: Mark
     },
     onUpdate({ editor: e }) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      onChange((e.storage as any).markdown.getMarkdown() as string);
+      const md = (e.storage as any).markdown.getMarkdown() as string;
+      internalValue.current = md;
+      onChange(md);
     },
   });
 
@@ -73,10 +81,9 @@ export const MarkdownEditor = ({ value, onChange, placeholder, className }: Mark
 
   useEffect(() => {
     if (!editor) return;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const current = (editor.storage as any).markdown.getMarkdown() as string;
-    if (current !== value) {
-      editor.commands.setContent(value);
+    if (value !== internalValue.current) {
+      internalValue.current = value;
+      editor.commands.setContent(value ?? '');
     }
   }, [value, editor]);
 

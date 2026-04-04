@@ -28,7 +28,7 @@ export default async function EmpPolicyPage({ searchParams }: Props) {
 
   return (
     <div className='flex h-full flex-col'>
-      <PolicyData data={data} searchParams={policySearchParams} readOnly />
+      <PolicyData data={data} searchParams={policySearchParams} readOnly basePath='/emp/policy' />
     </div>
   );
 }

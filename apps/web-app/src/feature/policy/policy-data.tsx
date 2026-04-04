@@ -14,9 +14,10 @@ interface Props {
   data: PaginatedResponseType<PolicyListResponseType>;
   searchParams: SearchParamsType;
   readOnly?: boolean;
+  basePath?: string;
 }
 
-export const PolicyData = ({ data, searchParams, readOnly }: Props) => {
+export const PolicyData = ({ data, searchParams, readOnly, basePath }: Props) => {
   const pathname = usePathname();
   const currentSearchParams = useSearchParams();
   const { replace, refresh } = useRouter();
@@ -136,7 +137,7 @@ export const PolicyData = ({ data, searchParams, readOnly }: Props) => {
       </div>
 
       <div className='center-container flex flex-1 flex-col min-h-0 pb-4'>
-        <PolicyDataTableClient data={data} sort={sort} onEdit={readOnly ? undefined : handleEdit} onDelete={readOnly ? undefined : handleDelete} />
+        <PolicyDataTableClient data={data} sort={sort} basePath={basePath} onEdit={readOnly ? undefined : handleEdit} onDelete={readOnly ? undefined : handleDelete} />
       </div>
 
       <PolicyUpsertDrawer open={drawerOpen} onOpenChange={setDrawerOpen} policy={editingPolicy} onSuccess={handleDrawerSuccess} />
