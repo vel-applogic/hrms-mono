@@ -1,10 +1,10 @@
 'use client';
 
 import { cn } from '@repo/ui/lib/utils';
-import { Briefcase, Building2, CalendarDays, ClipboardList, FileText, HandCoins, LayoutDashboard, MessageSquare, ScrollText, UserRound, Users } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { Briefcase, Building2, CalendarDays, FileText, HandCoins, LayoutDashboard, MessageSquare, ScrollText, UserRound, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { LucideIcon } from 'lucide-react';
 
 interface NavItem {
   label: string;
@@ -49,9 +49,7 @@ export function SidebarNav({ isSuperAdmin, isAdmin }: Props) {
   return (
     <nav className='flex flex-1 flex-col gap-1 px-3 py-2'>
       {visibleItems.map((item) => {
-        const isActive = item.href.startsWith('/emp/')
-          ? pathname === item.href || pathname.startsWith(item.href + '/')
-          : pathname.startsWith('/' + item.href.split('/')[1]);
+        const isActive = item.href.startsWith('/emp/') ? pathname === item.href || pathname.startsWith(item.href + '/') : pathname.startsWith('/' + item.href.split('/')[1]);
         const Icon = item.icon;
         return (
           <Link
@@ -59,7 +57,7 @@ export function SidebarNav({ isSuperAdmin, isAdmin }: Props) {
             href={item.href}
             className={cn(
               'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-              isActive ? 'bg-[--color-sidebar-active-bg] text-[--color-sidebar-active] font-semibold' : 'text-[--color-sidebar-foreground] hover:bg-[#e2e6ea] hover:text-foreground',
+              isActive ? 'bg-[#a5c6ce] text-[--color-sidebar-active] font-semibold' : 'text-[--color-sidebar-foreground] hover:bg-[#c2dae0] hover:text-foreground',
             )}
           >
             <Icon className='h-5 w-5 shrink-0' />

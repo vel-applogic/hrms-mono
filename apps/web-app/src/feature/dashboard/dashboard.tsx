@@ -25,7 +25,7 @@ interface DashboardData {
   pendingLeaveCount: number;
   upcomingHolidays: HolidayResponseType[];
   onLeaveToday: LeaveEntry[];
-  onLeaveThisWeek: LeaveEntry[];
+  onLeaveNext7Days: LeaveEntry[];
   upcomingAnniversaries: { id: number; firstname: string; lastname: string; dateOfJoining: string; years: number }[];
   noReportingManager: NameEntry[];
   totalPayrollCost: number;
@@ -35,27 +35,25 @@ interface DashboardData {
   loaded: boolean;
 }
 
-const EMPLOYEE_STATUS_LABELS: Record<string, string> = {
-  active: 'Active',
-  resigned: 'Resigned',
-  onLeave: 'On Leave',
-  terminated: 'Terminated',
+const EMPLOYEE_STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  active: { label: 'Active', color: 'text-emerald-600' },
+  resigned: { label: 'Resigned', color: 'text-amber-600' },
+  onLeave: { label: 'On Leave', color: 'text-sky-600' },
+  terminated: { label: 'Terminated', color: 'text-red-500' },
 };
 
-const CANDIDATE_STATUS_LABELS: Record<string, string> = {
-  new: 'New',
-  planed: 'Planned',
-  notReachable: 'Not Reachable',
-  selected: 'Selected',
-  onHold: 'On Hold',
-  rejected: 'Rejected',
+const CANDIDATE_STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  new: { label: 'New', color: 'text-sky-600' },
+  planed: { label: 'Planned', color: 'text-indigo-600' },
+  notReachable: { label: 'Not Reachable', color: 'text-amber-600' },
+  selected: { label: 'Selected', color: 'text-emerald-600' },
+  onHold: { label: 'On Hold', color: 'text-orange-500' },
+  rejected: { label: 'Rejected', color: 'text-red-500' },
 };
 
-function getEndOfWeek(today: Date): string {
+function getDatePlus7(today: Date): string {
   const end = new Date(today);
-  const dayOfWeek = end.getDay();
-  const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
-  end.setDate(end.getDate() + daysUntilSunday);
+  end.setDate(end.getDate() + 7);
   return end.toISOString().split('T')[0]!;
 }
 
@@ -96,7 +94,7 @@ export function Dashboard({ hideAdminWidgets }: DashboardProps) {
     pendingLeaveCount: 0,
     upcomingHolidays: [],
     onLeaveToday: [],
-    onLeaveThisWeek: [],
+    onLeaveNext7Days: [],
     upcomingAnniversaries: [],
     noReportingManager: [],
     totalPayrollCost: 0,
@@ -129,7 +127,7 @@ export function Dashboard({ hideAdminWidgets }: DashboardProps) {
 
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0]!;
-      const endOfWeekStr = getEndOfWeek(today);
+      const next7DaysStr = getDatePlus7(today);
 
       const mapLeave = (l: (typeof approvedLeaves.results)[number]): LeaveEntry => ({
         userId: l.userId,
@@ -143,14 +141,13 @@ export function Dashboard({ hideAdminWidgets }: DashboardProps) {
         .filter((l) => l.startDate <= todayStr && l.endDate >= todayStr)
         .map(mapLeave);
 
-      // Upcoming leaves this week (excluding today, from tomorrow to end of week)
+      // Leaves for next 7 days (excluding today, from tomorrow to +7 days)
       const tomorrowStr = new Date(today.getTime() + 86400000).toISOString().split('T')[0]!;
-      const onLeaveThisWeek = approvedLeaves.results
+      const onLeaveNext7Days = approvedLeaves.results
         .filter((l) => {
-          // Leave overlaps with tomorrow..endOfWeek range and is NOT already in onLeaveToday
-          const overlapsWeek = l.startDate <= endOfWeekStr && l.endDate >= tomorrowStr;
+          const overlaps = l.startDate <= next7DaysStr && l.endDate >= tomorrowStr;
           const isAlreadyToday = l.startDate <= todayStr && l.endDate >= todayStr;
-          return overlapsWeek && !isAlreadyToday;
+          return overlaps && !isAlreadyToday;
         })
         .map(mapLeave);
 
@@ -224,7 +221,7 @@ export function Dashboard({ hideAdminWidgets }: DashboardProps) {
         pendingLeaveCount,
         upcomingHolidays,
         onLeaveToday,
-        onLeaveThisWeek,
+        onLeaveNext7Days,
         upcomingAnniversaries,
         noReportingManager,
         totalPayrollCost,
@@ -242,9 +239,9 @@ export function Dashboard({ hideAdminWidgets }: DashboardProps) {
     <div className='flex flex-col gap-6'>
       {/* Row 1: Key stats */}
       <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-        {!hideAdminWidgets && <StatCard icon={Users} label='Employees' value={data.loaded ? data.employeeCount : null} />}
-        {!hideAdminWidgets && <StatCard icon={UserRound} label='New Candidates' value={data.loaded ? data.newCandidateCount : null} />}
-        <StatCard icon={Clock} label='Leave Approvals Pending' value={data.loaded ? data.pendingLeaveCount : null} />
+        {!hideAdminWidgets && <StatCard icon={Users} label='Employees' value={data.loaded ? data.employeeCount : null} valueColor='text-primary' />}
+        {!hideAdminWidgets && <StatCard icon={UserRound} label='New Candidates' value={data.loaded ? data.newCandidateCount : null} valueColor='text-sky-600' />}
+        <StatCard icon={Clock} label='Leave Approvals Pending' value={data.loaded ? data.pendingLeaveCount : null} valueColor='text-amber-600' />
         <div className='rounded-lg border border-border bg-card p-5'>
           <div className='mb-3 flex items-center gap-2 text-muted-foreground'>
             <CalendarDays className='h-5 w-5' />
@@ -279,12 +276,15 @@ export function Dashboard({ hideAdminWidgets }: DashboardProps) {
               <div className='h-12 animate-pulse rounded bg-muted' />
             ) : (
               <div className='flex flex-wrap gap-4'>
-                {Object.values(EmployeeStatusDtoEnum).map((status) => (
-                  <div key={status} className='flex flex-col'>
-                    <span className='text-2xl font-semibold'>{data.employeesByStatus[status] ?? 0}</span>
-                    <span className='text-xs text-muted-foreground'>{EMPLOYEE_STATUS_LABELS[status] ?? status}</span>
-                  </div>
-                ))}
+                {Object.values(EmployeeStatusDtoEnum).map((status) => {
+                  const info = EMPLOYEE_STATUS_LABELS[status];
+                  return (
+                    <div key={status} className='flex flex-col'>
+                      <span className={`text-2xl font-semibold ${info?.color ?? ''}`}>{data.employeesByStatus[status] ?? 0}</span>
+                      <span className='text-xs text-muted-foreground'>{info?.label ?? status}</span>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -297,32 +297,25 @@ export function Dashboard({ hideAdminWidgets }: DashboardProps) {
               <div className='h-12 animate-pulse rounded bg-muted' />
             ) : (
               <div className='flex flex-wrap gap-4'>
-                {Object.values(CandidateStatusDtoEnum).map((status) => (
-                  <div key={status} className='flex flex-col'>
-                    <span className='text-2xl font-semibold'>{data.candidatesByStatus[status] ?? 0}</span>
-                    <span className='text-xs text-muted-foreground'>{CANDIDATE_STATUS_LABELS[status] ?? status}</span>
-                  </div>
-                ))}
+                {Object.values(CandidateStatusDtoEnum).map((status) => {
+                  const info = CANDIDATE_STATUS_LABELS[status];
+                  return (
+                    <div key={status} className='flex flex-col'>
+                      <span className={`text-2xl font-semibold ${info?.color ?? ''}`}>{data.candidatesByStatus[status] ?? 0}</span>
+                      <span className='text-xs text-muted-foreground'>{info?.label ?? status}</span>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* Row 3: On leave today + Upcoming leaves this week */}
+      {/* Row 3: On leave today (calendar style) + Upcoming leaves this week */}
       <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-        <LeaveWidget
-          icon={UserCheck}
-          label='On Leave Today'
-          entries={data.onLeaveToday}
-          loaded={data.loaded}
-        />
-        <LeaveWidget
-          icon={CalendarDays}
-          label='Upcoming Leaves This Week'
-          entries={data.onLeaveThisWeek}
-          loaded={data.loaded}
-        />
+        <OnLeaveTodayWidget entries={data.onLeaveToday} loaded={data.loaded} />
+        <LeavesNext7DaysWidget entries={data.onLeaveNext7Days} loaded={data.loaded} />
       </div>
 
       {/* Row 4: Anniversaries + No reporting manager */}
@@ -359,7 +352,7 @@ export function Dashboard({ hideAdminWidgets }: DashboardProps) {
               <div className='h-12 animate-pulse rounded bg-muted' />
             ) : (
               <div className='flex items-start gap-6'>
-                <p className='text-3xl font-semibold'>{data.noReportingManager.length}</p>
+                <p className={`text-3xl font-semibold ${data.noReportingManager.length > 0 ? 'text-red-500' : 'text-emerald-600'}`}>{data.noReportingManager.length}</p>
                 {data.noReportingManager.length > 0 ? (
                   <p className='text-sm text-muted-foreground'>
                     {data.noReportingManager.map((e) => `${e.firstname} ${e.lastname}`).join(', ')}
@@ -385,7 +378,7 @@ export function Dashboard({ hideAdminWidgets }: DashboardProps) {
               <div className='h-9 w-16 animate-pulse rounded bg-muted' />
             ) : (
               <div>
-                <p className='text-3xl font-semibold'>{data.currencySymbol}{Math.round(data.totalPayrollCost / 12).toLocaleString('en-IN')}</p>
+                <p className='text-3xl font-semibold text-primary'>{data.currencySymbol}{Math.round(data.totalPayrollCost / 12).toLocaleString('en-IN')}</p>
                 <p className='mt-1 text-xs text-muted-foreground'>Yearly: {data.currencySymbol}{data.totalPayrollCost.toLocaleString('en-IN')}</p>
               </div>
             )}
@@ -410,7 +403,7 @@ export function Dashboard({ hideAdminWidgets }: DashboardProps) {
   );
 }
 
-function StatCard({ icon: Icon, label, value }: { icon: React.ComponentType<{ className?: string }>; label: string; value: number | null }) {
+function StatCard({ icon: Icon, label, value, valueColor }: { icon: React.ComponentType<{ className?: string }>; label: string; value: number | null; valueColor?: string }) {
   return (
     <div className='rounded-lg border border-border bg-card p-5'>
       <div className='mb-2 flex items-center gap-2 text-muted-foreground'>
@@ -420,8 +413,109 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ComponentType<{ cl
       {value === null ? (
         <div className='h-9 w-16 animate-pulse rounded bg-muted' />
       ) : (
-        <p className='text-3xl font-semibold'>{value}</p>
+        <p className={`text-3xl font-semibold ${valueColor ?? ''}`}>{value}</p>
       )}
+    </div>
+  );
+}
+
+function OnLeaveTodayWidget({ entries, loaded }: { entries: LeaveEntry[]; loaded: boolean }) {
+  const today = new Date();
+  const dayName = today.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
+  const dayNum = today.getDate();
+  const monthName = today.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+
+  return (
+    <div className='rounded-lg border border-border bg-card p-5 lg:col-span-2'>
+      <div className='flex gap-5'>
+        {/* Calendar day icon */}
+        <div className='flex w-16 shrink-0 flex-col overflow-hidden rounded-lg border border-border text-center'>
+          <div className='bg-primary px-2 py-1 text-[10px] font-bold tracking-wider text-primary-foreground'>{dayName}</div>
+          <div className='flex flex-1 flex-col items-center justify-center bg-card py-1'>
+            <span className='text-2xl font-bold leading-tight text-foreground'>{dayNum}</span>
+            <span className='text-[10px] font-medium text-muted-foreground'>{monthName}</span>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className='flex min-w-0 flex-1 flex-col'>
+          <div className='mb-2 flex items-center gap-2 text-muted-foreground'>
+            <UserCheck className='h-5 w-5' />
+            <span className='text-sm font-medium'>On Leave Today</span>
+          </div>
+          {!loaded ? (
+            <div className='h-9 w-16 animate-pulse rounded bg-muted' />
+          ) : entries.length > 0 ? (
+            <div className='flex flex-col gap-1.5'>
+              {entries.map((l) => (
+                <div key={l.userId} className='flex items-center justify-between gap-4'>
+                  <span className='text-sm font-medium'>{l.firstname} {l.lastname}</span>
+                  <span className='text-xs text-muted-foreground'>{formatDate(l.startDate)} - {formatDate(l.endDate)}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className='text-sm text-muted-foreground'>No one on leave today</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LeavesNext7DaysWidget({ entries, loaded }: { entries: LeaveEntry[]; loaded: boolean }) {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + 7);
+
+  const fromDay = tomorrow.getDate();
+  const fromMonth = tomorrow.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+  const toDay = endDate.getDate();
+  const toMonth = endDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+
+  return (
+    <div className='rounded-lg border border-border bg-card p-5 lg:col-span-2'>
+      <div className='flex gap-5'>
+        {/* Calendar date range icon */}
+        <div className='flex shrink-0 items-center gap-1.5'>
+          <div className='flex w-14 flex-col overflow-hidden rounded-lg border border-border text-center'>
+            <div className='bg-primary px-1.5 py-1 text-[10px] font-bold tracking-wider text-primary-foreground'>{fromMonth}</div>
+            <div className='flex flex-col items-center justify-center bg-card py-1'>
+              <span className='text-xl font-bold leading-tight text-foreground'>{fromDay}</span>
+            </div>
+          </div>
+          <span className='text-xs font-medium text-muted-foreground'>—</span>
+          <div className='flex w-14 flex-col overflow-hidden rounded-lg border border-border text-center'>
+            <div className='bg-primary px-1.5 py-1 text-[10px] font-bold tracking-wider text-primary-foreground'>{toMonth}</div>
+            <div className='flex flex-col items-center justify-center bg-card py-1'>
+              <span className='text-xl font-bold leading-tight text-foreground'>{toDay}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className='flex min-w-0 flex-1 flex-col'>
+          <div className='mb-2 flex items-center gap-2 text-muted-foreground'>
+            <CalendarDays className='h-5 w-5' />
+            <span className='text-sm font-medium'>Leaves for Next 7 Days</span>
+          </div>
+          {!loaded ? (
+            <div className='h-9 w-16 animate-pulse rounded bg-muted' />
+          ) : entries.length > 0 ? (
+            <div className='flex flex-col gap-1.5'>
+              {entries.map((l) => (
+                <div key={l.userId} className='flex items-center justify-between gap-4'>
+                  <span className='text-sm font-medium'>{l.firstname} {l.lastname}</span>
+                  <span className='text-xs text-muted-foreground'>{formatDate(l.startDate)} - {formatDate(l.endDate)}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className='text-sm text-muted-foreground'>No upcoming leaves</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

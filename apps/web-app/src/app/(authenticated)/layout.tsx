@@ -29,22 +29,24 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
 
       <div className='flex min-h-0 flex-1'>
         {/* Fixed left sidebar - desktop only */}
-        <aside className='relative z-10 hidden w-60 shrink-0 flex-col bg-white shadow-[2px_0_8px_rgba(0,0,0,0.06)] lg:flex'>
+        <aside className='relative z-10 hidden w-60 shrink-0 flex-col lg:flex'>
           {/* Logo */}
-          <div className='flex h-16 items-center gap-3 border-b border-[--color-sidebar-border] px-5 mb-3'>
+          <div className='flex h-16 items-center gap-3 bg-white px-5'>
             <div className='p-2'>
               <img src='/logo.png' alt='Hrms' width={130} />
             </div>
           </div>
 
           {/* Navigation */}
-          <SidebarNav isSuperAdmin={session.user?.isSuperAdmin} isAdmin={isAdmin} />
+          <div className='flex min-h-0 flex-1 flex-col bg-[#077f8c14] pt-3 shadow-[2px_0_8px_rgba(0,0,0,0.12)]'>
+            <SidebarNav isSuperAdmin={session.user?.isSuperAdmin} isAdmin={isAdmin} />
+          </div>
         </aside>
 
         {/* Main content area */}
         <div className='flex min-w-0 flex-1 flex-col'>
           {/* Desktop header */}
-          <header className='hidden shrink-0 bg-[#077f8c14] lg:block'>
+          <header className='hidden shrink-0 bg-[#077f8c14] shadow-[0_2px_8px_rgba(0,0,0,0.12)] lg:block'>
             <div className='flex h-16 items-center justify-between gap-4 px-6'>
               <HeaderPageTitle />
               <HeaderProfile userName={currentUserName} userEmail={currentUserEmail} />
