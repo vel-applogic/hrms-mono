@@ -242,72 +242,84 @@ export function Dashboard({ hideAdminWidgets }: DashboardProps) {
         {!hideAdminWidgets && <StatCard icon={Users} label='Employees' value={data.loaded ? data.employeeCount : null} valueColor='text-primary' />}
         {!hideAdminWidgets && <StatCard icon={UserRound} label='New Candidates' value={data.loaded ? data.newCandidateCount : null} valueColor='text-sky-600' />}
         <StatCard icon={Clock} label='Leave Approvals Pending' value={data.loaded ? data.pendingLeaveCount : null} valueColor='text-amber-600' />
-        <div className='rounded-lg border border-border bg-card p-5'>
-          <div className='mb-3 flex items-center gap-2 text-muted-foreground'>
-            <CalendarDays className='h-5 w-5' />
-            <span className='text-sm font-medium'>Upcoming Holidays</span>
-          </div>
-          {!data.loaded ? (
-            <div className='h-12 animate-pulse rounded bg-muted' />
-          ) : data.upcomingHolidays.length > 0 ? (
-            <div className='flex flex-col gap-3'>
-              {data.upcomingHolidays.map((h) => (
-                <div key={h.id} className='flex items-center justify-between'>
-                  <span className='text-sm font-medium'>{h.name}</span>
-                  <span className='text-sm text-muted-foreground'>{formatDate(h.date)}</span>
-                </div>
-              ))}
+        <div className='flex h-full items-center rounded-lg border border-border bg-card p-5'>
+          <div className='flex w-full items-start gap-4'>
+            <div className='flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#f7f8fa]'>
+              <CalendarDays className='h-7 w-7 text-primary' />
             </div>
-          ) : (
-            <p className='text-sm text-muted-foreground'>No upcoming holidays</p>
-          )}
+            <div className='flex min-w-0 flex-1 flex-col'>
+              <span className='mb-2 text-sm font-medium text-muted-foreground'>Upcoming Holidays</span>
+              {!data.loaded ? (
+                <div className='h-12 animate-pulse rounded bg-muted' />
+              ) : data.upcomingHolidays.length > 0 ? (
+                <div className='flex flex-col gap-2'>
+                  {data.upcomingHolidays.map((h) => (
+                    <div key={h.id} className='flex items-start gap-3'>
+                      <span className='w-[100px] shrink-0 text-sm text-muted-foreground'>{formatDate(h.date)}</span>
+                      <span className='text-sm font-medium'>{h.name}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className='text-sm text-muted-foreground'>No upcoming holidays</p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Row 2: Employee status + Candidate status */}
       {!hideAdminWidgets && (
         <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-          <div className='rounded-lg border border-border bg-card p-5 lg:col-span-2'>
-            <div className='mb-3 flex items-center gap-2 text-muted-foreground'>
-              <Users className='h-5 w-5' />
-              <span className='text-sm font-medium'>Employees by Status</span>
-            </div>
-            {!data.loaded ? (
-              <div className='h-12 animate-pulse rounded bg-muted' />
-            ) : (
-              <div className='flex flex-wrap gap-4'>
-                {Object.values(EmployeeStatusDtoEnum).map((status) => {
-                  const info = EMPLOYEE_STATUS_LABELS[status];
-                  return (
-                    <div key={status} className='flex flex-col'>
-                      <span className={`text-2xl font-semibold ${info?.color ?? ''}`}>{data.employeesByStatus[status] ?? 0}</span>
-                      <span className='text-xs text-muted-foreground'>{info?.label ?? status}</span>
-                    </div>
-                  );
-                })}
+          <div className='flex h-full items-center rounded-lg border border-border bg-card p-5 lg:col-span-2'>
+            <div className='flex w-full items-start gap-4'>
+              <div className='flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#f7f8fa]'>
+                <Users className='h-7 w-7 text-primary' />
               </div>
-            )}
+              <div className='flex min-w-0 flex-1 flex-col'>
+                <span className='mb-2 text-sm font-medium text-muted-foreground'>Employees by Status</span>
+                {!data.loaded ? (
+                  <div className='h-12 animate-pulse rounded bg-muted' />
+                ) : (
+                  <div className='flex flex-wrap gap-4'>
+                    {Object.values(EmployeeStatusDtoEnum).map((status) => {
+                      const info = EMPLOYEE_STATUS_LABELS[status];
+                      return (
+                        <div key={status} className='flex flex-col'>
+                          <span className={`text-2xl font-semibold ${info?.color ?? ''}`}>{data.employeesByStatus[status] ?? 0}</span>
+                          <span className='text-xs text-muted-foreground'>{info?.label ?? status}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-          <div className='rounded-lg border border-border bg-card p-5 lg:col-span-2'>
-            <div className='mb-3 flex items-center gap-2 text-muted-foreground'>
-              <UserRound className='h-5 w-5' />
-              <span className='text-sm font-medium'>Candidates by Status</span>
-            </div>
-            {!data.loaded ? (
-              <div className='h-12 animate-pulse rounded bg-muted' />
-            ) : (
-              <div className='flex flex-wrap gap-4'>
-                {Object.values(CandidateStatusDtoEnum).map((status) => {
-                  const info = CANDIDATE_STATUS_LABELS[status];
-                  return (
-                    <div key={status} className='flex flex-col'>
-                      <span className={`text-2xl font-semibold ${info?.color ?? ''}`}>{data.candidatesByStatus[status] ?? 0}</span>
-                      <span className='text-xs text-muted-foreground'>{info?.label ?? status}</span>
-                    </div>
-                  );
-                })}
+          <div className='flex h-full items-center rounded-lg border border-border bg-card p-5 lg:col-span-2'>
+            <div className='flex w-full items-start gap-4'>
+              <div className='flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#f7f8fa]'>
+                <UserRound className='h-7 w-7 text-primary' />
               </div>
-            )}
+              <div className='flex min-w-0 flex-1 flex-col'>
+                <span className='mb-2 text-sm font-medium text-muted-foreground'>Candidates by Status</span>
+                {!data.loaded ? (
+                  <div className='h-12 animate-pulse rounded bg-muted' />
+                ) : (
+                  <div className='flex flex-wrap gap-4'>
+                    {Object.values(CandidateStatusDtoEnum).map((status) => {
+                      const info = CANDIDATE_STATUS_LABELS[status];
+                      return (
+                        <div key={status} className='flex flex-col'>
+                          <span className={`text-2xl font-semibold ${info?.color ?? ''}`}>{data.candidatesByStatus[status] ?? 0}</span>
+                          <span className='text-xs text-muted-foreground'>{info?.label ?? status}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -321,47 +333,51 @@ export function Dashboard({ hideAdminWidgets }: DashboardProps) {
       {/* Row 4: Anniversaries + No reporting manager */}
       {!hideAdminWidgets && (
         <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-          <div className='rounded-lg border border-border bg-card p-5 lg:col-span-2'>
-            <div className='mb-3 flex items-center gap-2 text-muted-foreground'>
-              <Cake className='h-5 w-5' />
-              <span className='text-sm font-medium'>Upcoming Work Anniversaries</span>
-            </div>
-            {!data.loaded ? (
-              <div className='h-12 animate-pulse rounded bg-muted' />
-            ) : data.upcomingAnniversaries.length > 0 ? (
-              <div className='flex flex-col gap-2'>
-                {data.upcomingAnniversaries.map((e) => (
-                  <div key={e.id} className='flex items-center justify-between'>
-                    <span className='text-sm font-medium'>{e.firstname} {e.lastname}</span>
-                    <span className='text-xs text-muted-foreground'>
-                      {formatDate(e.dateOfJoining)} &middot; {e.years} {e.years === 1 ? 'year' : 'years'}
-                    </span>
-                  </div>
-                ))}
+          <div className='flex h-full items-center rounded-lg border border-border bg-card p-5 lg:col-span-2'>
+            <div className='flex w-full items-start gap-4'>
+              <div className='flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#f7f8fa]'>
+                <Cake className='h-7 w-7 text-primary' />
               </div>
-            ) : (
-              <p className='text-sm text-muted-foreground'>No upcoming anniversaries in the next 30 days</p>
-            )}
-          </div>
-          <div className='rounded-lg border border-border bg-card p-5 lg:col-span-2'>
-            <div className='mb-3 flex items-center gap-2 text-muted-foreground'>
-              <AlertTriangle className='h-5 w-5' />
-              <span className='text-sm font-medium'>No Reporting Manager</span>
-            </div>
-            {!data.loaded ? (
-              <div className='h-12 animate-pulse rounded bg-muted' />
-            ) : (
-              <div className='flex items-start gap-6'>
-                <p className={`text-3xl font-semibold ${data.noReportingManager.length > 0 ? 'text-red-500' : 'text-emerald-600'}`}>{data.noReportingManager.length}</p>
-                {data.noReportingManager.length > 0 ? (
-                  <p className='text-sm text-muted-foreground'>
-                    {data.noReportingManager.map((e) => `${e.firstname} ${e.lastname}`).join(', ')}
-                  </p>
+              <div className='flex min-w-0 flex-1 flex-col'>
+                <span className='mb-2 text-sm font-medium text-muted-foreground'>Upcoming Work Anniversaries</span>
+                {!data.loaded ? (
+                  <div className='h-12 animate-pulse rounded bg-muted' />
+                ) : data.upcomingAnniversaries.length > 0 ? (
+                  <div className='flex flex-col gap-2'>
+                    {data.upcomingAnniversaries.map((e) => (
+                      <div key={e.id} className='flex items-center justify-between'>
+                        <span className='text-sm font-medium'>{e.firstname} {e.lastname}</span>
+                        <span className='text-xs text-muted-foreground'>
+                          {formatDate(e.dateOfJoining)} &middot; {e.years} {e.years === 1 ? 'year' : 'years'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 ) : (
-                  <p className='text-sm text-muted-foreground'>All active employees have a reporting manager</p>
+                  <p className='text-sm text-muted-foreground'>No upcoming anniversaries in the next 30 days</p>
                 )}
               </div>
-            )}
+            </div>
+          </div>
+          <div className='flex h-full items-center rounded-lg border border-border bg-card p-5 lg:col-span-2'>
+            <div className='flex w-full items-start gap-5'>
+              <div className='flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#f7f8fa]'>
+                <AlertTriangle className='h-7 w-7 text-primary' />
+              </div>
+              <div className='flex min-w-0 flex-1 flex-col'>
+                {!data.loaded ? (
+                  <div className='h-9 w-16 animate-pulse rounded bg-muted' />
+                ) : (
+                  <span className={`text-3xl font-semibold ${data.noReportingManager.length > 0 ? 'text-red-500' : 'text-emerald-600'}`}>{data.noReportingManager.length}</span>
+                )}
+                <span className='text-sm text-muted-foreground'>No Reporting Manager</span>
+                {data.loaded && data.noReportingManager.length > 0 && (
+                  <p className='mt-2 text-sm text-muted-foreground'>
+                    {data.noReportingManager.map((e) => `${e.firstname} ${e.lastname}`).join(', ')}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -369,19 +385,21 @@ export function Dashboard({ hideAdminWidgets }: DashboardProps) {
       {/* Row 5: Payroll */}
       {!hideAdminWidgets && (
         <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-          <div className='rounded-lg border border-border bg-card p-5'>
-            <div className='mb-2 flex items-center gap-2 text-muted-foreground'>
-              <DollarSign className='h-5 w-5' />
-              <span className='text-sm font-medium'>Monthly Payroll Cost</span>
-            </div>
-            {!data.loaded ? (
-              <div className='h-9 w-16 animate-pulse rounded bg-muted' />
-            ) : (
-              <div>
-                <p className='text-3xl font-semibold text-primary'>{data.currencySymbol}{Math.round(data.totalPayrollCost / 12).toLocaleString('en-IN')}</p>
-                <p className='mt-1 text-xs text-muted-foreground'>Yearly: {data.currencySymbol}{data.totalPayrollCost.toLocaleString('en-IN')}</p>
+          <div className='flex h-full items-center rounded-lg border border-border bg-card p-5'>
+            <div className='flex w-full items-start gap-5'>
+              <div className='flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#f7f8fa]'>
+                <DollarSign className='h-7 w-7 text-primary' />
               </div>
-            )}
+              {!data.loaded ? (
+                <div className='h-9 w-16 animate-pulse rounded bg-muted' />
+              ) : (
+                <div className='flex flex-col'>
+                  <span className='text-3xl font-semibold text-primary'>{data.currencySymbol}{Math.round(data.totalPayrollCost / 12).toLocaleString('en-IN')}</span>
+                  <span className='text-sm text-muted-foreground'>Monthly Payroll Cost</span>
+                  <span className='text-xs text-muted-foreground'>Yearly: {data.currencySymbol}{data.totalPayrollCost.toLocaleString('en-IN')}</span>
+                </div>
+              )}
+            </div>
           </div>
           <NameListWidget
             icon={FileWarning}
@@ -405,16 +423,20 @@ export function Dashboard({ hideAdminWidgets }: DashboardProps) {
 
 function StatCard({ icon: Icon, label, value, valueColor }: { icon: React.ComponentType<{ className?: string }>; label: string; value: number | null; valueColor?: string }) {
   return (
-    <div className='rounded-lg border border-border bg-card p-5'>
-      <div className='mb-2 flex items-center gap-2 text-muted-foreground'>
-        <Icon className='h-5 w-5' />
-        <span className='text-sm font-medium'>{label}</span>
+    <div className='flex h-full items-center rounded-lg border border-border bg-card p-5'>
+      <div className='flex w-full items-start gap-5'>
+        <div className='flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#f7f8fa]'>
+          <Icon className='h-7 w-7 text-primary' />
+        </div>
+        <div className='flex flex-col'>
+          {value === null ? (
+            <div className='h-9 w-16 animate-pulse rounded bg-muted' />
+          ) : (
+            <span className={`text-3xl font-semibold ${valueColor ?? ''}`}>{value.toLocaleString()}</span>
+          )}
+          <span className='text-sm text-muted-foreground'>{label}</span>
+        </div>
       </div>
-      {value === null ? (
-        <div className='h-9 w-16 animate-pulse rounded bg-muted' />
-      ) : (
-        <p className={`text-3xl font-semibold ${valueColor ?? ''}`}>{value}</p>
-      )}
     </div>
   );
 }
@@ -426,8 +448,8 @@ function OnLeaveTodayWidget({ entries, loaded }: { entries: LeaveEntry[]; loaded
   const monthName = today.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
 
   return (
-    <div className='rounded-lg border border-border bg-card p-5 lg:col-span-2'>
-      <div className='flex gap-5'>
+    <div className='flex h-full items-center rounded-lg border border-border bg-card p-5 lg:col-span-2'>
+      <div className='flex w-full items-start gap-5'>
         {/* Calendar day icon */}
         <div className='flex w-16 shrink-0 flex-col overflow-hidden rounded-lg border border-border text-center'>
           <div className='bg-primary px-2 py-1 text-[10px] font-bold tracking-wider text-primary-foreground'>{dayName}</div>
@@ -439,9 +461,8 @@ function OnLeaveTodayWidget({ entries, loaded }: { entries: LeaveEntry[]; loaded
 
         {/* Content */}
         <div className='flex min-w-0 flex-1 flex-col'>
-          <div className='mb-2 flex items-center gap-2 text-muted-foreground'>
-            <UserCheck className='h-5 w-5' />
-            <span className='text-sm font-medium'>On Leave Today</span>
+          <div className='mb-2'>
+            <span className='text-sm font-medium text-muted-foreground'>On Leave Today</span>
           </div>
           {!loaded ? (
             <div className='h-9 w-16 animate-pulse rounded bg-muted' />
@@ -475,8 +496,8 @@ function LeavesNext7DaysWidget({ entries, loaded }: { entries: LeaveEntry[]; loa
   const toMonth = endDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
 
   return (
-    <div className='rounded-lg border border-border bg-card p-5 lg:col-span-2'>
-      <div className='flex gap-5'>
+    <div className='flex h-full items-center rounded-lg border border-border bg-card p-5 lg:col-span-2'>
+      <div className='flex w-full items-start gap-5'>
         {/* Calendar date range icon */}
         <div className='flex shrink-0 items-center gap-1.5'>
           <div className='flex w-14 flex-col overflow-hidden rounded-lg border border-border text-center'>
@@ -496,9 +517,8 @@ function LeavesNext7DaysWidget({ entries, loaded }: { entries: LeaveEntry[]; loa
 
         {/* Content */}
         <div className='flex min-w-0 flex-1 flex-col'>
-          <div className='mb-2 flex items-center gap-2 text-muted-foreground'>
-            <CalendarDays className='h-5 w-5' />
-            <span className='text-sm font-medium'>Leaves for Next 7 Days</span>
+          <div className='mb-2'>
+            <span className='text-sm font-medium text-muted-foreground'>Leaves for Next 7 Days</span>
           </div>
           {!loaded ? (
             <div className='h-9 w-16 animate-pulse rounded bg-muted' />
@@ -522,53 +542,57 @@ function LeavesNext7DaysWidget({ entries, loaded }: { entries: LeaveEntry[]; loa
 
 function LeaveWidget({ icon: Icon, label, entries, loaded }: { icon: React.ComponentType<{ className?: string }>; label: string; entries: LeaveEntry[]; loaded: boolean }) {
   return (
-    <div className='rounded-lg border border-border bg-card p-5 lg:col-span-2'>
-      <div className='mb-3 flex items-center gap-2 text-muted-foreground'>
-        <Icon className='h-5 w-5' />
-        <span className='text-sm font-medium'>{label}</span>
-      </div>
-      {!loaded ? (
-        <div className='h-9 w-16 animate-pulse rounded bg-muted' />
-      ) : (
-        <div className='flex items-start gap-6'>
-          <p className='text-3xl font-semibold'>{entries.length}</p>
-          {entries.length > 0 && (
-            <div className='flex flex-col gap-2'>
-              {entries.map((l) => (
-                <div key={l.userId} className='flex items-center justify-between gap-4'>
-                  <span className='text-sm font-medium'>{l.firstname} {l.lastname}</span>
-                  <span className='text-xs text-muted-foreground'>{formatDate(l.startDate)} - {formatDate(l.endDate)}</span>
+    <div className='flex h-full items-center rounded-lg border border-border bg-card p-5 lg:col-span-2'>
+      <div className='flex w-full items-start gap-4'>
+        <div className='flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#f7f8fa]'>
+          <Icon className='h-7 w-7 text-primary' />
+        </div>
+        <div className='flex min-w-0 flex-1 flex-col'>
+          <span className='mb-2 text-sm font-medium text-muted-foreground'>{label}</span>
+          {!loaded ? (
+            <div className='h-9 w-16 animate-pulse rounded bg-muted' />
+          ) : (
+            <div className='flex items-start gap-6'>
+              <p className='text-3xl font-semibold'>{entries.length}</p>
+              {entries.length > 0 && (
+                <div className='flex flex-col gap-2'>
+                  {entries.map((l) => (
+                    <div key={l.userId} className='flex items-center justify-between gap-4'>
+                      <span className='text-sm font-medium'>{l.firstname} {l.lastname}</span>
+                      <span className='text-xs text-muted-foreground'>{formatDate(l.startDate)} - {formatDate(l.endDate)}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
 function NameListWidget({ icon: Icon, label, entries, loaded, emptyMessage }: { icon: React.ComponentType<{ className?: string }>; label: string; entries: NameEntry[]; loaded: boolean; emptyMessage: string }) {
   return (
-    <div className='rounded-lg border border-border bg-card p-5'>
-      <div className='mb-2 flex items-center gap-2 text-muted-foreground'>
-        <Icon className='h-5 w-5' />
-        <span className='text-sm font-medium'>{label}</span>
-      </div>
-      {!loaded ? (
-        <div className='h-9 w-16 animate-pulse rounded bg-muted' />
-      ) : (
-        <div className='flex items-start gap-6'>
-          <p className='text-3xl font-semibold'>{entries.length}</p>
-          {entries.length > 0 ? (
-            <p className='text-sm text-muted-foreground'>
+    <div className='flex h-full items-center rounded-lg border border-border bg-card p-5'>
+      <div className='flex w-full items-start gap-5'>
+        <div className='flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#f7f8fa]'>
+          <Icon className='h-7 w-7 text-primary' />
+        </div>
+        <div className='flex min-w-0 flex-1 flex-col'>
+          {!loaded ? (
+            <div className='h-9 w-16 animate-pulse rounded bg-muted' />
+          ) : (
+            <span className={`text-3xl font-semibold ${entries.length > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>{entries.length}</span>
+          )}
+          <span className='text-sm text-muted-foreground'>{label}</span>
+          {loaded && entries.length > 0 && (
+            <p className='mt-2 text-sm text-muted-foreground'>
               {entries.map((e) => `${e.firstname} ${e.lastname}`).join(', ')}
             </p>
-          ) : (
-            <p className='text-sm text-muted-foreground'>{emptyMessage}</p>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
