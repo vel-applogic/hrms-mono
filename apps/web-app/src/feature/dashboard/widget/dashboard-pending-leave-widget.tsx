@@ -7,15 +7,23 @@ import { useEffect, useState } from 'react';
 
 import { searchLeaves } from '@/lib/action/leave.actions';
 
-export function DashboardPendingLeave() {
+interface Props {
+  employeeId?: number;
+}
+
+export function DashboardPendingLeave({ employeeId }: Props) {
   const [count, setCount] = useState<number | null>(null);
 
   useEffect(() => {
     searchLeaves({
       pagination: { page: 1, limit: 1 },
       status: [LeaveStatusDtoEnum.pending],
+      userId: employeeId ? [employeeId] : undefined,
     }).then((result) => setCount(result.totalRecords));
-  }, []);
+  }, [employeeId]);
 
-  return <DashboardWidgetStat icon={Clock} label='Leave Approvals Pending' value={count} valueColor='text-amber-600' href='/leaves/approvals' />;
+  const href = employeeId ? '/emp/leave' : '/leaves/approvals';
+  const label = employeeId ? 'My Pending Leaves' : 'Leave Approvals Pending';
+
+  return <DashboardWidgetStat icon={Clock} label={label} value={count} valueColor='text-amber-600' href={href} />;
 }

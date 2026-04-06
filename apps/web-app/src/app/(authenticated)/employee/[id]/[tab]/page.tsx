@@ -1,14 +1,15 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getFinancialYearCode } from '@repo/shared';
 
 import { EmployeeView } from '@/feature/employee/employee-view';
 import { getEmployeeById } from '@/lib/action/employee.actions';
-import { searchEmployeeFeedbacks } from '@/lib/action/employee-feedback.actions';
+import { searchEmployeeBgvFeedbacks } from '@/lib/action/employee-bgv-feedback.actions';
 import { searchEmployeeCompensations } from '@/lib/action/employee-compensation.actions';
 import { searchEmployeeDeductions } from '@/lib/action/employee-deduction.actions';
+import { searchEmployeeFeedbacks } from '@/lib/action/employee-feedback.actions';
 import { searchLeaves } from '@/lib/action/leave.actions';
-import { searchEmployeeBgvFeedbacks } from '@/lib/action/employee-bgv-feedback.actions';
 import { searchPayslips } from '@/lib/action/payslip.actions';
+import { auth } from '@/lib/auth/auth';
 
 const TABS = ['details', 'documents', 'feedbacks', 'compensation', 'deduction', 'leave', 'payslip', 'bgv'] as const;
 type Tab = (typeof TABS)[number];
@@ -22,6 +23,12 @@ interface Props {
 }
 
 export default async function EmployeeViewPage(props: Props) {
+  const session = await auth();
+  const isSuperAdmin = session?.user?.isSuperAdmin ?? false;
+  const roles = session?.user?.roles ?? [];
+  if (!isSuperAdmin && !roles.includes('admin')) {
+    redirect('/emp/dashboard');
+  }
   const { id, tab } = await props.params;
   const employeeId = parseInt(id, 10);
   if (isNaN(employeeId) || !isTab(tab)) {

@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(ls /Users/vel/Applogic/Applogic/hrms-mono/node_modules/.pnpm/@tiptap+extension-image*)",
-      "Bash(xargs sed:*)"
+      "Bash(xargs sed:*)",
+      "Bash(grep -r \"isSuperAdmin\\\\|isAdmin\\\\|roles\" /Users/vel/Applogic/Applogic/hrms-mono/apps/web-app/src/app/\\\\\\(authenticated\\\\\\)/*/page.tsx)",
+      "Bash(pnpm lint:*)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx|js|jsx\\)$\")",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(xargs ls:*)"
     ],
     "additionalDirectories": [
       "/Users/vel/Applogic/Applogic/hrms-mono/apps/web-app/src/app/(authenticated)/policy/[id]"

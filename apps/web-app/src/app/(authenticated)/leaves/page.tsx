@@ -1,7 +1,10 @@
+import { redirect } from 'next/navigation';
+
 import { SearchParamsSchema } from '@repo/dto';
 import { getFinancialYearCode, getLastFinancialYearCodes } from '@repo/shared';
 
 import { LeaveCounterData } from '@/feature/leave/leave-counter-data';
+import { auth } from '@/lib/auth/auth';
 import { leaveService } from '@/lib/service/leave.service';
 
 interface Props {
@@ -9,6 +12,12 @@ interface Props {
 }
 
 export default async function LeavesPage(props: Props) {
+  const session = await auth();
+  const isSuperAdmin = session?.user?.isSuperAdmin ?? false;
+  const roles = session?.user?.roles ?? [];
+  if (!isSuperAdmin && !roles.includes('admin')) {
+    redirect('/emp/dashboard');
+  }
   const params = await props.searchParams;
   const validatedParams = SearchParamsSchema.parse(params);
   const defaultFinancialYear = getFinancialYearCode(new Date());

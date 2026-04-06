@@ -16,17 +16,18 @@ import { DashboardWithoutDeduction } from './widget/dashboard-without-deduction-
 
 interface DashboardProps {
   hideAdminWidgets?: boolean;
+  employeeId?: number;
 }
 
-export function Dashboard({ hideAdminWidgets }: DashboardProps) {
+export function Dashboard({ hideAdminWidgets, employeeId }: DashboardProps) {
   return (
     <div className='flex flex-col gap-6'>
       {/* Row 1: Key stats */}
       <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
         {!hideAdminWidgets && <DashboardEmployeeCount />}
         {!hideAdminWidgets && <DashboardCandidateCount />}
-        <DashboardPendingLeave />
-        <DashboardUpcomingHoliday />
+        <DashboardPendingLeave employeeId={employeeId} />
+        <DashboardUpcomingHoliday isEmployee={hideAdminWidgets} />
       </div>
 
       {/* Row 2: Employee status + Candidate status */}

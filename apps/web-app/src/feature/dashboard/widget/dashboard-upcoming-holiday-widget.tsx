@@ -12,7 +12,11 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-export function DashboardUpcomingHoliday() {
+interface Props {
+  isEmployee?: boolean;
+}
+
+export function DashboardUpcomingHoliday({ isEmployee }: Props) {
   const [holidays, setHolidays] = useState<HolidayResponseType[] | null>(null);
 
   useEffect(() => {
@@ -31,7 +35,7 @@ export function DashboardUpcomingHoliday() {
   }, []);
 
   return (
-    <DashboardWidget href='/leaves/holiday'>
+    <DashboardWidget href={isEmployee ? '/emp/leave/holiday' : '/leaves/holiday'}>
       <div className='flex w-full items-start gap-4'>
         <DashboardWidgetIcon icon={CalendarDays} />
         <div className='flex min-w-0 flex-1 flex-col'>

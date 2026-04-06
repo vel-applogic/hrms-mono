@@ -65,6 +65,7 @@ export class EmployeeController {
     return this.updateDocumentsUc.execute({ currentUser, id, dto: body });
   }
 
+  @AdminOnly()
   @Patch('/search')
   async search(
     @CurrentUser() currentUser: CurrentUserType,

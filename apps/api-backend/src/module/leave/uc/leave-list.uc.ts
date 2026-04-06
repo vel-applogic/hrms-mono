@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@repo/db';
 import type { LeaveFilterRequestType, LeaveResponseType, PaginatedResponseType } from '@repo/dto';
+import { UserRoleDtoEnum } from '@repo/dto';
 import { CommonLoggerService, CurrentUserType, IUseCase, LeaveDao, leaveStatusDbEnumToDtoEnum, leaveStatusDtoEnumToDbEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
 import { getFinancialYearDateRange } from '@repo/shared';
 
@@ -20,11 +21,15 @@ export class LeaveListUc implements IUseCase<Params, PaginatedResponseType<Leave
   async execute(params: Params): Promise<PaginatedResponseType<LeaveResponseType>> {
     this.logger.i('Listing leaves', { userId: params.currentUser.id });
 
+    const isAdmin = params.currentUser.isSuperAdmin || params.currentUser.roles.includes(UserRoleDtoEnum.admin);
+
     const where: Prisma.LeaveWhereInput = {};
     if (params.filterDto.status && params.filterDto.status.length > 0) {
       where.status = { in: params.filterDto.status.map((s) => leaveStatusDtoEnumToDbEnum(s)) };
     }
-    if (params.filterDto.userId && params.filterDto.userId.length > 0) {
+    if (!isAdmin) {
+      where.userId = params.currentUser.id;
+    } else if (params.filterDto.userId && params.filterDto.userId.length > 0) {
       where.userId = { in: params.filterDto.userId };
     }
     if (params.filterDto.financialYear) {

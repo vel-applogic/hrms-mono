@@ -1,13 +1,22 @@
+import { redirect } from 'next/navigation';
+
 import { SearchParamsSchema } from '@repo/dto';
 
 import { HolidayData } from '@/feature/holiday/holiday-data';
 import { getHolidayYears, searchHolidays } from '@/lib/action/holiday.actions';
+import { auth } from '@/lib/auth/auth';
 
 interface Props {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 export default async function HolidayPage(props: Props) {
+  const session = await auth();
+  const isSuperAdmin = session?.user?.isSuperAdmin ?? false;
+  const roles = session?.user?.roles ?? [];
+  if (!isSuperAdmin && !roles.includes('admin')) {
+    redirect('/emp/dashboard');
+  }
   const params = await props.searchParams;
   const validatedParams = SearchParamsSchema.parse(params);
 

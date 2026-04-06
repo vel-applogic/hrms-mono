@@ -1,6 +1,9 @@
+import { redirect } from 'next/navigation';
+
 import { EmployeeFilterRequestType, SearchParamsSchema, SortDirectionDtoEnum } from '@repo/dto';
 
 import { EmployeeData } from '@/feature/employee/employee-data';
+import { auth } from '@/lib/auth/auth';
 import { employeeService } from '@/lib/service/employee.service';
 
 interface Props {
@@ -8,6 +11,12 @@ interface Props {
 }
 
 export default async function EmployeePage(props: Props) {
+  const session = await auth();
+  const isSuperAdmin = session?.user?.isSuperAdmin ?? false;
+  const roles = session?.user?.roles ?? [];
+  if (!isSuperAdmin && !roles.includes('admin')) {
+    redirect('/emp/dashboard');
+  }
   const params = await props.searchParams;
   const validatedParams = SearchParamsSchema.parse(params);
 

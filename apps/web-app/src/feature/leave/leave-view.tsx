@@ -5,9 +5,9 @@ import { PageTabs } from '@repo/ui/component/ui/page-tabs';
 import { useSession } from 'next-auth/react';
 
 const BASE_TABS: (PageTab & { adminOnly: boolean })[] = [
-  { id: 'leaves', label: 'Leaves', href: '/leaves', adminOnly: false },
+  { id: 'leaves', label: 'Leaves', href: '/leaves', adminOnly: true },
   { id: 'approvals', label: 'Awaiting Leave Approvals', href: '/leaves/approvals', adminOnly: true },
-  { id: 'holiday', label: 'Holidays', href: '/leaves/holiday', adminOnly: false },
+  { id: 'holiday', label: 'Holidays', href: '/leaves/holiday', adminOnly: true },
 ];
 
 const isActive = (tab: PageTab, pathname: string) => {
