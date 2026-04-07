@@ -4,6 +4,12 @@ import { format as formatDateFns } from 'date-fns';
 import { FieldValues, UseFormReturn } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
+// Mirror of @repo/shared/constants — kept inline to avoid an extra cross-package dep.
+// Update both places together. date-fns format tokens.
+const DATE_FORMAT = 'dd-MMM-yyyy';
+const TIME_FORMAT = 'hh:mm a';
+const DATE_TIME_FORMAT = 'dd-MMM-yyyy hh:mm a';
+
 import { FormattedValidationErrorType, ServerErrorType, ServerErrorTypeSchema } from './safe-action-error';
 
 export function cn(...inputs: ClassValue[]): string {
@@ -11,21 +17,37 @@ export function cn(...inputs: ClassValue[]): string {
 }
 
 /**
- * Format a date using date-fns
+ * Format a date for display in the UI.
  *
- * @deprecated For date-only fields, use formatDateOnly from date.util.ts instead
- * @param date - Date object to format
- * @param format - Moment-style format string (converted to date-fns format)
- * @returns Formatted date string
+ * Always uses `DATE_FORMAT` from `@repo/shared` (`dd-MMM-yyyy`) so date display
+ * is consistent across the entire app. Accepts `Date | string | null | undefined`
+ * — returns an empty string for nullish or invalid input.
  */
-export function formatDate(date: Date, format = 'ddd MMM DD YYYY'): string {
-  // Convert common moment format strings to date-fns equivalents
-  const dateFnsFormat = format
-    .replace(/DD/g, 'dd') // Day of month
-    .replace(/YYYY/g, 'yyyy') // 4-digit year
-    .replace(/ddd/g, 'EEE'); // Short day name
+export function formatDate(date: Date | string | null | undefined): string {
+  const d = toDate(date);
+  return d ? formatDateFns(d, DATE_FORMAT) : '';
+}
 
-  return formatDateFns(date, dateFnsFormat);
+/**
+ * Format a date+time for display in the UI using `DATE_TIME_FORMAT` from `@repo/shared`.
+ */
+export function formatDateTime(date: Date | string | null | undefined): string {
+  const d = toDate(date);
+  return d ? formatDateFns(d, DATE_TIME_FORMAT) : '';
+}
+
+/**
+ * Format only the time portion of a date for display using `TIME_FORMAT` from `@repo/shared`.
+ */
+export function formatTime(date: Date | string | null | undefined): string {
+  const d = toDate(date);
+  return d ? formatDateFns(d, TIME_FORMAT) : '';
+}
+
+function toDate(value: Date | string | null | undefined): Date | null {
+  if (value == null) return null;
+  const d = typeof value === 'string' ? new Date(value) : value;
+  return Number.isNaN(d.getTime()) ? null : d;
 }
 
 export function capitalize(str: string): string {

@@ -2,6 +2,7 @@
 
 import type { PaginatedResponseType, PayrollActiveCompensationResponseType, SearchParamsType } from '@repo/dto';
 import { DataTableSimple } from '@repo/ui/container/datatable/datatable';
+import { DateRenderer } from '@repo/ui/container/datatable/datatable-cell-renderer';
 import { ColDef } from 'ag-grid-community';
 import { Eye } from 'lucide-react';
 import Link from 'next/link';
@@ -93,6 +94,7 @@ export function PayrollCompensationData({ data, searchParams }: Props) {
       headerName: 'Effective from',
       field: 'effectiveFrom',
       width: 130,
+      cellRenderer: DateRenderer,
     },
     {
       headerName: '',

@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { format } from 'date-fns';
 import { Check, EllipsisVertical, LucideIcon, Pencil } from 'lucide-react';
 
 import { ActionIconButton } from '../../component/button';
 import Spinner from '../../component/spinner';
+import { formatDate, formatDateTime } from '../../lib/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -159,26 +159,15 @@ export const BadgeRenderer = (props: { text?: string; className?: string }) => {
 };
 
 // --- Date/Time Renderers ---
+// Always use the shared DATE_FORMAT / DATE_TIME_FORMAT — no custom format prop.
 
-export const DateTimeRenderer = (props: { value?: Date | string; format?: string }) => {
-  const defaultFormat = "MM/dd/yyyy 'at' h:mm a";
-  let val = '-';
-  if (props.value) {
-    const dateValue = typeof props.value === 'string' ? new Date(props.value) : props.value;
-    val = format(dateValue, props.format ?? defaultFormat);
-  }
-
+export const DateTimeRenderer = (props: { value?: Date | string | null }) => {
+  const val = formatDateTime(props.value) || '-';
   return <div className="inline-flex items-center text-sm font-medium text-muted-foreground">{val}</div>;
 };
 
-export const DateRenderer = (props: { value?: Date | string; format?: string }) => {
-  const defaultFormat = 'dd/MM/yyyy';
-  let val = '-';
-  if (props.value) {
-    const dateValue = typeof props.value === 'string' ? new Date(props.value) : props.value;
-    val = format(dateValue, props.format ?? defaultFormat);
-  }
-
+export const DateRenderer = (props: { value?: Date | string | null }) => {
+  const val = formatDate(props.value) || '-';
   return <div className="inline-flex items-center text-sm font-medium text-muted-foreground">{val}</div>;
 };
 

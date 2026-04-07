@@ -122,53 +122,65 @@ export const LeaveData = ({ data, employees, defaultFinancialYear, financialYear
 
   return (
     <div className='flex h-full flex-col gap-4'>
-      <div className='flex items-center justify-between gap-3'>
-        <div className='flex items-center gap-3'>
+      <div className='flex items-end justify-between gap-3'>
+        <div className='flex flex-wrap items-end gap-3'>
+          <div className='flex flex-col gap-1'>
+            <span className='text-xs text-muted-foreground'>Financial Year</span>
+            <Select value={currentFinancialYear} onValueChange={handleFinancialYearChange}>
+              <SelectTrigger className='h-10 w-[140px]'>
+                <SelectValue placeholder='Financial Year' />
+              </SelectTrigger>
+              <SelectContent>
+                {financialYearOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className='flex flex-col gap-1'>
+            <span className='text-xs text-muted-foreground'>Status</span>
+            <LeaveStatusFilter values={searchParams.leaveStatus} onChange={handleStatusChange} />
+          </div>
+          <div className='flex flex-col gap-1'>
+            <span className='text-xs text-muted-foreground'>Employee</span>
+            <SelectSearchMulti
+              values={employeeValues}
+              options={employeeSelectOptions}
+              placeholder='Employee'
+              searchPlaceholder='Search employee...'
+              onChange={handleEmployeeChange}
+              className='w-[180px]'
+            />
+          </div>
+          <div className='flex flex-col gap-1'>
+            <span className='text-xs text-muted-foreground'>Search</span>
+            <div className='flex h-10 w-[298px] shrink-0 items-center gap-3 rounded-[40px] border border-input bg-white px-4'>
+              <svg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                <path
+                  d='M7.33 12.67A5.33 5.33 0 1 0 7.33 2a5.33 5.33 0 0 0 0 10.67ZM14 14l-2.9-2.9'
+                  stroke='#848A91'
+                  strokeWidth='1.33'
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                />
+              </svg>
+              <input
+                type='text'
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                placeholder='Search by name or email...'
+                className='w-full bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none'
+              />
+            </div>
+          </div>
           {hasActiveFilters && (
             <Button variant='outline' size='sm' onClick={handleClearAll} className='shrink-0'>
               <X className='h-4 w-4' />
               Clear
             </Button>
           )}
-          <Select value={currentFinancialYear} onValueChange={handleFinancialYearChange}>
-            <SelectTrigger className='h-10 w-[140px]'>
-              <SelectValue placeholder='Financial Year' />
-            </SelectTrigger>
-            <SelectContent>
-              {financialYearOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <LeaveStatusFilter values={searchParams.leaveStatus} onChange={handleStatusChange} />
-          <SelectSearchMulti
-            values={employeeValues}
-            options={employeeSelectOptions}
-            placeholder='Employee'
-            searchPlaceholder='Search employee...'
-            onChange={handleEmployeeChange}
-            className='w-[180px]'
-          />
-          <div className='flex h-10 w-[298px] shrink-0 items-center gap-3 rounded-[40px] border border-input bg-white px-4'>
-            <svg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'>
-              <path
-                d='M7.33 12.67A5.33 5.33 0 1 0 7.33 2a5.33 5.33 0 0 0 0 10.67ZM14 14l-2.9-2.9'
-                stroke='#848A91'
-                strokeWidth='1.33'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-              />
-            </svg>
-            <input
-              type='text'
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              placeholder='Search by name or email...'
-              className='w-full bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none'
-            />
-          </div>
         </div>
         <Button className='shrink-0 rounded-[40px]' onClick={handleApplyLeave}>
           <CalendarPlus className='h-4 w-4' />

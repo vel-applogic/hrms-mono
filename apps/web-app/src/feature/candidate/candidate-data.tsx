@@ -130,35 +130,47 @@ export const CandidateData = ({ data, searchParams }: Props) => {
 
   return (
     <div className='flex h-full flex-col gap-4'>
-      <div className='center-container flex items-center justify-between gap-3'>
-        <div className='flex items-center gap-3'>
+      <div className='center-container flex items-end justify-between gap-3'>
+        <div className='flex flex-wrap items-end gap-3'>
+          <div className='flex flex-col gap-1'>
+            <span className='text-xs text-muted-foreground'>Status</span>
+            <CandidateStatusFilter values={searchParams.candidateStatus} onChange={handleStatusChange} />
+          </div>
+          <div className='flex flex-col gap-1'>
+            <span className='text-xs text-muted-foreground'>Progress</span>
+            <CandidateProgressFilter values={searchParams.candidateProgress} onChange={handleProgressChange} />
+          </div>
+          <div className='flex flex-col gap-1'>
+            <span className='text-xs text-muted-foreground'>Source</span>
+            <CandidateSourceFilter values={searchParams.candidateSource} onChange={handleSourceChange} />
+          </div>
+          <div className='flex flex-col gap-1'>
+            <span className='text-xs text-muted-foreground'>Search</span>
+            <div className='flex h-10 w-[298px] shrink-0 items-center gap-3 rounded-[40px] border border-input bg-white px-4'>
+              <svg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                <path
+                  d='M7.33 12.67A5.33 5.33 0 1 0 7.33 2a5.33 5.33 0 0 0 0 10.67ZM14 14l-2.9-2.9'
+                  stroke='#848A91'
+                  strokeWidth='1.33'
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                />
+              </svg>
+              <input
+                type='text'
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                placeholder='Search candidates...'
+                className='w-full bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none'
+              />
+            </div>
+          </div>
           {hasActiveFilters && (
             <Button variant='outline' size='sm' onClick={handleClearAll} className='shrink-0'>
               <X className='h-4 w-4' />
               Clear
             </Button>
           )}
-          <CandidateStatusFilter values={searchParams.candidateStatus} onChange={handleStatusChange} />
-          <CandidateProgressFilter values={searchParams.candidateProgress} onChange={handleProgressChange} />
-          <CandidateSourceFilter values={searchParams.candidateSource} onChange={handleSourceChange} />
-          <div className='flex h-10 w-[298px] shrink-0 items-center gap-3 rounded-[40px] border border-input bg-white px-4'>
-            <svg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'>
-              <path
-                d='M7.33 12.67A5.33 5.33 0 1 0 7.33 2a5.33 5.33 0 0 0 0 10.67ZM14 14l-2.9-2.9'
-                stroke='#848A91'
-                strokeWidth='1.33'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-              />
-            </svg>
-            <input
-              type='text'
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              placeholder='Search candidates...'
-              className='w-full bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none'
-            />
-          </div>
         </div>
         <Button className='shrink-0 rounded-[40px]' onClick={handleAddNew}>
           <Plus className='h-4 w-4' />

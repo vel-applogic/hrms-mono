@@ -100,12 +100,6 @@ export const OrganizationData = ({ data, searchParams }: Props) => {
             : 'No records found'}
         </span>
         <div className='flex items-center gap-3'>
-          {hasActiveFilters && (
-            <Button variant='outline' size='sm' onClick={handleClearAll} className='shrink-0'>
-              <X className='h-4 w-4' />
-              Clear
-            </Button>
-          )}
           <div className='flex h-10 w-[298px] shrink-0 items-center gap-3 rounded-[40px] border border-input bg-white px-4'>
             <svg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'>
               <path
@@ -124,6 +118,12 @@ export const OrganizationData = ({ data, searchParams }: Props) => {
               className='w-full bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none'
             />
           </div>
+          {hasActiveFilters && (
+            <Button variant='outline' size='sm' onClick={handleClearAll} className='shrink-0'>
+              <X className='h-4 w-4' />
+              Clear
+            </Button>
+          )}
         </div>
       </div>
 

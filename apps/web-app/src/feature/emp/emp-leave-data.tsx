@@ -66,21 +66,27 @@ export function EmpLeaveData({ employeeId, initialData, initialFinancialYear }: 
 
   return (
     <div className='flex h-full flex-col gap-4'>
-      <div className='flex items-center justify-between gap-3'>
-        <div className='flex items-center gap-3'>
-          <LeaveStatusFilter values={statusFilter} onChange={handleStatusChange} />
-          <Select value={financialYear} onValueChange={handleFyChange}>
-            <SelectTrigger className='h-10 w-[140px]'>
-              <SelectValue placeholder='Financial Year' />
-            </SelectTrigger>
-            <SelectContent>
-              {FY_OPTIONS.map((fy) => (
-                <SelectItem key={fy} value={fy}>
-                  {fy}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <div className='flex items-end justify-between gap-3'>
+        <div className='flex flex-wrap items-end gap-3'>
+          <div className='flex flex-col gap-1'>
+            <span className='text-xs text-muted-foreground'>Status</span>
+            <LeaveStatusFilter values={statusFilter} onChange={handleStatusChange} />
+          </div>
+          <div className='flex flex-col gap-1'>
+            <span className='text-xs text-muted-foreground'>Financial Year</span>
+            <Select value={financialYear} onValueChange={handleFyChange}>
+              <SelectTrigger className='h-10 w-[140px]'>
+                <SelectValue placeholder='Financial Year' />
+              </SelectTrigger>
+              <SelectContent>
+                {FY_OPTIONS.map((fy) => (
+                  <SelectItem key={fy} value={fy}>
+                    {fy}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <Button
           size='sm'

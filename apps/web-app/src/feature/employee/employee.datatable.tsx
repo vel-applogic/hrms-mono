@@ -7,7 +7,7 @@ import {
   PaginatedResponseType,
 } from '@repo/dto';
 import { DataTableSimple, DummySort, getSort } from '@repo/ui/container/datatable/datatable';
-import { ActionOption, ActionsIconCellRenderer, ActionsIconCellRendererParams, BadgeRenderer, DateTimeRenderer } from '@repo/ui/container/datatable/datatable-cell-renderer';
+import { ActionOption, ActionsIconCellRenderer, ActionsIconCellRendererParams, BadgeRenderer, DateRenderer, DateTimeRenderer } from '@repo/ui/container/datatable/datatable-cell-renderer';
 import { isSortable } from '@repo/ui/lib/utils';
 import { ColDef } from 'ag-grid-community';
 import { Eye, Pencil, Trash2 } from 'lucide-react';
@@ -113,12 +113,14 @@ export const EmployeeDataTableClient = (props: Props) => {
         sort: getSort('dateOfJoining', props.sort.sKey, props.sort.sVal),
         sortable: isSortable('dateOfJoining', EmployeeSortableColumns),
         comparator: DummySort,
+        cellRenderer: DateRenderer,
       },
       {
         headerName: 'Relieving Date',
         field: 'dateOfLeaving',
         width: 130,
         sortable: false,
+        cellRenderer: DateRenderer,
       },
       {
         headerName: 'Created At',
