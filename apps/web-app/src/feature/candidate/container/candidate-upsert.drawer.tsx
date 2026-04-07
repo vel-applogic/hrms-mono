@@ -13,6 +13,7 @@ import { Button } from '@repo/ui/component/ui/button';
 import { Input } from '@repo/ui/component/ui/input';
 import { Label } from '@repo/ui/component/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/ui/select';
+import { Textarea } from '@repo/ui/component/ui/textarea';
 import { Drawer } from '@repo/ui/container/drawer/drawer';
 import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -79,7 +80,7 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
   // Local state for string arrays
   const [contactNumbers, setContactNumbers] = useState<string[]>(['']);
   const [urls, setUrls] = useState<string[]>(['']);
-  const [skills, setSkills] = useState<string[]>(['']);
+  const [skillsText, setSkillsText] = useState<string>('');
 
   useEffect(() => {
     if (open) {
@@ -107,7 +108,7 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
         });
         setContactNumbers(candidate.contactNumbers.length > 0 ? candidate.contactNumbers : ['']);
         setUrls(candidate.urls.length > 0 ? candidate.urls : ['']);
-        setSkills(candidate.skills.length > 0 ? candidate.skills : ['']);
+        setSkillsText(candidate.skills.join(', '));
       } else {
         form.reset({
           firstname: '',
@@ -131,7 +132,7 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
         });
         setContactNumbers(['']);
         setUrls(['']);
-        setSkills(['']);
+        setSkillsText('');
       }
       setError('');
     }
@@ -145,7 +146,10 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
         ...data,
         contactNumbers: contactNumbers.filter((v) => v.trim().length > 0),
         urls: urls.filter((v) => v.trim().length > 0),
-        skills: skills.filter((v) => v.trim().length > 0),
+        skills: skillsText
+          .split(',')
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0),
       };
       if (isEditing && candidate) {
         await updateCandidate(candidate.id, payload);
@@ -300,32 +304,16 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
         </div>
 
         {/* Skills */}
-        <div className='flex flex-col gap-3'>
-          <Label>Skills</Label>
-          <div className='flex flex-col gap-2'>
-            {skills.map((skill, i) => (
-              <div key={i} className='flex items-center gap-2'>
-                <Input
-                  placeholder={`e.g. React, Node.js`}
-                  value={skill}
-                  onChange={(e) => {
-                    const updated = [...skills];
-                    updated[i] = e.target.value;
-                    setSkills(updated);
-                  }}
-                />
-                {skills.length > 1 && (
-                  <button type='button' onClick={() => setSkills(skills.filter((_, idx) => idx !== i))} className='shrink-0 text-muted-foreground hover:text-destructive'>
-                    <Trash2 className='h-4 w-4' />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-          <Button type='button' variant='outline' size='sm' onClick={() => setSkills([...skills, ''])} className='w-fit'>
-            <Plus className='h-4 w-4' />
-            Add skill
-          </Button>
+        <div className='flex flex-col gap-2'>
+          <Label htmlFor='skills'>Skills</Label>
+          <Textarea
+            id='skills'
+            placeholder='e.g. React, Node.js, TypeScript'
+            value={skillsText}
+            onChange={(e) => setSkillsText(e.target.value)}
+            rows={3}
+          />
+          <p className='text-xs text-muted-foreground'>Separate skills with commas</p>
         </div>
 
         {/* Experience row */}

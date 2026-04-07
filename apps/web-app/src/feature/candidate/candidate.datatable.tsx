@@ -1,20 +1,9 @@
 'use client';
 
-import {
-  CandidateListResponseType,
-  CandidateProgressDtoEnum,
-  CandidateSortableColumns,
-  CandidateStatusDtoEnum,
-  PaginatedResponseType,
-} from '@repo/dto';
+import { CandidateListResponseType, CandidateProgressDtoEnum, CandidateSortableColumns, CandidateStatusDtoEnum, PaginatedResponseType } from '@repo/dto';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@repo/ui/component/ui/tooltip';
 import { DataTableSimple, DummySort, getSort } from '@repo/ui/container/datatable/datatable';
-import {
-  ActionOption,
-  ActionsIconCellRenderer,
-  BadgeRenderer,
-  DateTimeRenderer,
-  EditableSelectCellRenderer,
-} from '@repo/ui/container/datatable/datatable-cell-renderer';
+import { ActionOption, ActionsIconCellRenderer, BadgeRenderer, DateTimeRenderer, EditableSelectCellRenderer } from '@repo/ui/container/datatable/datatable-cell-renderer';
 import { isSortable } from '@repo/ui/lib/utils';
 import { ColDef } from 'ag-grid-community';
 import { Eye, Pencil, Trash2, UserPlus } from 'lucide-react';
@@ -104,7 +93,7 @@ export const CandidateDataTableClient = (props: Props) => {
         sort: getSort('firstname', props.sort.sKey, props.sort.sVal),
         sortable: isSortable('firstname', CandidateSortableColumns),
         comparator: DummySort,
-        valueGetter: (params) => params.data ? `${params.data.firstname} ${params.data.lastname}` : '',
+        valueGetter: (params) => (params.data ? `${params.data.firstname} ${params.data.lastname}` : ''),
       },
       {
         headerName: 'Email',
@@ -165,22 +154,34 @@ export const CandidateDataTableClient = (props: Props) => {
         field: 'expInYears',
         width: 110,
         sortable: false,
-        valueFormatter: (params) => params.value != null ? String(params.value) : '—',
+        valueFormatter: (params) => (params.value != null ? String(params.value) : '—'),
       },
       {
         headerName: 'Skills',
         field: 'skills',
-        flex: 3,
+        flex: 2,
         sortable: false,
-        autoHeight: true,
-        cellRenderer: (params: { value?: string[] }) =>
-          params.value?.length ? (
-            <div className='flex flex-wrap items-center gap-1 py-1'>
-              {params.value.map((skill, i) => (
-                <BadgeRenderer key={i} text={skill} className='border border-border' />
-              ))}
+        cellRenderer: (params: { value?: string[] }) => {
+          if (!params.value?.length) return '—';
+          const [first, ...rest] = params.value;
+          return (
+            <div className='flex items-center gap-2'>
+              <span className='text-sm'>{first}</span>
+              {rest.length > 0 && (
+                <TooltipProvider delayDuration={100}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className='cursor-default rounded border border-border bg-muted/50 px-1.5 py-0.5 text-xs text-muted-foreground'>+{rest.length}</span>
+                    </TooltipTrigger>
+                    <TooltipContent side='top' className='max-w-xs'>
+                      {rest.join(', ')}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
-          ) : '—',
+          );
+        },
       },
       {
         headerName: 'Created At',
