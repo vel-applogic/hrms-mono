@@ -68,26 +68,44 @@ export const ActionsIconCellRenderer = <TData = any,>(props: ActionsIconCellRend
   const visibleOptions = options.slice(0, 3);
   const dropdownOptions = options.slice(3);
 
+  const getActionColorClass = (option: ActionOption): string => {
+    const isDestructive = option.variant === 'outline-danger';
+    if (isDestructive) {
+      return 'text-destructive hover:text-destructive hover:bg-destructive/10';
+    }
+    if (option.name === 'Edit' || option.name === 'Update') {
+      return 'text-warning hover:text-warning hover:bg-warning/10';
+    }
+    return 'text-muted-foreground hover:text-foreground hover:bg-muted';
+  };
+
   return (
     <TooltipProvider>
-      <div className="!flex h-full w-full items-center justify-center space-x-1">
-        {/* Render first 3 options as icon buttons */}
+      <div className="!flex h-full w-full items-center justify-center gap-2 px-2">
+        {/* Render first 3 options as flat icon buttons */}
         {visibleOptions.map((option, index) => {
           const Icon = option.icon;
           return (
             <Tooltip key={index}>
               <TooltipTrigger asChild>
-                <ActionIconButton onClick={() => onClick(option.name)} customVariant={option.variant || 'outline'} className="w-auto px-2">
+                <button
+                  type="button"
+                  onClick={() => onClick(option.name)}
+                  className={cn(
+                    'inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+                    getActionColorClass(option),
+                  )}
+                >
                   {option.showBoth && Icon ? (
                     <span className="flex items-center gap-1 text-xs">
-                      <Icon size={14} /> {option.name}
+                      <Icon size={16} /> {option.name}
                     </span>
                   ) : Icon ? (
-                    <Icon size={14} />
+                    <Icon size={16} />
                   ) : (
                     <span className="text-xs">{option.name.charAt(0)}</span>
                   )}
-                </ActionIconButton>
+                </button>
               </TooltipTrigger>
               <TooltipContent align="center" side="left" className="border-primary bg-primary">
                 {option.name}
@@ -100,9 +118,12 @@ export const ActionsIconCellRenderer = <TData = any,>(props: ActionsIconCellRend
         {dropdownOptions.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <ActionIconButton customVariant="outline">
-                <EllipsisVertical size={14} />
-              </ActionIconButton>
+              <button
+                type="button"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <EllipsisVertical size={16} />
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="bottom" align="end">
               <DropdownMenuLabel>More Actions</DropdownMenuLabel>

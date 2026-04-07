@@ -100,16 +100,20 @@ export function PayrollCompensationData({ data, searchParams }: Props) {
       sortable: false,
       resizable: false,
       pinned: 'right',
-      width: 60,
+      width: 80,
+      cellClass: '!flex items-center !justify-center !px-0',
       cellRenderer: (params: { data?: PayrollActiveCompensationResponseType }) => {
         if (!params.data) return null;
         return (
-          <Link
-            href={`/employee/${params.data.employeeId}/compensation`}
-            className='inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground'
-          >
-            <Eye className='h-4 w-4' />
-          </Link>
+          <div className='flex h-full w-full items-center justify-center gap-2 px-2'>
+            <Link
+              href={`/employee/${params.data.employeeId}/compensation`}
+              className='inline-flex items-center justify-center rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+              title='View'
+            >
+              <Eye className='h-4 w-4' />
+            </Link>
+          </div>
         );
       },
     },

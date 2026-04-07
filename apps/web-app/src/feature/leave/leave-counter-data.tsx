@@ -4,6 +4,7 @@ import type { LeaveCounterResponseType } from '@repo/dto';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/shadcn/select';
 import { DataTableSimple } from '@repo/ui/container/datatable/datatable';
 import { ColDef } from 'ag-grid-community';
+import { Eye } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
@@ -83,16 +84,25 @@ export const LeaveCounterData = ({ counters, financialYear, financialYearOptions
         width: 130,
       },
       {
-        headerName: 'View Leaves',
+        headerName: '',
         colId: 'view',
-        width: 120,
+        width: 80,
         sortable: false,
+        resizable: false,
+        pinned: 'right' as const,
+        cellClass: '!flex items-center !justify-center !px-0',
         cellRenderer: (params: { data?: LeaveCounterResponseType }) => {
           if (!params.data) return null;
           return (
-            <Link href={`/employee/${params.data.userId}/leave?financialYear=${params.data.financialYear}`} className='text-primary hover:underline'>
-              View
-            </Link>
+            <div className='flex h-full w-full items-center justify-center gap-2 px-2'>
+              <Link
+                href={`/employee/${params.data.userId}/leave?financialYear=${params.data.financialYear}`}
+                className='inline-flex items-center justify-center rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+                title='View leaves'
+              >
+                <Eye className='h-4 w-4' />
+              </Link>
+            </div>
           );
         },
       },

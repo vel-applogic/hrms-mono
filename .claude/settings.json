@@ -7,7 +7,8 @@
       "Bash(pnpm lint:*)",
       "Bash(grep -E \"\\\\.\\(ts|tsx|js|jsx\\)$\")",
       "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
-      "Bash(xargs ls:*)"
+      "Bash(xargs ls:*)",
+      "Bash(grep -rn \"warning\\\\|destructive\" /Users/vel/Applogic/Applogic/hrms-mono/apps/web-app/tailwind.config* /Users/vel/Applogic/Applogic/hrms-mono/packages/ui/tailwind.config* /Users/vel/Applogic/Applogic/hrms-mono/apps/web-app/src/app/globals.css /Users/vel/Applogic/Applogic/hrms-mono/packages/ui/src/styles/)"
     ],
     "additionalDirectories": [
       "/Users/vel/Applogic/Applogic/hrms-mono/apps/web-app/src/app/(authenticated)/policy/[id]"

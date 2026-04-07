@@ -41,7 +41,7 @@ function DownloadButton({ onDownload }: { onDownload: () => Promise<void> }) {
     <button
       onClick={handleClick}
       disabled={isLoading}
-      className='inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50'
+      className='inline-flex items-center justify-center rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50'
       title='Download PDF'
     >
       {isLoading ? <Loader2 className='h-4 w-4 animate-spin' /> : <Download className='h-4 w-4' />}
@@ -172,15 +172,16 @@ export function PayslipData() {
       sortable: false,
       resizable: false,
       pinned: 'right',
-      width: 120,
+      width: 150,
+      cellClass: '!flex items-center !justify-center !px-0',
       cellRenderer: (params: { data?: PayslipListResponseType }) => {
         if (!params.data) return null;
         const payslipId = params.data.id;
         return (
-          <div className='flex items-center gap-1'>
+          <div className='flex h-full w-full items-center justify-center gap-2 px-2'>
             <button
               onClick={() => setViewPayslipId(payslipId)}
-              className='inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground'
+              className='inline-flex items-center justify-center rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
               title='View payslip'
             >
               <Eye className='h-4 w-4' />
@@ -188,7 +189,7 @@ export function PayslipData() {
             <DownloadButton onDownload={() => handleDownloadPdf(payslipId)} />
             <button
               onClick={() => setEditPayslipId(payslipId)}
-              className='inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground'
+              className='inline-flex items-center justify-center rounded-md p-2 text-warning transition-colors hover:bg-warning/10 hover:text-warning'
               title='Edit line items'
             >
               <Pencil className='h-4 w-4' />

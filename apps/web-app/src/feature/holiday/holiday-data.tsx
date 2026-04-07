@@ -149,21 +149,24 @@ export function HolidayData({ data, searchParams, years, selectedYear, readOnly 
       sortable: false,
       resizable: false,
       pinned: 'right' as const,
-      width: 100,
+      width: 120,
+      cellClass: '!flex items-center !justify-center !px-0',
       cellRenderer: (params: { data?: HolidayResponseType }) => {
         if (!params.data) return null;
         const holiday = params.data;
         return (
-          <div className='flex items-center gap-1'>
+          <div className='flex h-full w-full items-center justify-center gap-2 px-2'>
             <button
               onClick={() => handleEdit(holiday)}
-              className='inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground'
+              className='inline-flex items-center justify-center rounded-md p-2 text-warning transition-colors hover:bg-warning/10 hover:text-warning'
+              title='Edit'
             >
               <Pencil className='h-4 w-4' />
             </button>
             <button
               onClick={() => handleDelete(holiday)}
-              className='inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-destructive'
+              className='inline-flex items-center justify-center rounded-md p-2 text-destructive transition-colors hover:bg-destructive/10 hover:text-destructive'
+              title='Delete'
             >
               <Trash2 className='h-4 w-4' />
             </button>
