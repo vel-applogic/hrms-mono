@@ -23,7 +23,7 @@ export function PageTabs({ tabs, activeTabId, isActive: isActiveFn }: Props) {
   const pathname = usePathname();
 
   return (
-    <div className='flex items-center gap-2.5 border-b border-border'>
+    <div className='flex items-center gap-2.5 border-b border-muted-foreground/30'>
       {tabs.map((tab) => {
         const active = activeTabId ? activeTabId === tab.id : isActiveFn ? isActiveFn(tab, pathname) : pathname.startsWith(tab.href);
         const Tag = activeTabId ? 'a' : Link;

@@ -17,14 +17,14 @@ class AccountService extends BaseService {
 
   async getProfile(): Promise<AccountUpdateProfileResponseType> {
     return this.get<AccountUpdateProfileResponseType>({
-      url: '/api/admin/account/profile',
+      url: '/api/account/profile',
       responseSchema: AccountUpdateProfileResponseSchema,
     });
   }
 
   async updateProfile(data: AccountUpdateProfileRequestType): Promise<AccountUpdateProfileResponseType> {
     return this.put<AccountUpdateProfileResponseType, AccountUpdateProfileRequestType>({
-      url: '/api/admin/account/profile',
+      url: '/api/account/profile',
       data,
       responseSchema: AccountUpdateProfileResponseSchema,
     });
@@ -32,7 +32,7 @@ class AccountService extends BaseService {
 
   async changePassword(data: AccountChangePasswordRequestType): Promise<OperationStatusResponseType> {
     return this.put<OperationStatusResponseType, AccountChangePasswordRequestType>({
-      url: '/api/admin/account/change-password',
+      url: '/api/account/change-password',
       data,
       responseSchema: OperationStatusResponseSchema,
     });

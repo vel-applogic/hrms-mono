@@ -57,7 +57,7 @@ export function HeaderProfile({ userName, userEmail }: Props) {
           </DropdownMenuLabel>
           <DropdownMenuSeparator className='bg-border' />
           <DropdownMenuItem asChild className='cursor-pointer'>
-            <Link href='/profile'>
+            <Link href='/profile/update'>
               <User />
               Profile
             </Link>

@@ -42,7 +42,7 @@ export function UserMenu({ userName, userEmail }: Props) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end' className='w-52'>
         <DropdownMenuItem asChild className='cursor-pointer'>
-          <Link href='/profile'>
+          <Link href='/profile/update'>
             <User />
             Profile
           </Link>

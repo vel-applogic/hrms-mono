@@ -3,7 +3,7 @@
 import type { EmployeeCompensationResponseType, PaginatedResponseType } from '@repo/dto';
 import { Button } from '@repo/ui/component/ui/button';
 import { Label } from '@repo/ui/component/ui/label';
-import { cn } from '@repo/ui/lib/utils';
+import { cn, formatDate } from '@repo/ui/lib/utils';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -30,8 +30,24 @@ function CompensationCard({
   onDelete: (compensation: EmployeeCompensationResponseType) => void;
   readOnly?: boolean;
 }) {
+  const fromLabel = formatDate(compensation.effectiveFrom);
+  const tillLabel = formatDate(compensation.effectiveTill);
+
   return (
-    <div className={cn('relative rounded-md border border-border p-4', compensation.isActive ? 'bg-white dark:bg-white/5' : 'bg-muted/30')}>
+    <div className={cn('relative rounded-md border border-muted-foreground/30 p-4', compensation.isActive ? 'bg-white dark:bg-white/5' : 'bg-muted/30')}>
+      {fromLabel && (
+        <span className='absolute left-3 top-3 rounded-md border border-muted-foreground/30 bg-[#077f8c14] px-2 py-0.5 text-xs text-muted-foreground'>
+          {tillLabel ? (
+            <>
+              <span className='font-bold text-foreground'>{fromLabel}</span> to <span className='font-bold text-foreground'>{tillLabel}</span>
+            </>
+          ) : (
+            <>
+              from <span className='font-bold text-foreground'>{fromLabel}</span>
+            </>
+          )}
+        </span>
+      )}
       <div className='absolute right-1 top-1 flex items-center gap-1.5'>
         {!readOnly && <Button variant='ghost' size='icon' className='h-7 w-7' onClick={() => onEdit(compensation)}>
           <Pencil className='h-3.5 w-3.5' />
@@ -45,7 +61,7 @@ function CompensationCard({
           <span className='rounded-md border border-muted-foreground/30 bg-muted/50 px-2 py-0.5 text-xs font-medium text-muted-foreground'>Inactive</span>
         )}
       </div>
-      <div className='grid gap-3 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5'>
+      <div className='mt-8 grid gap-3 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5'>
         <div className='flex flex-col gap-1'>
           <Label className='text-muted-foreground'>Gross</Label>
           <p className='text-lg font-medium'>{formatAmount(compensation.grossAmount)}</p>
@@ -56,14 +72,6 @@ function CompensationCard({
             <p className='text-lg font-medium'>{formatAmount(li.amount)}</p>
           </div>
         ))}
-        <div className='flex flex-col gap-1'>
-          <Label className='text-muted-foreground'>Effective from</Label>
-          <p className='text-lg font-medium'>{compensation.effectiveFrom}</p>
-        </div>
-        <div className='flex flex-col gap-1'>
-          <Label className='text-muted-foreground'>Effective till</Label>
-          <p className='text-lg font-medium'>{compensation.effectiveTill ?? '—'}</p>
-        </div>
       </div>
     </div>
   );

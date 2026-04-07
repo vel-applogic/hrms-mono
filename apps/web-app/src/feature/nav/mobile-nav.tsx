@@ -66,7 +66,7 @@ export function MobileNav({ userName, userEmail, isSuperAdmin, isAdmin }: Props)
         ))}
         <DropdownMenuSeparator className="bg-border" />
         <DropdownMenuItem asChild className="cursor-pointer">
-          <Link href="/profile">
+          <Link href="/profile/update">
             <User />
             Profile
           </Link>

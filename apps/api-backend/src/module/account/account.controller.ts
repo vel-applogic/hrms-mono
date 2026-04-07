@@ -13,7 +13,7 @@ import { AccountChangePasswordUc } from './uc/account-change-password.uc.js';
 import { AccountGetProfileUc } from './uc/account-get-profile.uc.js';
 import { AccountUpdateProfileUc } from './uc/account-update-profile.uc.js';
 
-@Controller('api/admin/account')
+@Controller('api/account')
 export class AccountController {
   constructor(
     private readonly getProfileUc: AccountGetProfileUc,
