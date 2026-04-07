@@ -5,6 +5,7 @@ import {
   AuditEntityTypeDtoEnum,
   AuditEventGroupDtoEnum,
   AuditEventTypeDtoEnum,
+  MediaTypeDtoEnum,
   OperationStatusResponseType,
   PolicyCreateRequestType,
   PolicyDetailResponseType,
@@ -13,6 +14,7 @@ import { AuditService, CommonLoggerService, CurrentUserType, IUseCase, MediaDao,
 import { ApiFieldValidationError } from '@repo/shared';
 
 import { S3Service } from '#src/external-service/s3.service.js';
+import { MediaService } from '#src/service/media.service.js';
 
 import { BasePolicyUc } from './_base-policy.uc.js';
 
@@ -30,6 +32,7 @@ export class PolicyCreateUc extends BasePolicyUc implements IUseCase<Params, Ope
     s3Service: S3Service,
     private readonly policyHasMediaDao: PolicyHasMediaDao,
     private readonly mediaDao: MediaDao,
+    private readonly mediaService: MediaService,
     private readonly auditService: AuditService,
   ) {
     super(prisma, logger, policyDao, s3Service);
@@ -41,6 +44,13 @@ export class PolicyCreateUc extends BasePolicyUc implements IUseCase<Params, Ope
 
     const createdId = await this.transaction(async (tx) => {
       const policyId = await this.createPolicy({ dto: params.dto, organizationId: params.currentUser.organizationId, tx });
+      const processedContent = await this.processContentImages({ content: params.dto.content, policyId });
+      await this.policyDao.update({
+        id: policyId,
+        organizationId: params.currentUser.organizationId,
+        data: { content: processedContent as unknown as Prisma.InputJsonValue },
+        tx,
+      });
       if (params.dto.mediaIds && params.dto.mediaIds.length > 0) {
         await this.linkMediasToPolicy({ policyId, mediaIds: params.dto.mediaIds, tx });
       }
@@ -72,6 +82,41 @@ export class PolicyCreateUc extends BasePolicyUc implements IUseCase<Params, Ope
         content: params.dto.content,
       },
       tx: params.tx,
+    });
+  }
+
+  private async processContentImages(params: { content: PolicyCreateRequestType['content']; policyId: number }): Promise<PolicyCreateRequestType['content']> {
+    const list = await Promise.all(
+      params.content.list.map(async (item) => {
+        if (item.type !== 'text' || !item.content) return item;
+        const rewritten = await this.rewriteHtmlImageKeys(item.content, params.policyId);
+        return { ...item, content: rewritten };
+      }),
+    );
+    return { list };
+  }
+
+  private async rewriteHtmlImageKeys(html: string, policyId: number): Promise<string> {
+    const tempKeys = new Set<string>();
+    const re = /data-s3-key="(temp\/[^"]+)"/g;
+    let match: RegExpExecArray | null;
+    while ((match = re.exec(html)) !== null) tempKeys.add(match[1]!);
+    if (tempKeys.size === 0) return html;
+
+    const replacements = new Map<string, string>();
+    for (const tempKey of tempKeys) {
+      const filename = tempKey.split('/').pop() ?? tempKey;
+      const moved = await this.mediaService.moveTempFileAndGetKey({
+        media: { key: tempKey, name: filename, type: MediaTypeDtoEnum.image },
+        mediaPlacement: 'policy',
+        relationId: policyId,
+        isImage: true,
+      });
+      if (moved) replacements.set(tempKey, moved.newKey);
+    }
+    return html.replace(/data-s3-key="(temp\/[^"]+)"/g, (full, key: string) => {
+      const newKey = replacements.get(key);
+      return newKey ? `data-s3-key="${newKey}"` : full;
     });
   }
 

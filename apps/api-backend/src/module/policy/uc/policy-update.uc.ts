@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma } from '@repo/db';
+import { Prisma } from '@repo/db';
 import {
   AuditActivityStatusDtoEnum,
   AuditEntityTypeDtoEnum,
   AuditEventGroupDtoEnum,
   AuditEventTypeDtoEnum,
+  MediaTypeDtoEnum,
   OperationStatusResponseType,
   PolicyDetailResponseType,
   PolicyUpdateRequestType,
@@ -13,6 +14,7 @@ import { AuditService, CommonLoggerService, CurrentUserType, IUseCase, MediaDao,
 import { ApiError, ApiFieldValidationError } from '@repo/shared';
 
 import { S3Service } from '#src/external-service/s3.service.js';
+import { MediaService } from '#src/service/media.service.js';
 
 import { BasePolicyUc } from './_base-policy.uc.js';
 
@@ -31,6 +33,7 @@ export class PolicyUpdateUc extends BasePolicyUc implements IUseCase<Params, Ope
     s3Service: S3Service,
     private readonly policyHasMediaDao: PolicyHasMediaDao,
     private readonly mediaDao: MediaDao,
+    private readonly mediaService: MediaService,
     private readonly auditService: AuditService,
   ) {
     super(prisma, logger, policyDao, s3Service);
@@ -40,8 +43,11 @@ export class PolicyUpdateUc extends BasePolicyUc implements IUseCase<Params, Ope
     this.logger.i('Updating policy', { id: params.id });
     const oldPolicy = await this.validate(params);
 
+    const processedContent = await this.processContentImages({ content: params.dto.content, policyId: params.id });
+    const dtoWithProcessedContent: PolicyUpdateRequestType = { ...params.dto, content: processedContent };
+
     await this.transaction(async (tx) => {
-      await this.updatePolicy(params.id, params.dto, tx, params.currentUser.organizationId);
+      await this.updatePolicy(params.id, dtoWithProcessedContent, tx, params.currentUser.organizationId);
       if (params.dto.mediaIds !== undefined) {
         await this.linkMediasToPolicy({ policyId: params.id, mediaIds: params.dto.mediaIds, tx });
       }
@@ -77,9 +83,44 @@ export class PolicyUpdateUc extends BasePolicyUc implements IUseCase<Params, Ope
     const updateData: Prisma.PolicyUpdateInput = {
       updatedAt: new Date(),
       title: dto.title,
-      content: dto.content,
+      content: dto.content as unknown as Prisma.InputJsonValue,
     };
     await this.policyDao.update({ id, organizationId, data: updateData, tx });
+  }
+
+  private async processContentImages(params: { content: PolicyUpdateRequestType['content']; policyId: number }): Promise<PolicyUpdateRequestType['content']> {
+    const list = await Promise.all(
+      params.content.list.map(async (item) => {
+        if (item.type !== 'text' || !item.content) return item;
+        const rewritten = await this.rewriteHtmlImageKeys(item.content, params.policyId);
+        return { ...item, content: rewritten };
+      }),
+    );
+    return { list };
+  }
+
+  private async rewriteHtmlImageKeys(html: string, policyId: number): Promise<string> {
+    const tempKeys = new Set<string>();
+    const re = /data-s3-key="(temp\/[^"]+)"/g;
+    let match: RegExpExecArray | null;
+    while ((match = re.exec(html)) !== null) tempKeys.add(match[1]!);
+    if (tempKeys.size === 0) return html;
+
+    const replacements = new Map<string, string>();
+    for (const tempKey of tempKeys) {
+      const filename = tempKey.split('/').pop() ?? tempKey;
+      const moved = await this.mediaService.moveTempFileAndGetKey({
+        media: { key: tempKey, name: filename, type: MediaTypeDtoEnum.image },
+        mediaPlacement: 'policy',
+        relationId: policyId,
+        isImage: true,
+      });
+      if (moved) replacements.set(tempKey, moved.newKey);
+    }
+    return html.replace(/data-s3-key="(temp\/[^"]+)"/g, (full, key: string) => {
+      const newKey = replacements.get(key);
+      return newKey ? `data-s3-key="${newKey}"` : full;
+    });
   }
 
   private async linkMediasToPolicy(params: { policyId: number; mediaIds: number[]; tx: Prisma.TransactionClient }): Promise<void> {

@@ -6,10 +6,12 @@ import { Button } from '@repo/ui/component/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
+import { getSignedUrlForViewAction } from '@/container/s3-file-upload/action';
+
 interface ContentItem {
   type: 'text' | 'image';
   content?: string;
-  image?: { urlFull: string; name: string };
+  image?: { key: string; name: string };
 }
 
 function parseContent(raw: string): ContentItem[] {
@@ -19,6 +21,11 @@ function parseContent(raw: string): ContentItem[] {
   } catch {
     return [];
   }
+}
+
+async function resolveImageKey(key: string): Promise<string> {
+  const result = await getSignedUrlForViewAction({ key });
+  return result.url;
 }
 
 interface Props {
@@ -47,15 +54,7 @@ export function PolicyViewPage({ policy, backHref }: Props) {
           <div className='flex flex-col gap-6'>
             {items.map((item, index) => {
               if (item.type === 'text' && item.content) {
-                return <MarkdownViewer key={index} value={item.content} />;
-              }
-              if (item.type === 'image' && item.image) {
-                return (
-                  <div key={index} className='overflow-hidden rounded-lg'>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={item.image.urlFull} alt={item.image.name} className='max-h-[500px] w-full object-contain' />
-                  </div>
-                );
+                return <MarkdownViewer key={index} value={item.content} onResolveImageKey={resolveImageKey} />;
               }
               return null;
             })}

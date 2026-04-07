@@ -11,10 +11,28 @@ import { useEffect, useRef } from 'react';
 import { cn } from '../lib/utils';
 import './tiptap-content.css';
 
+const ImageWithS3Key = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      dataS3Key: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('data-s3-key'),
+        renderHTML: (attributes) => {
+          if (!attributes.dataS3Key) return {};
+          return { 'data-s3-key': attributes.dataS3Key };
+        },
+      },
+    };
+  },
+});
+
+export type MarkdownEditorImageUploadResult = { src: string; key: string };
+
 interface MarkdownEditorProps {
   value: string;
   onChange: (value: string) => void;
-  onImageUpload?: (file: File) => Promise<string>;
+  onImageUpload?: (file: File) => Promise<MarkdownEditorImageUploadResult>;
   placeholder?: string;
   className?: string;
   stickyToolbar?: boolean;
@@ -54,7 +72,7 @@ export const MarkdownEditor = ({ value, onChange, onImageUpload, placeholder, cl
       StarterKit.configure({ strike: false }),
       TiptapUnderline,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      Image.configure({ inline: false, allowBase64: false }),
+      ImageWithS3Key.configure({ inline: false, allowBase64: false }),
     ],
     content: value,
     editorProps: {
@@ -98,10 +116,14 @@ export const MarkdownEditor = ({ value, onChange, onImageUpload, placeholder, cl
 
   const handleImageInsert = async (file: File) => {
     if (!editor || !onImageUpload) return;
-    const url = await onImageUpload(file);
-    if (url) {
-      editor.chain().focus().setImage({ src: url, alt: file.name }).run();
-    }
+    const result = await onImageUpload(file);
+    if (!result?.src || !result?.key) return;
+    const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    editor
+      .chain()
+      .focus()
+      .insertContent(`<img src="${escape(result.src)}" alt="${escape(file.name)}" data-s3-key="${escape(result.key)}">`)
+      .run();
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -17,7 +17,7 @@ import axios from 'axios';
 interface ContentItem {
   type: 'text' | 'image';
   content?: string;
-  image?: { key: string; name: string; type: string; urlFull?: string };
+  image?: { key: string; name: string; type: string };
 }
 
 function contentListToHtml(raw: string): string {
@@ -27,7 +27,7 @@ function contentListToHtml(raw: string): string {
     return items
       .map((item) => {
         if (item.type === 'text' && item.content) return item.content;
-        if (item.type === 'image' && item.image) return `<img src="" alt="${item.image.name}" data-key="${item.image.key}" />`;
+        if (item.type === 'image' && item.image) return `<img src="" alt="${item.image.name}" data-s3-key="${item.image.key}" />`;
         return '';
       })
       .join('');
@@ -37,14 +37,40 @@ function contentListToHtml(raw: string): string {
 }
 
 function htmlToContentList(html: string): PolicyCreateRequestType['content'] {
-  return { list: [{ type: 'text', content: html }] };
+  // Strip transient src on managed images so we never persist signed URLs
+  const cleaned = html.replace(/<img\b([^>]*?)>/g, (full, attrs: string) => {
+    if (!/data-s3-key=/.test(attrs)) return full;
+    const stripped = attrs.replace(/\ssrc="[^"]*"/g, '');
+    return `<img${stripped}>`;
+  });
+  return { list: [{ type: 'text', content: cleaned }] };
 }
 
-async function uploadImageFile(file: File): Promise<string> {
+async function uploadImageFile(file: File): Promise<{ src: string; key: string }> {
   const result = await getSignedUrlForUploadAction({ key: file.name });
   await axios.put(result.url, file, { headers: { 'Content-Type': file.type } });
   const viewResult = await getSignedUrlForViewAction({ key: result.key });
-  return viewResult.url;
+  return { src: viewResult.url, key: result.key };
+}
+
+async function hydrateImageSrcs(html: string): Promise<string> {
+  const keys = new Set<string>();
+  const re = /data-s3-key="([^"]+)"/g;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(html)) !== null) keys.add(match[1]!);
+  if (keys.size === 0) return html;
+  const entries = await Promise.all(
+    Array.from(keys).map(async (key) => [key, (await getSignedUrlForViewAction({ key })).url] as const),
+  );
+  const urlByKey = new Map(entries);
+  return html.replace(/<img\b([^>]*?)>/g, (full, attrs: string) => {
+    const keyMatch = /data-s3-key="([^"]+)"/.exec(attrs);
+    if (!keyMatch) return full;
+    const url = urlByKey.get(keyMatch[1]!);
+    if (!url) return full;
+    const withoutSrc = attrs.replace(/\ssrc="[^"]*"/g, '');
+    return `<img src="${url}"${withoutSrc}>`;
+  });
 }
 
 interface Props {
@@ -72,6 +98,17 @@ export function PolicyEditPage({ policy, backHref }: Props) {
       titleInputRef.current?.select();
     }
   }, [editingTitle]);
+
+  useEffect(() => {
+    if (!policy?.content) return;
+    let cancelled = false;
+    void hydrateImageSrcs(contentListToHtml(policy.content)).then((hydrated) => {
+      if (!cancelled) setContent(hydrated);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [policy?.content]);
 
   const handleTitleConfirm = () => {
     if (!title.trim()) setTitle('Untitled Document');
