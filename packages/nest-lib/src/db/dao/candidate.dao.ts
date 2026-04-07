@@ -32,6 +32,19 @@ export class CandidateDao extends BaseDao {
     });
   }
 
+  public async getByEmail(params: { email: string; organizationId: number; tx?: Prisma.TransactionClient }): Promise<{ id: number } | undefined> {
+    const pc = this.getPrismaClient(params.tx);
+    const dbRec = await pc.candidate.findFirst({
+      where: {
+        email: params.email,
+        organizationId: params.organizationId,
+        isDeleted: false,
+      },
+      select: { id: true },
+    });
+    return dbRec ?? undefined;
+  }
+
   public async getById(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<CandidateDetailRecordType | undefined> {
     const pc = this.getPrismaClient(params.tx);
     const dbRec = await pc.candidate.findFirst({

@@ -12,6 +12,7 @@ import {
   OperationStatusResponseType,
 } from '@repo/dto';
 import { AuditService, CandidateDao, CandidateHasMediaDao, CommonLoggerService, CurrentUserType, IUseCase, MediaDao, PrismaService } from '@repo/nest-lib';
+import { ApiFieldValidationError } from '@repo/shared';
 
 import { S3Service } from '#src/external-service/s3.service.js';
 import { MediaService } from '#src/service/media.service.js';
@@ -55,8 +56,11 @@ export class CandidateCreateUc extends BaseCandidateUc implements IUseCase<Param
     return { success: true, message: 'Candidate created successfully' };
   }
 
-  private async validate(_params: Params): Promise<void> {
-    // Placeholder for future validations
+  private async validate(params: Params): Promise<void> {
+    const existing = await this.candidateDao.getByEmail({ email: params.dto.email, organizationId: params.currentUser.organizationId });
+    if (existing) {
+      throw new ApiFieldValidationError('email', 'Email already linked with a candidate');
+    }
   }
 
   private async createCandidate(params: Params, tx: Prisma.TransactionClient): Promise<number> {

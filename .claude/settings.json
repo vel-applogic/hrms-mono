@@ -8,7 +8,11 @@
       "Bash(grep -E \"\\\\.\\(ts|tsx|js|jsx\\)$\")",
       "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
       "Bash(xargs ls:*)",
-      "Bash(grep -rn \"warning\\\\|destructive\" /Users/vel/Applogic/Applogic/hrms-mono/apps/web-app/tailwind.config* /Users/vel/Applogic/Applogic/hrms-mono/packages/ui/tailwind.config* /Users/vel/Applogic/Applogic/hrms-mono/apps/web-app/src/app/globals.css /Users/vel/Applogic/Applogic/hrms-mono/packages/ui/src/styles/)"
+      "Bash(grep -rn \"warning\\\\|destructive\" /Users/vel/Applogic/Applogic/hrms-mono/apps/web-app/tailwind.config* /Users/vel/Applogic/Applogic/hrms-mono/packages/ui/tailwind.config* /Users/vel/Applogic/Applogic/hrms-mono/apps/web-app/src/app/globals.css /Users/vel/Applogic/Applogic/hrms-mono/packages/ui/src/styles/)",
+      "Bash(grep -l \"AuditService\" /Users/vel/Applogic/Applogic/hrms-mono/apps/api-backend/src/module/employee/*.ts /Users/vel/Applogic/Applogic/hrms-mono/apps/api-backend/src/module/employee/uc/*.ts)",
+      "Read(//private/tmp/**)",
+      "Bash(curl -s -X POST http://localhost:6002/api/candidate -H 'Content-Type: application/json' -d '{}')",
+      "Bash(lsof -iTCP:6002 -sTCP:LISTEN -P)"
     ],
     "additionalDirectories": [
       "/Users/vel/Applogic/Applogic/hrms-mono/apps/web-app/src/app/(authenticated)/policy/[id]"
