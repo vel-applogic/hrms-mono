@@ -47,6 +47,7 @@ export class PolicyDeleteUc extends BasePolicyUc implements IUseCase<Params, Ope
   }
 
   async validate(params: Params): Promise<PolicyDetailResponseType> {
+    this.assertAdmin(params.currentUser);
     return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
   }
 

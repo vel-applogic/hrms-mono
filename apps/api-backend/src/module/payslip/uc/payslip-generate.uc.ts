@@ -205,6 +205,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
   }
 
   private async validate(params: Params, organizationId: number, currency: CurrencyInfo): Promise<{ existingPayslips: PayslipListResponseType[]; targetUserIds: number[] }> {
+    this.assertAdmin(params.currentUser);
     let targetUserIds: number[];
     if (params.dto.employeeIds?.length) {
       targetUserIds = params.dto.employeeIds;

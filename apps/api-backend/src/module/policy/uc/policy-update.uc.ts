@@ -53,6 +53,7 @@ export class PolicyUpdateUc extends BasePolicyUc implements IUseCase<Params, Ope
   }
 
   async validate(params: Params): Promise<PolicyDetailResponseType> {
+    this.assertAdmin(params.currentUser);
     const existing = await this.policyDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!existing) {
       throw new ApiError('Policy not found', 404);

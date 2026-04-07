@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { OperationStatusResponseType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, HolidayDao, IUseCase, PrismaService } from '@repo/nest-lib';
+import { BaseUc, CommonLoggerService, CurrentUserType, HolidayDao, IUseCase, PrismaService } from '@repo/nest-lib';
 import { ApiBadRequestError, DbRecordNotFoundError } from '@repo/shared';
 
 type Params = {
@@ -9,14 +9,17 @@ type Params = {
 };
 
 @Injectable()
-export class HolidayDeleteUc implements IUseCase<Params, OperationStatusResponseType> {
+export class HolidayDeleteUc extends BaseUc implements IUseCase<Params, OperationStatusResponseType> {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly logger: CommonLoggerService,
+    prisma: PrismaService,
+    logger: CommonLoggerService,
     private readonly holidayDao: HolidayDao,
-  ) {}
+  ) {
+    super(prisma, logger);
+  }
 
   async execute(params: Params): Promise<OperationStatusResponseType> {
+    this.assertAdmin(params.currentUser);
     this.logger.i('Deleting holiday', { id: params.id });
 
     try {

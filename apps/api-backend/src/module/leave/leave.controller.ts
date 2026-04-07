@@ -9,7 +9,7 @@ import type {
 } from '@repo/dto';
 import { LeaveCreateRequestSchema, LeaveFilterRequestSchema, LeaveUpdateRequestSchema } from '@repo/dto';
 import type { CurrentUserType } from '@repo/nest-lib';
-import { AdminOnly, CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
+import { CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
 
 import { LeaveApproveUc } from './uc/leave-approve.uc.js';
 import { LeaveCancelUc } from './uc/leave-cancel.uc.js';
@@ -72,7 +72,6 @@ export class LeaveController {
     return this.cancelUc.execute({ currentUser, id });
   }
 
-  @AdminOnly()
   @Post(':id/approve')
   async approve(
     @Param('id', ParseIntPipe) id: number,
@@ -81,7 +80,6 @@ export class LeaveController {
     return this.approveUc.execute({ currentUser, id });
   }
 
-  @AdminOnly()
   @Post(':id/reject')
   async reject(
     @Param('id', ParseIntPipe) id: number,

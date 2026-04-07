@@ -40,6 +40,7 @@ export class EmployeeDeleteUc extends BaseEmployeeUc implements IUseCase<Params,
   }
 
   async execute(params: Params): Promise<OperationStatusResponseType> {
+    this.assertAdmin(params.currentUser);
     this.logger.i('Deleting employee', { id: params.id });
 
     const employee = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);

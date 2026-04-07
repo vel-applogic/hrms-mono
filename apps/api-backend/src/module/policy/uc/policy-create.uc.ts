@@ -52,6 +52,7 @@ export class PolicyCreateUc extends BasePolicyUc implements IUseCase<Params, Ope
   }
 
   async validate(params: Params): Promise<void> {
+    this.assertAdmin(params.currentUser);
     if (params.dto.mediaIds && params.dto.mediaIds.length > 0) {
       for (const mediaId of params.dto.mediaIds) {
         const media = await this.mediaDao.getById({ id: mediaId });

@@ -1,15 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import type { HolidayResponseType } from '@repo/dto';
-import { CommonLoggerService, HolidayDao, HolidaySelectTableRecordType, holidayTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
+import { BaseUc, CommonLoggerService, HolidayDao, HolidaySelectTableRecordType, holidayTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
 import { ApiBadRequestError, DbRecordNotFoundError } from '@repo/shared';
 
 @Injectable()
-export class BaseHolidayUseCase {
+export class BaseHolidayUseCase extends BaseUc {
   constructor(
-    protected readonly prisma: PrismaService,
-    protected readonly logger: CommonLoggerService,
+    prisma: PrismaService,
+    logger: CommonLoggerService,
     protected readonly holidayDao: HolidayDao,
-  ) {}
+  ) {
+    super(prisma, logger);
+  }
 
   protected dbToHolidayResponse(dbRec: HolidaySelectTableRecordType): HolidayResponseType {
     return {

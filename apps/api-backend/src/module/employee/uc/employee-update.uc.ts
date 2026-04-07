@@ -50,6 +50,7 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
   }
 
   async execute(params: Params): Promise<OperationStatusResponseType> {
+    this.assertAdmin(params.currentUser);
     this.logger.i('Updating employee', { id: params.id });
 
     const oldEmployee = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);

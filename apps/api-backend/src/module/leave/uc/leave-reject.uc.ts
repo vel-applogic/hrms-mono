@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { LeaveResponseType } from '@repo/dto';
-import { UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, EmployeeLeaveCounterDao, IUseCase, LeaveDao, OrganizationSettingDao, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
+import { BaseUc, CommonLoggerService, CurrentUserType, EmployeeLeaveCounterDao, IUseCase, LeaveDao, OrganizationSettingDao, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
 import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
@@ -10,21 +9,20 @@ type Params = {
 };
 
 @Injectable()
-export class LeaveRejectUc implements IUseCase<Params, LeaveResponseType> {
+export class LeaveRejectUc extends BaseUc implements IUseCase<Params, LeaveResponseType> {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly logger: CommonLoggerService,
+    prisma: PrismaService,
+    logger: CommonLoggerService,
     private readonly leaveDao: LeaveDao,
     private readonly organizationSettingDao: OrganizationSettingDao,
     private readonly employeeLeaveCounterDao: EmployeeLeaveCounterDao,
-  ) {}
+  ) {
+    super(prisma, logger);
+  }
 
   async execute(params: Params): Promise<LeaveResponseType> {
+    this.assertAdmin(params.currentUser);
     this.logger.i('Rejecting leave request', { id: params.id, userId: params.currentUser.id });
-
-    if (!params.currentUser.roles.includes(UserRoleDtoEnum.admin)) {
-      throw new ApiError('Only admins can reject leave requests', 403);
-    }
 
     const existing = await this.leaveDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!existing) {

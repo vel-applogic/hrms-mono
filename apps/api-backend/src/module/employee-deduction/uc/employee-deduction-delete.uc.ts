@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { OperationStatusResponseType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, PayrollDeductionDao, PrismaService } from '@repo/nest-lib';
+import { BaseUc, CommonLoggerService, CurrentUserType, IUseCase, PayrollDeductionDao, PrismaService } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 type Params = {
@@ -9,14 +9,17 @@ type Params = {
 };
 
 @Injectable()
-export class EmployeeDeductionDeleteUc implements IUseCase<Params, OperationStatusResponseType> {
+export class EmployeeDeductionDeleteUc extends BaseUc implements IUseCase<Params, OperationStatusResponseType> {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly logger: CommonLoggerService,
+    prisma: PrismaService,
+    logger: CommonLoggerService,
     private readonly payrollDeductionDao: PayrollDeductionDao,
-  ) {}
+  ) {
+    super(prisma, logger);
+  }
 
   async execute(params: Params): Promise<OperationStatusResponseType> {
+    this.assertAdmin(params.currentUser);
     this.logger.i('Deleting employee deduction', { id: params.id });
 
     const existing = await this.payrollDeductionDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { EmployeeDeductionCreateRequestType, EmployeeDeductionResponseType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, PrismaService, PayrollDeductionDao, EmployeeDao } from '@repo/nest-lib';
+import { BaseUc, CommonLoggerService, CurrentUserType, IUseCase, PrismaService, PayrollDeductionDao, EmployeeDao } from '@repo/nest-lib';
 import type { PayrollDeductionWithLineItemsType } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
@@ -12,15 +12,18 @@ type Params = {
 };
 
 @Injectable()
-export class EmployeeDeductionCreateUc implements IUseCase<Params, EmployeeDeductionResponseType> {
+export class EmployeeDeductionCreateUc extends BaseUc implements IUseCase<Params, EmployeeDeductionResponseType> {
   constructor(
-    private readonly logger: CommonLoggerService,
-    private readonly prisma: PrismaService,
+    prisma: PrismaService,
+    logger: CommonLoggerService,
     private readonly employeeDao: EmployeeDao,
     private readonly payrollDeductionDao: PayrollDeductionDao,
-  ) {}
+  ) {
+    super(prisma, logger);
+  }
 
   async execute(params: Params): Promise<EmployeeDeductionResponseType> {
+    this.assertAdmin(params.currentUser);
     this.logger.i('Creating employee deduction', { employeeId: params.dto.employeeId });
 
     const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId, organizationId: params.currentUser.organizationId });

@@ -16,6 +16,7 @@ export class HolidayCreateUc extends BaseHolidayUseCase implements IUseCase<Para
   }
 
   async execute(params: Params): Promise<HolidayResponseType> {
+    this.assertAdmin(params.currentUser);
     this.logger.i('Creating holiday', { name: params.dto.name });
 
     const createdId = await this.prisma.$transaction(async (tx) => {

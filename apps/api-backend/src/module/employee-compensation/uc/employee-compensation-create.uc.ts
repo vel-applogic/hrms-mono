@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { EmployeeCompensationCreateRequestType, EmployeeCompensationResponseType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, PrismaService, PayrollCompensationDao, EmployeeDao } from '@repo/nest-lib';
+import { BaseUc, CommonLoggerService, CurrentUserType, IUseCase, PrismaService, PayrollCompensationDao, EmployeeDao } from '@repo/nest-lib';
 import type { PayrollCompensationWithLineItemsType } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
@@ -17,13 +17,15 @@ type ValidateResult = {
 };
 
 @Injectable()
-export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCompensationResponseType> {
+export class EmployeeCompensationCreateUc extends BaseUc implements IUseCase<Params, EmployeeCompensationResponseType> {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly logger: CommonLoggerService,
+    prisma: PrismaService,
+    logger: CommonLoggerService,
     private readonly employeeDao: EmployeeDao,
     private readonly payrollCompensationDao: PayrollCompensationDao,
-  ) {}
+  ) {
+    super(prisma, logger);
+  }
 
   async execute(params: Params): Promise<EmployeeCompensationResponseType> {
     this.logger.i('Creating employee compensation', { employeeId: params.dto.employeeId });
@@ -79,6 +81,7 @@ export class EmployeeCompensationCreateUc implements IUseCase<Params, EmployeeCo
   }
 
   private async validate(params: Params): Promise<ValidateResult> {
+    this.assertAdmin(params.currentUser);
     const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId, organizationId: params.currentUser.organizationId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);

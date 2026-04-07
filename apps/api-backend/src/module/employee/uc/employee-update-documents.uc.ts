@@ -39,6 +39,7 @@ export class EmployeeUpdateDocumentsUc extends BaseEmployeeUc implements IUseCas
   }
 
   async execute(params: Params): Promise<OperationStatusResponseType> {
+    this.assertAdmin(params.currentUser);
     this.logger.i('Updating employee documents', { id: params.id });
 
     await this.getByIdOrThrow(params.id, params.currentUser.organizationId);

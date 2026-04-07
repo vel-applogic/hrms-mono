@@ -13,7 +13,7 @@ import {
   EmployeeDeductionUpdateRequestSchema,
 } from '@repo/dto';
 import type { CurrentUserType } from '@repo/nest-lib';
-import { AdminOnly, CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
+import { CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
 
 import { EmployeeDeductionCreateUc } from './uc/employee-deduction-create.uc.js';
 import { EmployeeDeductionDeleteUc } from './uc/employee-deduction-delete.uc.js';
@@ -37,7 +37,6 @@ export class EmployeeDeductionController {
     return this.listUc.execute({ currentUser, filterDto });
   }
 
-  @AdminOnly()
   @Post()
   async create(
     @Body(new ZodValidationPipe(EmployeeDeductionCreateRequestSchema)) body: EmployeeDeductionCreateRequestType,
@@ -46,7 +45,6 @@ export class EmployeeDeductionController {
     return this.createUc.execute({ currentUser, dto: body });
   }
 
-  @AdminOnly()
   @Put(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -56,7 +54,6 @@ export class EmployeeDeductionController {
     return this.updateUc.execute({ currentUser, id, dto: body });
   }
 
-  @AdminOnly()
   @Delete(':id')
   async delete(
     @Param('id', ParseIntPipe) id: number,

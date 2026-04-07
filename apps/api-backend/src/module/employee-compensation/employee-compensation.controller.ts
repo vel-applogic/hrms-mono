@@ -16,13 +16,13 @@ import {
   PayrollActiveCompensationFilterRequestSchema,
 } from '@repo/dto';
 import type { CurrentUserType } from '@repo/nest-lib';
-import { AdminOnly, CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
+import { CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
 
 import { EmployeeCompensationCreateUc } from './uc/employee-compensation-create.uc.js';
 import { EmployeeCompensationDeleteUc } from './uc/employee-compensation-delete.uc.js';
 import { EmployeeCompensationListUc } from './uc/employee-compensation-list.uc.js';
-import { PayrollActiveCompensationListUc } from './uc/payroll-active-compensation-list.uc.js';
 import { EmployeeCompensationUpdateUc } from './uc/employee-compensation-update.uc.js';
+import { PayrollActiveCompensationListUc } from './uc/payroll-active-compensation-list.uc.js';
 
 @Controller('api/employee-compensation')
 export class EmployeeCompensationController {
@@ -50,7 +50,6 @@ export class EmployeeCompensationController {
     return this.listUc.execute({ currentUser, filterDto });
   }
 
-  @AdminOnly()
   @Post()
   async create(
     @Body(new ZodValidationPipe(EmployeeCompensationCreateRequestSchema)) body: EmployeeCompensationCreateRequestType,
@@ -59,7 +58,6 @@ export class EmployeeCompensationController {
     return this.createUc.execute({ currentUser, dto: body });
   }
 
-  @AdminOnly()
   @Put(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -69,12 +67,8 @@ export class EmployeeCompensationController {
     return this.updateUc.execute({ currentUser, id, dto: body });
   }
 
-  @AdminOnly()
   @Delete(':id')
-  async delete(
-    @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() currentUser: CurrentUserType,
-  ): Promise<OperationStatusResponseType> {
+  async delete(@Param('id', ParseIntPipe) id: number, @CurrentUser() currentUser: CurrentUserType): Promise<OperationStatusResponseType> {
     return this.deleteUc.execute({ currentUser, id });
   }
 }

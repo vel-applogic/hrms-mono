@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { PayslipDetailResponseType, PayslipUpdateLineItemsRequestType } from '@repo/dto';
-import { CommonLoggerService, ContactDao, CurrentUserType, IUseCase, OrganizationDao, OrganizationHasAddressDao, PayrollPayslipDao, PrismaService } from '@repo/nest-lib';
+import { BaseUc, CommonLoggerService, ContactDao, CurrentUserType, IUseCase, OrganizationDao, OrganizationHasAddressDao, PayrollPayslipDao, PrismaService } from '@repo/nest-lib';
 import type { PayrollPayslipWithDetailsType } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
@@ -13,18 +13,21 @@ type Params = {
 };
 
 @Injectable()
-export class PayslipUpdateLineItemsUc implements IUseCase<Params, PayslipDetailResponseType> {
+export class PayslipUpdateLineItemsUc extends BaseUc implements IUseCase<Params, PayslipDetailResponseType> {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly logger: CommonLoggerService,
+    prisma: PrismaService,
+    logger: CommonLoggerService,
     private readonly payrollPayslipDao: PayrollPayslipDao,
     private readonly organizationDao: OrganizationDao,
     private readonly organizationHasAddressDao: OrganizationHasAddressDao,
     private readonly contactDao: ContactDao,
     private readonly s3Service: S3Service,
-  ) {}
+  ) {
+    super(prisma, logger);
+  }
 
   async execute(params: Params): Promise<PayslipDetailResponseType> {
+    this.assertAdmin(params.currentUser);
     this.logger.i('Updating payslip line items', { id: params.id });
     const organizationId = params.currentUser.organizationId;
 

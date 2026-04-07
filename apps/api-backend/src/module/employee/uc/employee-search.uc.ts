@@ -26,6 +26,7 @@ export class EmployeeSearchUc extends BaseEmployeeUc implements IUseCase<Params,
   }
 
   async execute(params: Params): Promise<PaginatedResponseType<EmployeeListResponseType>> {
+    this.assertAdmin(params.currentUser);
     this.logger.i('Listing employees', { filter: params.filterDto });
 
     const orderBy = this.getEmployeeOrderBy(params.filterDto.sort);

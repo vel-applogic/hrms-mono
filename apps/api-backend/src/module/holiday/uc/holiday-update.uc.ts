@@ -18,6 +18,7 @@ export class HolidayUpdateUc extends BaseHolidayUseCase implements IUseCase<Para
   }
 
   async execute(params: Params): Promise<HolidayResponseType> {
+    this.assertAdmin(params.currentUser);
     this.logger.i('Updating holiday', { id: params.id });
 
     try {

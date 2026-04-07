@@ -67,6 +67,7 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
   }
 
   async execute(params: Params): Promise<OperationStatusResponseType> {
+    this.assertAdmin(params.currentUser);
     this.logger.i('Creating employee', { email: params.dto.email });
 
     if (params.currentUser.organizationId <= 0) {

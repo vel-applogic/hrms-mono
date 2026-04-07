@@ -3,7 +3,7 @@ import type {
   EmployeeFeedbackCreateRequestType,
   EmployeeFeedbackResponseType,
 } from '@repo/dto';
-import { EmployeeDao, EmployeeFeedbackDao, CommonLoggerService, CurrentUserType, IUseCase, PrismaService } from '@repo/nest-lib';
+import { BaseUc, EmployeeDao, EmployeeFeedbackDao, CommonLoggerService, CurrentUserType, IUseCase, PrismaService } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 type Params = {
@@ -12,15 +12,18 @@ type Params = {
 };
 
 @Injectable()
-export class EmployeeFeedbackCreateUc implements IUseCase<Params, EmployeeFeedbackResponseType> {
+export class EmployeeFeedbackCreateUc extends BaseUc implements IUseCase<Params, EmployeeFeedbackResponseType> {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly logger: CommonLoggerService,
+    prisma: PrismaService,
+    logger: CommonLoggerService,
     private readonly employeeDao: EmployeeDao,
     private readonly employeeFeedbackDao: EmployeeFeedbackDao,
-  ) {}
+  ) {
+    super(prisma, logger);
+  }
 
   async execute(params: Params): Promise<EmployeeFeedbackResponseType> {
+    this.assertAdmin(params.currentUser);
     this.logger.i('Creating employee feedback', { employeeId: params.dto.employeeId });
 
     const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId, organizationId: params.currentUser.organizationId });
