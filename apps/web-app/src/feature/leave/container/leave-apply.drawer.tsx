@@ -121,14 +121,18 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, employeeId, onSucc
       <form id={FORM_ID} onSubmit={form.handleSubmit(handleSubmit)} className='flex flex-col gap-6 p-6'>
         {error && <p className='text-sm text-destructive'>{error}</p>}
 
-        <EmployeeSelect
-          value={form.watch('userId') && form.watch('userId') > 0 ? form.watch('userId') : undefined}
-          onChange={(userId) => form.setValue('userId', userId)}
-          disabled={isEditing || !!employeeId}
-          currentUserId={currentUserId}
-          isAdmin={isAdmin}
-        />
-        {form.formState.errors.userId && <p className='text-sm text-destructive'>{form.formState.errors.userId.message}</p>}
+        {isAdmin && (
+          <>
+            <EmployeeSelect
+              value={form.watch('userId') && form.watch('userId') > 0 ? form.watch('userId') : undefined}
+              onChange={(userId) => form.setValue('userId', userId)}
+              disabled={isEditing || !!employeeId}
+              currentUserId={currentUserId}
+              isAdmin={isAdmin}
+            />
+            {form.formState.errors.userId && <p className='text-sm text-destructive'>{form.formState.errors.userId.message}</p>}
+          </>
+        )}
 
         <div className='flex flex-col gap-2'>
           <Label>Leave type</Label>
