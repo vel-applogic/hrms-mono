@@ -32,25 +32,29 @@ export class CandidateDeleteUc extends BaseCandidateUc implements IUseCase<Param
     super(prisma, logger, candidateDao, s3Service);
   }
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Deleting candidate', { id: params.id });
-
     const candidate = await this.validate(params);
 
     await this.transaction(async (tx) => {
-      await this.deleteCandidate({ id: params.id, organizationId: params.currentUser.organizationId, tx });
+      await this.deleteMedia(params, tx);
+      await this.deleteCandidate(params, tx);
     });
+
     void this.recordActivity(params, candidate);
     return { success: true, message: 'Candidate deleted successfully' };
   }
 
-  async validate(params: Params): Promise<CandidateDetailResponseType> {
+  private async validate(params: Params): Promise<CandidateDetailResponseType> {
     return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
   }
 
-  private async deleteCandidate(params: { id: number; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
-    await this.candidateHasMediaDao.deleteManyByCandidateId({ candidateId: params.id, tx: params.tx });
-    await this.candidateDao.deleteByIdOrThrow({ id: params.id, organizationId: params.organizationId, tx: params.tx });
+  private async deleteMedia(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    await this.candidateHasMediaDao.deleteManyByCandidateId({ candidateId: params.id, tx });
+  }
+
+  private async deleteCandidate(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    await this.candidateDao.deleteByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId, tx });
   }
 
   private async recordActivity(params: Params, deleted: CandidateDetailResponseType): Promise<void> {

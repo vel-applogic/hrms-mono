@@ -12,8 +12,17 @@ export class CountryListUc implements IUseCase<Params, CountryResponseType[]> {
     private readonly countryDao: CountryDao,
   ) {}
 
-  async execute(): Promise<CountryResponseType[]> {
+  public async execute(): Promise<CountryResponseType[]> {
     this.logger.i('Listing countries');
+    await this.validate();
+    return await this.search();
+  }
+
+  private async validate(): Promise<void> {
+    // No validation required
+  }
+
+  private async search(): Promise<CountryResponseType[]> {
     const dbRecords = await this.countryDao.findAll();
     return dbRecords.map((r: CountrySelectTableRecordType) => ({
       id: r.id,

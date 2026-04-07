@@ -24,7 +24,7 @@ type Params = {
 
 @Injectable()
 export class PolicyUpdateUc extends BasePolicyUc implements IUseCase<Params, OperationStatusResponseType> {
-  constructor(
+  public constructor(
     prisma: PrismaService,
     logger: CommonLoggerService,
     policyDao: PolicyDao,
@@ -36,23 +36,24 @@ export class PolicyUpdateUc extends BasePolicyUc implements IUseCase<Params, Ope
     super(prisma, logger, policyDao, s3Service);
   }
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Updating policy', { id: params.id });
-
     const oldPolicy = await this.validate(params);
+
     await this.transaction(async (tx) => {
-      await this.update(params.id, params.dto, tx, params.currentUser.organizationId);
+      await this.updatePolicy(params.id, params.dto, tx, params.currentUser.organizationId);
       if (params.dto.mediaIds !== undefined) {
         await this.linkMediasToPolicy({ policyId: params.id, mediaIds: params.dto.mediaIds, tx });
       }
     });
+
     const newPolicy = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
     void this.recordActivity(params, oldPolicy, newPolicy);
 
     return { success: true, message: 'Policy updated successfully' };
   }
 
-  async validate(params: Params): Promise<PolicyDetailResponseType> {
+  private async validate(params: Params): Promise<PolicyDetailResponseType> {
     this.assertAdmin(params.currentUser);
     const existing = await this.policyDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!existing) {
@@ -68,10 +69,11 @@ export class PolicyUpdateUc extends BasePolicyUc implements IUseCase<Params, Ope
       }
     }
 
-    return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    const oldPolicy = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    return oldPolicy;
   }
 
-  async update(id: number, dto: PolicyUpdateRequestType, tx: Prisma.TransactionClient, organizationId: number): Promise<void> {
+  private async updatePolicy(id: number, dto: PolicyUpdateRequestType, tx: Prisma.TransactionClient, organizationId: number): Promise<void> {
     const updateData: Prisma.PolicyUpdateInput = {
       updatedAt: new Date(),
       title: dto.title,
@@ -80,7 +82,7 @@ export class PolicyUpdateUc extends BasePolicyUc implements IUseCase<Params, Ope
     await this.policyDao.update({ id, organizationId, data: updateData, tx });
   }
 
-  async linkMediasToPolicy(params: { policyId: number; mediaIds: number[]; tx: Prisma.TransactionClient }): Promise<void> {
+  private async linkMediasToPolicy(params: { policyId: number; mediaIds: number[]; tx: Prisma.TransactionClient }): Promise<void> {
     await this.policyHasMediaDao.deleteManyByPolicyId({ policyId: params.policyId, tx: params.tx });
 
     for (const mediaId of params.mediaIds) {

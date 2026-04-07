@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@repo/db';
 import { type LeaveResponseType, UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, EmployeeDao, EmployeeLeaveCounterDao, IUseCase, LeaveDao, OrganizationSettingDao, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, EmployeeDao, EmployeeLeaveCounterDao, IUseCase, LeaveDao, LeaveWithUserType, OrganizationSettingDao, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
 import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
@@ -19,9 +20,30 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
     private readonly employeeLeaveCounterDao: EmployeeLeaveCounterDao,
   ) {}
 
-  async execute(params: Params): Promise<LeaveResponseType> {
+  public async execute(params: Params): Promise<LeaveResponseType> {
     this.logger.i('Cancelling leave request', { id: params.id, userId: params.currentUser.id });
+    const existing = await this.validate(params);
 
+    if (existing.status === 'approved') {
+      const financialYear = getFinancialYearCode(existing.startDate);
+      const { start, end } = getFinancialYearDateRange(financialYear);
+      const orgSettings = await this.organizationSettingDao.findByOrganizationId({ organizationId: params.currentUser.organizationId });
+      const maxLeaves = orgSettings?.totalLeaveInDays ?? 24;
+
+      await this.prisma.$transaction(async (tx) => {
+        await this.updateStatus(params, tx);
+        await this.syncCounter(params, existing, financialYear, start, end, maxLeaves, tx);
+      });
+    } else {
+      await this.prisma.$transaction(async (tx) => {
+        await this.updateStatus(params, tx);
+      });
+    }
+
+    return await this.getResponseById(params);
+  }
+
+  private async validate(params: Params): Promise<LeaveWithUserType> {
     const isAdmin = params.currentUser.roles.includes(UserRoleDtoEnum.admin);
     const existing = await this.leaveDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!existing) {
@@ -43,52 +65,50 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
       }
     }
 
-    if (existing.status === 'approved') {
-      const financialYear = getFinancialYearCode(existing.startDate);
-      const { start, end } = getFinancialYearDateRange(financialYear);
-      const orgSettings = await this.organizationSettingDao.findByOrganizationId({ organizationId: params.currentUser.organizationId });
-      const maxLeaves = orgSettings?.totalLeaveInDays ?? 24;
+    return existing;
+  }
 
-      await this.prisma.$transaction(async (tx) => {
-        await this.leaveDao.update({
-          id: params.id,
-          organizationId: params.currentUser.organizationId,
-          data: { status: 'cancelled' },
-          tx,
-        });
+  private async updateStatus(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    await this.leaveDao.update({
+      id: params.id,
+      organizationId: params.currentUser.organizationId,
+      data: { status: 'cancelled' },
+      tx,
+    });
+  }
 
-        const totals = await this.leaveDao.getApprovedLeaveTotalsByUserIdAndDateRange({
-          userId: existing.userId,
-          organizationId: params.currentUser.organizationId,
-          startDate: start,
-          endDate: end,
-          tx,
-        });
+  private async syncCounter(
+    params: Params,
+    existing: LeaveWithUserType,
+    financialYear: string,
+    start: Date,
+    end: Date,
+    maxLeaves: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    const totals = await this.leaveDao.getApprovedLeaveTotalsByUserIdAndDateRange({
+      userId: existing.userId,
+      organizationId: params.currentUser.organizationId,
+      startDate: start,
+      endDate: end,
+      tx,
+    });
 
-        try {
-          await this.employeeLeaveCounterDao.syncFromActualLeaves({
-            userId: existing.userId,
-            organizationId: params.currentUser.organizationId,
-            financialYear,
-            ...totals,
-            maxLeaves,
-            tx,
-          });
-        } catch {
-          this.logger.w('Failed to sync leave counter', { leaveId: params.id });
-        }
+    try {
+      await this.employeeLeaveCounterDao.syncFromActualLeaves({
+        userId: existing.userId,
+        organizationId: params.currentUser.organizationId,
+        financialYear,
+        ...totals,
+        maxLeaves,
+        tx,
       });
-    } else {
-      await this.prisma.$transaction(async (tx) => {
-        await this.leaveDao.update({
-          id: params.id,
-          organizationId: params.currentUser.organizationId,
-          data: { status: 'cancelled' },
-          tx,
-        });
-      });
+    } catch {
+      this.logger.w('Failed to sync leave counter', { leaveId: params.id });
     }
+  }
 
+  private async getResponseById(params: Params): Promise<LeaveResponseType> {
     const updated = await this.leaveDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!updated) throw new ApiError('Failed to fetch updated leave', 500);
 

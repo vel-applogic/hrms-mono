@@ -49,9 +49,22 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
     super(prisma, logger, employeeDao, employeeHasMediaDao, s3Service);
   }
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
-    this.assertAdmin(params.currentUser);
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Updating employee', { id: params.id });
+    const oldEmployee = await this.validate(params);
+
+    await this.transaction(async (tx) => {
+      await this.updateUserAndEmployee(params, tx);
+      await this.replaceEmployeePhoto(params, tx);
+    });
+
+    const newEmployee = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    void this.recordActivity(params, oldEmployee, newEmployee);
+    return { success: true, message: 'Employee updated successfully' };
+  }
+
+  private async validate(params: Params): Promise<EmployeeDetailResponseType> {
+    this.assertAdmin(params.currentUser);
 
     const oldEmployee = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
 
@@ -67,56 +80,56 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
       if (duplicateAadhaar) throw new ApiFieldValidationError('aadhaar', 'Aadhaar already registered in this organisation');
     }
 
-    await this.transaction(async (tx) => {
-      await this.userDao.update({
-        id: params.id,
-        data: {
-          firstname: params.dto.firstname,
-          lastname: params.dto.lastname,
-          email: params.dto.email,
-        },
-        tx,
-      });
+    return oldEmployee;
+  }
 
-      await this.employeeDao.update({
-        userId: params.id,
-        organizationId: params.currentUser.organizationId,
-        data: {
-          employeeCode: params.dto.employeeCode,
-          personalEmail: params.dto.personalEmail ?? undefined,
-          dob: new Date(params.dto.dob),
-          pan: params.dto.pan ?? undefined,
-          aadhaar: params.dto.aadhaar ?? undefined,
-          designation: params.dto.designation,
-          dateOfJoining: new Date(params.dto.dateOfJoining),
-          dateOfLeaving: params.dto.dateOfLeaving ? new Date(params.dto.dateOfLeaving) : undefined,
-          status: params.dto.status,
-          reportTo: params.dto.reportToId ? { connect: { id: params.dto.reportToId } } : { disconnect: true },
-          isBgVerified: params.dto.isBgVerified ?? false,
-        },
-        tx,
-      });
-
-      if (params.dto.photo !== undefined) {
-        await this.employeeHasMediaDao.deleteManyByUserIdAndType({
-          userId: params.id,
-          type: EmployeeMediaType.photo,
-          tx,
-        });
-        if (params.dto.photo?.key?.startsWith('temp/')) {
-          await this.createAndLinkMedia({ media: params.dto.photo, userId: params.id, organizationId: params.currentUser.organizationId, type: EmployeeMediaType.photo, tx });
-        } else if (params.dto.photo?.id) {
-          await this.employeeHasMediaDao.create({
-            data: { userId: params.id, mediaId: params.dto.photo.id, type: EmployeeMediaType.photo },
-            tx,
-          });
-        }
-      }
+  private async updateUserAndEmployee(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    await this.userDao.update({
+      id: params.id,
+      data: {
+        firstname: params.dto.firstname,
+        lastname: params.dto.lastname,
+        email: params.dto.email,
+      },
+      tx,
     });
 
-    const newEmployee = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
-    void this.recordActivity(params, oldEmployee, newEmployee);
-    return { success: true, message: 'Employee updated successfully' };
+    await this.employeeDao.update({
+      userId: params.id,
+      organizationId: params.currentUser.organizationId,
+      data: {
+        employeeCode: params.dto.employeeCode,
+        personalEmail: params.dto.personalEmail ?? undefined,
+        dob: new Date(params.dto.dob),
+        pan: params.dto.pan ?? undefined,
+        aadhaar: params.dto.aadhaar ?? undefined,
+        designation: params.dto.designation,
+        dateOfJoining: new Date(params.dto.dateOfJoining),
+        dateOfLeaving: params.dto.dateOfLeaving ? new Date(params.dto.dateOfLeaving) : undefined,
+        status: params.dto.status,
+        reportTo: params.dto.reportToId ? { connect: { id: params.dto.reportToId } } : { disconnect: true },
+        isBgVerified: params.dto.isBgVerified ?? false,
+      },
+      tx,
+    });
+  }
+
+  private async replaceEmployeePhoto(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    if (params.dto.photo === undefined) return;
+
+    await this.employeeHasMediaDao.deleteManyByUserIdAndType({
+      userId: params.id,
+      type: EmployeeMediaType.photo,
+      tx,
+    });
+    if (params.dto.photo?.key?.startsWith('temp/')) {
+      await this.createAndLinkMedia({ media: params.dto.photo, userId: params.id, organizationId: params.currentUser.organizationId, type: EmployeeMediaType.photo, tx });
+    } else if (params.dto.photo?.id) {
+      await this.employeeHasMediaDao.create({
+        data: { userId: params.id, mediaId: params.dto.photo.id, type: EmployeeMediaType.photo },
+        tx,
+      });
+    }
   }
 
   private async createAndLinkMedia(params: {

@@ -14,19 +14,21 @@ type Params = {
 
 @Injectable()
 export class PolicyGetUc extends BasePolicyUc implements IUseCase<Params, PolicyDetailResponseType> {
-  constructor(prisma: PrismaService, logger: CommonLoggerService, policyDao: PolicyDao, s3Service: S3Service) {
+  public constructor(prisma: PrismaService, logger: CommonLoggerService, policyDao: PolicyDao, s3Service: S3Service) {
     super(prisma, logger, policyDao, s3Service);
   }
 
-  async execute(params: Params): Promise<PolicyDetailResponseType> {
+  public async execute(params: Params): Promise<PolicyDetailResponseType> {
     this.logger.i('Getting policy', { id: params.id });
-
-    const policy = await this.validate(params);
-
-    return policy;
+    await this.validate(params);
+    return await this.getPolicy(params);
   }
 
-  async validate(params: Params): Promise<PolicyDetailResponseType> {
+  private async validate(_params: Params): Promise<void> {
+    // Placeholder for future validations
+  }
+
+  private async getPolicy(params: Params): Promise<PolicyDetailResponseType> {
     const policy = await this.getById(params.id, params.currentUser.organizationId);
     if (!policy) {
       throw new ApiError('Policy not found', 404);

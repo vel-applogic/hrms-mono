@@ -6,7 +6,7 @@ import { ApiError } from '@repo/shared';
 import { S3Service } from '#src/external-service/s3.service.js';
 
 export class BasePolicyUc extends BaseUc {
-  constructor(
+  public constructor(
     prisma: PrismaService,
     logger: CommonLoggerService,
     protected readonly policyDao: PolicyDao,
@@ -15,7 +15,7 @@ export class BasePolicyUc extends BaseUc {
     super(prisma, logger);
   }
 
-  async getById(id: number, organizationId: number): Promise<PolicyDetailResponseType | undefined> {
+  public async getById(id: number, organizationId: number): Promise<PolicyDetailResponseType | undefined> {
     const policy = await this.policyDao.getById({ id, organizationId });
     if (!policy) {
       return undefined;
@@ -54,7 +54,7 @@ export class BasePolicyUc extends BaseUc {
     };
   }
 
-  async getByIdOrThrow(id: number, organizationId: number): Promise<PolicyDetailResponseType> {
+  public async getByIdOrThrow(id: number, organizationId: number): Promise<PolicyDetailResponseType> {
     const policy = await this.getById(id, organizationId);
     if (!policy) {
       throw new ApiError('Policy not found', 404);

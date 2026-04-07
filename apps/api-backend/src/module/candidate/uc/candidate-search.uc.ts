@@ -19,12 +19,18 @@ export class CandidateSearchUc extends BaseCandidateUc implements IUseCase<Param
     super(prisma, logger, candidateDao, s3Service);
   }
 
-  async execute(params: Params): Promise<PaginatedResponseType<CandidateListResponseType>> {
+  public async execute(params: Params): Promise<PaginatedResponseType<CandidateListResponseType>> {
     this.logger.i('Listing candidates', { filter: params.filterDto });
-
     await this.validate(params);
+    return await this.search(params);
+  }
 
-    const { results, totalRecords } = await this.search({
+  private async validate(_params: Params): Promise<void> {
+    // Placeholder for future validations
+  }
+
+  private async search(params: Params): Promise<PaginatedResponseType<CandidateListResponseType>> {
+    const { results, totalRecords } = await this.runSearch({
       filterDto: params.filterDto,
       organizationId: params.currentUser.organizationId,
       orderBy: this.getSort(params.filterDto.sort, CandidateSortableColumns),
@@ -38,9 +44,7 @@ export class CandidateSearchUc extends BaseCandidateUc implements IUseCase<Param
     };
   }
 
-  async validate(_params: Params): Promise<void> {}
-
-  async search(params: {
+  private async runSearch(params: {
     filterDto: CandidateFilterRequestType;
     organizationId: number;
     orderBy?: OrderByParam;

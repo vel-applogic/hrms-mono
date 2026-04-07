@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@repo/db';
 import type { AccountUpdateProfileRequestType, AdminUserDetailResponseType } from '@repo/dto';
 import { AuditActivityStatusDtoEnum, AuditEntityTypeDtoEnum, AuditEventGroupDtoEnum, AuditEventTypeDtoEnum } from '@repo/dto';
 import type { CurrentUserType, IUseCase } from '@repo/nest-lib';
@@ -22,11 +23,13 @@ export class AccountUpdateProfileUc extends BaseUc implements IUseCase<Params, A
     super(prisma, logger);
   }
 
-  async execute(params: Params): Promise<AdminUserDetailResponseType> {
+  public async execute(params: Params): Promise<AdminUserDetailResponseType> {
     this.logger.i('Updating account profile', { userId: params.currentUser.id });
-
     await this.validate(params);
-    await this.updateProfile(params);
+
+    await this.transaction(async (tx) => {
+      await this.updateUser(params, tx);
+    });
 
     void this.auditService.recordActivity({
       eventGroup: AuditEventGroupDtoEnum.operation,
@@ -37,24 +40,22 @@ export class AccountUpdateProfileUc extends BaseUc implements IUseCase<Params, A
       relatedEntities: [{ entityType: AuditEntityTypeDtoEnum.user_admin, entityId: params.currentUser.id }],
     });
 
-    return this.getUser(params);
+    return await this.getUser(params);
   }
 
-  async validate(params: Params): Promise<void> {
+  private async validate(params: Params): Promise<void> {
     await this.getUser(params);
   }
 
-  async updateProfile(params: Params): Promise<void> {
-    await this.transaction(async (tx) => {
-      await this.userDao.update({
-        id: params.currentUser.id,
-        data: { firstname: params.dto.firstname, lastname: params.dto.lastname },
-        tx,
-      });
+  private async updateUser(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    await this.userDao.update({
+      id: params.currentUser.id,
+      data: { firstname: params.dto.firstname, lastname: params.dto.lastname },
+      tx,
     });
   }
 
-  async getUser(params: Params): Promise<AdminUserDetailResponseType> {
+  private async getUser(params: Params): Promise<AdminUserDetailResponseType> {
     const user = await this.userDao.getById({ id: params.currentUser.id });
     if (!user) {
       throw new ApiBadRequestError('User not found');

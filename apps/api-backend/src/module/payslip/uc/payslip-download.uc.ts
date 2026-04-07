@@ -11,20 +11,27 @@ type Params = {
 
 @Injectable()
 export class PayslipDownloadUc implements IUseCase<Params, string> {
-  constructor(
+  public constructor(
     private readonly logger: CommonLoggerService,
     private readonly payrollPayslipDao: PayrollPayslipDao,
     private readonly s3Service: S3Service,
   ) {}
 
-  async execute(params: Params): Promise<string> {
+  public async execute(params: Params): Promise<string> {
     this.logger.i('Getting payslip PDF signed URL', { id: params.id });
+    const validateResult = await this.validate(params);
+    return await this.download(params, validateResult);
+  }
 
+  private async validate(params: Params): Promise<{ pdfS3Key: string }> {
     const payslip = await this.payrollPayslipDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!payslip) {
       throw new ApiError('Payslip not found', 404);
     }
+    return { pdfS3Key: payslip.pdfS3Key };
+  }
 
-    return this.s3Service.getSignedUrl(payslip.pdfS3Key);
+  private async download(_params: Params, validateResult: { pdfS3Key: string }): Promise<string> {
+    return this.s3Service.getSignedUrl(validateResult.pdfS3Key);
   }
 }

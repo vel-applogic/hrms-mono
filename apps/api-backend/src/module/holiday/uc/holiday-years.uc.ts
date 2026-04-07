@@ -12,8 +12,17 @@ export class HolidayYearsUc implements IUseCase<Params, number[]> {
     private readonly holidayDao: HolidayDao,
   ) {}
 
-  async execute(params: Params): Promise<number[]> {
+  public async execute(params: Params): Promise<number[]> {
     this.logger.i('Getting distinct holiday years');
-    return this.holidayDao.getDistinctYears({ organizationId: params.currentUser.organizationId });
+    await this.validate(params);
+    return await this.years(params);
+  }
+
+  private async validate(_params: Params): Promise<void> {
+    // Placeholder for future validations
+  }
+
+  private async years(params: Params): Promise<number[]> {
+    return await this.holidayDao.getDistinctYears({ organizationId: params.currentUser.organizationId });
   }
 }

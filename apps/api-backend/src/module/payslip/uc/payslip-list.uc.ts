@@ -12,16 +12,24 @@ type Params = {
 
 @Injectable()
 export class PayslipListUc implements IUseCase<Params, PaginatedResponseType<PayslipListResponseType>> {
-  constructor(
+  public constructor(
     private readonly logger: CommonLoggerService,
     private readonly payrollPayslipDao: PayrollPayslipDao,
     private readonly organizationDao: OrganizationDao,
     private readonly s3Service: S3Service,
   ) {}
 
-  async execute(params: Params): Promise<PaginatedResponseType<PayslipListResponseType>> {
+  public async execute(params: Params): Promise<PaginatedResponseType<PayslipListResponseType>> {
     this.logger.i('Listing payslips', { month: params.filterDto.month, year: params.filterDto.year });
+    await this.validate(params);
+    return await this.search(params);
+  }
 
+  private async validate(_params: Params): Promise<void> {
+    // Placeholder for future validations
+  }
+
+  private async search(params: Params): Promise<PaginatedResponseType<PayslipListResponseType>> {
     const [{ dbRecords, totalRecords }, org] = await Promise.all([
       this.payrollPayslipDao.findWithPagination({
         page: params.filterDto.pagination.page,

@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { PaginatedResponseType, PolicyFilterRequestType, PolicyListResponseType } from '@repo/dto';
 import { PolicySortableColumns } from '@repo/dto';
-import type { OrderByParam } from '@repo/nest-lib';
 import { CommonLoggerService, CurrentUserType, IUseCase, PolicyDao, PrismaService } from '@repo/nest-lib';
 
 import { S3Service } from '#src/external-service/s3.service.js';
@@ -15,18 +14,28 @@ type Params = {
 
 @Injectable()
 export class PolicySearchUc extends BasePolicyUc implements IUseCase<Params, PaginatedResponseType<PolicyListResponseType>> {
-  constructor(prisma: PrismaService, logger: CommonLoggerService, policyDao: PolicyDao, s3Service: S3Service) {
+  public constructor(prisma: PrismaService, logger: CommonLoggerService, policyDao: PolicyDao, s3Service: S3Service) {
     super(prisma, logger, policyDao, s3Service);
   }
 
-  async execute(params: Params): Promise<PaginatedResponseType<PolicyListResponseType>> {
+  public async execute(params: Params): Promise<PaginatedResponseType<PolicyListResponseType>> {
     this.logger.i('Listing policies', { filter: params.filterDto });
+    await this.validate(params);
+    return await this.search(params);
+  }
 
-    const { results, totalRecords } = await this.search({
+  private async validate(_params: Params): Promise<void> {
+    // Placeholder for future validations
+  }
+
+  private async search(params: Params): Promise<PaginatedResponseType<PolicyListResponseType>> {
+    const orderBy = this.getSort(params.filterDto.sort, PolicySortableColumns);
+    const { dbRecords, totalRecords } = await this.policyDao.search({
       filterDto: params.filterDto,
       organizationId: params.currentUser.organizationId,
-      orderBy: this.getSort(params.filterDto.sort, PolicySortableColumns),
+      orderBy,
     });
+    const results: PolicyListResponseType[] = dbRecords.map((p) => this.dbToPolicyListResponse(p));
     return {
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
@@ -34,20 +43,4 @@ export class PolicySearchUc extends BasePolicyUc implements IUseCase<Params, Pag
       results,
     };
   }
-
-  public async search(params: {
-    filterDto: PolicyFilterRequestType;
-    organizationId: number;
-    orderBy?: OrderByParam;
-  }): Promise<{ totalRecords: number; results: PolicyListResponseType[] }> {
-    const { dbRecords, totalRecords } = await this.policyDao.search({
-      filterDto: params.filterDto,
-      organizationId: params.organizationId,
-      orderBy: params.orderBy,
-    });
-    const results: PolicyListResponseType[] = dbRecords.map((p) => this.dbToPolicyListResponse(p));
-    return { totalRecords, results };
-  }
-
-  async validate(_params: Params): Promise<void> {}
 }

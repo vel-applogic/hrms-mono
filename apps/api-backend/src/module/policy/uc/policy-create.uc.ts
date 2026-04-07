@@ -23,7 +23,7 @@ type Params = {
 
 @Injectable()
 export class PolicyCreateUc extends BasePolicyUc implements IUseCase<Params, OperationStatusResponseType> {
-  constructor(
+  public constructor(
     logger: CommonLoggerService,
     policyDao: PolicyDao,
     prisma: PrismaService,
@@ -35,23 +35,24 @@ export class PolicyCreateUc extends BasePolicyUc implements IUseCase<Params, Ope
     super(prisma, logger, policyDao, s3Service);
   }
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Creating policy', { title: params.dto.title });
-
     await this.validate(params);
+
     const createdId = await this.transaction(async (tx) => {
-      const policyId = await this.create({ dto: params.dto, organizationId: params.currentUser.organizationId, tx });
+      const policyId = await this.createPolicy({ dto: params.dto, organizationId: params.currentUser.organizationId, tx });
       if (params.dto.mediaIds && params.dto.mediaIds.length > 0) {
         await this.linkMediasToPolicy({ policyId, mediaIds: params.dto.mediaIds, tx });
       }
       return policyId;
     });
+
     const policy = await this.getByIdOrThrow(createdId, params.currentUser.organizationId);
     void this.recordActivity(params, policy);
     return { success: true, message: 'Policy created successfully' };
   }
 
-  async validate(params: Params): Promise<void> {
+  private async validate(params: Params): Promise<void> {
     this.assertAdmin(params.currentUser);
     if (params.dto.mediaIds && params.dto.mediaIds.length > 0) {
       for (const mediaId of params.dto.mediaIds) {
@@ -63,7 +64,7 @@ export class PolicyCreateUc extends BasePolicyUc implements IUseCase<Params, Ope
     }
   }
 
-  async create(params: { dto: PolicyCreateRequestType; organizationId: number; tx: Prisma.TransactionClient }): Promise<number> {
+  private async createPolicy(params: { dto: PolicyCreateRequestType; organizationId: number; tx: Prisma.TransactionClient }): Promise<number> {
     return await this.policyDao.create({
       data: {
         organization: { connect: { id: params.organizationId } },
@@ -74,7 +75,7 @@ export class PolicyCreateUc extends BasePolicyUc implements IUseCase<Params, Ope
     });
   }
 
-  async linkMediasToPolicy(params: { policyId: number; mediaIds: number[]; tx: Prisma.TransactionClient }): Promise<void> {
+  private async linkMediasToPolicy(params: { policyId: number; mediaIds: number[]; tx: Prisma.TransactionClient }): Promise<void> {
     for (const mediaId of params.mediaIds) {
       await this.policyHasMediaDao.create({
         data: {

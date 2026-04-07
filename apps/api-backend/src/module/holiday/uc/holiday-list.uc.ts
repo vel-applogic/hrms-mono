@@ -15,9 +15,17 @@ export class HolidayListUc extends BaseHolidayUseCase implements IUseCase<Params
     super(prisma, logger, holidayDao);
   }
 
-  async execute(params: Params): Promise<PaginatedResponseType<HolidayResponseType>> {
+  public async execute(params: Params): Promise<PaginatedResponseType<HolidayResponseType>> {
     this.logger.i('Listing holidays');
+    await this.validate(params);
+    return await this.search(params);
+  }
 
+  private async validate(_params: Params): Promise<void> {
+    // Placeholder for future validations
+  }
+
+  private async search(params: Params): Promise<PaginatedResponseType<HolidayResponseType>> {
     const { dbRecords, totalRecords } = await this.holidayDao.search({
       organizationId: params.currentUser.organizationId,
       page: params.filterDto.pagination.page,

@@ -22,11 +22,16 @@ export class MediaGetSignedUrlForViewUseCase extends BaseUc implements IUseCase<
 
   public async execute(params: Params): Promise<MediaGetSignedUrlResponseType> {
     await this.validate(params);
-    const url = await this.s3Service.getSignedUrl(params.s3Key);
-    return { url };
+    return await this.getSignedUrlForView(params);
   }
 
-  async validate(params: Params): Promise<void> {
-    // await this.isUserHasUpdateAccess(params.currentUser.id);
+  private async validate(_params: Params): Promise<void> {
+    // Placeholder for future validations
+    // await this.isUserHasUpdateAccess(_params.currentUser.id);
+  }
+
+  private async getSignedUrlForView(params: Params): Promise<MediaGetSignedUrlResponseType> {
+    const url = await this.s3Service.getSignedUrl(params.s3Key);
+    return { url };
   }
 }

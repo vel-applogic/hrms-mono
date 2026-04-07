@@ -24,7 +24,7 @@ type OrgInfo = {
 
 @Injectable()
 export class PayslipGetUc implements IUseCase<Params, PayslipDetailResponseType> {
-  constructor(
+  public constructor(
     private readonly logger: CommonLoggerService,
     private readonly payrollPayslipDao: PayrollPayslipDao,
     private readonly organizationDao: OrganizationDao,
@@ -33,8 +33,17 @@ export class PayslipGetUc implements IUseCase<Params, PayslipDetailResponseType>
     private readonly s3Service: S3Service,
   ) {}
 
-  async execute(params: Params): Promise<PayslipDetailResponseType> {
+  public async execute(params: Params): Promise<PayslipDetailResponseType> {
     this.logger.i('Getting payslip', { id: params.id });
+    await this.validate(params);
+    return await this.getById(params);
+  }
+
+  private async validate(_params: Params): Promise<void> {
+    // Placeholder for future validations
+  }
+
+  private async getById(params: Params): Promise<PayslipDetailResponseType> {
     const organizationId = params.currentUser.organizationId;
 
     const [payslip, orgInfo] = await Promise.all([

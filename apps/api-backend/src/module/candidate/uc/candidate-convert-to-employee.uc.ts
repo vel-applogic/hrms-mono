@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { UserRoleDbEnum } from '@repo/db';
+import { Prisma, UserRoleDbEnum } from '@repo/db';
 import type { CandidateConvertToEmployeeRequestType, OperationStatusResponseType } from '@repo/dto';
 import {
   CandidateDao,
@@ -30,6 +30,10 @@ type Params = {
   dto: CandidateConvertToEmployeeRequestType;
 };
 
+type CandidateRecord = NonNullable<Awaited<ReturnType<CandidateDao['getById']>>>;
+type OrganizationRecord = NonNullable<Awaited<ReturnType<OrganizationDao['findById']>>>;
+type ExistingUserRecord = Awaited<ReturnType<UserDao['getByEmail']>>;
+
 @Injectable()
 export class CandidateConvertToEmployeeUc extends BaseCandidateUc implements IUseCase<Params, OperationStatusResponseType> {
   constructor(
@@ -51,9 +55,28 @@ export class CandidateConvertToEmployeeUc extends BaseCandidateUc implements IUs
     super(prisma, logger, candidateDao, s3Service);
   }
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Converting candidate to employee', { candidateId: params.id });
+    const { candidate, org } = await this.validate(params);
 
+    const existingUser = await this.userDao.getByEmail({ email: candidate.email });
+
+    const { userId, inviteKey } = await this.transaction(async (tx) => {
+      const userId = await this.ensureUser(candidate, existingUser, tx);
+      const employeeId = await this.createEmployee(params, candidate, userId, tx);
+      await this.createLeaveCounter(params, userId, tx);
+      await this.upsertOrgUser(params, userId, tx);
+      const inviteKey = await this.createInvite(params, userId, tx);
+      await this.linkEmployeeToCandidate(params, candidate.id, employeeId, tx);
+      return { userId, inviteKey };
+    });
+
+    void this.sendInviteEmail({ userId, email: candidate.email, inviteKey, organizationName: org.name });
+
+    return { success: true, message: 'Candidate converted to employee successfully' };
+  }
+
+  private async validate(params: Params): Promise<{ candidate: CandidateRecord; org: OrganizationRecord }> {
     const candidate = await this.candidateDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!candidate) {
       throw new ApiBadRequestError('Candidate not found');
@@ -86,95 +109,96 @@ export class CandidateConvertToEmployeeUc extends BaseCandidateUc implements IUs
       throw new ApiBadRequestError('Organization not found');
     }
 
-    const existingUser = await this.userDao.getByEmail({ email: candidate.email });
+    return { candidate, org };
+  }
 
-    const { userId, inviteKey } = await this.transaction(async (tx) => {
-      let userId: number;
-
-      if (existingUser) {
-        userId = existingUser.id;
-      } else {
-        const randomPassword = this.passwordService.makeRandomKey();
-        const hashedPassword = await this.passwordService.hash(randomPassword);
-
-        userId = await this.userDao.create({
-          data: {
-            email: candidate.email,
-            firstname: candidate.firstname,
-            lastname: candidate.lastname,
-            password: hashedPassword,
-            isActive: false,
-          },
-          tx,
-        });
-      }
-
-      const dateOfJoining = new Date(params.dto.dateOfJoining);
-      const employeeId = await this.employeeDao.create({
-        data: {
-          user: { connect: { id: userId } },
-          organization: { connect: { id: params.currentUser.organizationId } },
-          candidate: { connect: { id: candidate.id } },
-          employeeCode: params.dto.employeeCode,
-          dob: candidate.dob!,
-          pan: candidate.pan ?? undefined,
-          aadhaar: candidate.aadhaar ?? undefined,
-          designation: params.dto.designation,
-          dateOfJoining,
-          status: 'active',
-        },
-        tx,
-      });
-
-      const financialYear = getFinancialYearCode(dateOfJoining);
-      const orgSettings = await this.organizationSettingDao.findByOrganizationId({ organizationId: params.currentUser.organizationId, tx });
-      const totalLeavesAvailable = orgSettings?.totalLeaveInDays ?? 24;
-      await this.employeeLeaveCounterDao.create({
-        data: {
-          user: { connect: { id: userId } },
-          organization: { connect: { id: params.currentUser.organizationId } },
-          financialYear,
-          casualLeaves: 0,
-          sickLeaves: 0,
-          earnedLeaves: 0,
-          totalLeavesUsed: 0,
-          totalLeavesAvailable,
-        },
-        tx,
-      });
-
-      await this.organizationHasUserDao.upsert({
-        organizationId: params.currentUser.organizationId,
-        userId,
-        roles: [UserRoleDbEnum.employee],
-        tx,
-      });
-
-      const inviteKey = this.passwordService.makeRandomKey();
-      await this.userInviteDao.create({
-        data: {
-          user: { connect: { id: userId } },
-          organization: { connect: { id: params.currentUser.organizationId } },
-          invitedBy: { connect: { id: params.currentUser.id } },
-          inviteKey,
-        },
-        tx,
-      });
-
-      // Link employee back to candidate
-      await this.candidateDao.update({
-        id: candidate.id,
-        organizationId: params.currentUser.organizationId,
-        data: { status: 'selected', employee: { connect: { id: employeeId } } },
-        tx,
-      });
-
-      return { userId, inviteKey };
+  private async ensureUser(candidate: CandidateRecord, existingUser: ExistingUserRecord, tx: Prisma.TransactionClient): Promise<number> {
+    if (existingUser) {
+      return existingUser.id;
+    }
+    const randomPassword = this.passwordService.makeRandomKey();
+    const hashedPassword = await this.passwordService.hash(randomPassword);
+    return await this.userDao.create({
+      data: {
+        email: candidate.email,
+        firstname: candidate.firstname,
+        lastname: candidate.lastname,
+        password: hashedPassword,
+        isActive: false,
+      },
+      tx,
     });
+  }
 
-    void this.sendInviteEmail({ userId, email: candidate.email, inviteKey, organizationName: org.name });
+  private async createEmployee(params: Params, candidate: CandidateRecord, userId: number, tx: Prisma.TransactionClient): Promise<number> {
+    const dateOfJoining = new Date(params.dto.dateOfJoining);
+    return await this.employeeDao.create({
+      data: {
+        user: { connect: { id: userId } },
+        organization: { connect: { id: params.currentUser.organizationId } },
+        candidate: { connect: { id: candidate.id } },
+        employeeCode: params.dto.employeeCode,
+        dob: candidate.dob!,
+        pan: candidate.pan ?? undefined,
+        aadhaar: candidate.aadhaar ?? undefined,
+        designation: params.dto.designation,
+        dateOfJoining,
+        status: 'active',
+      },
+      tx,
+    });
+  }
 
-    return { success: true, message: 'Candidate converted to employee successfully' };
+  private async createLeaveCounter(params: Params, userId: number, tx: Prisma.TransactionClient): Promise<void> {
+    const dateOfJoining = new Date(params.dto.dateOfJoining);
+    const financialYear = getFinancialYearCode(dateOfJoining);
+    const orgSettings = await this.organizationSettingDao.findByOrganizationId({ organizationId: params.currentUser.organizationId, tx });
+    const totalLeavesAvailable = orgSettings?.totalLeaveInDays ?? 24;
+    await this.employeeLeaveCounterDao.create({
+      data: {
+        user: { connect: { id: userId } },
+        organization: { connect: { id: params.currentUser.organizationId } },
+        financialYear,
+        casualLeaves: 0,
+        sickLeaves: 0,
+        earnedLeaves: 0,
+        totalLeavesUsed: 0,
+        totalLeavesAvailable,
+      },
+      tx,
+    });
+  }
+
+  private async upsertOrgUser(params: Params, userId: number, tx: Prisma.TransactionClient): Promise<void> {
+    await this.organizationHasUserDao.upsert({
+      organizationId: params.currentUser.organizationId,
+      userId,
+      roles: [UserRoleDbEnum.employee],
+      tx,
+    });
+  }
+
+  private async createInvite(params: Params, userId: number, tx: Prisma.TransactionClient): Promise<string> {
+    const inviteKey = this.passwordService.makeRandomKey();
+    await this.userInviteDao.create({
+      data: {
+        user: { connect: { id: userId } },
+        organization: { connect: { id: params.currentUser.organizationId } },
+        invitedBy: { connect: { id: params.currentUser.id } },
+        inviteKey,
+      },
+      tx,
+    });
+    return inviteKey;
+  }
+
+  private async linkEmployeeToCandidate(params: Params, candidateId: number, employeeId: number, tx: Prisma.TransactionClient): Promise<void> {
+    await this.candidateDao.update({
+      id: candidateId,
+      organizationId: params.currentUser.organizationId,
+      data: { status: 'selected', employee: { connect: { id: employeeId } } },
+      tx,
+    });
   }
 
   private async sendInviteEmail(params: { userId: number; email: string; inviteKey: string; organizationName: string }): Promise<void> {

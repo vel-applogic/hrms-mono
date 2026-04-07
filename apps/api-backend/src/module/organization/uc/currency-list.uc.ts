@@ -12,8 +12,17 @@ export class CurrencyListUc implements IUseCase<Params, CurrencyResponseType[]> 
     private readonly currencyDao: CurrencyDao,
   ) {}
 
-  async execute(): Promise<CurrencyResponseType[]> {
+  public async execute(): Promise<CurrencyResponseType[]> {
     this.logger.i('Listing currencies');
+    await this.validate();
+    return await this.search();
+  }
+
+  private async validate(): Promise<void> {
+    // No validation required
+  }
+
+  private async search(): Promise<CurrencyResponseType[]> {
     const dbRecords = await this.currencyDao.findAll();
     return dbRecords.map((r: CurrencySelectTableRecordType) => ({
       id: r.id,

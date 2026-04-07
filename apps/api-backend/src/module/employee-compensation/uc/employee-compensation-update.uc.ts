@@ -13,12 +13,6 @@ type Params = {
   dto: EmployeeCompensationUpdateRequestType;
 };
 
-type ValidateResult = {
-  newEffectiveFrom: Date;
-  effectiveFromChanged: boolean;
-  mostRecent: { id: number; effectiveFrom: Date; effectiveTill: Date | null } | undefined;
-};
-
 @Injectable()
 export class EmployeeCompensationUpdateUc extends BaseUc implements IUseCase<Params, EmployeeCompensationResponseType> {
   constructor(
@@ -29,59 +23,28 @@ export class EmployeeCompensationUpdateUc extends BaseUc implements IUseCase<Par
     super(prisma, logger);
   }
 
-  async execute(params: Params): Promise<EmployeeCompensationResponseType> {
+  public async execute(params: Params): Promise<EmployeeCompensationResponseType> {
     this.logger.i('Updating employee compensation', { id: params.id });
-
-    const { newEffectiveFrom, effectiveFromChanged, mostRecent } = await this.validate(params);
+    const validateData = await this.validate(params);
 
     await this.prisma.$transaction(async (tx) => {
-      const updateData: Prisma.PayrollCompensationUpdateInput = {
-        effectiveFrom: params.dto.effectiveFrom ? parseDateOnly(params.dto.effectiveFrom) : undefined,
-        effectiveTill: params.dto.effectiveTill !== undefined ? (params.dto.effectiveTill ? parseDateOnly(params.dto.effectiveTill) : null) : undefined,
-        isActive: params.dto.isActive,
-      };
-
-      if (effectiveFromChanged && mostRecent) {
-        const mostRecentFrom = new Date(mostRecent.effectiveFrom);
-        mostRecentFrom.setUTCHours(0, 0, 0, 0);
-        if (newEffectiveFrom >= mostRecentFrom) {
-          const oneDayBefore = new Date(newEffectiveFrom);
-          oneDayBefore.setUTCDate(oneDayBefore.getUTCDate() - 1);
-          const prevTill = mostRecent.effectiveTill ? new Date(mostRecent.effectiveTill) : null;
-          if (!prevTill || prevTill > oneDayBefore) {
-            await this.payrollCompensationDao.update({
-              id: mostRecent.id,
-              data: { effectiveTill: oneDayBefore, isActive: false },
-              tx,
-            });
-          }
-        }
+      if (validateData.effectiveFromChanged && validateData.mostRecent) {
+        await this.closePreviousCompensation(validateData.newEffectiveFrom, validateData.mostRecent, tx);
       }
-
-      await this.payrollCompensationDao.update({
-        id: params.id,
-        data: updateData,
-        tx,
-      });
-
+      await this.update(params, tx);
       if (params.dto.lineItems) {
-        const grossAmount = params.dto.lineItems.reduce((sum, item) => sum + item.amount, 0);
-        await this.payrollCompensationDao.replaceLineItems({
-          compensationId: params.id,
-          lineItems: params.dto.lineItems.map((item) => ({ title: item.title, amount: item.amount })),
-          grossAmount,
-          tx,
-        });
+        await this.replaceLineItems(params, tx);
       }
     });
 
-    const updated = await this.payrollCompensationDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
-    if (!updated) throw new ApiError('Failed to fetch updated compensation', 500);
-
-    return this.mapToResponse(updated);
+    return await this.getResponseById(params);
   }
 
-  private async validate(params: Params): Promise<ValidateResult> {
+  private async validate(params: Params): Promise<{
+    newEffectiveFrom: Date;
+    effectiveFromChanged: boolean;
+    mostRecent: { id: number; effectiveFrom: Date; effectiveTill: Date | null } | undefined;
+  }> {
     this.assertAdmin(params.currentUser);
     const existing = await this.payrollCompensationDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!existing) {
@@ -107,6 +70,57 @@ export class EmployeeCompensationUpdateUc extends BaseUc implements IUseCase<Par
       effectiveFromChanged: !!params.dto.effectiveFrom,
       mostRecent: mostRecent ? { id: mostRecent.id, effectiveFrom: mostRecent.effectiveFrom, effectiveTill: mostRecent.effectiveTill } : undefined,
     };
+  }
+
+  private async closePreviousCompensation(
+    newEffectiveFrom: Date,
+    mostRecent: { id: number; effectiveFrom: Date; effectiveTill: Date | null },
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    const mostRecentFrom = new Date(mostRecent.effectiveFrom);
+    mostRecentFrom.setUTCHours(0, 0, 0, 0);
+    if (newEffectiveFrom >= mostRecentFrom) {
+      const oneDayBefore = new Date(newEffectiveFrom);
+      oneDayBefore.setUTCDate(oneDayBefore.getUTCDate() - 1);
+      const prevTill = mostRecent.effectiveTill ? new Date(mostRecent.effectiveTill) : null;
+      if (!prevTill || prevTill > oneDayBefore) {
+        await this.payrollCompensationDao.update({
+          id: mostRecent.id,
+          data: { effectiveTill: oneDayBefore, isActive: false },
+          tx,
+        });
+      }
+    }
+  }
+
+  private async update(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    const updateData: Prisma.PayrollCompensationUpdateInput = {
+      effectiveFrom: params.dto.effectiveFrom ? parseDateOnly(params.dto.effectiveFrom) : undefined,
+      effectiveTill: params.dto.effectiveTill !== undefined ? (params.dto.effectiveTill ? parseDateOnly(params.dto.effectiveTill) : null) : undefined,
+      isActive: params.dto.isActive,
+    };
+    await this.payrollCompensationDao.update({
+      id: params.id,
+      data: updateData,
+      tx,
+    });
+  }
+
+  private async replaceLineItems(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    if (!params.dto.lineItems) return;
+    const grossAmount = params.dto.lineItems.reduce((sum, item) => sum + item.amount, 0);
+    await this.payrollCompensationDao.replaceLineItems({
+      compensationId: params.id,
+      lineItems: params.dto.lineItems.map((item) => ({ title: item.title, amount: item.amount })),
+      grossAmount,
+      tx,
+    });
+  }
+
+  private async getResponseById(params: Params): Promise<EmployeeCompensationResponseType> {
+    const updated = await this.payrollCompensationDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
+    if (!updated) throw new ApiError('Failed to fetch updated compensation', 500);
+    return this.mapToResponse(updated);
   }
 
   private mapToResponse(c: PayrollCompensationWithLineItemsType): EmployeeCompensationResponseType {

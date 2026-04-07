@@ -39,7 +39,7 @@ export class BaseCandidateUc extends BaseUc {
     };
   }
 
-  async getById(id: number, organizationId: number): Promise<CandidateDetailResponseType | undefined> {
+  public async getById(id: number, organizationId: number): Promise<CandidateDetailResponseType | undefined> {
     const candidate = await this.candidateDao.getById({ id, organizationId });
     if (!candidate) return undefined;
 
@@ -80,7 +80,7 @@ export class BaseCandidateUc extends BaseUc {
     };
   }
 
-  async getByIdOrThrow(id: number, organizationId: number): Promise<CandidateDetailResponseType> {
+  public async getByIdOrThrow(id: number, organizationId: number): Promise<CandidateDetailResponseType> {
     const candidate = await this.getById(id, organizationId);
     if (!candidate) throw new ApiBadRequestError('Candidate not found');
     return candidate;

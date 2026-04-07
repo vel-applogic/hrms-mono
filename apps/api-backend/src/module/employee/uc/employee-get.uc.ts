@@ -26,13 +26,20 @@ export class EmployeeGetUc extends BaseEmployeeUc implements IUseCase<Params, Em
     super(prisma, logger, employeeDao, employeeHasMediaDao, s3Service);
   }
 
-  async execute(params: Params): Promise<EmployeeDetailResponseType> {
+  public async execute(params: Params): Promise<EmployeeDetailResponseType> {
+    this.logger.i('Getting employee', { id: params.id });
+    await this.validate(params);
+    return await this.fetchById(params);
+  }
+
+  private async validate(params: Params): Promise<void> {
     const isAdmin = params.currentUser.isSuperAdmin || params.currentUser.roles.includes(UserRoleDtoEnum.admin);
     if (!isAdmin && params.currentUser.id !== params.id) {
       throw new ApiBadRequestError('Not authorized to view this employee');
     }
+  }
 
-    this.logger.i('Getting employee', { id: params.id });
-    return this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+  private async fetchById(params: Params): Promise<EmployeeDetailResponseType> {
+    return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
   }
 }

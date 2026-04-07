@@ -9,7 +9,7 @@ export type CurrencyInfo = {
 };
 
 export class BasePayslipUc extends BaseUc {
-  constructor(prisma: PrismaService, logger: CommonLoggerService) {
+  public constructor(prisma: PrismaService, logger: CommonLoggerService) {
     super(prisma, logger);
   }
 

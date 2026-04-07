@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { LeaveStatusEnum } from '@repo/db';
+import { LeaveStatusEnum, type LeaveTypeEnum, type Prisma } from '@repo/db';
 import { type LeaveCreateRequestType, type LeaveResponseType, UserRoleDtoEnum } from '@repo/dto';
 import { CommonLoggerService, CurrentUserType, EmployeeDao, IUseCase, LeaveDao, OrganizationSettingDao, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, leaveTypeDtoEnumToDbEnum, PrismaService } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
@@ -48,9 +48,20 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
     private readonly organizationSettingDao: OrganizationSettingDao,
   ) {}
 
-  async execute(params: Params): Promise<LeaveResponseType> {
+  public async execute(params: Params): Promise<LeaveResponseType> {
     const targetUserId = params.dto.userId;
     this.logger.i('Creating leave request', { userId: targetUserId, requestedBy: params.currentUser.id });
+    const validateResult = await this.validate(params);
+
+    const createdId = await this.prisma.$transaction(async (tx) => {
+      return await this.create(params, validateResult, tx);
+    });
+
+    return await this.getResponseById(params, createdId);
+  }
+
+  private async validate(params: Params): Promise<{ startDate: Date; endDate: Date; numberOfDays: number; leaveTypeDb: LeaveTypeEnum }> {
+    const targetUserId = params.dto.userId;
 
     if (!params.currentUser.roles.includes(UserRoleDtoEnum.admin) && targetUserId !== params.currentUser.id) {
       throw new ApiError('You can only apply for leave on your own behalf', 403);
@@ -100,23 +111,34 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
       throw new ApiError(`Exceeds total leave limit. Used: ${existingTotal}, Limit: ${config.totalLeaveInDays}, Requested: ${numberOfDays}`, 400);
     }
 
-    const createdId = await this.prisma.$transaction(async (tx) => {
-      return this.leaveDao.create({
-        data: {
-          user: { connect: { id: targetUserId } },
-          organization: { connect: { id: params.currentUser.organizationId } },
-          leaveType: leaveTypeDb,
-          startDate,
-          endDate,
-          numberOfDays,
-          reason: params.dto.reason,
-          status: 'pending',
-        },
-        tx,
-      });
-    });
+    return { startDate, endDate, numberOfDays, leaveTypeDb };
+  }
 
-    const withUser = await this.leaveDao.getById({ id: createdId, organizationId: params.currentUser.organizationId });
+  private async create(
+    params: Params,
+    validateResult: { startDate: Date; endDate: Date; numberOfDays: number; leaveTypeDb: LeaveTypeEnum },
+    tx: Prisma.TransactionClient,
+  ): Promise<number> {
+    const targetUserId = params.dto.userId;
+    const { startDate, endDate, numberOfDays, leaveTypeDb } = validateResult;
+
+    return this.leaveDao.create({
+      data: {
+        user: { connect: { id: targetUserId } },
+        organization: { connect: { id: params.currentUser.organizationId } },
+        leaveType: leaveTypeDb,
+        startDate,
+        endDate,
+        numberOfDays,
+        reason: params.dto.reason,
+        status: 'pending',
+      },
+      tx,
+    });
+  }
+
+  private async getResponseById(params: Params, id: number): Promise<LeaveResponseType> {
+    const withUser = await this.leaveDao.getById({ id, organizationId: params.currentUser.organizationId });
     if (!withUser) throw new ApiError('Failed to fetch created leave', 500);
 
     return {

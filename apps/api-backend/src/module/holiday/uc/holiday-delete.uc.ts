@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@repo/db';
 import type { OperationStatusResponseType } from '@repo/dto';
 import { BaseUc, CommonLoggerService, CurrentUserType, HolidayDao, IUseCase, PrismaService } from '@repo/nest-lib';
 import { ApiBadRequestError, DbRecordNotFoundError } from '@repo/shared';
@@ -18,10 +19,19 @@ export class HolidayDeleteUc extends BaseUc implements IUseCase<Params, Operatio
     super(prisma, logger);
   }
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
-    this.assertAdmin(params.currentUser);
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Deleting holiday', { id: params.id });
+    await this.validate(params);
 
+    await this.prisma.$transaction(async (tx) => {
+      await this.delete(params, tx);
+    });
+
+    return { success: true };
+  }
+
+  private async validate(params: Params): Promise<void> {
+    this.assertAdmin(params.currentUser);
     try {
       await this.holidayDao.getByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId });
     } catch (error) {
@@ -30,11 +40,9 @@ export class HolidayDeleteUc extends BaseUc implements IUseCase<Params, Operatio
       }
       throw error;
     }
+  }
 
-    await this.prisma.$transaction(async (tx) => {
-      await this.holidayDao.deleteByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId, tx });
-    });
-
-    return { success: true };
+  private async delete(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    await this.holidayDao.deleteByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId, tx });
   }
 }

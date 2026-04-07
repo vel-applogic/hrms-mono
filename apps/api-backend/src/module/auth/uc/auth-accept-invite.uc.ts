@@ -24,26 +24,25 @@ export class AuthAcceptInviteUc extends BaseAuthUseCase implements IUseCase<Para
     super(prisma, logger, userDao);
   }
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Accepting invite', { userId: params.dto.userId });
-
-    const invite = await this.validateInvite(params.dto.userId, params.dto.inviteKey);
+    const { inviteId } = await this.validate(params);
 
     await this.transaction(async (tx) => {
       await this.activateUser({ dto: params.dto, tx });
-      await this.markInviteAccepted({ inviteId: invite.id, tx });
+      await this.markInviteAccepted({ inviteId, tx });
     });
 
     return { success: true, message: 'Account activated successfully. You can now log in.' };
   }
 
-  private async validateInvite(userId: number, inviteKey: string) {
-    const user = await this.userDao.getById({ id: userId });
+  private async validate(params: Params): Promise<{ inviteId: number }> {
+    const user = await this.userDao.getById({ id: params.dto.userId });
     if (!user) {
       throw new ApiBadRequestError('Invite link is invalid');
     }
 
-    const invite = await this.userInviteDao.findByUserAndKey({ userId, inviteKey });
+    const invite = await this.userInviteDao.findByUserAndKey({ userId: params.dto.userId, inviteKey: params.dto.inviteKey });
     if (!invite) {
       throw new ApiBadRequestError('Invite link is invalid or has expired');
     }
@@ -51,7 +50,7 @@ export class AuthAcceptInviteUc extends BaseAuthUseCase implements IUseCase<Para
       throw new ApiBadRequestError('This invite has already been accepted');
     }
 
-    return invite;
+    return { inviteId: invite.id };
   }
 
   private async activateUser(params: { dto: AuthAcceptInviteRequestType; tx: Prisma.TransactionClient }): Promise<void> {

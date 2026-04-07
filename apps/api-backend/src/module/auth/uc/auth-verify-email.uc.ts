@@ -8,6 +8,7 @@ import {
   OperationStatusResponseType,
   UserRoleDtoEnum,
 } from '@repo/dto';
+import type { Prisma } from '@repo/db';
 import { AuditService, CommonLoggerService, getErrorMessage, IUseCase, PrismaService, TrackQuery, UserDao, UserVerifyEmailDao } from '@repo/nest-lib';
 import { ApiBadRequestError } from '@repo/shared';
 
@@ -16,6 +17,7 @@ import { BaseAuthUseCase } from './_base-auth.uc.js';
 type Params = {
   dto: AuthVerifyEmailRequestType;
 };
+
 @Injectable()
 @TrackQuery()
 export class AuthVerifyEmailUseCase extends BaseAuthUseCase implements IUseCase<Params, OperationStatusResponseType> {
@@ -31,29 +33,33 @@ export class AuthVerifyEmailUseCase extends BaseAuthUseCase implements IUseCase<
 
   public async execute(params: Params): Promise<OperationStatusResponseType> {
     try {
-      const keyId = await this.validate(params);
+      const { keyId } = await this.validate(params);
 
-      await this.activateUserAccount({ keyId: keyId, userId: params.dto.userId });
+      await this.transaction(async (tx) => {
+        await this.activateUser(params.dto.userId, tx);
+        await this.markKeyVerified(keyId, tx);
+      });
 
       void this.recordActivitySuccess({ userId: params.dto.userId });
-
       return { success: true, message: 'Email address has been verified' };
     } catch (err) {
-      void this.recordActivityFailure({ userId: params.dto.userId, err: err });
+      void this.recordActivityFailure({ userId: params.dto.userId, err });
       throw err;
     }
   }
 
-  async validate(params: Params): Promise<number> {
+  private async validate(params: Params): Promise<{ keyId: number }> {
     await this.getUserByIdOrThorw(params.dto.userId);
-    return await this.validateKey({ userId: params.dto.userId, key: params.dto.key });
+    const keyId = await this.validateKey({ userId: params.dto.userId, key: params.dto.key });
+    return { keyId };
   }
 
-  private async activateUserAccount(params: { keyId: number; userId: number }): Promise<void> {
-    await this.transaction(async (tx) => {
-      await this.userDao.update({ id: params.userId, data: { isActive: true }, tx });
-      await this.userVerifyEmailDao.updateById({ id: params.keyId, data: { verifiedAt: new Date() }, tx });
-    });
+  private async activateUser(userId: number, tx: Prisma.TransactionClient): Promise<void> {
+    await this.userDao.update({ id: userId, data: { isActive: true }, tx });
+  }
+
+  private async markKeyVerified(keyId: number, tx: Prisma.TransactionClient): Promise<void> {
+    await this.userVerifyEmailDao.updateById({ id: keyId, data: { verifiedAt: new Date() }, tx });
   }
 
   private async validateKey(params: { userId: number; key: string }): Promise<number> {

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@repo/db';
 import type { OperationStatusResponseType } from '@repo/dto';
 import type { CurrentUserType } from '@repo/nest-lib';
 import {
@@ -52,21 +53,29 @@ export class OrganizationDeleteUc extends BaseOrganizationUc implements IUseCase
     );
   }
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
-    this.assertSuperAdmin(params.currentUser);
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Deleting organization', { id: params.id });
+    await this.validate(params);
 
     await this.transaction(async (tx) => {
-      try {
-        await this.organizationDao.deleteByIdOrThrow({ id: params.id, tx });
-      } catch (error) {
-        if (error instanceof DbRecordNotFoundError) {
-          throw new ApiBadRequestError('Organization not found');
-        }
-        throw error;
-      }
+      await this.delete(params, tx);
     });
 
     return { success: true, message: 'Organization deleted successfully' };
+  }
+
+  private async validate(params: Params): Promise<void> {
+    this.assertSuperAdmin(params.currentUser);
+  }
+
+  private async delete(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    try {
+      await this.organizationDao.deleteByIdOrThrow({ id: params.id, tx });
+    } catch (error) {
+      if (error instanceof DbRecordNotFoundError) {
+        throw new ApiBadRequestError('Organization not found');
+      }
+      throw error;
+    }
   }
 }

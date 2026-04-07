@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { CandidateDetailResponseType } from '@repo/dto';
 import { CandidateDao, CommonLoggerService, CurrentUserType, IUseCase, PrismaService } from '@repo/nest-lib';
-import { ApiBadRequestError } from '@repo/shared';
 
 import { S3Service } from '#src/external-service/s3.service.js';
 
@@ -18,16 +17,17 @@ export class CandidateGetUc extends BaseCandidateUc implements IUseCase<Params, 
     super(prisma, logger, candidateDao, s3Service);
   }
 
-  async execute(params: Params): Promise<CandidateDetailResponseType> {
+  public async execute(params: Params): Promise<CandidateDetailResponseType> {
     this.logger.i('Getting candidate', { id: params.id });
-
-    const candidate = await this.validate(params);
-
-    if (!candidate) throw new ApiBadRequestError('Candidate not found');
-    return candidate;
+    await this.validate(params);
+    return await this.fetchCandidate(params);
   }
 
-  private async validate(params: Params): Promise<CandidateDetailResponseType> {
+  private async validate(_params: Params): Promise<void> {
+    // Placeholder for future validations
+  }
+
+  private async fetchCandidate(params: Params): Promise<CandidateDetailResponseType> {
     return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
   }
 }

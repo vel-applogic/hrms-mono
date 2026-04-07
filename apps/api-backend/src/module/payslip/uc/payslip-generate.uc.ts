@@ -29,7 +29,7 @@ type OrgData = {
 
 @Injectable()
 export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params, PayslipGenerateResponseType> {
-  constructor(
+  public constructor(
     logger: CommonLoggerService,
     prisma: PrismaService,
     private readonly payrollPayslipDao: PayrollPayslipDao,
@@ -46,13 +46,11 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     super(prisma, logger);
   }
 
-  async execute(params: Params): Promise<PayslipGenerateResponseType> {
+  public async execute(params: Params): Promise<PayslipGenerateResponseType> {
     const { month, year, force, employeeIds } = params.dto;
     this.logger.i('Generating payslips', { month, year, employeeIds, force });
-
-    const org = await this.organizationDao.getByIdOrThrow({ id: params.currentUser.organizationId });
-    const currency: CurrencyInfo = { symbol: org.currency.symbol, code: org.currency.code };
-    const { existingPayslips, targetUserIds } = await this.validate(params, params.currentUser.organizationId, currency);
+    const validateResult = await this.validate(params);
+    const { existingPayslips, targetUserIds } = validateResult;
 
     if (existingPayslips.length > 0 && !force) {
       return {
@@ -63,8 +61,6 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
       };
     }
 
-    let generated = 0;
-    let skipped = 0;
     const firstDay = new Date(Date.UTC(year, month - 1, 1));
     const lastDay = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
     const totalDaysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
@@ -76,50 +72,23 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     const userNameMap = new Map(users.map((u) => [u.id, { firstname: u.firstname, lastname: u.lastname }]));
 
     const createdPayslips: PayrollPayslipWithDetailsType[] = [];
+    let generated = 0;
+    let skipped = 0;
 
-    await this.transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx) => {
       const organizationId = params.currentUser.organizationId;
       await this.deleteOldPayslips({ force, existingPayslips, organizationId, tx });
 
       for (const userId of targetUserIds) {
-        const overlappingComps = await this.getCompensations({ userId, lastDay, firstDay, organizationId });
-        if (overlappingComps.length === 0) {
+        const result = await this.generatePayslipForUser({ currentUser: params.currentUser, userId, firstDay, lastDay, totalDaysInMonth, year, month, userNameMap, tx });
+        if (result.skipped) {
           skipped++;
           continue;
         }
-
-        const openEndedComps = overlappingComps.filter((c) => !c.effectiveTill);
-        if (openEndedComps.length > 1) {
-          throw new ApiBadRequestError(`Employee ${userId} has ${openEndedComps.length} compensations with no end date. Only the latest compensation can have no end date.`);
+        if (result.created) {
+          createdPayslips.push(result.created);
+          generated++;
         }
-
-        const applicableDeductions = await this.getApplicableDeductions({ userId, lastDay, firstDay, year, month, organizationId });
-
-        const earningLineItems = this.getEarningLineItems({ overlappingComps, firstDay, totalDaysInMonth, year, month });
-
-        const deductionLineItems = this.getDeductionLineItems(applicableDeductions, year, month);
-
-        const totalGross = earningLineItems.reduce((s, e) => s + e.amount, 0);
-        const lopDaysCount = await this.leaveDao.sumLopDaysByUserIdAndDateRange({ userId, startDate: firstDay, endDate: lastDay, organizationId });
-        const lopAmount = lopDaysCount > 0 ? Math.round((totalGross / totalDaysInMonth) * lopDaysCount) : 0;
-        if (lopAmount > 0) {
-          deductionLineItems.push({ type: 'deduction' as const, title: 'Loss of Pay', amount: lopAmount });
-        }
-
-        const grossAmount = earningLineItems.reduce((s, e) => s + e.amount, 0);
-        const deductionAmount = deductionLineItems.reduce((s, d) => s + d.amount, 0);
-        const netAmount = grossAmount - deductionAmount;
-
-        const userName = userNameMap.get(userId);
-        const s3Key = this.buildS3Key({ userId, firstname: userName?.firstname ?? '', lastname: userName?.lastname ?? '', month, year });
-
-        const createdId = await this.createPayslip({ userId, organizationId, month, year, grossAmount, deductionAmount, netAmount, earningLineItems, deductionLineItems, s3Key, tx });
-        const created = await this.payrollPayslipDao.getById({ id: createdId, organizationId, tx });
-        if (!created) {
-          throw new ApiBadRequestError(`Failed to fetch created payslip for employee ${userId}`);
-        }
-        createdPayslips.push(created);
-        generated++;
       }
     });
 
@@ -127,6 +96,87 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     await Promise.all(createdPayslips.map((p) => this.generateAndUploadPdf(p, orgData)));
 
     return { generated, skipped, alreadyExisting: false };
+  }
+
+  private async generatePayslipForUser(args: {
+    currentUser: CurrentUserType;
+    userId: number;
+    firstDay: Date;
+    lastDay: Date;
+    totalDaysInMonth: number;
+    year: number;
+    month: number;
+    userNameMap: Map<number, { firstname: string; lastname: string }>;
+    tx: Prisma.TransactionClient;
+  }): Promise<{ skipped: boolean; created?: PayrollPayslipWithDetailsType }> {
+    const { userId, firstDay, lastDay, totalDaysInMonth, year, month, userNameMap, tx } = args;
+    const organizationId = args.currentUser.organizationId;
+
+    const overlappingComps = await this.getCompensations({ userId, lastDay, firstDay, organizationId });
+    if (overlappingComps.length === 0) {
+      return { skipped: true };
+    }
+
+    const openEndedComps = overlappingComps.filter((c) => !c.effectiveTill);
+    if (openEndedComps.length > 1) {
+      throw new ApiBadRequestError(`Employee ${userId} has ${openEndedComps.length} compensations with no end date. Only the latest compensation can have no end date.`);
+    }
+
+    const applicableDeductions = await this.getApplicableDeductions({ userId, lastDay, firstDay, year, month, organizationId });
+
+    const earningLineItems = this.getEarningLineItems({ overlappingComps, firstDay, totalDaysInMonth, year, month });
+
+    const deductionLineItems = this.getDeductionLineItems(applicableDeductions, year, month);
+
+    const totalGross = earningLineItems.reduce((s, e) => s + e.amount, 0);
+    const lopDaysCount = await this.leaveDao.sumLopDaysByUserIdAndDateRange({ userId, startDate: firstDay, endDate: lastDay, organizationId });
+    const lopAmount = lopDaysCount > 0 ? Math.round((totalGross / totalDaysInMonth) * lopDaysCount) : 0;
+    if (lopAmount > 0) {
+      deductionLineItems.push({ type: 'deduction' as const, title: 'Loss of Pay', amount: lopAmount });
+    }
+
+    const grossAmount = earningLineItems.reduce((s, e) => s + e.amount, 0);
+    const deductionAmount = deductionLineItems.reduce((s, d) => s + d.amount, 0);
+    const netAmount = grossAmount - deductionAmount;
+
+    const userName = userNameMap.get(userId);
+    const s3Key = this.buildS3Key({ userId, firstname: userName?.firstname ?? '', lastname: userName?.lastname ?? '', month, year });
+
+    const createdId = await this.createPayslip({ userId, organizationId, month, year, grossAmount, deductionAmount, netAmount, earningLineItems, deductionLineItems, s3Key, tx });
+    const created = await this.payrollPayslipDao.getById({ id: createdId, organizationId, tx });
+    if (!created) {
+      throw new ApiBadRequestError(`Failed to fetch created payslip for employee ${userId}`);
+    }
+    return { skipped: false, created };
+  }
+
+  private async validate(params: Params): Promise<{ currency: CurrencyInfo; existingPayslips: PayslipListResponseType[]; targetUserIds: number[] }> {
+    this.assertAdmin(params.currentUser);
+    const organizationId = params.currentUser.organizationId;
+    const org = await this.organizationDao.getByIdOrThrow({ id: organizationId });
+    const currency: CurrencyInfo = { symbol: org.currency.symbol, code: org.currency.code };
+
+    let targetUserIds: number[];
+    if (params.dto.employeeIds?.length) {
+      targetUserIds = params.dto.employeeIds;
+    } else {
+      const employees = await this.employeeDao.findAllWithUser({ organizationId });
+      targetUserIds = employees.map((e) => e.userId);
+    }
+
+    if (targetUserIds.length === 0) {
+      throw new ApiBadRequestError('No employees found to generate payslips');
+    }
+
+    const dbExistingPayslips = await this.payrollPayslipDao.findManyByMonthYear({
+      month: params.dto.month,
+      year: params.dto.year,
+      employeeIds: targetUserIds,
+      organizationId,
+    });
+
+    const existingPayslips = dbExistingPayslips.map((p) => this.dbToPayslipListResponse(p, currency));
+    return { currency, existingPayslips, targetUserIds };
   }
 
   private async generateAndUploadPdf(payslip: PayrollPayslipWithDetailsType, orgData: OrgData): Promise<void> {
@@ -202,31 +252,6 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
         updatedAt: li.updatedAt.toISOString(),
       })),
     };
-  }
-
-  private async validate(params: Params, organizationId: number, currency: CurrencyInfo): Promise<{ existingPayslips: PayslipListResponseType[]; targetUserIds: number[] }> {
-    this.assertAdmin(params.currentUser);
-    let targetUserIds: number[];
-    if (params.dto.employeeIds?.length) {
-      targetUserIds = params.dto.employeeIds;
-    } else {
-      const employees = await this.employeeDao.findAllWithUser({ organizationId });
-      targetUserIds = employees.map((e) => e.userId);
-    }
-
-    if (targetUserIds.length === 0) {
-      throw new ApiBadRequestError('No employees found to generate payslips');
-    }
-
-    const dbExistingPayslips = await this.payrollPayslipDao.findManyByMonthYear({
-      month: params.dto.month,
-      year: params.dto.year,
-      employeeIds: targetUserIds,
-      organizationId,
-    });
-
-    const existingPayslips = dbExistingPayslips.map((p) => this.dbToPayslipListResponse(p, currency));
-    return { existingPayslips, targetUserIds };
   }
 
   private async createPayslip(params: {

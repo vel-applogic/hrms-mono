@@ -17,14 +17,20 @@ export class CandidateFeedbackListUc implements IUseCase<Params, PaginatedRespon
     private readonly candidateHasFeedbackDao: CandidateHasFeedbackDao,
   ) {}
 
-  async execute(params: Params): Promise<PaginatedResponseType<CandidateFeedbackResponseType>> {
+  public async execute(params: Params): Promise<PaginatedResponseType<CandidateFeedbackResponseType>> {
     this.logger.i('Listing candidate feedbacks', { candidateId: params.filterDto.candidateId });
+    await this.validate(params);
+    return await this.search(params);
+  }
 
+  private async validate(params: Params): Promise<void> {
     const candidate = await this.candidateDao.getById({ id: params.filterDto.candidateId, organizationId: params.currentUser.organizationId });
     if (!candidate) {
       throw new ApiError('Candidate not found', 404);
     }
+  }
 
+  private async search(params: Params): Promise<PaginatedResponseType<CandidateFeedbackResponseType>> {
     const { dbRecords, totalRecords } = await this.candidateHasFeedbackDao.findByCandidateIdWithPagination({
       candidateId: params.filterDto.candidateId,
       page: params.filterDto.pagination.page,

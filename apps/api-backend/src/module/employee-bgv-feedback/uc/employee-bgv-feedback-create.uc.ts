@@ -27,14 +27,20 @@ export class EmployeeBgvFeedbackCreateUc implements IUseCase<Params, EmployeeBgv
     private readonly s3Service: S3Service,
   ) {}
 
-  async execute(params: Params): Promise<EmployeeBgvFeedbackResponseType> {
+  public async execute(params: Params): Promise<EmployeeBgvFeedbackResponseType> {
     this.logger.i('Creating employee BGV feedback', { employeeId: params.dto.employeeId });
+    await this.validate(params);
+    return await this.create(params);
+  }
 
+  private async validate(params: Params): Promise<void> {
     const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId, organizationId: params.currentUser.organizationId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);
     }
+  }
 
+  private async create(params: Params): Promise<EmployeeBgvFeedbackResponseType> {
     const createdId = await this.prisma.$transaction(async (tx) => {
       const feedbackId = await this.employeeBgvFeedbackDao.create({
         data: {

@@ -38,12 +38,18 @@ export class EmployeeUpdateDocumentsUc extends BaseEmployeeUc implements IUseCas
     super(prisma, logger, employeeDao, employeeHasMediaDao, s3Service);
   }
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
-    this.assertAdmin(params.currentUser);
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Updating employee documents', { id: params.id });
+    await this.validate(params);
+    return await this.updateDocuments(params);
+  }
 
+  private async validate(params: Params): Promise<void> {
+    this.assertAdmin(params.currentUser);
     await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+  }
 
+  private async updateDocuments(params: Params): Promise<OperationStatusResponseType> {
     await this.transaction(async (tx) => {
       if (params.dto.resume !== undefined) {
         await this.employeeHasMediaDao.deleteManyByUserIdAndType({

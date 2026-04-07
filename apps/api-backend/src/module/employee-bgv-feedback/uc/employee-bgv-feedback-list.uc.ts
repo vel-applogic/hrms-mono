@@ -26,14 +26,20 @@ export class EmployeeBgvFeedbackListUc implements IUseCase<Params, PaginatedResp
     private readonly s3Service: S3Service,
   ) {}
 
-  async execute(params: Params): Promise<PaginatedResponseType<EmployeeBgvFeedbackResponseType>> {
+  public async execute(params: Params): Promise<PaginatedResponseType<EmployeeBgvFeedbackResponseType>> {
     this.logger.i('Listing employee BGV feedbacks', { employeeId: params.filterDto.employeeId });
+    await this.validate(params);
+    return await this.search(params);
+  }
 
+  private async validate(params: Params): Promise<void> {
     const employee = await this.employeeDao.getByUserId({ userId: params.filterDto.employeeId, organizationId: params.currentUser.organizationId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);
     }
+  }
 
+  private async search(params: Params): Promise<PaginatedResponseType<EmployeeBgvFeedbackResponseType>> {
     const { dbRecords, totalRecords } = await this.employeeBgvFeedbackDao.findByUserIdWithPagination({
       userId: params.filterDto.employeeId,
       organizationId: params.currentUser.organizationId,

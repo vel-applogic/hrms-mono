@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@repo/db';
 import type { PayslipDetailResponseType, PayslipUpdateLineItemsRequestType } from '@repo/dto';
 import { BaseUc, CommonLoggerService, ContactDao, CurrentUserType, IUseCase, OrganizationDao, OrganizationHasAddressDao, PayrollPayslipDao, PrismaService } from '@repo/nest-lib';
 import type { PayrollPayslipWithDetailsType } from '@repo/nest-lib';
@@ -14,7 +15,7 @@ type Params = {
 
 @Injectable()
 export class PayslipUpdateLineItemsUc extends BaseUc implements IUseCase<Params, PayslipDetailResponseType> {
-  constructor(
+  public constructor(
     prisma: PrismaService,
     logger: CommonLoggerService,
     private readonly payrollPayslipDao: PayrollPayslipDao,
@@ -26,31 +27,44 @@ export class PayslipUpdateLineItemsUc extends BaseUc implements IUseCase<Params,
     super(prisma, logger);
   }
 
-  async execute(params: Params): Promise<PayslipDetailResponseType> {
-    this.assertAdmin(params.currentUser);
+  public async execute(params: Params): Promise<PayslipDetailResponseType> {
     this.logger.i('Updating payslip line items', { id: params.id });
-    const organizationId = params.currentUser.organizationId;
-
-    const existing = await this.payrollPayslipDao.getById({ id: params.id, organizationId });
-    if (!existing) {
-      throw new ApiError('Payslip not found', 404);
-    }
+    await this.validate(params);
 
     const updated = await this.prisma.$transaction(async (tx) => {
-      return this.payrollPayslipDao.replaceLineItems({
-        payslipId: params.id,
-        lineItems: params.dto.lineItems.map((li) => ({
-          type: li.type,
-          title: li.title,
-          amount: li.amount,
-        })),
-        tx,
-      });
+      return await this.replaceLineItems(params, tx);
     });
 
     if (!updated) {
       throw new ApiError('Failed to update payslip line items', 500);
     }
+
+    return await this.buildResponse(params, updated);
+  }
+
+  private async validate(params: Params): Promise<void> {
+    this.assertAdmin(params.currentUser);
+    const organizationId = params.currentUser.organizationId;
+    const existing = await this.payrollPayslipDao.getById({ id: params.id, organizationId });
+    if (!existing) {
+      throw new ApiError('Payslip not found', 404);
+    }
+  }
+
+  private async replaceLineItems(params: Params, tx: Prisma.TransactionClient): Promise<PayrollPayslipWithDetailsType | undefined> {
+    return await this.payrollPayslipDao.replaceLineItems({
+      payslipId: params.id,
+      lineItems: params.dto.lineItems.map((li) => ({
+        type: li.type,
+        title: li.title,
+        amount: li.amount,
+      })),
+      tx,
+    });
+  }
+
+  private async buildResponse(params: Params, updated: PayrollPayslipWithDetailsType): Promise<PayslipDetailResponseType> {
+    const organizationId = params.currentUser.organizationId;
 
     const [org, addressLinks, contacts] = await Promise.all([
       this.organizationDao.getByIdWithLogoOrThrow({ id: organizationId }),

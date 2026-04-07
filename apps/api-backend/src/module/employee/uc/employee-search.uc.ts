@@ -25,10 +25,18 @@ export class EmployeeSearchUc extends BaseEmployeeUc implements IUseCase<Params,
     super(prisma, logger, employeeDao, employeeHasMediaDao, s3Service);
   }
 
-  async execute(params: Params): Promise<PaginatedResponseType<EmployeeListResponseType>> {
-    this.assertAdmin(params.currentUser);
+  public async execute(params: Params): Promise<PaginatedResponseType<EmployeeListResponseType>> {
     this.logger.i('Listing employees', { filter: params.filterDto });
+    await this.validate(params);
+    return await this.search(params);
+  }
 
+  private async validate(params: Params): Promise<void> {
+    this.assertAdmin(params.currentUser);
+  }
+
+
+  private async search(params: Params): Promise<PaginatedResponseType<EmployeeListResponseType>> {
     const orderBy = this.getEmployeeOrderBy(params.filterDto.sort);
     const { dbRecords, totalRecords } = await this.employeeDao.search({
       filterDto: params.filterDto,

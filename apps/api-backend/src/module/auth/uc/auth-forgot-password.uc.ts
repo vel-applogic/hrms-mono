@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@repo/db';
 import {
   AdminUserDetailResponseType,
   AuditActivityStatusDtoEnum,
@@ -21,6 +22,7 @@ import { BaseAuthUseCase } from './_base-auth.uc.js';
 type Params = {
   dto: AuthForgotPasswordRequestType;
 };
+
 @Injectable()
 @TrackQuery()
 export class AuthForgotPasswordUseCase extends BaseAuthUseCase implements IUseCase<Params, OperationStatusResponseType> {
@@ -38,33 +40,35 @@ export class AuthForgotPasswordUseCase extends BaseAuthUseCase implements IUseCa
 
   public async execute(params: Params): Promise<OperationStatusResponseType> {
     try {
-      const user = await this.validate(params);
-      await this.processForgotPasswordRequest(user);
+      const { user } = await this.validate(params);
+      const key = uuid();
+
+      await this.transaction(async (tx) => {
+        await this.createForgotPasswordKey(user, key, tx);
+        await this.sendEmail({ user, key });
+      });
 
       void this.recordActivitySuccess({ user });
-
       return { success: true, message: 'Link has been sent to your email to reset your password' };
     } catch (err) {
-      void this.recordActivityFailure({ email: params.dto.email, err: err });
+      void this.recordActivityFailure({ email: params.dto.email, err });
       throw err;
     }
   }
 
-  async validate(params: Params): Promise<AdminUserDetailResponseType> {
+  private async validate(params: Params): Promise<{ user: AdminUserDetailResponseType }> {
     const user = await this.userDao.getByEmail({ email: params.dto.email });
     if (!user) {
       throw new ApiFieldValidationError('email', 'Email is not registerd with an account');
     }
-    return this.dbToUserResponse(user);
+    return { user: this.dbToUserResponse(user) };
   }
 
-  private async processForgotPasswordRequest(user: AdminUserDetailResponseType): Promise<string> {
-    const key = uuid();
-    await this.transaction(async (tx) => {
-      await this.userForgotPasswordDao.create({ data: { user: { connect: { id: user.id } }, forgotPasswordKey: key, forgotPasswordKeyCreatedAt: new Date() }, tx: tx });
-      await this.sendEmail({ user, key });
+  private async createForgotPasswordKey(user: AdminUserDetailResponseType, key: string, tx: Prisma.TransactionClient): Promise<void> {
+    await this.userForgotPasswordDao.create({
+      data: { user: { connect: { id: user.id } }, forgotPasswordKey: key, forgotPasswordKeyCreatedAt: new Date() },
+      tx,
     });
-    return key;
   }
 
   private async sendEmail(params: { user: AdminUserDetailResponseType; key: string }): Promise<void> {

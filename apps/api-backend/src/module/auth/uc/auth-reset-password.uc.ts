@@ -22,6 +22,7 @@ import { BaseAuthUseCase } from './_base-auth.uc.js';
 type Params = {
   dto: AuthResetPasswordRequestType;
 };
+
 @Injectable()
 @TrackQuery()
 export class AuthResetPasswordUseCase extends BaseAuthUseCase implements IUseCase<Params, OperationStatusResponseType> {
@@ -45,9 +46,9 @@ export class AuthResetPasswordUseCase extends BaseAuthUseCase implements IUseCas
       const randomKey = this.passwordService.makeRandomKey();
 
       await this.transaction(async (tx) => {
-        await this.updatePassword({ keyId: keyId, dto: params.dto, tx: tx });
+        await this.updatePassword({ keyId, dto: params.dto, tx });
         if (!user.isActive) {
-          await this.createEmailVerifyKey({ userId: params.dto.userId, key: randomKey, tx: tx });
+          await this.createEmailVerifyKey({ userId: params.dto.userId, key: randomKey, tx });
           await this.sendEmail(user, randomKey);
         }
       });
@@ -61,7 +62,7 @@ export class AuthResetPasswordUseCase extends BaseAuthUseCase implements IUseCas
     }
   }
 
-  async validate(params: Params): Promise<{ user: AdminUserDetailResponseType; keyId: number }> {
+  private async validate(params: Params): Promise<{ user: AdminUserDetailResponseType; keyId: number }> {
     const user = await this.getUserByIdOrThorw(params.dto.userId);
     if (!user.isActive) {
       throw new ApiBadRequestError('User is not active');

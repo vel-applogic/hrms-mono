@@ -23,10 +23,14 @@ export class EmployeeDeductionUpdateUc extends BaseUc implements IUseCase<Params
     super(prisma, logger);
   }
 
-  async execute(params: Params): Promise<EmployeeDeductionResponseType> {
+  public async execute(params: Params): Promise<EmployeeDeductionResponseType> {
     this.assertAdmin(params.currentUser);
     this.logger.i('Updating employee deduction', { id: params.id });
+    await this.validate(params);
+    return await this.update(params);
+  }
 
+  private async validate(params: Params): Promise<void> {
     const existing = await this.payrollDeductionDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!existing) {
       throw new ApiError('Deduction not found', 404);
@@ -41,7 +45,9 @@ export class EmployeeDeductionUpdateUc extends BaseUc implements IUseCase<Params
         : existing.effectiveTill;
 
     validateEffectiveFromBeforeTill(newEffectiveFrom, newEffectiveTill);
+  }
 
+  private async update(params: Params): Promise<EmployeeDeductionResponseType> {
     const updateData: Prisma.PayrollDeductionUpdateInput = {};
     if (params.dto.effectiveFrom !== undefined) updateData.effectiveFrom = parseDateOnly(params.dto.effectiveFrom);
     if (params.dto.effectiveTill !== undefined) updateData.effectiveTill = params.dto.effectiveTill ? parseDateOnly(params.dto.effectiveTill) : null;

@@ -38,41 +38,15 @@ export class CandidateCreateUc extends BaseCandidateUc implements IUseCase<Param
     super(prisma, logger, candidateDao, s3Service);
   }
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Creating candidate', { email: params.dto.email });
-
     await this.validate(params);
 
     const createdId = await this.transaction(async (tx) => {
-      const candidateId = await this.candidateDao.create({
-        data: {
-          organization: { connect: { id: params.currentUser.organizationId } },
-          firstname: params.dto.firstname,
-          lastname: params.dto.lastname,
-          email: params.dto.email,
-          contactNumbers: params.dto.contactNumbers ?? [],
-          source: params.dto.source,
-          urls: params.dto.urls ?? [],
-          expInYears: params.dto.expInYears,
-          relevantExpInYears: params.dto.relevantExpInYears,
-          skills: params.dto.skills ?? [],
-          currentCtcInLacs: params.dto.currentCtcInLacs,
-          expectedCtcInLacs: params.dto.expectedCtcInLacs,
-          noticePeriod: params.dto.noticePeriod,
-          noticePeriodUnit: params.dto.noticePeriodUnit,
-          status: params.dto.status,
-          progress: params.dto.progress,
-          dob: params.dto.dob ? new Date(params.dto.dob) : undefined,
-          pan: params.dto.pan ?? undefined,
-          aadhaar: params.dto.aadhaar ?? undefined,
-        },
-        tx,
-      });
-
+      const candidateId = await this.createCandidate(params, tx);
       if (params.dto.resume) {
         await this.createAndLinkMedia({ media: params.dto.resume, candidateId, organizationId: params.currentUser.organizationId, type: CandidateMediaType.resume, tx });
       }
-
       return candidateId;
     });
 
@@ -81,7 +55,36 @@ export class CandidateCreateUc extends BaseCandidateUc implements IUseCase<Param
     return { success: true, message: 'Candidate created successfully' };
   }
 
-  private async validate(_params: Params): Promise<void> {}
+  private async validate(_params: Params): Promise<void> {
+    // Placeholder for future validations
+  }
+
+  private async createCandidate(params: Params, tx: Prisma.TransactionClient): Promise<number> {
+    return await this.candidateDao.create({
+      data: {
+        organization: { connect: { id: params.currentUser.organizationId } },
+        firstname: params.dto.firstname,
+        lastname: params.dto.lastname,
+        email: params.dto.email,
+        contactNumbers: params.dto.contactNumbers ?? [],
+        source: params.dto.source,
+        urls: params.dto.urls ?? [],
+        expInYears: params.dto.expInYears,
+        relevantExpInYears: params.dto.relevantExpInYears,
+        skills: params.dto.skills ?? [],
+        currentCtcInLacs: params.dto.currentCtcInLacs,
+        expectedCtcInLacs: params.dto.expectedCtcInLacs,
+        noticePeriod: params.dto.noticePeriod,
+        noticePeriodUnit: params.dto.noticePeriodUnit,
+        status: params.dto.status,
+        progress: params.dto.progress,
+        dob: params.dto.dob ? new Date(params.dto.dob) : undefined,
+        pan: params.dto.pan ?? undefined,
+        aadhaar: params.dto.aadhaar ?? undefined,
+      },
+      tx,
+    });
+  }
 
   private async createAndLinkMedia(params: { media: MediaUpsertType; candidateId: number; organizationId: number; type: CandidateMediaType; tx: Prisma.TransactionClient }): Promise<void> {
     const file = await this.mediaService.moveTempFileAndGetKey({

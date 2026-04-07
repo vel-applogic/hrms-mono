@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@repo/db';
 import type { OrganizationResponseType, OrganizationUpdateRequestType } from '@repo/dto';
 import { MediaTypeDtoEnum } from '@repo/dto';
 import type { CurrentUserType } from '@repo/nest-lib';
@@ -16,7 +17,7 @@ import {
   PrismaService,
 } from '@repo/nest-lib';
 import { contactTypeDtoEnumToDbEnum, mediaTypeDtoEnumToDbEnum, noOfDaysInMonthDtoEnumToDbEnum } from '@repo/nest-lib';
-import { ApiBadRequestError, ApiFieldValidationError } from '@repo/shared';
+import { ApiFieldValidationError } from '@repo/shared';
 
 import { S3Service } from '#src/external-service/s3.service.js';
 import { MediaService } from '#src/service/media.service.js';
@@ -58,17 +59,28 @@ export class OrganizationUpdateUc extends BaseOrganizationUc implements IUseCase
     );
   }
 
-  async execute(params: Params): Promise<OrganizationResponseType> {
-    this.assertOwnOrganization(params.currentUser, params.dto.id);
+  public async execute(params: Params): Promise<OrganizationResponseType> {
     this.logger.i('Updating organization', { id: params.dto.id });
+    await this.validate(params);
+
+    await this.transaction(async (tx) => {
+      await this.update(params, tx);
+    });
+
+    return await this.getOrganizationResponseById(params.dto.id);
+  }
+
+  private async validate(params: Params): Promise<void> {
+    this.assertOwnOrganization(params.currentUser, params.dto.id);
 
     const existing = await this.organizationDao.findByName({ name: params.dto.name });
     if (existing && existing.id !== params.dto.id) {
       throw new ApiFieldValidationError('name', 'Organization name already exists');
     }
+  }
 
-    await this.transaction(async (tx) => {
-      await this.organizationDao.update({
+  private async update(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    await this.organizationDao.update({
         id: params.dto.id,
         data: { name: params.dto.name, currency: { connect: { id: params.dto.currencyId } } },
         tx,
@@ -269,8 +281,5 @@ export class OrganizationUpdateUc extends BaseOrganizationUc implements IUseCase
           }
         }
       }
-    });
-
-    return await this.getOrganizationResponseById(params.dto.id);
   }
 }

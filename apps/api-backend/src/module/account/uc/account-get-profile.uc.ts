@@ -18,15 +18,17 @@ export class AccountGetProfileUc extends BaseUc implements IUseCase<Params, Admi
     super(prisma, logger);
   }
 
-  async execute(params: Params): Promise<AdminUserDetailResponseType> {
+  public async execute(params: Params): Promise<AdminUserDetailResponseType> {
     this.logger.i('Getting account profile', { userId: params.currentUser.id });
-
-    const user = await this.validate(params);
-
-    return user;
+    await this.validate(params);
+    return await this.getProfile(params);
   }
 
-  async validate(params: Params): Promise<AdminUserDetailResponseType> {
+  private async validate(_params: Params): Promise<void> {
+    // Placeholder for future validations
+  }
+
+  private async getProfile(params: Params): Promise<AdminUserDetailResponseType> {
     const user = await this.userDao.getById({ id: params.currentUser.id });
     if (!user) {
       throw new ApiBadRequestError('User not found');

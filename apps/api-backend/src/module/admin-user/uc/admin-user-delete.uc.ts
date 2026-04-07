@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@repo/db';
 import type { OperationStatusResponseType } from '@repo/dto';
 import { AuditActivityStatusDtoEnum, AuditEntityTypeDtoEnum, AuditEventGroupDtoEnum, AuditEventTypeDtoEnum } from '@repo/dto';
 import { AuditService, CommonLoggerService, CurrentUserType, IUseCase, PrismaService, UserDao } from '@repo/nest-lib';
@@ -22,20 +23,12 @@ export class AdminUserDeleteUc extends BaseAdminUserUc implements IUseCase<Param
     super(prisma, logger, userDao);
   }
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Deleting user', { id: params.id });
-
-    const existing = await this.userDao.getById({ id: params.id });
-    if (!existing) {
-      throw new ApiBadRequestError('User not found');
-    }
+    await this.validate(params);
 
     await this.transaction(async (tx) => {
-      await this.userDao.update({
-        id: params.id,
-        data: { isActive: false },
-        tx,
-      });
+      await this.deactivateUser(params, tx);
     });
 
     void this.auditService.recordActivity({
@@ -48,5 +41,20 @@ export class AdminUserDeleteUc extends BaseAdminUserUc implements IUseCase<Param
     });
 
     return { success: true, message: 'User removed successfully' };
+  }
+
+  private async validate(params: Params): Promise<void> {
+    const existing = await this.userDao.getById({ id: params.id });
+    if (!existing) {
+      throw new ApiBadRequestError('User not found');
+    }
+  }
+
+  private async deactivateUser(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    await this.userDao.update({
+      id: params.id,
+      data: { isActive: false },
+      tx,
+    });
   }
 }

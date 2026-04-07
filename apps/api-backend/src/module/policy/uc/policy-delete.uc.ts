@@ -21,7 +21,7 @@ type Params = {
 
 @Injectable()
 export class PolicyDeleteUc extends BasePolicyUc implements IUseCase<Params, OperationStatusResponseType> {
-  constructor(
+  public constructor(
     prisma: PrismaService,
     logger: CommonLoggerService,
     policyDao: PolicyDao,
@@ -32,30 +32,31 @@ export class PolicyDeleteUc extends BasePolicyUc implements IUseCase<Params, Ope
     super(prisma, logger, policyDao, s3Service);
   }
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Deleting policy', { id: params.id });
-
     const policy = await this.validate(params);
 
     this.transaction(async (tx) => {
       await this.removeMedias({ policyId: params.id, tx });
-      await this.delete({ id: params.id, organizationId: params.currentUser.organizationId, tx });
+      await this.deletePolicy({ id: params.id, organizationId: params.currentUser.organizationId, tx });
     });
+
     void this.recordActivity(params, policy);
 
     return { success: true, message: 'Policy deleted successfully' };
   }
 
-  async validate(params: Params): Promise<PolicyDetailResponseType> {
+  private async validate(params: Params): Promise<PolicyDetailResponseType> {
     this.assertAdmin(params.currentUser);
-    return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    const policy = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    return policy;
   }
 
-  async removeMedias(params: { policyId: number; tx: Prisma.TransactionClient }): Promise<void> {
+  private async removeMedias(params: { policyId: number; tx: Prisma.TransactionClient }): Promise<void> {
     await this.policyHasMediaDao.deleteManyByPolicyId({ policyId: params.policyId, tx: params.tx });
   }
 
-  async delete(params: { id: number; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
+  private async deletePolicy(params: { id: number; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
     await this.policyDao.deleteByIdOrThrow({ id: params.id, organizationId: params.organizationId, tx: params.tx });
   }
 

@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import type { AuthLoginRequestType, AuthLoginResponseType } from '@repo/dto';
 import { CommonLoggerService, IUseCase, OrganizationHasUserDao, UserDao, userRoleDbEnumToDtoEnum, UserVerifyEmailDao } from '@repo/nest-lib';
+import type { UserSelectTableRecordType } from '@repo/nest-lib';
 import { ApiBadRequestError, ApiError } from '@repo/shared';
+
 
 import { PasswordService } from '../../../service/password.service.js';
 
@@ -19,12 +21,13 @@ export class AuthLoginUc implements IUseCase<Params, AuthLoginResponseType> {
     private readonly logger: CommonLoggerService,
   ) {}
 
-  async execute(params: Params): Promise<AuthLoginResponseType> {
+  public async execute(params: Params): Promise<AuthLoginResponseType> {
     this.logger.i('Login attempt', { email: params.dto.email });
-    return this.validate(params);
+    const { user } = await this.validate(params);
+    return await this.login(user);
   }
 
-  async validate(params: Params): Promise<AuthLoginResponseType> {
+  private async validate(params: Params): Promise<{ user: UserSelectTableRecordType }> {
     const user = await this.userDao.getByEmail({ email: params.dto.email.toLowerCase() });
     if (!user) {
       throw new ApiError('Invalid credentials', 401);
@@ -43,6 +46,10 @@ export class AuthLoginUc implements IUseCase<Params, AuthLoginResponseType> {
       throw new ApiBadRequestError('Account is disabled');
     }
 
+    return { user };
+  }
+
+  private async login(user: UserSelectTableRecordType): Promise<AuthLoginResponseType> {
     const orgMemberships = await this.organizationHasUserDao.findAllByUserWithOrganization({ userId: user.id });
     const primaryMembership = orgMemberships[0];
     const roles = primaryMembership?.roles.map((r) => userRoleDbEnumToDtoEnum(r)) ?? [];

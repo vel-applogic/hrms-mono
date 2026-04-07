@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import type { CandidateUpdateStatusRequestType, OperationStatusResponseType } from '@repo/dto';
+import type { CandidateDetailResponseType, CandidateUpdateStatusRequestType, OperationStatusResponseType } from '@repo/dto';
 import {
   AuditActivityStatusDtoEnum,
   AuditEntityTypeDtoEnum,
   AuditEventGroupDtoEnum,
   AuditEventTypeDtoEnum,
 } from '@repo/dto';
+import { Prisma } from '@repo/db';
 import { AuditService, CandidateDao, CommonLoggerService, CurrentUserType, IUseCase, PrismaService } from '@repo/nest-lib';
 
 import { S3Service } from '#src/external-service/s3.service.js';
@@ -30,18 +31,12 @@ export class CandidateUpdateStatusUc extends BaseCandidateUc implements IUseCase
     super(prisma, logger, candidateDao, s3Service);
   }
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Updating candidate status', { id: params.id, status: params.dto.status });
-
-    const existing = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    const existing = await this.validate(params);
 
     await this.transaction(async (tx) => {
-      await this.candidateDao.update({
-        id: params.id,
-        organizationId: params.currentUser.organizationId,
-        data: { status: params.dto.status },
-        tx,
-      });
+      await this.updateStatus(params, tx);
     });
 
     await this.auditService.recordActivity({
@@ -62,5 +57,18 @@ export class CandidateUpdateStatusUc extends BaseCandidateUc implements IUseCase
     });
 
     return { success: true };
+  }
+
+  private async validate(params: Params): Promise<CandidateDetailResponseType> {
+    return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+  }
+
+  private async updateStatus(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    await this.candidateDao.update({
+      id: params.id,
+      organizationId: params.currentUser.organizationId,
+      data: { status: params.dto.status },
+      tx,
+    });
   }
 }

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { LeaveStatusEnum } from '@repo/db';
+import { LeaveStatusEnum, type LeaveTypeEnum, type Prisma } from '@repo/db';
 import type { LeaveResponseType, LeaveUpdateRequestType } from '@repo/dto';
 import { CommonLoggerService, CurrentUserType, EmployeeDao, IUseCase, LeaveDao, OrganizationSettingDao, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, leaveTypeDtoEnumToDbEnum, PrismaService } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
@@ -49,9 +49,18 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
     private readonly organizationSettingDao: OrganizationSettingDao,
   ) {}
 
-  async execute(params: Params): Promise<LeaveResponseType> {
+  public async execute(params: Params): Promise<LeaveResponseType> {
     this.logger.i('Updating leave request', { id: params.id, userId: params.currentUser.id });
+    const validateResult = await this.validate(params);
 
+    await this.prisma.$transaction(async (tx) => {
+      await this.update(params, validateResult, tx);
+    });
+
+    return await this.getResponseById(params);
+  }
+
+  private async validate(params: Params): Promise<{ startDate: Date; endDate: Date; numberOfDays: number; leaveTypeDb: LeaveTypeEnum }> {
     const employee = await this.employeeDao.getByUserId({ userId: params.currentUser.id, organizationId: params.currentUser.organizationId });
     if (!employee) {
       throw new ApiError('Only employees can edit leave. Employee not found.', 403);
@@ -109,21 +118,31 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
       throw new ApiError(`Exceeds total leave limit. Used: ${existingTotal}, Limit: ${config.totalLeaveInDays}, Requested: ${numberOfDays}`, 400);
     }
 
-    await this.prisma.$transaction(async (tx) => {
-      await this.leaveDao.update({
-        id: params.id,
-        organizationId: params.currentUser.organizationId,
-        data: {
-          leaveType: leaveTypeDb,
-          startDate,
-          endDate,
-          numberOfDays,
-          reason: params.dto.reason,
-        },
-        tx,
-      });
-    });
+    return { startDate, endDate, numberOfDays, leaveTypeDb };
+  }
 
+  private async update(
+    params: Params,
+    validateResult: { startDate: Date; endDate: Date; numberOfDays: number; leaveTypeDb: LeaveTypeEnum },
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    const { startDate, endDate, numberOfDays, leaveTypeDb } = validateResult;
+
+    await this.leaveDao.update({
+      id: params.id,
+      organizationId: params.currentUser.organizationId,
+      data: {
+        leaveType: leaveTypeDb,
+        startDate,
+        endDate,
+        numberOfDays,
+        reason: params.dto.reason,
+      },
+      tx,
+    });
+  }
+
+  private async getResponseById(params: Params): Promise<LeaveResponseType> {
     const updated = await this.leaveDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!updated) throw new ApiError('Failed to fetch updated leave', 500);
 

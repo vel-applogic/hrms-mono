@@ -14,9 +14,17 @@ export class PayrollActiveCompensationListUc implements IUseCase<Params, Paginat
     private readonly payrollCompensationDao: PayrollCompensationDao,
   ) {}
 
-  async execute(params: Params): Promise<PaginatedResponseType<PayrollActiveCompensationResponseType>> {
+  public async execute(params: Params): Promise<PaginatedResponseType<PayrollActiveCompensationResponseType>> {
     this.logger.i('Listing all active compensations for payroll');
+    await this.validate(params);
+    return await this.search(params);
+  }
 
+  private async validate(_params: Params): Promise<void> {
+    // Placeholder for future validations
+  }
+
+  private async search(params: Params): Promise<PaginatedResponseType<PayrollActiveCompensationResponseType>> {
     const { dbRecords, totalRecords } = await this.payrollCompensationDao.findActiveWithEmployeeInfo({
       organizationId: params.currentUser.organizationId,
       page: params.filterDto.pagination.page,

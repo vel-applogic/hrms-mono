@@ -20,8 +20,17 @@ export class AdminUserGetStatsUc extends BaseAdminUserUc implements IUseCase<Par
     super(prisma, logger, userDao, organizationHasUserDao);
   }
 
-  async execute(params: Params): Promise<AdminUserStatsResponseType> {
+  public async execute(params: Params): Promise<AdminUserStatsResponseType> {
     this.logger.i('Get admin user stats');
+    await this.validate(params);
+    return await this.getStats(params);
+  }
+
+  private async validate(_params: Params): Promise<void> {
+    // Placeholder for future validations
+  }
+
+  private async getStats(params: Params): Promise<AdminUserStatsResponseType> {
     const totalUsers = await this.userDao.getCount({
       where: {
         organizationHasUsers: {

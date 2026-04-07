@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { EmployeeDetailResponseType, OperationStatusResponseType } from '@repo/dto';
 import { AuditActivityStatusDtoEnum, AuditEntityTypeDtoEnum, AuditEventGroupDtoEnum, AuditEventTypeDtoEnum } from '@repo/dto';
+import type { Prisma } from '@repo/db';
 import {
   AuditService,
   CommonLoggerService,
@@ -39,23 +40,37 @@ export class EmployeeDeleteUc extends BaseEmployeeUc implements IUseCase<Params,
     super(prisma, logger, employeeDao, employeeHasMediaDao, s3Service);
   }
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
-    this.assertAdmin(params.currentUser);
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Deleting employee', { id: params.id });
-
-    const employee = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    const employee = await this.validate(params);
 
     await this.transaction(async (tx) => {
-      const pc = tx;
-      await pc.employeeFeedback.deleteMany({ where: { userId: params.id } });
-      await pc.payrollCompensation.deleteMany({ where: { userId: params.id } });
-      await pc.employeeHasMedia.deleteMany({ where: { userId: params.id } });
-      await pc.employee.delete({ where: { userId_organizationId: { userId: params.id, organizationId: params.currentUser.organizationId } } });
-      await this.userDao.delete({ id: params.id, tx });
+      await this.deleteRelations(params, tx);
+      await this.deleteEmployee(params, tx);
+      await this.deleteUser(params, tx);
     });
 
     void this.recordActivity(params, employee);
     return { success: true, message: 'Employee deleted successfully' };
+  }
+
+  private async validate(params: Params): Promise<EmployeeDetailResponseType> {
+    this.assertAdmin(params.currentUser);
+    return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+  }
+
+  private async deleteRelations(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    await tx.employeeFeedback.deleteMany({ where: { userId: params.id } });
+    await tx.payrollCompensation.deleteMany({ where: { userId: params.id } });
+    await tx.employeeHasMedia.deleteMany({ where: { userId: params.id } });
+  }
+
+  private async deleteEmployee(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    await tx.employee.delete({ where: { userId_organizationId: { userId: params.id, organizationId: params.currentUser.organizationId } } });
+  }
+
+  private async deleteUser(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    await this.userDao.delete({ id: params.id, tx });
   }
 
   private async recordActivity(params: Params, deleted: EmployeeDetailResponseType): Promise<void> {

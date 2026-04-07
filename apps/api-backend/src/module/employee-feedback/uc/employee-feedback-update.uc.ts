@@ -22,15 +22,21 @@ export class EmployeeFeedbackUpdateUc extends BaseUc implements IUseCase<Params,
     super(prisma, logger);
   }
 
-  async execute(params: Params): Promise<EmployeeFeedbackResponseType> {
+  public async execute(params: Params): Promise<EmployeeFeedbackResponseType> {
     this.assertAdmin(params.currentUser);
     this.logger.i('Updating employee feedback', { id: params.id });
+    await this.validate(params);
+    return await this.update(params);
+  }
 
+  private async validate(params: Params): Promise<void> {
     const existing = await this.employeeFeedbackDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
     if (!existing) {
       throw new ApiError('Feedback not found', 404);
     }
+  }
 
+  private async update(params: Params): Promise<EmployeeFeedbackResponseType> {
     await this.prisma.$transaction(async (tx) => {
       await this.employeeFeedbackDao.update({
         id: params.id,

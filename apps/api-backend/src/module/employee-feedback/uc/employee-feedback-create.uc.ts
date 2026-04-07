@@ -22,15 +22,21 @@ export class EmployeeFeedbackCreateUc extends BaseUc implements IUseCase<Params,
     super(prisma, logger);
   }
 
-  async execute(params: Params): Promise<EmployeeFeedbackResponseType> {
+  public async execute(params: Params): Promise<EmployeeFeedbackResponseType> {
     this.assertAdmin(params.currentUser);
     this.logger.i('Creating employee feedback', { employeeId: params.dto.employeeId });
+    await this.validate(params);
+    return await this.create(params);
+  }
 
+  private async validate(params: Params): Promise<void> {
     const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId, organizationId: params.currentUser.organizationId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);
     }
+  }
 
+  private async create(params: Params): Promise<EmployeeFeedbackResponseType> {
     const createdId = await this.prisma.$transaction(async (tx) => {
       return await this.employeeFeedbackDao.create({
         data: {

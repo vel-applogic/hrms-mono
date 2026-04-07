@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { AdminUserListResponseType, PaginatedResponseType, UserFilterRequestType } from '@repo/dto';
 import { AdminUsersSortableColumns, UserRoleDtoEnum } from '@repo/dto';
-import type { OrderByParam } from '@repo/nest-lib';
 import { CommonLoggerService, CurrentUserType, IUseCase, OrganizationHasUserDao, PrismaService, UserDao, userRoleDbEnumToDtoEnum } from '@repo/nest-lib';
 
 import { BaseAdminUserUc } from './_base-admin-user.uc.js';
@@ -17,27 +16,20 @@ export class AdminUserSearchUc extends BaseAdminUserUc implements IUseCase<Param
     super(prisma, logger, userDao, organizationHasUserDao);
   }
 
-  async execute(params: Params): Promise<PaginatedResponseType<AdminUserListResponseType>> {
+  public async execute(params: Params): Promise<PaginatedResponseType<AdminUserListResponseType>> {
     this.logger.i('Search admin users', { filter: params.filterDto });
-
-    const { results, totalRecords } = await this.search({
-      filterDto: params.filterDto,
-      orderBy: this.getSort(params.filterDto.sort, AdminUsersSortableColumns),
-      organizationId: params.currentUser.organizationId,
-    });
-    return {
-      page: params.filterDto.pagination.page,
-      limit: params.filterDto.pagination.limit,
-      totalRecords,
-      results,
-    };
+    await this.validate(params);
+    return await this.search(params);
   }
 
-  public async search(params: {
-    filterDto: UserFilterRequestType;
-    orderBy?: OrderByParam;
-    organizationId: number;
-  }): Promise<{ totalRecords: number; results: AdminUserListResponseType[] }> {
+  private async validate(_params: Params): Promise<void> {
+    // Placeholder for future validations
+  }
+
+  private async search(params: Params): Promise<PaginatedResponseType<AdminUserListResponseType>> {
+    const organizationId = params.currentUser.organizationId;
+    const orderBy = this.getSort(params.filterDto.sort, AdminUsersSortableColumns);
+
     const filterDto: UserFilterRequestType = {
       ...params.filterDto,
       role: UserRoleDtoEnum.admin,
@@ -45,20 +37,26 @@ export class AdminUserSearchUc extends BaseAdminUserUc implements IUseCase<Param
 
     const { dbRecords, totalRecords } = await this.userDao.search({
       filterDto,
-      orderBy: params.orderBy,
-      organizationId: params.organizationId,
+      orderBy,
+      organizationId,
     });
 
     const orgRoles = this.organizationHasUserDao
       ? await this.organizationHasUserDao.findManyByUsersAndOrg({
           userIds: dbRecords.map((u) => u.id),
-          organizationId: params.organizationId,
+          organizationId,
         })
       : [];
 
     const orgRolesMap = new Map(orgRoles.map((o) => [o.userId, o.roles.map((r) => userRoleDbEnumToDtoEnum(r))]));
 
     const results: AdminUserListResponseType[] = dbRecords.map((u) => this.dbToAdminUserDetailResponse(u, orgRolesMap.get(u.id) ?? []));
-    return { totalRecords, results };
+
+    return {
+      page: params.filterDto.pagination.page,
+      limit: params.filterDto.pagination.limit,
+      totalRecords,
+      results,
+    };
   }
 }

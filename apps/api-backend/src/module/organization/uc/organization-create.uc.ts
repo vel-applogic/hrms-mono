@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@repo/db';
 import { UserRoleDbEnum } from '@repo/db';
 import type { OrganizationCreateRequestType, OrganizationResponseType } from '@repo/dto';
 import { MediaTypeDtoEnum } from '@repo/dto';
-import type { CurrentUserType } from '@repo/nest-lib';
+import type { CurrentUserType, UserSelectTableRecordType } from '@repo/nest-lib';
 import {
   AddressDao,
   CommonLoggerService,
@@ -71,9 +72,26 @@ export class OrganizationCreateUc extends BaseOrganizationUc implements IUseCase
     );
   }
 
-  async execute(params: Params): Promise<OrganizationResponseType> {
-    this.assertSuperAdmin(params.currentUser);
+  public async execute(params: Params): Promise<OrganizationResponseType> {
     this.logger.i('Creating organization', { name: params.dto.name, email: params.dto.email });
+    const validateResult = await this.validate(params);
+
+    const { organizationId, userId, inviteKey } = await this.transaction(async (tx) => {
+      return await this.create(params, validateResult, tx);
+    });
+
+    void this.sendInviteEmail({
+      userId,
+      email: params.dto.email,
+      inviteKey,
+      organizationName: params.dto.name,
+    });
+
+    return await this.getOrganizationResponseById(organizationId);
+  }
+
+  private async validate(params: Params): Promise<{ existingUser: UserSelectTableRecordType | undefined }> {
+    this.assertSuperAdmin(params.currentUser);
 
     const existing = await this.organizationDao.findByName({ name: params.dto.name });
     if (existing) {
@@ -82,8 +100,17 @@ export class OrganizationCreateUc extends BaseOrganizationUc implements IUseCase
 
     const existingUser = await this.userDao.getByEmail({ email: params.dto.email });
 
-    const { organizationId, userId, inviteKey } = await this.transaction(async (tx) => {
-      const organizationId = await this.organizationDao.create({
+    return { existingUser };
+  }
+
+  private async create(
+    params: Params,
+    validateResult: { existingUser: UserSelectTableRecordType | undefined },
+    tx: Prisma.TransactionClient,
+  ): Promise<{ organizationId: number; userId: number; inviteKey: string }> {
+    const { existingUser } = validateResult;
+
+    const organizationId = await this.organizationDao.create({
         data: { name: params.dto.name, currency: { connect: { id: params.dto.currencyId } } },
         tx,
       });
@@ -256,17 +283,7 @@ export class OrganizationCreateUc extends BaseOrganizationUc implements IUseCase
         }
       }
 
-      return { organizationId, userId, inviteKey };
-    });
-
-    void this.sendInviteEmail({
-      userId,
-      email: params.dto.email,
-      inviteKey,
-      organizationName: params.dto.name,
-    });
-
-    return await this.getOrganizationResponseById(organizationId);
+    return { organizationId, userId, inviteKey };
   }
 
   private async sendInviteEmail(params: { userId: number; email: string; inviteKey: string; organizationName: string }): Promise<void> {

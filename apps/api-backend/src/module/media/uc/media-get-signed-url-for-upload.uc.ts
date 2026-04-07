@@ -8,6 +8,7 @@ type Params = {
   dto: MediaUploadRequestType;
   currentUser: CurrentUserType;
 };
+
 @Injectable()
 @TrackQuery()
 export class MediaGetSignedUrlForUploadUseCase extends BaseUc implements IUseCase<Params, MediaUploadResponseType> {
@@ -21,15 +22,20 @@ export class MediaGetSignedUrlForUploadUseCase extends BaseUc implements IUseCas
 
   public async execute(params: Params): Promise<MediaUploadResponseType> {
     await this.validate(params);
+    return await this.getSignedUrlForUpload(params);
+  }
+
+  private async validate(_params: Params): Promise<void> {
+    // Placeholder for future validations
+    // await this.isUserHasUpdateAccess(_params.currentUser.id);
+  }
+
+  private async getSignedUrlForUpload(params: Params): Promise<MediaUploadResponseType> {
     const key = `temp/${params.currentUser.id}/${new Date().getTime()}-${params.dto.key}`;
     const url = await this.s3Service.getPutSignedUrl(key);
     return {
       key,
       url,
     };
-  }
-
-  async validate(params: Params): Promise<void> {
-    // await this.isUserHasUpdateAccess(params.currentUser.id);
   }
 }

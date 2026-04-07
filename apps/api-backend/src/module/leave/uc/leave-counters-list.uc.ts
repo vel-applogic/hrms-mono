@@ -17,9 +17,17 @@ export class LeaveCountersListUc implements IUseCase<Params, LeaveCounterRespons
     private readonly organizationSettingDao: OrganizationSettingDao,
   ) {}
 
-  async execute(params: Params): Promise<LeaveCounterResponseType[]> {
+  public async execute(params: Params): Promise<LeaveCounterResponseType[]> {
     this.logger.i('Listing leave counters', { financialYear: params.financialYear });
+    await this.validate(params);
+    return await this.countersList(params);
+  }
 
+  private async validate(_params: Params): Promise<void> {
+    // Placeholder for future validations
+  }
+
+  private async countersList(params: Params): Promise<LeaveCounterResponseType[]> {
     const [employees, counters, orgSettings] = await Promise.all([
       this.employeeDao.findAllWithUser({ organizationId: params.currentUser.organizationId }),
       this.employeeLeaveCounterDao.findManyByFinancialYear({ financialYear: params.financialYear, organizationId: params.currentUser.organizationId }),

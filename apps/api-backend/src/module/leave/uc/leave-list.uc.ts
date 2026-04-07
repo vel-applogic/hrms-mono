@@ -18,9 +18,17 @@ export class LeaveListUc implements IUseCase<Params, PaginatedResponseType<Leave
     private readonly leaveDao: LeaveDao,
   ) {}
 
-  async execute(params: Params): Promise<PaginatedResponseType<LeaveResponseType>> {
+  public async execute(params: Params): Promise<PaginatedResponseType<LeaveResponseType>> {
     this.logger.i('Listing leaves', { userId: params.currentUser.id });
+    await this.validate(params);
+    return await this.search(params);
+  }
 
+  private async validate(_params: Params): Promise<void> {
+    // Placeholder for future validations
+  }
+
+  private async search(params: Params): Promise<PaginatedResponseType<LeaveResponseType>> {
     const isAdmin = params.currentUser.isSuperAdmin || params.currentUser.roles.includes(UserRoleDtoEnum.admin);
 
     const where: Prisma.LeaveWhereInput = {};

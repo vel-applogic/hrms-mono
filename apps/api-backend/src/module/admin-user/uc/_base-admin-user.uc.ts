@@ -12,7 +12,7 @@ export class BaseAdminUserUc extends BaseUc {
     super(prisma, logger);
   }
 
-  async getById(id: number, organizationId: number): Promise<AdminUserDetailResponseType | undefined> {
+  public async getById(id: number, organizationId: number): Promise<AdminUserDetailResponseType | undefined> {
     const user = await this.userDao.getById({ id });
     if (!user) {
       return undefined;
@@ -22,7 +22,7 @@ export class BaseAdminUserUc extends BaseUc {
     return this.dbToAdminUserDetailResponse(user, roles);
   }
 
-  async getByIdOrThrow(id: number, organizationId: number): Promise<AdminUserDetailResponseType> {
+  public async getByIdOrThrow(id: number, organizationId: number): Promise<AdminUserDetailResponseType> {
     const user = await this.getById(id, organizationId);
     if (!user) {
       throw new ApiBadRequestError('User not found', { userId: id });

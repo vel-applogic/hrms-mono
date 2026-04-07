@@ -3,7 +3,6 @@ import type { Prisma } from '@repo/db';
 import type { AdminUserDetailResponseType, AdminUserUpdateRequestType, OperationStatusResponseType } from '@repo/dto';
 import { AuditActivityStatusDtoEnum, AuditEntityTypeDtoEnum, AuditEventGroupDtoEnum, AuditEventTypeDtoEnum } from '@repo/dto';
 import { AuditService, CommonLoggerService, CurrentUserType, IUseCase, PrismaService, UserDao } from '@repo/nest-lib';
-import { ApiBadRequestError } from '@repo/shared';
 
 import { BaseAdminUserUc } from './_base-admin-user.uc.js';
 
@@ -24,13 +23,12 @@ export class AdminUserUpdateUc extends BaseAdminUserUc implements IUseCase<Param
     super(prisma, logger, userDao);
   }
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Updating user', { id: params.id });
-
     const existingUser = await this.validate(params);
 
     await this.transaction(async (tx) => {
-      await this.update({ params, tx });
+      await this.applyUpdate(params, tx);
     });
 
     const updatedUser = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
@@ -39,16 +37,16 @@ export class AdminUserUpdateUc extends BaseAdminUserUc implements IUseCase<Param
     return { success: true, message: 'User updated successfully' };
   }
 
-  async validate(params: Params): Promise<AdminUserDetailResponseType> {
+  private async validate(params: Params): Promise<AdminUserDetailResponseType> {
     return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
   }
 
-  async update(params: { params: Params; tx: Prisma.TransactionClient }): Promise<void> {
+  private async applyUpdate(params: Params, tx: Prisma.TransactionClient): Promise<void> {
     const updateData: Prisma.UserUpdateInput = {};
-    if (params.params.dto.firstname !== undefined) updateData.firstname = params.params.dto.firstname;
-    if (params.params.dto.lastname !== undefined) updateData.lastname = params.params.dto.lastname;
-    if (params.params.dto.isActive !== undefined) updateData.isActive = params.params.dto.isActive;
-    await this.userDao.update({ id: params.params.id, data: updateData, tx: params.tx });
+    if (params.dto.firstname !== undefined) updateData.firstname = params.dto.firstname;
+    if (params.dto.lastname !== undefined) updateData.lastname = params.dto.lastname;
+    if (params.dto.isActive !== undefined) updateData.isActive = params.dto.isActive;
+    await this.userDao.update({ id: params.id, data: updateData, tx });
   }
 
   private async recordActivity(params: Params, oldUser: AdminUserDetailResponseType, updatedUser: AdminUserDetailResponseType): Promise<void> {

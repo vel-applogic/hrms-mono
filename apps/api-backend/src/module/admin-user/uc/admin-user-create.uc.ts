@@ -44,9 +44,31 @@ export class AdminUserCreateUc extends BaseAdminUserUc implements IUseCase<Param
     super(prisma, logger, userDao, organizationHasUserDao);
   }
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Inviting user', { email: params.dto.email });
+    const { organizationName } = await this.validate(params);
 
+    const { userId, inviteKey, isNew } = await this.transaction(async (tx) => {
+      const { userId, isNew } = await this.upsertUser(params, tx);
+      await this.createOrgMembership({ userId, currentUser: params.currentUser, tx });
+      const inviteKey = await this.createInvite({
+        userId,
+        organizationId: params.currentUser.organizationId,
+        invitedById: params.currentUser.id,
+        tx,
+      });
+      return { userId, inviteKey, isNew };
+    });
+
+    void this.sendInviteEmail({ userId, email: params.dto.email, inviteKey, organizationName });
+    if (isNew) {
+      void this.recordActivity(params, userId);
+    }
+
+    return { success: true, message: 'Invitation sent successfully' };
+  }
+
+  private async validate(params: Params): Promise<{ organizationName: string }> {
     if (params.currentUser.organizationId <= 0) {
       throw new ApiBadRequestError('Organization context is required to invite users');
     }
@@ -56,36 +78,16 @@ export class AdminUserCreateUc extends BaseAdminUserUc implements IUseCase<Param
       throw new ApiBadRequestError('Organization not found');
     }
 
-    const { userId, inviteKey, isNew } = await this.transaction(async (tx) => {
-      const existingUser = await this.userDao.getByEmail({ email: params.dto.email });
-      let userId: number;
-      let isNew = false;
+    return { organizationName: org.name };
+  }
 
-      if (existingUser) {
-        userId = existingUser.id;
-      } else {
-        userId = await this.createUser({ email: params.dto.email, tx });
-        isNew = true;
-      }
-
-      await this.createOrgMembership({ userId, currentUser: params.currentUser, tx });
-
-      const inviteKey = await this.createInvite({
-        userId,
-        organizationId: params.currentUser.organizationId,
-        invitedById: params.currentUser.id,
-        tx,
-      });
-
-      return { userId, inviteKey, isNew };
-    });
-
-    void this.sendInviteEmail({ userId, email: params.dto.email, inviteKey, organizationName: org.name });
-    if (isNew) {
-      void this.recordActivity(params, userId);
+  private async upsertUser(params: Params, tx: Prisma.TransactionClient): Promise<{ userId: number; isNew: boolean }> {
+    const existingUser = await this.userDao.getByEmail({ email: params.dto.email });
+    if (existingUser) {
+      return { userId: existingUser.id, isNew: false };
     }
-
-    return { success: true, message: 'Invitation sent successfully' };
+    const userId = await this.createUser({ email: params.dto.email, tx });
+    return { userId, isNew: true };
   }
 
   private async createUser(params: { email: string; tx: Prisma.TransactionClient }): Promise<number> {

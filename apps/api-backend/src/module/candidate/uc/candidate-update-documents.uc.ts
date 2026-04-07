@@ -34,47 +34,57 @@ export class CandidateUpdateDocumentsUc extends BaseCandidateUc implements IUseC
     super(prisma, logger, candidateDao, s3Service);
   }
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Updating candidate documents', { id: params.id });
-
-    await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    await this.validate(params);
 
     await this.transaction(async (tx) => {
-      if (params.dto.resume !== undefined) {
-        await this.candidateHasMediaDao.deleteManyByCandidateIdAndType({ candidateId: params.id, type: CandidateMediaType.resume, tx });
-        if (params.dto.resume) {
-          if (params.dto.resume.key?.startsWith('temp/')) {
-            await this.createAndLinkMedia({ media: params.dto.resume, candidateId: params.id, organizationId: params.currentUser.organizationId, type: CandidateMediaType.resume, tx });
-          } else if (params.dto.resume.id) {
-            await this.candidateHasMediaDao.create({ data: { candidateId: params.id, mediaId: params.dto.resume.id, type: CandidateMediaType.resume }, tx });
-          }
-        }
-      }
-
-      if (params.dto.offerLetters !== undefined) {
-        await this.candidateHasMediaDao.deleteManyByCandidateIdAndType({ candidateId: params.id, type: CandidateMediaType.offerLetter, tx });
-        for (const media of params.dto.offerLetters) {
-          if (media.key?.startsWith('temp/')) {
-            await this.createAndLinkMedia({ media, candidateId: params.id, organizationId: params.currentUser.organizationId, type: CandidateMediaType.offerLetter, tx });
-          } else if (media.id) {
-            await this.candidateHasMediaDao.create({ data: { candidateId: params.id, mediaId: media.id, type: CandidateMediaType.offerLetter }, tx });
-          }
-        }
-      }
-
-      if (params.dto.otherDocuments !== undefined) {
-        await this.candidateHasMediaDao.deleteManyByCandidateIdAndType({ candidateId: params.id, type: CandidateMediaType.otherDocuments, tx });
-        for (const media of params.dto.otherDocuments) {
-          if (media.key?.startsWith('temp/')) {
-            await this.createAndLinkMedia({ media, candidateId: params.id, organizationId: params.currentUser.organizationId, type: CandidateMediaType.otherDocuments, tx });
-          } else if (media.id) {
-            await this.candidateHasMediaDao.create({ data: { candidateId: params.id, mediaId: media.id, type: CandidateMediaType.otherDocuments }, tx });
-          }
-        }
-      }
+      await this.syncResume(params, tx);
+      await this.syncOfferLetters(params, tx);
+      await this.syncOtherDocuments(params, tx);
     });
 
     return { success: true, message: 'Documents updated successfully' };
+  }
+
+  private async validate(params: Params): Promise<void> {
+    await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+  }
+
+  private async syncResume(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    if (params.dto.resume === undefined) return;
+    await this.candidateHasMediaDao.deleteManyByCandidateIdAndType({ candidateId: params.id, type: CandidateMediaType.resume, tx });
+    if (params.dto.resume) {
+      if (params.dto.resume.key?.startsWith('temp/')) {
+        await this.createAndLinkMedia({ media: params.dto.resume, candidateId: params.id, organizationId: params.currentUser.organizationId, type: CandidateMediaType.resume, tx });
+      } else if (params.dto.resume.id) {
+        await this.candidateHasMediaDao.create({ data: { candidateId: params.id, mediaId: params.dto.resume.id, type: CandidateMediaType.resume }, tx });
+      }
+    }
+  }
+
+  private async syncOfferLetters(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    if (params.dto.offerLetters === undefined) return;
+    await this.candidateHasMediaDao.deleteManyByCandidateIdAndType({ candidateId: params.id, type: CandidateMediaType.offerLetter, tx });
+    for (const media of params.dto.offerLetters) {
+      if (media.key?.startsWith('temp/')) {
+        await this.createAndLinkMedia({ media, candidateId: params.id, organizationId: params.currentUser.organizationId, type: CandidateMediaType.offerLetter, tx });
+      } else if (media.id) {
+        await this.candidateHasMediaDao.create({ data: { candidateId: params.id, mediaId: media.id, type: CandidateMediaType.offerLetter }, tx });
+      }
+    }
+  }
+
+  private async syncOtherDocuments(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    if (params.dto.otherDocuments === undefined) return;
+    await this.candidateHasMediaDao.deleteManyByCandidateIdAndType({ candidateId: params.id, type: CandidateMediaType.otherDocuments, tx });
+    for (const media of params.dto.otherDocuments) {
+      if (media.key?.startsWith('temp/')) {
+        await this.createAndLinkMedia({ media, candidateId: params.id, organizationId: params.currentUser.organizationId, type: CandidateMediaType.otherDocuments, tx });
+      } else if (media.id) {
+        await this.candidateHasMediaDao.create({ data: { candidateId: params.id, mediaId: media.id, type: CandidateMediaType.otherDocuments }, tx });
+      }
+    }
   }
 
   private async createAndLinkMedia(params: { media: MediaUpsertType; candidateId: number; organizationId: number; type: CandidateMediaType; tx: Prisma.TransactionClient }): Promise<void> {

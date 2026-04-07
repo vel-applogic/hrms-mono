@@ -52,10 +52,17 @@ export class OrganizationSearchUc extends BaseOrganizationUc implements IUseCase
     );
   }
 
-  async execute(params: Params): Promise<PaginatedResponseType<OrganizationResponseType>> {
-    this.assertSuperAdmin(params.currentUser);
+  public async execute(params: Params): Promise<PaginatedResponseType<OrganizationResponseType>> {
     this.logger.i('Searching organizations', { filter: params.filterDto });
+    await this.validate(params);
+    return await this.search(params);
+  }
 
+  private async validate(params: Params): Promise<void> {
+    this.assertSuperAdmin(params.currentUser);
+  }
+
+  private async search(params: Params): Promise<PaginatedResponseType<OrganizationResponseType>> {
     const orderBy = this.getSort(params.filterDto.sort, OrganizationSortableColumns);
     const { dbRecords, totalRecords } = await this.organizationDao.search({
       filterDto: params.filterDto,

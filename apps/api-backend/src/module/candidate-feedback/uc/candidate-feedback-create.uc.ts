@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@repo/db';
 import type { CandidateFeedbackCreateRequestType, CandidateFeedbackResponseType } from '@repo/dto';
 import { CandidateDao, CandidateHasFeedbackDao, CommonLoggerService, CurrentUserType, IUseCase, PrismaService } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
@@ -17,26 +18,37 @@ export class CandidateFeedbackCreateUc implements IUseCase<Params, CandidateFeed
     private readonly candidateHasFeedbackDao: CandidateHasFeedbackDao,
   ) {}
 
-  async execute(params: Params): Promise<CandidateFeedbackResponseType> {
+  public async execute(params: Params): Promise<CandidateFeedbackResponseType> {
     this.logger.i('Creating candidate feedback', { candidateId: params.dto.candidateId });
+    await this.validate(params);
 
+    const createdId = await this.prisma.$transaction(async (tx) => {
+      return await this.createFeedback(params, tx);
+    });
+
+    return await this.getResponseById(createdId);
+  }
+
+  private async validate(params: Params): Promise<void> {
     const candidate = await this.candidateDao.getById({ id: params.dto.candidateId, organizationId: params.currentUser.organizationId });
     if (!candidate) {
       throw new ApiError('Candidate not found', 404);
     }
+  }
 
-    const createdId = await this.prisma.$transaction(async (tx) => {
-      return await this.candidateHasFeedbackDao.create({
-        data: {
-          candidate: { connect: { id: params.dto.candidateId } },
-          createdBy: { connect: { id: params.currentUser.id } },
-          feedback: params.dto.feedback,
-        },
-        tx,
-      });
+  private async createFeedback(params: Params, tx: Prisma.TransactionClient): Promise<number> {
+    return await this.candidateHasFeedbackDao.create({
+      data: {
+        candidate: { connect: { id: params.dto.candidateId } },
+        createdBy: { connect: { id: params.currentUser.id } },
+        feedback: params.dto.feedback,
+      },
+      tx,
     });
+  }
 
-    const withUser = await this.candidateHasFeedbackDao.getById({ id: createdId });
+  private async getResponseById(id: number): Promise<CandidateFeedbackResponseType> {
+    const withUser = await this.candidateHasFeedbackDao.getById({ id });
     if (!withUser) throw new ApiError('Failed to fetch created feedback', 500);
 
     return {

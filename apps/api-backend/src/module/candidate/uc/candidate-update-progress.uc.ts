@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import type { CandidateUpdateProgressRequestType, OperationStatusResponseType } from '@repo/dto';
+import type { CandidateDetailResponseType, CandidateUpdateProgressRequestType, OperationStatusResponseType } from '@repo/dto';
 import {
   AuditActivityStatusDtoEnum,
   AuditEntityTypeDtoEnum,
   AuditEventGroupDtoEnum,
   AuditEventTypeDtoEnum,
 } from '@repo/dto';
+import { Prisma } from '@repo/db';
 import { AuditService, CandidateDao, CommonLoggerService, CurrentUserType, IUseCase, PrismaService } from '@repo/nest-lib';
 
 import { S3Service } from '#src/external-service/s3.service.js';
@@ -30,18 +31,12 @@ export class CandidateUpdateProgressUc extends BaseCandidateUc implements IUseCa
     super(prisma, logger, candidateDao, s3Service);
   }
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Updating candidate progress', { id: params.id, progress: params.dto.progress });
-
-    const existing = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    const existing = await this.validate(params);
 
     await this.transaction(async (tx) => {
-      await this.candidateDao.update({
-        id: params.id,
-        organizationId: params.currentUser.organizationId,
-        data: { progress: params.dto.progress },
-        tx,
-      });
+      await this.updateProgress(params, tx);
     });
 
     await this.auditService.recordActivity({
@@ -62,5 +57,18 @@ export class CandidateUpdateProgressUc extends BaseCandidateUc implements IUseCa
     });
 
     return { success: true };
+  }
+
+  private async validate(params: Params): Promise<CandidateDetailResponseType> {
+    return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+  }
+
+  private async updateProgress(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    await this.candidateDao.update({
+      id: params.id,
+      organizationId: params.currentUser.organizationId,
+      data: { progress: params.dto.progress },
+      tx,
+    });
   }
 }

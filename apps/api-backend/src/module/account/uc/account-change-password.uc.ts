@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@repo/db';
 import type { OperationStatusResponseType } from '@repo/dto';
 import { AuditActivityStatusDtoEnum, AuditEntityTypeDtoEnum, AuditEventGroupDtoEnum, AuditEventTypeDtoEnum } from '@repo/dto';
 import type { CurrentUserType, IUseCase } from '@repo/nest-lib';
@@ -24,12 +25,15 @@ export class AccountChangePasswordUc implements IUseCase<Params, OperationStatus
     private readonly auditService: AuditService,
   ) {}
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Changing account password', { userId: params.currentUser.id });
 
     try {
       await this.validate(params);
-      await this.changePassword(params);
+      const hashedPassword = await this.passwordService.hash(params.newPassword);
+      await this.prisma.$transaction(async (tx) => {
+        await this.updatePassword(params, hashedPassword, tx);
+      });
 
       void this.auditService.recordActivity({
         eventGroup: AuditEventGroupDtoEnum.authentication,
@@ -57,7 +61,7 @@ export class AccountChangePasswordUc implements IUseCase<Params, OperationStatus
     }
   }
 
-  async validate(params: Params): Promise<void> {
+  private async validate(params: Params): Promise<void> {
     const user = await this.userDao.getById({ id: params.currentUser.id });
     if (!user) {
       throw new ApiBadRequestError('User not found');
@@ -68,14 +72,11 @@ export class AccountChangePasswordUc implements IUseCase<Params, OperationStatus
     }
   }
 
-  async changePassword(params: Params): Promise<void> {
-    const hashedPassword = await this.passwordService.hash(params.newPassword);
-    await this.prisma.$transaction(async (tx) => {
-      await this.userDao.update({
-        id: params.currentUser.id,
-        data: { password: hashedPassword },
-        tx,
-      });
+  private async updatePassword(params: Params, hashedPassword: string, tx: Prisma.TransactionClient): Promise<void> {
+    await this.userDao.update({
+      id: params.currentUser.id,
+      data: { password: hashedPassword },
+      tx,
     });
   }
 }

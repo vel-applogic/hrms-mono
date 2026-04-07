@@ -39,45 +39,13 @@ export class CandidateUpdateUc extends BaseCandidateUc implements IUseCase<Param
     super(prisma, logger, candidateDao, s3Service);
   }
 
-  async execute(params: Params): Promise<OperationStatusResponseType> {
+  public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Updating candidate', { id: params.id });
-
     const oldCandidate = await this.validate(params);
 
     await this.transaction(async (tx) => {
-      await this.candidateDao.update({
-        id: params.id,
-        organizationId: params.currentUser.organizationId,
-        data: {
-          firstname: params.dto.firstname,
-          lastname: params.dto.lastname,
-          email: params.dto.email,
-          contactNumbers: params.dto.contactNumbers ?? [],
-          source: params.dto.source,
-          urls: params.dto.urls ?? [],
-          expInYears: params.dto.expInYears,
-          relevantExpInYears: params.dto.relevantExpInYears,
-          skills: params.dto.skills ?? [],
-          currentCtcInLacs: params.dto.currentCtcInLacs,
-          expectedCtcInLacs: params.dto.expectedCtcInLacs,
-          noticePeriod: params.dto.noticePeriod,
-          noticePeriodUnit: params.dto.noticePeriodUnit,
-          status: params.dto.status,
-          progress: params.dto.progress,
-          dob: params.dto.dob ? new Date(params.dto.dob) : undefined,
-          pan: params.dto.pan ?? undefined,
-          aadhaar: params.dto.aadhaar ?? undefined,
-          updatedAt: new Date(),
-        },
-        tx,
-      });
-
-      if (params.dto.resume === undefined) {
-        await this.candidateHasMediaDao.deleteManyByCandidateIdAndType({ candidateId: params.id, type: CandidateMediaType.resume, tx });
-      } else if (params.dto.resume.key?.startsWith('temp/')) {
-        await this.candidateHasMediaDao.deleteManyByCandidateIdAndType({ candidateId: params.id, type: CandidateMediaType.resume, tx });
-        await this.createAndLinkMedia({ media: params.dto.resume, candidateId: params.id, organizationId: params.currentUser.organizationId, type: CandidateMediaType.resume, tx });
-      }
+      await this.updateCandidate(params, tx);
+      await this.syncResume(params, tx);
     });
 
     const newCandidate = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
@@ -87,6 +55,44 @@ export class CandidateUpdateUc extends BaseCandidateUc implements IUseCase<Param
 
   private async validate(params: Params): Promise<CandidateDetailResponseType> {
     return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+  }
+
+  private async updateCandidate(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    await this.candidateDao.update({
+      id: params.id,
+      organizationId: params.currentUser.organizationId,
+      data: {
+        firstname: params.dto.firstname,
+        lastname: params.dto.lastname,
+        email: params.dto.email,
+        contactNumbers: params.dto.contactNumbers ?? [],
+        source: params.dto.source,
+        urls: params.dto.urls ?? [],
+        expInYears: params.dto.expInYears,
+        relevantExpInYears: params.dto.relevantExpInYears,
+        skills: params.dto.skills ?? [],
+        currentCtcInLacs: params.dto.currentCtcInLacs,
+        expectedCtcInLacs: params.dto.expectedCtcInLacs,
+        noticePeriod: params.dto.noticePeriod,
+        noticePeriodUnit: params.dto.noticePeriodUnit,
+        status: params.dto.status,
+        progress: params.dto.progress,
+        dob: params.dto.dob ? new Date(params.dto.dob) : undefined,
+        pan: params.dto.pan ?? undefined,
+        aadhaar: params.dto.aadhaar ?? undefined,
+        updatedAt: new Date(),
+      },
+      tx,
+    });
+  }
+
+  private async syncResume(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+    if (params.dto.resume === undefined) {
+      await this.candidateHasMediaDao.deleteManyByCandidateIdAndType({ candidateId: params.id, type: CandidateMediaType.resume, tx });
+    } else if (params.dto.resume.key?.startsWith('temp/')) {
+      await this.candidateHasMediaDao.deleteManyByCandidateIdAndType({ candidateId: params.id, type: CandidateMediaType.resume, tx });
+      await this.createAndLinkMedia({ media: params.dto.resume, candidateId: params.id, organizationId: params.currentUser.organizationId, type: CandidateMediaType.resume, tx });
+    }
   }
 
   private async createAndLinkMedia(params: { media: MediaUpsertType; candidateId: number; organizationId: number; type: CandidateMediaType; tx: Prisma.TransactionClient }): Promise<void> {

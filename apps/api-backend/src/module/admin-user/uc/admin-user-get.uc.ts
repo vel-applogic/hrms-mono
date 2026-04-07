@@ -20,8 +20,17 @@ export class AdminUserGetUc extends BaseAdminUserUc implements IUseCase<Params, 
     super(prisma, logger, userDao, organizationHasUserDao);
   }
 
-  async execute(params: Params): Promise<AdminUserDetailResponseType> {
+  public async execute(params: Params): Promise<AdminUserDetailResponseType> {
     this.logger.i('Getting user', { id: params.id });
-    return this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    await this.validate(params);
+    return await this.fetchById(params);
+  }
+
+  private async validate(_params: Params): Promise<void> {
+    // Placeholder for future validations
+  }
+
+  private async fetchById(params: Params): Promise<AdminUserDetailResponseType> {
+    return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
   }
 }

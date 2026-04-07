@@ -13,7 +13,6 @@ import {
   OrganizationSettingDao,
   PrismaService,
 } from '@repo/nest-lib';
-import { ApiBadRequestError } from '@repo/shared';
 
 import { S3Service } from '#src/external-service/s3.service.js';
 
@@ -52,9 +51,17 @@ export class OrganizationGetUc extends BaseOrganizationUc implements IUseCase<Pa
     );
   }
 
-  async execute(params: Params): Promise<OrganizationDetailResponseType> {
-    this.assertOwnOrganization(params.currentUser, params.id);
+  public async execute(params: Params): Promise<OrganizationDetailResponseType> {
     this.logger.i('Getting organization', { id: params.id });
+    await this.validate(params);
+    return await this.getById(params);
+  }
+
+  private async validate(params: Params): Promise<void> {
+    this.assertOwnOrganization(params.currentUser, params.id);
+  }
+
+  private async getById(params: Params): Promise<OrganizationDetailResponseType> {
     return await this.getOrganizationDetailById(params.id);
   }
 }
