@@ -15,6 +15,7 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
 
   const currentUserName = session.user?.name ?? session.user?.email ?? 'User';
   const currentUserEmail = session.user?.email ?? '';
+  const currentUserPhotoUrl = session.user?.photoUrl ?? null;
   const isAdmin = session.user?.roles?.includes('admin') ?? false;
   const roleBadgeLabel = session.user?.isSuperAdmin ? 'SU' : isAdmin ? 'ADMIN' : null;
 
@@ -49,7 +50,7 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
           <header className='hidden shrink-0 bg-[#077f8c14] shadow-[0_2px_8px_rgba(0,0,0,0.12)] lg:block'>
             <div className='flex h-16 items-center justify-between gap-4 px-6'>
               <HeaderPageTitle />
-              <HeaderProfile userName={currentUserName} userEmail={currentUserEmail} />
+              <HeaderProfile userName={currentUserName} userEmail={currentUserEmail} userImageUrl={currentUserPhotoUrl} />
             </div>
           </header>
 

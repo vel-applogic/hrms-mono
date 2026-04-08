@@ -9,9 +9,17 @@ import { signOut, useSession } from 'next-auth/react';
 interface Props {
   userName: string;
   userEmail: string;
+  userImageUrl?: string | null;
 }
 
-export function HeaderProfile({ userName, userEmail }: Props) {
+export function HeaderProfile({ userName, userEmail, userImageUrl }: Props) {
+  const initials = userName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
   const { data: session, update } = useSession();
   const organisations = session?.user?.organisations ?? [];
   const currentOrgId = session?.user?.organizationId;
@@ -21,13 +29,6 @@ export function HeaderProfile({ userName, userEmail }: Props) {
   const roles = session?.user?.roles ?? [];
   const canViewOrgSettings = isSuperAdmin || roles.includes('admin');
   const router = useRouter();
-
-  const initials = userName
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
 
   return (
     <div className='flex items-center gap-3'>
@@ -40,7 +41,9 @@ export function HeaderProfile({ userName, userEmail }: Props) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className='flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 text-left outline-none transition-colors hover:bg-accent'>
-            <div className='flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground'>{initials}</div>
+            <div className='flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-primary text-xs font-medium text-primary-foreground'>
+              {userImageUrl ? <img src={userImageUrl} alt={userName} className='h-full w-full object-cover' /> : initials}
+            </div>
             <div className='flex flex-col'>
               <span className='text-sm font-medium text-foreground'>{userName}</span>
               {currentOrg && <span className='text-xs text-muted-foreground'>{currentOrg.name}</span>}

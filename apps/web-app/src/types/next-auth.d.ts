@@ -6,6 +6,7 @@ declare module 'next-auth' {
     organisations: { id: number; name: string }[];
     organizationId: number;
     roles: string[];
+    photoUrl: string | null;
   }
 
   interface Session {
@@ -15,6 +16,7 @@ declare module 'next-auth' {
       organisations: { id: number; name: string }[];
       organizationId: number;
       roles: string[];
+      photoUrl: string | null;
     } & DefaultSession['user'];
   }
 }
@@ -26,5 +28,6 @@ declare module 'next-auth/jwt' {
     organisations: { id: number; name: string }[];
     organizationId: number;
     roles: string[];
+    photoUrl: string | null;
   }
 }

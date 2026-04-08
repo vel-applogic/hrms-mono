@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { EmployeeMediaType } from '@repo/db';
 import type { AuthLoginRequestType, AuthLoginResponseType } from '@repo/dto';
-import { CommonLoggerService, IUseCase, OrganizationHasUserDao, UserDao, userRoleDbEnumToDtoEnum, UserVerifyEmailDao } from '@repo/nest-lib';
+import { CommonLoggerService, EmployeeHasMediaDao, IUseCase, OrganizationHasUserDao, UserDao, userRoleDbEnumToDtoEnum, UserVerifyEmailDao } from '@repo/nest-lib';
 import type { UserSelectTableRecordType } from '@repo/nest-lib';
 import { ApiBadRequestError, ApiError } from '@repo/shared';
 
+import { S3Service } from '#src/external-service/s3.service.js';
 
 import { PasswordService } from '../../../service/password.service.js';
 
@@ -17,6 +19,8 @@ export class AuthLoginUc implements IUseCase<Params, AuthLoginResponseType> {
     private readonly userDao: UserDao,
     private readonly userVerifyEmailDao: UserVerifyEmailDao,
     private readonly organizationHasUserDao: OrganizationHasUserDao,
+    private readonly employeeHasMediaDao: EmployeeHasMediaDao,
+    private readonly s3Service: S3Service,
     private readonly passwordService: PasswordService,
     private readonly logger: CommonLoggerService,
   ) {}
@@ -54,6 +58,10 @@ export class AuthLoginUc implements IUseCase<Params, AuthLoginResponseType> {
     const primaryMembership = orgMemberships[0];
     const roles = primaryMembership?.roles.map((r) => userRoleDbEnumToDtoEnum(r)) ?? [];
 
+    const medias = await this.employeeHasMediaDao.findByUserId({ userId: user.id });
+    const photoRecord = medias.find((m) => m.type === EmployeeMediaType.photo);
+    const photoUrl = photoRecord ? await this.s3Service.getSignedUrl(photoRecord.media.key) : null;
+
     return {
       id: user.id,
       email: user.email,
@@ -62,6 +70,7 @@ export class AuthLoginUc implements IUseCase<Params, AuthLoginResponseType> {
       isSuperAdmin: user.isSuperAdmin,
       organisations: orgMemberships.map((m) => ({ id: m.organizationId, name: m.organization.name })),
       roles,
+      photoUrl,
     };
   }
 }

@@ -10,6 +10,7 @@ interface LoginResponse {
   isSuperAdmin: boolean;
   organisations: { id: number; name: string }[];
   roles: string[];
+  photoUrl: string | null;
 }
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
@@ -40,6 +41,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
               organisations: user.organisations,
               organizationId: user.organisations[0]?.id ?? 0,
               roles: user.roles,
+              photoUrl: user.photoUrl,
             };
           }
           return null;
@@ -57,6 +59,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         token.organisations = user.organisations;
         token.organizationId = user.organizationId;
         token.roles = user.roles;
+        token.photoUrl = user.photoUrl;
       }
       if (trigger === 'update' && typeof session?.organizationId === 'number') {
         token.organizationId = session.organizationId;
@@ -70,6 +73,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         session.user.organisations = token.organisations as { id: number; name: string }[];
         session.user.organizationId = token.organizationId as number;
         session.user.roles = token.roles as string[];
+        session.user.photoUrl = (token.photoUrl as string | null) ?? null;
       }
       return session;
     },

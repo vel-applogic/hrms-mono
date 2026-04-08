@@ -16,6 +16,7 @@ export const AuthLoginResponseSchema = z.object({
   isSuperAdmin: z.boolean(),
   organisations: z.array(z.object({ id: z.number(), name: z.string() })),
   roles: z.array(z.nativeEnum(UserRoleDtoEnum)),
+  photoUrl: z.string().nullable(),
 });
 export type AuthLoginResponseType = z.infer<typeof AuthLoginResponseSchema>;
 

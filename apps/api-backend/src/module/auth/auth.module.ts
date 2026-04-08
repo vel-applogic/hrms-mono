@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { ExternalServiceModule } from '#src/external-service/external-service.module.js';
 import { ServiceModule } from '#src/service/service.module.js';
 
 import { PasswordService } from '../../service/password.service.js';
@@ -11,7 +12,7 @@ import { AuthResetPasswordUseCase } from './uc/auth-reset-password.uc.js';
 import { AuthVerifyEmailUseCase } from './uc/auth-verify-email.uc.js';
 
 @Module({
-  imports: [ServiceModule],
+  imports: [ServiceModule, ExternalServiceModule],
   controllers: [AuthController],
   providers: [PasswordService, AuthLoginUc, AuthForgotPasswordUseCase, AuthResetPasswordUseCase, AuthVerifyEmailUseCase, AuthAcceptInviteUc],
 })
