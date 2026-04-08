@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  LeaveDayHalfDtoEnum,
   LeaveResponseType,
   PaginatedResponseType,
 } from '@repo/dto';
@@ -148,11 +149,15 @@ export const LeaveDataTableClient = (props: Props) => {
       {
         headerName: 'Date',
         colId: 'date',
-        width: 180,
+        width: 240,
         valueGetter: (params) => {
           if (!params.data) return '';
-          const { startDate, endDate } = params.data;
-          return startDate === endDate ? startDate : `${startDate} – ${endDate}`;
+          const { startDate, endDate, startDuration, endDuration } = params.data;
+          const halfLabel = (h: LeaveDayHalfDtoEnum) => (h === LeaveDayHalfDtoEnum.firstHalf ? ' (1st half)' : h === LeaveDayHalfDtoEnum.secondHalf ? ' (2nd half)' : '');
+          if (startDate === endDate) {
+            return `${startDate}${halfLabel(startDuration)}`;
+          }
+          return `${startDate}${halfLabel(startDuration)} – ${endDate}${halfLabel(endDuration)}`;
         },
       },
       {
@@ -192,17 +197,25 @@ export const LeaveDataTableClient = (props: Props) => {
     return cols;
   }, [props.currentUserId, props.isAdmin, props.onView, props.hideEmployeeColumn]);
 
-  const getConfirmMessage = (action: ConfirmAction, leave: LeaveResponseType) => {
+  const getConfirmContent = (action: ConfirmAction, leave: LeaveResponseType) => {
     const name = `${leave.user.firstname} ${leave.user.lastname}`;
-    const dates = leave.startDate === leave.endDate ? leave.startDate : `${leave.startDate} – ${leave.endDate}`;
+    const halfLabel = (h: LeaveDayHalfDtoEnum) => (h === LeaveDayHalfDtoEnum.firstHalf ? ' (1st half)' : h === LeaveDayHalfDtoEnum.secondHalf ? ' (2nd half)' : '');
+    const period = leave.startDate === leave.endDate
+      ? `${leave.startDate}${halfLabel(leave.startDuration)}`
+      : `${leave.startDate}${halfLabel(leave.startDuration)} – ${leave.endDate}${halfLabel(leave.endDuration)}`;
+    let title = '';
     switch (action) {
       case 'approve':
-        return `Approve leave request for ${name} (${dates})?`;
+        title = `Approve leave request for ${name} ?`;
+        break;
       case 'reject':
-        return `Reject leave request for ${name} (${dates})?`;
+        title = `Reject leave request for ${name} ?`;
+        break;
       case 'cancel':
-        return `Cancel leave request for ${name} (${dates})?`;
+        title = `Cancel leave request for ${name} ?`;
+        break;
     }
+    return { title, period };
   };
 
   const getConfirmButtonText = (action: ConfirmAction) => {
@@ -265,9 +278,17 @@ export const LeaveDataTableClient = (props: Props) => {
             >
               <X className='h-4 w-4' />
             </button>
-            <p className='mb-4 pr-8 text-sm text-foreground'>
-              {getConfirmMessage(confirmModal.action, confirmModal.leave)}
-            </p>
+            {(() => {
+              const { title, period } = getConfirmContent(confirmModal.action, confirmModal.leave);
+              return (
+                <div className='mb-4 pr-8'>
+                  <p className='text-sm text-foreground'>{title}</p>
+                  <p className='mt-1 text-sm text-muted-foreground'>
+                    Period: <span className='font-medium text-foreground'>{period}</span>
+                  </p>
+                </div>
+              );
+            })()}
             <div className='flex justify-end gap-3'>
               <button
                 type='button'

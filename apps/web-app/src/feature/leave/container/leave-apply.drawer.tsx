@@ -1,14 +1,15 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { LeaveCreateRequestSchema, LeaveResponseType, LeaveTypeDtoEnum } from '@repo/dto';
+import { LeaveCreateRequestSchema, LeaveDayHalfDtoEnum, LeaveResponseType, LeaveTypeDtoEnum } from '@repo/dto';
 import { Button } from '@repo/ui/component/ui/button';
 import { Input } from '@repo/ui/component/ui/input';
 import { Label } from '@repo/ui/component/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/ui/select';
 import { Drawer } from '@repo/ui/container/drawer/drawer';
+import { cn } from '@repo/ui/lib/utils';
 import { useSession } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -29,6 +30,76 @@ interface Props {
 
 const FORM_ID = 'leave-apply-form';
 
+type HalfOption = { value: LeaveDayHalfDtoEnum; label: string };
+
+const ALL_HALF_OPTIONS: HalfOption[] = [
+  { value: LeaveDayHalfDtoEnum.full, label: 'Full day' },
+  { value: LeaveDayHalfDtoEnum.firstHalf, label: 'First half' },
+  { value: LeaveDayHalfDtoEnum.secondHalf, label: 'Second half' },
+];
+
+function getBusinessDays(startStr: string, endStr: string): number {
+  if (!startStr || !endStr) return 0;
+  const start = new Date(startStr);
+  const end = new Date(endStr);
+  if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) return 0;
+  let count = 0;
+  const current = new Date(start);
+  current.setHours(0, 0, 0, 0);
+  const endDate = new Date(end);
+  endDate.setHours(0, 0, 0, 0);
+  while (current <= endDate) {
+    const day = current.getDay();
+    if (day !== 0 && day !== 6) count++;
+    current.setDate(current.getDate() + 1);
+  }
+  return count;
+}
+
+function calculateDays(startDate: string, endDate: string, startDuration: LeaveDayHalfDtoEnum, endDuration: LeaveDayHalfDtoEnum): number {
+  if (!startDate || !endDate) return 0;
+  const isSameDay = startDate === endDate;
+  if (isSameDay) {
+    if (startDuration === LeaveDayHalfDtoEnum.full) return 1;
+    return 0.5;
+  }
+  let days = getBusinessDays(startDate, endDate);
+  if (startDuration === LeaveDayHalfDtoEnum.secondHalf) days -= 0.5;
+  if (endDuration === LeaveDayHalfDtoEnum.firstHalf) days -= 0.5;
+  return Math.max(0, days);
+}
+
+function HalfDayToggle({
+  value,
+  options,
+  onChange,
+  disabled,
+}: {
+  value: LeaveDayHalfDtoEnum;
+  options: HalfOption[];
+  onChange: (val: LeaveDayHalfDtoEnum) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className='inline-flex rounded-lg border border-border bg-card p-1'>
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type='button'
+          disabled={disabled}
+          onClick={() => onChange(opt.value)}
+          className={cn(
+            'rounded-md px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+            value === opt.value ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
+          )}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function LeaveApplyDrawer({ open, onOpenChange, leave, employeeId, onSuccess }: Props) {
   const { data: session } = useSession();
   const currentUserId = session?.user?.id ? Number(session.user.id) : null;
@@ -44,6 +115,8 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, employeeId, onSucc
       leaveType: LeaveTypeDtoEnum.casual,
       startDate: '',
       endDate: '',
+      startDuration: LeaveDayHalfDtoEnum.full,
+      endDuration: LeaveDayHalfDtoEnum.full,
       reason: '',
     },
   });
@@ -56,6 +129,8 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, employeeId, onSucc
           leaveType: leave.leaveType as LeaveTypeDtoEnum,
           startDate: leave.startDate,
           endDate: leave.endDate,
+          startDuration: leave.startDuration ?? LeaveDayHalfDtoEnum.full,
+          endDuration: leave.endDuration ?? LeaveDayHalfDtoEnum.full,
           reason: leave.reason,
         });
       } else {
@@ -64,6 +139,8 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, employeeId, onSucc
           leaveType: LeaveTypeDtoEnum.casual,
           startDate: '',
           endDate: '',
+          startDuration: LeaveDayHalfDtoEnum.full,
+          endDuration: LeaveDayHalfDtoEnum.full,
           reason: '',
         });
       }
@@ -71,26 +148,62 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, employeeId, onSucc
     }
   }, [open, leave, currentUserId, form]);
 
+  const startDate = form.watch('startDate');
+  const endDate = form.watch('endDate');
+  const startDuration = form.watch('startDuration') ?? LeaveDayHalfDtoEnum.full;
+  const endDuration = form.watch('endDuration') ?? LeaveDayHalfDtoEnum.full;
+
+  // Force end date to equal start date when start is firstHalf
+  useEffect(() => {
+    if (startDuration === LeaveDayHalfDtoEnum.firstHalf && startDate && endDate !== startDate) {
+      form.setValue('endDate', startDate);
+    }
+  }, [startDuration, startDate, endDate, form]);
+
+  // Reset endDuration to full when conditions change
+  useEffect(() => {
+    const isSameDay = startDate && startDate === endDate;
+    if (isSameDay) {
+      // For same day, endDuration must mirror startDuration
+      if (endDuration !== startDuration) {
+        form.setValue('endDuration', startDuration);
+      }
+    } else {
+      // Different days: endDuration can only be full or firstHalf
+      if (endDuration === LeaveDayHalfDtoEnum.secondHalf) {
+        form.setValue('endDuration', LeaveDayHalfDtoEnum.full);
+      }
+    }
+  }, [startDate, endDate, startDuration, endDuration, form]);
+
+  const isSameDay = !!startDate && startDate === endDate;
+  const isStartFirstHalf = startDuration === LeaveDayHalfDtoEnum.firstHalf;
+  const isEndDurationEnabled = !isSameDay && startDuration === LeaveDayHalfDtoEnum.secondHalf;
+  const numberOfDays = useMemo(() => calculateDays(startDate, endDate, startDuration, endDuration), [startDate, endDate, startDuration, endDuration]);
+
+  const startDurationOptions: HalfOption[] = ALL_HALF_OPTIONS;
+  const endDurationOptions: HalfOption[] = [
+    { value: LeaveDayHalfDtoEnum.full, label: 'Full day' },
+    { value: LeaveDayHalfDtoEnum.firstHalf, label: 'First half' },
+  ];
+
   const handleSubmit = async (data: CreateFormType) => {
     setLoading(true);
     setError('');
     try {
+      const payload = {
+        userId: data.userId,
+        leaveType: data.leaveType,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        startDuration: data.startDuration,
+        endDuration: data.endDuration,
+        reason: data.reason,
+      };
       if (isEditing && leave) {
-        await updateLeave(leave.id, {
-          userId: data.userId,
-          leaveType: data.leaveType,
-          startDate: data.startDate,
-          endDate: data.endDate,
-          reason: data.reason,
-        });
+        await updateLeave(leave.id, payload);
       } else {
-        await createLeave({
-          userId: data.userId,
-          leaveType: data.leaveType,
-          startDate: data.startDate,
-          endDate: data.endDate,
-          reason: data.reason,
-        });
+        await createLeave(payload);
       }
       onOpenChange(false);
       onSuccess();
@@ -150,17 +263,44 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, employeeId, onSucc
           </Select>
         </div>
 
-        <div className='grid grid-cols-2 gap-4'>
-          <div className='flex flex-col gap-2'>
-            <Label htmlFor='startDate'>Start date</Label>
-            <Input id='startDate' type='date' {...form.register('startDate')} />
-            {form.formState.errors.startDate && <p className='text-sm text-destructive'>{form.formState.errors.startDate.message}</p>}
+        <div className='flex flex-col gap-3'>
+          <div className='grid grid-cols-2 gap-4'>
+            <div className='flex flex-col gap-2'>
+              <Label htmlFor='startDate'>Start date</Label>
+              <Input id='startDate' type='date' {...form.register('startDate')} />
+              {form.formState.errors.startDate && <p className='text-sm text-destructive'>{form.formState.errors.startDate.message}</p>}
+            </div>
+            <div className='flex flex-col gap-2'>
+              <Label htmlFor='endDate'>End date</Label>
+              <Input id='endDate' type='date' disabled={isStartFirstHalf} {...form.register('endDate')} />
+              {form.formState.errors.endDate && <p className='text-sm text-destructive'>{form.formState.errors.endDate.message}</p>}
+            </div>
           </div>
-          <div className='flex flex-col gap-2'>
-            <Label htmlFor='endDate'>End date</Label>
-            <Input id='endDate' type='date' {...form.register('endDate')} />
-            {form.formState.errors.endDate && <p className='text-sm text-destructive'>{form.formState.errors.endDate.message}</p>}
+          <div className='grid grid-cols-2 gap-4'>
+            <div className='flex flex-col gap-2'>
+              <Label className='text-xs text-muted-foreground'>Start day</Label>
+              <HalfDayToggle
+                value={startDuration}
+                options={startDurationOptions}
+                onChange={(val) => form.setValue('startDuration', val, { shouldValidate: true })}
+              />
+            </div>
+            <div className='flex flex-col gap-2'>
+              <Label className='text-xs text-muted-foreground'>End day</Label>
+              <HalfDayToggle
+                value={endDuration}
+                options={endDurationOptions}
+                onChange={(val) => form.setValue('endDuration', val, { shouldValidate: true })}
+                disabled={!isEndDurationEnabled}
+              />
+            </div>
           </div>
+          {numberOfDays > 0 && (
+            <p className='text-xs text-muted-foreground'>
+              Number of days: <span className='font-medium text-foreground'>{numberOfDays}</span>
+            </p>
+          )}
+          {form.formState.errors.endDuration && <p className='text-sm text-destructive'>{form.formState.errors.endDuration.message}</p>}
         </div>
 
         <div className='flex flex-col gap-2'>

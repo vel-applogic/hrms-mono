@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@repo/db';
 import type { LeaveFilterRequestType, LeaveResponseType, PaginatedResponseType } from '@repo/dto';
 import { UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, LeaveDao, leaveStatusDbEnumToDtoEnum, leaveStatusDtoEnumToDbEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, LeaveDao, leaveDayHalfDbEnumToDtoEnum, leaveStatusDbEnumToDtoEnum, leaveStatusDtoEnumToDbEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
 import { getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
@@ -71,6 +71,8 @@ export class LeaveListUc implements IUseCase<Params, PaginatedResponseType<Leave
       leaveType: leaveTypeDbEnumToDtoEnum(l.leaveType),
       startDate: l.startDate.toISOString().split('T')[0],
       endDate: l.endDate.toISOString().split('T')[0],
+      startDuration: leaveDayHalfDbEnumToDtoEnum(l.startDuration),
+      endDuration: leaveDayHalfDbEnumToDtoEnum(l.endDuration),
       numberOfDays: l.numberOfDays,
       reason: l.reason,
       status: leaveStatusDbEnumToDtoEnum(l.status),

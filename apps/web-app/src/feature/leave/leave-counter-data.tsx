@@ -77,11 +77,17 @@ export const LeaveCounterData = ({ counters, financialYear, financialYearOptions
         headerName: 'Total Used',
         field: 'totalLeavesUsed',
         width: 110,
+        cellRenderer: (params: { value?: number }) => (
+          <span className='font-semibold text-red-600'>{params.value ?? 0}</span>
+        ),
       },
       {
         headerName: 'Total Available',
         field: 'totalLeavesAvailable',
         width: 130,
+        cellRenderer: (params: { value?: number }) => (
+          <span className='font-semibold text-green-600'>{params.value ?? 0}</span>
+        ),
       },
       {
         headerName: '',

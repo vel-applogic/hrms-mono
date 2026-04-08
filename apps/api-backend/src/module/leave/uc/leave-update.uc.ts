@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { LeaveStatusEnum, type LeaveTypeEnum, type Prisma } from '@repo/db';
-import type { LeaveResponseType, LeaveUpdateRequestType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, EmployeeDao, IUseCase, LeaveDao, OrganizationSettingDao, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, leaveTypeDtoEnumToDbEnum, PrismaService } from '@repo/nest-lib';
+import { type LeaveDayHalfEnum, LeaveStatusEnum, type LeaveTypeEnum, type Prisma } from '@repo/db';
+import { LeaveDayHalfDtoEnum, type LeaveResponseType, type LeaveUpdateRequestType } from '@repo/dto';
+import { CommonLoggerService, CurrentUserType, EmployeeDao, IUseCase, LeaveDao, OrganizationSettingDao, leaveDayHalfDbEnumToDtoEnum, leaveDayHalfDtoEnumToDbEnum, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, leaveTypeDtoEnumToDbEnum, PrismaService } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 type Params = {
@@ -23,6 +23,40 @@ function getBusinessDays(start: Date, end: Date): number {
     current.setDate(current.getDate() + 1);
   }
   return count;
+}
+
+function calculateLeaveDays(params: {
+  startDate: Date;
+  endDate: Date;
+  startDuration: LeaveDayHalfDtoEnum;
+  endDuration: LeaveDayHalfDtoEnum;
+  isSameDay: boolean;
+}): number {
+  const { startDate, endDate, startDuration, endDuration, isSameDay } = params;
+  if (isSameDay) {
+    if (startDuration === LeaveDayHalfDtoEnum.full) return 1;
+    return 0.5;
+  }
+  let days = getBusinessDays(startDate, endDate);
+  if (startDuration === LeaveDayHalfDtoEnum.secondHalf) days -= 0.5;
+  if (endDuration === LeaveDayHalfDtoEnum.firstHalf) days -= 0.5;
+  return days;
+}
+
+function validateHalfDaySelection(params: { isSameDay: boolean; startDuration: LeaveDayHalfDtoEnum; endDuration: LeaveDayHalfDtoEnum }): void {
+  const { isSameDay, startDuration, endDuration } = params;
+  if (isSameDay) {
+    if (startDuration !== LeaveDayHalfDtoEnum.full && startDuration !== endDuration) {
+      throw new ApiError('Half day selection must match for same-day leave', 400);
+    }
+    return;
+  }
+  if (startDuration === LeaveDayHalfDtoEnum.firstHalf) {
+    throw new ApiError('Start day first half is only allowed for single-day leave', 400);
+  }
+  if (endDuration === LeaveDayHalfDtoEnum.secondHalf) {
+    throw new ApiError('End day second half is not allowed when dates differ', 400);
+  }
 }
 
 function getTypeLimit(config: { totalLeaveInDays: number; sickLeaveInDays: number; earnedLeaveInDays: number; casualLeaveInDays: number }, leaveType: string): number {
@@ -60,7 +94,7 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
     return await this.getResponseById(params);
   }
 
-  private async validate(params: Params): Promise<{ startDate: Date; endDate: Date; numberOfDays: number; leaveTypeDb: LeaveTypeEnum }> {
+  private async validate(params: Params): Promise<{ startDate: Date; endDate: Date; numberOfDays: number; leaveTypeDb: LeaveTypeEnum; startDurationDb: LeaveDayHalfEnum; endDurationDb: LeaveDayHalfEnum }> {
     const employee = await this.employeeDao.getByUserId({ userId: params.currentUser.id, organizationId: params.currentUser.organizationId });
     if (!employee) {
       throw new ApiError('Only employees can edit leave. Employee not found.', 403);
@@ -89,10 +123,15 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
     }
 
     const isSameDay = params.dto.startDate === params.dto.endDate;
-    const numberOfDays = isSameDay ? 1 : getBusinessDays(startDate, endDate);
-    if (numberOfDays < 1) {
-      throw new ApiError('At least one business day is required', 400);
+    const startDuration = params.dto.startDuration ?? LeaveDayHalfDtoEnum.full;
+    const endDuration = params.dto.endDuration ?? LeaveDayHalfDtoEnum.full;
+    validateHalfDaySelection({ isSameDay, startDuration, endDuration });
+    const numberOfDays = calculateLeaveDays({ startDate, endDate, startDuration, endDuration, isSameDay });
+    if (numberOfDays < 0.5) {
+      throw new ApiError('At least half a business day is required', 400);
     }
+    const startDurationDb = leaveDayHalfDtoEnumToDbEnum(startDuration);
+    const endDurationDb = leaveDayHalfDtoEnumToDbEnum(endDuration);
 
     const countStatuses: LeaveStatusEnum[] = [LeaveStatusEnum.pending, LeaveStatusEnum.approved];
     const leaveTypeDb = leaveTypeDtoEnumToDbEnum(params.dto.leaveType);
@@ -118,15 +157,15 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
       throw new ApiError(`Exceeds total leave limit. Used: ${existingTotal}, Limit: ${config.totalLeaveInDays}, Requested: ${numberOfDays}`, 400);
     }
 
-    return { startDate, endDate, numberOfDays, leaveTypeDb };
+    return { startDate, endDate, numberOfDays, leaveTypeDb, startDurationDb, endDurationDb };
   }
 
   private async update(
     params: Params,
-    validateResult: { startDate: Date; endDate: Date; numberOfDays: number; leaveTypeDb: LeaveTypeEnum },
+    validateResult: { startDate: Date; endDate: Date; numberOfDays: number; leaveTypeDb: LeaveTypeEnum; startDurationDb: LeaveDayHalfEnum; endDurationDb: LeaveDayHalfEnum },
     tx: Prisma.TransactionClient,
   ): Promise<void> {
-    const { startDate, endDate, numberOfDays, leaveTypeDb } = validateResult;
+    const { startDate, endDate, numberOfDays, leaveTypeDb, startDurationDb, endDurationDb } = validateResult;
 
     await this.leaveDao.update({
       id: params.id,
@@ -135,6 +174,8 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
         leaveType: leaveTypeDb,
         startDate,
         endDate,
+        startDuration: startDurationDb,
+        endDuration: endDurationDb,
         numberOfDays,
         reason: params.dto.reason,
       },
@@ -158,6 +199,8 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
       leaveType: leaveTypeDbEnumToDtoEnum(updated.leaveType),
       startDate: updated.startDate.toISOString().split('T')[0],
       endDate: updated.endDate.toISOString().split('T')[0],
+      startDuration: leaveDayHalfDbEnumToDtoEnum(updated.startDuration),
+      endDuration: leaveDayHalfDbEnumToDtoEnum(updated.endDuration),
       numberOfDays: updated.numberOfDays,
       reason: updated.reason,
       status: leaveStatusDbEnumToDtoEnum(updated.status),

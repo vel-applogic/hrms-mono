@@ -9,6 +9,7 @@ import {
   ContactType,
   EmployeeStatusEnum,
   HolidayType,
+  LeaveDayHalfEnum,
   LeaveStatusEnum,
   LeaveTypeEnum,
   MediaTypeDbEnum,
@@ -27,6 +28,7 @@ import {
   ContactTypeDtoEnum,
   EmployeeStatusDtoEnum,
   HolidayTypeDtoEnum,
+  LeaveDayHalfDtoEnum,
   LeaveStatusDtoEnum,
   LeaveTypeDtoEnum,
   MediaTypeDtoEnum,
@@ -251,6 +253,36 @@ export function leaveStatusDbEnumToDtoEnum(dbEnum: LeaveStatusEnum): LeaveStatus
   }
 
   return dtoEnum;
+}
+
+export function leaveDayHalfDbEnumToDtoEnum(dbEnum: LeaveDayHalfEnum): LeaveDayHalfDtoEnum {
+  const mapping: Record<LeaveDayHalfEnum, LeaveDayHalfDtoEnum> = {
+    full: LeaveDayHalfDtoEnum.full,
+    firstHalf: LeaveDayHalfDtoEnum.firstHalf,
+    secondHalf: LeaveDayHalfDtoEnum.secondHalf,
+  };
+
+  const dtoEnum = mapping[dbEnum];
+  if (!dtoEnum) {
+    throw new Error(`Unknown LeaveDayHalfEnum: ${dbEnum}`);
+  }
+
+  return dtoEnum;
+}
+
+export function leaveDayHalfDtoEnumToDbEnum(dtoEnum: LeaveDayHalfDtoEnum): LeaveDayHalfEnum {
+  const mapping: Record<LeaveDayHalfDtoEnum, LeaveDayHalfEnum> = {
+    [LeaveDayHalfDtoEnum.full]: 'full',
+    [LeaveDayHalfDtoEnum.firstHalf]: 'firstHalf',
+    [LeaveDayHalfDtoEnum.secondHalf]: 'secondHalf',
+  };
+
+  const dbEnum = mapping[dtoEnum];
+  if (!dbEnum) {
+    throw new Error(`Unknown LeaveDayHalfDtoEnum: ${dtoEnum}`);
+  }
+
+  return dbEnum;
 }
 
 export function leaveStatusDtoEnumToDbEnum(dtoEnum: LeaveStatusDtoEnum): LeaveStatusEnum {

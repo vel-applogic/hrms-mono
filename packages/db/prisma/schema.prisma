@@ -506,11 +506,11 @@ model EmployeeLeaveCounter {
   user                 User         @relation(fields: [userId], references: [id])
   organizationId       Int          @map("organization_id")
   organization         Organization @relation(fields: [organizationId], references: [id])
-  casualLeaves         Int          @map("casual_leaves")
-  sickLeaves           Int          @map("sick_leaves")
-  earnedLeaves         Int          @map("earned_leaves")
-  totalLeavesUsed      Int          @map("total_leaves_used")
-  totalLeavesAvailable Int          @map("total_leaves_available")
+  casualLeaves         Float        @map("casual_leaves")
+  sickLeaves           Float        @map("sick_leaves")
+  earnedLeaves         Float        @map("earned_leaves")
+  totalLeavesUsed      Float        @map("total_leaves_used")
+  totalLeavesAvailable Float        @map("total_leaves_available")
   financialYear        String       @map("financial_year")
   createdAt            DateTime     @default(now()) @map("created_at")
   updatedAt            DateTime     @updatedAt @map("updated_at")
@@ -567,8 +567,10 @@ model Leave {
   leaveType       LeaveTypeEnum   @map("leave_type")
   startDate       DateTime        @map("start_date") @db.Date
   endDate         DateTime        @map("end_date") @db.Date
-  numberOfDays    Int             @map("number_of_days")
-  numberOfLopDays Int             @default(0) @map("number_of_lop_days")
+  startDuration   LeaveDayHalfEnum @default(full) @map("start_duration")
+  endDuration     LeaveDayHalfEnum @default(full) @map("end_duration")
+  numberOfDays    Float           @map("number_of_days")
+  numberOfLopDays Float           @default(0) @map("number_of_lop_days")
   isConsumed      Boolean         @default(false) @map("is_consumed")
   reason          String          @map("reason")
   status          LeaveStatusEnum @default(pending) @map("status")
@@ -843,6 +845,14 @@ enum LeaveStatusEnum {
   cancelled
 
   @@map("leaveStatusEnum")
+}
+
+enum LeaveDayHalfEnum {
+  full
+  firstHalf
+  secondHalf
+
+  @@map("leaveDayHalfEnum")
 }
 
 enum MediaTypeDbEnum {

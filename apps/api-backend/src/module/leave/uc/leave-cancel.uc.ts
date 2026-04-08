@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@repo/db';
 import { type LeaveResponseType, UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, EmployeeDao, EmployeeLeaveCounterDao, IUseCase, LeaveDao, LeaveWithUserType, OrganizationSettingDao, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, EmployeeDao, EmployeeLeaveCounterDao, IUseCase, LeaveDao, LeaveWithUserType, OrganizationSettingDao, leaveDayHalfDbEnumToDtoEnum, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
 import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
@@ -124,6 +124,8 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
       leaveType: leaveTypeDbEnumToDtoEnum(updated.leaveType),
       startDate: updated.startDate.toISOString().split('T')[0],
       endDate: updated.endDate.toISOString().split('T')[0],
+      startDuration: leaveDayHalfDbEnumToDtoEnum(updated.startDuration),
+      endDuration: leaveDayHalfDbEnumToDtoEnum(updated.endDuration),
       numberOfDays: updated.numberOfDays,
       reason: updated.reason,
       status: leaveStatusDbEnumToDtoEnum(updated.status),
