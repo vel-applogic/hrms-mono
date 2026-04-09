@@ -35,7 +35,18 @@ const SettingsSchema = z.object({
   casualLeaveInDays: z.number().int().min(0),
   maternityLeaveInDays: z.number().int().min(0),
   paternityLeaveInDays: z.number().int().min(0),
+  weeklyOffDays: z.array(z.number().int().min(0).max(6)),
 });
+
+const WEEK_DAY_OPTIONS: { value: number; label: string }[] = [
+  { value: 0, label: 'Sun' },
+  { value: 1, label: 'Mon' },
+  { value: 2, label: 'Tue' },
+  { value: 3, label: 'Wed' },
+  { value: 4, label: 'Thu' },
+  { value: 5, label: 'Fri' },
+  { value: 6, label: 'Sat' },
+];
 
 const AddressSchema = z.object({
   countryId: z.number({ error: 'Country is required' }),
@@ -77,6 +88,7 @@ const DEFAULT_SETTINGS = {
   casualLeaveInDays: 10,
   maternityLeaveInDays: 10,
   paternityLeaveInDays: 10,
+  weeklyOffDays: [0, 6],
 };
 
 const DEFAULT_ADDRESS = {
@@ -171,6 +183,7 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
                 casualLeaveInDays: detail.settings.casualLeaveInDays,
                 maternityLeaveInDays: detail.settings.maternityLeaveInDays,
                 paternityLeaveInDays: detail.settings.paternityLeaveInDays,
+                weeklyOffDays: detail.settings.weeklyOffDays,
               } : DEFAULT_SETTINGS,
               contacts: detail.contacts.map((c: ContactResponseType) => ({
                 id: c.id,
@@ -243,6 +256,7 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
       casualLeaveInDays: data.settings.casualLeaveInDays,
       maternityLeaveInDays: data.settings.maternityLeaveInDays,
       paternityLeaveInDays: data.settings.paternityLeaveInDays,
+      weeklyOffDays: data.settings.weeklyOffDays,
     };
   };
 
@@ -380,8 +394,8 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderSettingsFields = (form: UseFormReturn<any>) => (
-    <div className='flex flex-col gap-4 rounded-lg border border-border p-4'>
-      <span className='text-sm font-semibold'>Settings</span>
+    <div className='flex flex-col gap-4 rounded-lg border border-muted-foreground/30 p-4'>
+      <span className='text-sm font-semibold'>Leave settings</span>
 
       <div className='flex flex-col gap-2'>
         <Label htmlFor='noOfDaysInMonth'>No. of days in month</Label>
@@ -434,13 +448,52 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
     </div>
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const renderWeekoffFields = (form: UseFormReturn<any>) => (
+    <div className='flex flex-col gap-4 rounded-lg border border-muted-foreground/30 p-4'>
+      <span className='text-sm font-semibold'>Weekoff days</span>
+      <Controller
+        name='settings.weeklyOffDays'
+        control={form.control}
+        render={({ field }) => {
+          const selected: number[] = Array.isArray(field.value) ? field.value : [];
+          const toggle = (day: number) => {
+            const next = selected.includes(day) ? selected.filter((d) => d !== day) : [...selected, day];
+            field.onChange(next.sort((a, b) => a - b));
+          };
+          return (
+            <div className='flex flex-wrap gap-2'>
+              {WEEK_DAY_OPTIONS.map((opt) => {
+                const isActive = selected.includes(opt.value);
+                return (
+                  <button
+                    key={opt.value}
+                    type='button'
+                    onClick={() => toggle(opt.value)}
+                    className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                      isActive
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-muted-foreground/30 text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          );
+        }}
+      />
+    </div>
+  );
+
   const renderAddressFields = (form: UseFormReturn<CreateFormType> | UseFormReturn<UpdateFormType>) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const f = form as UseFormReturn<any>;
     const addressErrors = f.formState.errors.address as Record<string, { message?: string }> | undefined;
 
     return (
-      <div className='flex flex-col gap-4 rounded-lg border border-border p-4'>
+      <div className='flex flex-col gap-4 rounded-lg border border-muted-foreground/30 p-4'>
         <div className='flex items-center justify-between'>
           <span className='text-sm font-semibold'>Address</span>
           {!showAddress && (
@@ -524,7 +577,7 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderContactsFields = (form: UseFormReturn<any>, contactsFieldArray: any) => (
-    <div className='flex flex-col gap-4 rounded-lg border border-border p-4'>
+    <div className='flex flex-col gap-4 rounded-lg border border-muted-foreground/30 p-4'>
       <div className='flex items-center justify-between'>
         <span className='text-sm font-semibold'>Contacts</span>
         <Button type='button' variant='outline' size='sm' onClick={() => contactsFieldArray.append({ contact: '', contactType: ContactTypeDtoEnum.phone })}>
@@ -533,7 +586,7 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
       </div>
 
       {contactsFieldArray.fields.map((field: Record<string, string>, index: number) => (
-        <div key={field.id} className='flex items-start gap-3 rounded-md border border-border p-3'>
+        <div key={field.id} className='flex items-start gap-3 rounded-md border border-muted-foreground/30 p-3'>
           <div className='flex flex-1 flex-col gap-3'>
             <div className='flex flex-col gap-2'>
               <Label>Type</Label>
@@ -584,14 +637,14 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
   );
 
   const renderDocumentsSection = () => (
-    <div className='flex flex-col gap-4 rounded-lg border border-border p-4'>
+    <div className='flex flex-col gap-4 rounded-lg border border-muted-foreground/30 p-4'>
       <span className='text-sm font-semibold'>Documents</span>
 
       {existingDocuments.length > 0 && (
         <div className='flex flex-col gap-2'>
           <Label className='text-xs text-muted-foreground'>Existing documents</Label>
           {existingDocuments.map((doc) => (
-            <div key={doc.id} className='flex items-center justify-between rounded-md border border-border px-3 py-2'>
+            <div key={doc.id} className='flex items-center justify-between rounded-md border border-muted-foreground/30 px-3 py-2'>
               <span className='truncate text-sm'>{doc.document.name}</span>
               <button type='button' onClick={() => handleRemoveExistingDocument(doc)} className='text-muted-foreground hover:text-destructive'>
                 <Trash2 className='h-4 w-4' />
@@ -658,6 +711,7 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
           {renderAddressFields(updateForm)}
           {renderContactsFields(updateForm, updateContactsField)}
           {renderSettingsFields(updateForm)}
+          {renderWeekoffFields(updateForm)}
           {renderDocumentsSection()}
         </form>
       ) : (
@@ -694,6 +748,7 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
           {renderAddressFields(createForm)}
           {renderContactsFields(createForm, createContactsField)}
           {renderSettingsFields(createForm)}
+          {renderWeekoffFields(createForm)}
           {renderDocumentsSection()}
         </form>
       )}

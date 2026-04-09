@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { type LeaveDayHalfEnum, LeaveStatusEnum, type LeaveTypeEnum, type Prisma } from '@repo/db';
 import { LeaveDayHalfDtoEnum, type LeaveResponseType, type LeaveUpdateRequestType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, EmployeeDao, IUseCase, LeaveDao, OrganizationSettingDao, leaveDayHalfDbEnumToDtoEnum, leaveDayHalfDtoEnumToDbEnum, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, leaveTypeDtoEnumToDbEnum, PrismaService } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, EmployeeDao, HolidayDao, IUseCase, LeaveDao, OrganizationSettingDao, leaveDayHalfDbEnumToDtoEnum, leaveDayHalfDtoEnumToDbEnum, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, leaveTypeDtoEnumToDbEnum, PrismaService } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
 type Params = {
@@ -10,19 +10,32 @@ type Params = {
   dto: LeaveUpdateRequestType;
 };
 
-function getBusinessDays(start: Date, end: Date): number {
+function toDateKey(d: Date): string {
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+function getWorkingDays(start: Date, end: Date, weeklyOffDays: number[], holidayDates: Date[]): number {
   let count = 0;
   const current = new Date(start);
   current.setHours(0, 0, 0, 0);
   const endDate = new Date(end);
   endDate.setHours(0, 0, 0, 0);
+  const offSet = new Set(weeklyOffDays);
+  const holidaySet = new Set(holidayDates.map((d) => toDateKey(new Date(d))));
 
   while (current <= endDate) {
-    const day = current.getDay();
-    if (day !== 0 && day !== 6) count++;
+    if (!offSet.has(current.getDay()) && !holidaySet.has(toDateKey(current))) {
+      count++;
+    }
     current.setDate(current.getDate() + 1);
   }
   return count;
+}
+
+function isExcludedDay(d: Date, weeklyOffDays: number[], holidayDates: Date[]): boolean {
+  const offSet = new Set(weeklyOffDays);
+  const holidaySet = new Set(holidayDates.map((dh) => toDateKey(new Date(dh))));
+  return offSet.has(d.getDay()) || holidaySet.has(toDateKey(d));
 }
 
 function calculateLeaveDays(params: {
@@ -31,15 +44,18 @@ function calculateLeaveDays(params: {
   startDuration: LeaveDayHalfDtoEnum;
   endDuration: LeaveDayHalfDtoEnum;
   isSameDay: boolean;
+  weeklyOffDays: number[];
+  holidayDates: Date[];
 }): number {
-  const { startDate, endDate, startDuration, endDuration, isSameDay } = params;
+  const { startDate, endDate, startDuration, endDuration, isSameDay, weeklyOffDays, holidayDates } = params;
   if (isSameDay) {
+    if (isExcludedDay(startDate, weeklyOffDays, holidayDates)) return 0;
     if (startDuration === LeaveDayHalfDtoEnum.full) return 1;
     return 0.5;
   }
-  let days = getBusinessDays(startDate, endDate);
-  if (startDuration === LeaveDayHalfDtoEnum.secondHalf) days -= 0.5;
-  if (endDuration === LeaveDayHalfDtoEnum.firstHalf) days -= 0.5;
+  let days = getWorkingDays(startDate, endDate, weeklyOffDays, holidayDates);
+  if (startDuration === LeaveDayHalfDtoEnum.secondHalf && !isExcludedDay(startDate, weeklyOffDays, holidayDates)) days -= 0.5;
+  if (endDuration === LeaveDayHalfDtoEnum.firstHalf && !isExcludedDay(endDate, weeklyOffDays, holidayDates)) days -= 0.5;
   return days;
 }
 
@@ -81,6 +97,7 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
     private readonly employeeDao: EmployeeDao,
     private readonly leaveDao: LeaveDao,
     private readonly organizationSettingDao: OrganizationSettingDao,
+    private readonly holidayDao: HolidayDao,
   ) {}
 
   public async execute(params: Params): Promise<LeaveResponseType> {
@@ -126,9 +143,18 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
     const startDuration = params.dto.startDuration ?? LeaveDayHalfDtoEnum.full;
     const endDuration = params.dto.endDuration ?? LeaveDayHalfDtoEnum.full;
     validateHalfDaySelection({ isSameDay, startDuration, endDuration });
-    const numberOfDays = calculateLeaveDays({ startDate, endDate, startDuration, endDuration, isSameDay });
+
+    const weeklyOffDays = config.weeklyOffDays ?? [0, 6];
+    const holidays = await this.holidayDao.findByDateRange({
+      organizationId: params.currentUser.organizationId,
+      startDate,
+      endDate,
+    });
+    const holidayDates = holidays.map((h) => h.date);
+
+    const numberOfDays = calculateLeaveDays({ startDate, endDate, startDuration, endDuration, isSameDay, weeklyOffDays, holidayDates });
     if (numberOfDays < 0.5) {
-      throw new ApiError('At least half a business day is required', 400);
+      throw new ApiError('Selected range has no working days (excluding week-offs and holidays)', 400);
     }
     const startDurationDb = leaveDayHalfDtoEnumToDbEnum(startDuration);
     const endDurationDb = leaveDayHalfDtoEnumToDbEnum(endDuration);

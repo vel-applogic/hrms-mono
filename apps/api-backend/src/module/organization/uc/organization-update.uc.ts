@@ -142,6 +142,7 @@ export class OrganizationUpdateUc extends BaseOrganizationUc implements IUseCase
               casualLeaveInDays: params.dto.settings.casualLeaveInDays,
               maternityLeaveInDays: params.dto.settings.maternityLeaveInDays,
               paternityLeaveInDays: params.dto.settings.paternityLeaveInDays,
+              weeklyOffDays: params.dto.settings.weeklyOffDays,
             },
             tx,
           });
@@ -156,6 +157,7 @@ export class OrganizationUpdateUc extends BaseOrganizationUc implements IUseCase
               casualLeaveInDays: params.dto.settings.casualLeaveInDays,
               maternityLeaveInDays: params.dto.settings.maternityLeaveInDays,
               paternityLeaveInDays: params.dto.settings.paternityLeaveInDays,
+              weeklyOffDays: params.dto.settings.weeklyOffDays,
             },
             tx,
           });

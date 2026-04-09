@@ -91,6 +91,21 @@ export class HolidayDao extends BaseDao {
     return { dbRecords, totalRecords };
   }
 
+  public async findByDateRange(params: {
+    organizationId: number;
+    startDate: Date;
+    endDate: Date;
+    tx?: Prisma.TransactionClient;
+  }): Promise<HolidaySelectTableRecordType[]> {
+    const pc = this.getPrismaClient(params.tx);
+    return pc.holiday.findMany({
+      where: {
+        organizationId: params.organizationId,
+        date: { gte: params.startDate, lte: params.endDate },
+      },
+    });
+  }
+
   public async getDistinctYears(params: { organizationId: number; tx?: Prisma.TransactionClient }): Promise<number[]> {
     const pc = this.getPrismaClient(params.tx);
     const results = await pc.$queryRaw<Array<{ year: number }>>`

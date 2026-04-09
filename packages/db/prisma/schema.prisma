@@ -258,6 +258,7 @@ model OrganizationSetting {
   casualLeaveInDays    Int                   @default(10) @map("casual_leave_in_days")
   maternityLeaveInDays Int                   @default(10) @map("maternity_leave_in_days")
   paternityLeaveInDays Int                   @default(10) @map("paternity_leave_in_days")
+  weeklyOffDays        Int[]                 @default([0, 6]) @map("weekly_off_days")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -559,23 +560,23 @@ model PayrollPayslipLineItem {
 
 // LEAVES
 model Leave {
-  id              Int             @id @default(autoincrement())
-  userId          Int             @map("user_id")
-  user            User            @relation(fields: [userId], references: [id])
-  organizationId  Int             @map("organization_id")
-  organization    Organization    @relation(fields: [organizationId], references: [id])
-  leaveType       LeaveTypeEnum   @map("leave_type")
-  startDate       DateTime        @map("start_date") @db.Date
-  endDate         DateTime        @map("end_date") @db.Date
+  id              Int              @id @default(autoincrement())
+  userId          Int              @map("user_id")
+  user            User             @relation(fields: [userId], references: [id])
+  organizationId  Int              @map("organization_id")
+  organization    Organization     @relation(fields: [organizationId], references: [id])
+  leaveType       LeaveTypeEnum    @map("leave_type")
+  startDate       DateTime         @map("start_date") @db.Date
+  endDate         DateTime         @map("end_date") @db.Date
   startDuration   LeaveDayHalfEnum @default(full) @map("start_duration")
   endDuration     LeaveDayHalfEnum @default(full) @map("end_duration")
-  numberOfDays    Float           @map("number_of_days")
-  numberOfLopDays Float           @default(0) @map("number_of_lop_days")
-  isConsumed      Boolean         @default(false) @map("is_consumed")
-  reason          String          @map("reason")
-  status          LeaveStatusEnum @default(pending) @map("status")
-  createdAt       DateTime        @default(now()) @map("created_at")
-  updatedAt       DateTime        @updatedAt @map("updated_at")
+  numberOfDays    Float            @map("number_of_days")
+  numberOfLopDays Float            @default(0) @map("number_of_lop_days")
+  isConsumed      Boolean          @default(false) @map("is_consumed")
+  reason          String           @map("reason")
+  status          LeaveStatusEnum  @default(pending) @map("status")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
   leaveHasMedias  LeaveHasMedia[]
 
   @@index([userId])

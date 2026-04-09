@@ -38,22 +38,15 @@ const ALL_HALF_OPTIONS: HalfOption[] = [
   { value: LeaveDayHalfDtoEnum.secondHalf, label: 'Second half' },
 ];
 
-function getBusinessDays(startStr: string, endStr: string): number {
+function getCalendarDays(startStr: string, endStr: string): number {
   if (!startStr || !endStr) return 0;
   const start = new Date(startStr);
   const end = new Date(endStr);
   if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) return 0;
-  let count = 0;
-  const current = new Date(start);
-  current.setHours(0, 0, 0, 0);
-  const endDate = new Date(end);
-  endDate.setHours(0, 0, 0, 0);
-  while (current <= endDate) {
-    const day = current.getDay();
-    if (day !== 0 && day !== 6) count++;
-    current.setDate(current.getDate() + 1);
-  }
-  return count;
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+  const msPerDay = 1000 * 60 * 60 * 24;
+  return Math.round((end.getTime() - start.getTime()) / msPerDay) + 1;
 }
 
 function calculateDays(startDate: string, endDate: string, startDuration: LeaveDayHalfDtoEnum, endDuration: LeaveDayHalfDtoEnum): number {
@@ -63,7 +56,7 @@ function calculateDays(startDate: string, endDate: string, startDuration: LeaveD
     if (startDuration === LeaveDayHalfDtoEnum.full) return 1;
     return 0.5;
   }
-  let days = getBusinessDays(startDate, endDate);
+  let days = getCalendarDays(startDate, endDate);
   if (startDuration === LeaveDayHalfDtoEnum.secondHalf) days -= 0.5;
   if (endDuration === LeaveDayHalfDtoEnum.firstHalf) days -= 0.5;
   return Math.max(0, days);
@@ -178,7 +171,7 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, employeeId, onSucc
 
   const isSameDay = !!startDate && startDate === endDate;
   const isStartFirstHalf = startDuration === LeaveDayHalfDtoEnum.firstHalf;
-  const isEndDurationEnabled = !isSameDay && startDuration === LeaveDayHalfDtoEnum.secondHalf;
+  const isEndDurationEnabled = !isSameDay && startDuration !== LeaveDayHalfDtoEnum.firstHalf;
   const numberOfDays = useMemo(() => calculateDays(startDate, endDate, startDuration, endDuration), [startDate, endDate, startDuration, endDuration]);
 
   const startDurationOptions: HalfOption[] = ALL_HALF_OPTIONS;
@@ -295,11 +288,9 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, employeeId, onSucc
               />
             </div>
           </div>
-          {numberOfDays > 0 && (
-            <p className='text-xs text-muted-foreground'>
-              Number of days: <span className='font-medium text-foreground'>{numberOfDays}</span>
-            </p>
-          )}
+          <p className='text-xs text-muted-foreground'>
+            Number of days: <span className='font-medium text-foreground'>{numberOfDays}</span>
+          </p>
           {form.formState.errors.endDuration && <p className='text-sm text-destructive'>{form.formState.errors.endDuration.message}</p>}
         </div>
 

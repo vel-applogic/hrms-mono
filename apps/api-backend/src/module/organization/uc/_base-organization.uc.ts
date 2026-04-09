@@ -124,6 +124,7 @@ export class BaseOrganizationUc extends BaseUc {
       casualLeaveInDays: setting.casualLeaveInDays,
       maternityLeaveInDays: setting.maternityLeaveInDays,
       paternityLeaveInDays: setting.paternityLeaveInDays,
+      weeklyOffDays: setting.weeklyOffDays,
     };
   }
 

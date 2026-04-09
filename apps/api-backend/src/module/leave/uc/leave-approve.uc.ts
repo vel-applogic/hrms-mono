@@ -1,7 +1,49 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@repo/db';
 import type { LeaveResponseType } from '@repo/dto';
-import { BaseUc, CommonLoggerService, CurrentUserType, EmployeeLeaveCounterDao, IUseCase, LeaveDao, LeaveWithUserType, OrganizationSettingDao, leaveDayHalfDbEnumToDtoEnum, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
+import { LeaveDayHalfEnum } from '@repo/db';
+import { BaseUc, CommonLoggerService, CurrentUserType, EmployeeLeaveCounterDao, HolidayDao, IUseCase, LeaveDao, LeaveWithUserType, OrganizationSettingDao, leaveDayHalfDbEnumToDtoEnum, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
+
+function toDateKey(d: Date): string {
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+function computeWorkingDays(params: {
+  startDate: Date;
+  endDate: Date;
+  startDuration: LeaveDayHalfEnum;
+  endDuration: LeaveDayHalfEnum;
+  weeklyOffDays: number[];
+  holidayDates: Date[];
+}): number {
+  const { startDate, endDate, startDuration, endDuration, weeklyOffDays, holidayDates } = params;
+  const offSet = new Set(weeklyOffDays);
+  const holidaySet = new Set(holidayDates.map((d) => toDateKey(new Date(d))));
+
+  const isExcluded = (d: Date): boolean => offSet.has(d.getDay()) || holidaySet.has(toDateKey(d));
+
+  const start = new Date(startDate);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(endDate);
+  end.setHours(0, 0, 0, 0);
+  const isSameDay = start.getTime() === end.getTime();
+
+  if (isSameDay) {
+    if (isExcluded(start)) return 0;
+    if (startDuration === LeaveDayHalfEnum.full) return 1;
+    return 0.5;
+  }
+
+  let count = 0;
+  const current = new Date(start);
+  while (current <= end) {
+    if (!isExcluded(current)) count++;
+    current.setDate(current.getDate() + 1);
+  }
+  if (startDuration === LeaveDayHalfEnum.secondHalf && !isExcluded(start)) count -= 0.5;
+  if (endDuration === LeaveDayHalfEnum.firstHalf && !isExcluded(end)) count -= 0.5;
+  return count;
+}
 import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
@@ -17,6 +59,7 @@ export class LeaveApproveUc extends BaseUc implements IUseCase<Params, LeaveResp
     private readonly leaveDao: LeaveDao,
     private readonly organizationSettingDao: OrganizationSettingDao,
     private readonly employeeLeaveCounterDao: EmployeeLeaveCounterDao,
+    private readonly holidayDao: HolidayDao,
   ) {
     super(prisma, logger);
   }
@@ -29,9 +72,30 @@ export class LeaveApproveUc extends BaseUc implements IUseCase<Params, LeaveResp
     const { start, end } = getFinancialYearDateRange(financialYear);
     const orgSettings = await this.organizationSettingDao.findByOrganizationId({ organizationId: params.currentUser.organizationId });
     const maxLeaves = orgSettings?.totalLeaveInDays ?? 24;
+    const weeklyOffDays = orgSettings?.weeklyOffDays ?? [0, 6];
+
+    const holidays = await this.holidayDao.findByDateRange({
+      organizationId: params.currentUser.organizationId,
+      startDate: existing.startDate,
+      endDate: existing.endDate,
+    });
+    const holidayDates = holidays.map((h) => h.date);
+
+    const recomputedDays = computeWorkingDays({
+      startDate: existing.startDate,
+      endDate: existing.endDate,
+      startDuration: existing.startDuration,
+      endDuration: existing.endDuration,
+      weeklyOffDays,
+      holidayDates,
+    });
+
+    if (recomputedDays < 0.5) {
+      throw new ApiError('Leave range has no working days after applying week-offs and holidays', 400);
+    }
 
     await this.prisma.$transaction(async (tx) => {
-      await this.updateStatus(params, tx);
+      await this.updateStatusAndDays(params, recomputedDays, tx);
       await this.syncCounter(params, existing, financialYear, start, end, maxLeaves, tx);
     });
 
@@ -52,11 +116,11 @@ export class LeaveApproveUc extends BaseUc implements IUseCase<Params, LeaveResp
     return existing;
   }
 
-  private async updateStatus(params: Params, tx: Prisma.TransactionClient): Promise<void> {
+  private async updateStatusAndDays(params: Params, numberOfDays: number, tx: Prisma.TransactionClient): Promise<void> {
     await this.leaveDao.update({
       id: params.id,
       organizationId: params.currentUser.organizationId,
-      data: { status: 'approved' },
+      data: { status: 'approved', numberOfDays },
       tx,
     });
   }

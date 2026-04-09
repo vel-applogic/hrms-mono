@@ -17,6 +17,8 @@ const NO_OF_DAYS_LABELS: Record<string, string> = {
   thirtyOne: '31 Days',
 };
 
+const WEEK_DAY_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
 interface Props {
   organizationId: number;
 }
@@ -81,36 +83,55 @@ export function OrganizationViewSettings({ organizationId }: Props) {
         </Button>
       </div>
 
-      <div className='grid gap-6 md:grid-cols-2'>
-        <div className='flex flex-col gap-2'>
-          <Label className='text-muted-foreground'>No. of days in month</Label>
-          <p className='text-sm font-medium'>{NO_OF_DAYS_LABELS[settings.noOfDaysInMonth] ?? settings.noOfDaysInMonth}</p>
+      <section className='flex flex-col gap-4'>
+        <h3 className='text-base font-semibold'>Leave settings</h3>
+        <div className='grid gap-6 md:grid-cols-2'>
+          <div className='flex flex-col gap-2'>
+            <Label className='text-muted-foreground'>No. of days in month</Label>
+            <p className='text-sm font-medium'>{NO_OF_DAYS_LABELS[settings.noOfDaysInMonth] ?? settings.noOfDaysInMonth}</p>
+          </div>
+          <div className='flex flex-col gap-2'>
+            <Label className='text-muted-foreground'>Total leave days</Label>
+            <p className='text-sm font-medium'>{settings.totalLeaveInDays}</p>
+          </div>
+          <div className='flex flex-col gap-2'>
+            <Label className='text-muted-foreground'>Sick leave days</Label>
+            <p className='text-sm font-medium'>{settings.sickLeaveInDays}</p>
+          </div>
+          <div className='flex flex-col gap-2'>
+            <Label className='text-muted-foreground'>Earned leave days</Label>
+            <p className='text-sm font-medium'>{settings.earnedLeaveInDays}</p>
+          </div>
+          <div className='flex flex-col gap-2'>
+            <Label className='text-muted-foreground'>Casual leave days</Label>
+            <p className='text-sm font-medium'>{settings.casualLeaveInDays}</p>
+          </div>
+          <div className='flex flex-col gap-2'>
+            <Label className='text-muted-foreground'>Maternity leave days</Label>
+            <p className='text-sm font-medium'>{settings.maternityLeaveInDays}</p>
+          </div>
+          <div className='flex flex-col gap-2'>
+            <Label className='text-muted-foreground'>Paternity leave days</Label>
+            <p className='text-sm font-medium'>{settings.paternityLeaveInDays}</p>
+          </div>
         </div>
+      </section>
+
+      <section className='mt-6 flex flex-col gap-4'>
+        <h3 className='text-base font-semibold'>Weekoff days</h3>
         <div className='flex flex-col gap-2'>
-          <Label className='text-muted-foreground'>Total leave days</Label>
-          <p className='text-sm font-medium'>{settings.totalLeaveInDays}</p>
+          <Label className='text-muted-foreground'>Days</Label>
+          <p className='text-sm font-medium'>
+            {settings.weeklyOffDays.length > 0
+              ? settings.weeklyOffDays
+                  .slice()
+                  .sort((a, b) => a - b)
+                  .map((d) => WEEK_DAY_LABELS[d])
+                  .join(', ')
+              : '—'}
+          </p>
         </div>
-        <div className='flex flex-col gap-2'>
-          <Label className='text-muted-foreground'>Sick leave days</Label>
-          <p className='text-sm font-medium'>{settings.sickLeaveInDays}</p>
-        </div>
-        <div className='flex flex-col gap-2'>
-          <Label className='text-muted-foreground'>Earned leave days</Label>
-          <p className='text-sm font-medium'>{settings.earnedLeaveInDays}</p>
-        </div>
-        <div className='flex flex-col gap-2'>
-          <Label className='text-muted-foreground'>Casual leave days</Label>
-          <p className='text-sm font-medium'>{settings.casualLeaveInDays}</p>
-        </div>
-        <div className='flex flex-col gap-2'>
-          <Label className='text-muted-foreground'>Maternity leave days</Label>
-          <p className='text-sm font-medium'>{settings.maternityLeaveInDays}</p>
-        </div>
-        <div className='flex flex-col gap-2'>
-          <Label className='text-muted-foreground'>Paternity leave days</Label>
-          <p className='text-sm font-medium'>{settings.paternityLeaveInDays}</p>
-        </div>
-      </div>
+      </section>
 
       <OrganizationUpsertDrawer open={editDrawerOpen} onOpenChange={setEditDrawerOpen} organization={organization} onSuccess={handleEditSuccess} />
     </>

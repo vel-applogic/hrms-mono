@@ -21,6 +21,7 @@ const OrganizationSettingBaseFieldsSchema = z.object({
   casualLeaveInDays: z.number().int().min(0),
   maternityLeaveInDays: z.number().int().min(0),
   paternityLeaveInDays: z.number().int().min(0),
+  weeklyOffDays: z.array(z.number().int().min(0).max(6)),
 });
 
 export const OrganizationSettingUpsertSchema = OrganizationSettingBaseFieldsSchema;
