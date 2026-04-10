@@ -1,12 +1,12 @@
 'use client';
 
 import { EmployeeStatusDtoEnum } from '@repo/dto';
-import { DashboardWidget, DashboardWidgetIcon } from '@repo/ui/component/ui/dashboard-widget';
+import { Widget, WidgetInnerSingleCounter } from '@repo/ui/component/ui/dashboard-widget';
 import { FileWarning } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { searchEmployeeDeductions } from '@/lib/action/employee-deduction.actions';
 import { getEmployeesList } from '@/lib/action/employee.actions';
+import { searchEmployeeDeductions } from '@/lib/action/employee-deduction.actions';
 
 type NameEntry = { id: number; firstname: string; lastname: string };
 
@@ -27,23 +27,12 @@ export function DashboardWithoutDeduction() {
   }, []);
 
   return (
-    <DashboardWidget>
-      <div className='flex w-full flex-col gap-3'>
-        <span className='text-sm font-semibold text-muted-foreground'>Without Deduction</span>
-        <div className='flex items-start gap-5'>
-          <DashboardWidgetIcon icon={FileWarning} />
-          <div className='flex min-w-0 flex-1 flex-col'>
-            {entries === null ? (
-              <div className='h-9 w-16 animate-pulse rounded bg-muted' />
-            ) : (
-              <span className={`text-3xl font-semibold ${entries.length > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>{entries.length}</span>
-            )}
-            {entries && entries.length > 0 && (
-              <p className='mt-2 text-sm text-muted-foreground'>{entries.map((e) => `${e.firstname} ${e.lastname}`).join(', ')}</p>
-            )}
-          </div>
-        </div>
-      </div>
-    </DashboardWidget>
+    <Widget label='Without Deduction' icon={FileWarning}>
+      <WidgetInnerSingleCounter
+        value={entries?.length ?? 0}
+        valueColor={entries && entries.length > 0 ? 'text-amber-600' : 'text-emerald-600'}
+        caption={entries ? entries.map((e) => `${e.firstname} ${e.lastname}`).join(', ') : undefined}
+      />
+    </Widget>
   );
 }

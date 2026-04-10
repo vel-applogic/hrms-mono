@@ -1,7 +1,7 @@
 'use client';
 
 import { EmployeeStatusDtoEnum } from '@repo/dto';
-import { DashboardWidget, DashboardWidgetIcon } from '@repo/ui/component/ui/dashboard-widget';
+import { Widget, WidgetInnerSingleCounter } from '@repo/ui/component/ui/dashboard-widget';
 import { AlertTriangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -20,23 +20,12 @@ export function DashboardNoReportingManager() {
   }, []);
 
   return (
-    <DashboardWidget colSpan={2}>
-      <div className='flex w-full flex-col gap-3'>
-        <span className='text-sm font-semibold text-muted-foreground'>No Reporting Manager</span>
-        <div className='flex items-start gap-5'>
-          <DashboardWidgetIcon icon={AlertTriangle} />
-          <div className='flex min-w-0 flex-1 flex-col'>
-            {entries === null ? (
-              <div className='h-9 w-16 animate-pulse rounded bg-muted' />
-            ) : (
-              <span className={`text-3xl font-semibold ${entries.length > 0 ? 'text-red-500' : 'text-emerald-600'}`}>{entries.length}</span>
-            )}
-            {entries && entries.length > 0 && (
-              <p className='mt-2 text-sm text-muted-foreground'>{entries.map((e) => `${e.firstname} ${e.lastname}`).join(', ')}</p>
-            )}
-          </div>
-        </div>
-      </div>
-    </DashboardWidget>
+    <Widget label='No Reporting Manager' icon={AlertTriangle} colSpan={2}>
+      <WidgetInnerSingleCounter
+        value={entries?.length ?? 0}
+        valueColor={entries && entries.length > 0 ? 'text-amber-600' : 'text-emerald-600'}
+        caption={entries ? entries.map((e) => `${e.firstname} ${e.lastname}`).join(', ') : undefined}
+      />
+    </Widget>
   );
 }

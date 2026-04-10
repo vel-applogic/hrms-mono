@@ -2,7 +2,7 @@
 
 import type { EmployeeListResponseType } from '@repo/dto';
 import { EmployeeStatusDtoEnum } from '@repo/dto';
-import { DashboardWidget, DashboardWidgetIcon } from '@repo/ui/component/ui/dashboard-widget';
+import { Widget, WidgetInnerLabelValueList } from '@repo/ui/component/ui/dashboard-widget';
 import { Cake } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -46,31 +46,15 @@ export function DashboardAnniversary() {
   }, []);
 
   return (
-    <DashboardWidget colSpan={2}>
-      <div className='flex w-full flex-col gap-3'>
-        <span className='text-sm font-semibold text-muted-foreground'>Upcoming Work Anniversaries</span>
-        <div className='flex items-start gap-4'>
-          <DashboardWidgetIcon icon={Cake} />
-          <div className='flex min-w-0 flex-1 flex-col'>
-          {anniversaries === null ? (
-            <div className='h-12 animate-pulse rounded bg-muted' />
-          ) : anniversaries.length > 0 ? (
-            <div className='flex flex-col gap-2'>
-              {anniversaries.map((e) => (
-                <div key={e.id} className='flex items-center justify-between'>
-                  <span className='text-sm font-medium'>{e.firstname} {e.lastname}</span>
-                  <span className='text-xs text-muted-foreground'>
-                    {formatDate(e.dateOfJoining)} &middot; {e.years} {e.years === 1 ? 'year' : 'years'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className='text-sm text-muted-foreground'>No upcoming anniversaries in the next 30 days</p>
-          )}
-          </div>
-        </div>
-      </div>
-    </DashboardWidget>
+    <Widget label='Upcoming Work Anniversaries' icon={Cake} colSpan={2}>
+      <WidgetInnerLabelValueList
+        items={
+          anniversaries
+            ? anniversaries.map((e) => ({ label: `${e.firstname} ${e.lastname}`, value: `${formatDate(e.dateOfJoining)} &middot; ${e.years} ${e.years === 1 ? 'year' : 'years'}` }))
+            : null
+        }
+        noRecordMessage='No upcoming anniversaries in the next 30 days'
+      />
+    </Widget>
   );
 }

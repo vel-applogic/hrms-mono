@@ -1,7 +1,7 @@
 'use client';
 
 import { EmployeeStatusDtoEnum } from '@repo/dto';
-import { DashboardWidgetStat } from '@repo/ui/component/ui/dashboard-widget';
+import { Widget, WidgetInnerSingleCounter } from '@repo/ui/component/ui/dashboard-widget';
 import { Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -16,5 +16,9 @@ export function DashboardEmployeeCount() {
     });
   }, []);
 
-  return <DashboardWidgetStat icon={Users} label='Employees' value={count} valueColor='text-primary' href='/employee' />;
+  return (
+    <Widget label='Employees' icon={Users} href='/employee'>
+      <WidgetInnerSingleCounter value={count} valueColor='text-primary' />
+    </Widget>
+  );
 }

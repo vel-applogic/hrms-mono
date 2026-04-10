@@ -1,12 +1,14 @@
 'use client';
 
+
+import { ExpenseSummaryWidget } from '@/feature/expense/component/expense-summary-widget';
+import { ExpenseForecastWidget } from '@/feature/expense-forecast/component/expense-forecast-widget';
+
 import { DashboardAnniversary } from './widget/dashboard-anniversary-widget';
 import { DashboardCandidateCount } from './widget/dashboard-candidate-count-widget';
 import { DashboardCandidateStatus } from './widget/dashboard-candidate-status-widget';
 import { DashboardEmployeeCount } from './widget/dashboard-employee-count-widget';
 import { DashboardEmployeeStatus } from './widget/dashboard-employee-status-widget';
-import { ExpenseForecastWidget } from '@/feature/expense-forecast/component/expense-forecast-widget';
-import { ExpenseSummaryWidget } from '@/feature/expense/component/expense-summary-widget';
 import { DashboardLeaveNext7Day } from './widget/dashboard-leave-next7day-widget';
 import { DashboardNoReportingManager } from './widget/dashboard-no-reporting-manager-widget';
 import { DashboardOnLeaveToday } from './widget/dashboard-on-leave-today-widget';

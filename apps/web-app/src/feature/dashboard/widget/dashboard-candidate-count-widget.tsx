@@ -1,7 +1,7 @@
 'use client';
 
 import { CandidateStatusDtoEnum } from '@repo/dto';
-import { DashboardWidgetStat } from '@repo/ui/component/ui/dashboard-widget';
+import { Widget, WidgetInnerSingleCounter } from '@repo/ui/component/ui/dashboard-widget';
 import { UserRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -16,5 +16,9 @@ export function DashboardCandidateCount() {
     });
   }, []);
 
-  return <DashboardWidgetStat icon={UserRound} label='New Candidates' value={count} valueColor='text-sky-600' href='/candidate' />;
+  return (
+    <Widget label='New Candidates' icon={UserRound} href='/candidate'>
+      <WidgetInnerSingleCounter value={count} valueColor='text-sky-600' />
+    </Widget>
+  );
 }

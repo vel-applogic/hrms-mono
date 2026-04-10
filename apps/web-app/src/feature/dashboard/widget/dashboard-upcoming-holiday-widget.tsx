@@ -1,7 +1,7 @@
 'use client';
 
 import type { HolidayResponseType } from '@repo/dto';
-import { DashboardWidget, DashboardWidgetIcon } from '@repo/ui/component/ui/dashboard-widget';
+import { Widget, WidgetInnerLabelValueList } from '@repo/ui/component/ui/dashboard-widget';
 import { CalendarDays } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -35,29 +35,8 @@ export function DashboardUpcomingHoliday({ isEmployee }: Props) {
   }, []);
 
   return (
-    <DashboardWidget href={isEmployee ? '/emp/leave/holiday' : '/leaves/holiday'}>
-      <div className='flex w-full flex-col gap-3'>
-        <span className='text-sm font-semibold text-muted-foreground'>Upcoming Holidays</span>
-        <div className='flex items-start gap-4'>
-          <DashboardWidgetIcon icon={CalendarDays} />
-          <div className='flex min-w-0 flex-1 flex-col'>
-          {holidays === null ? (
-            <div className='h-12 animate-pulse rounded bg-muted' />
-          ) : holidays.length > 0 ? (
-            <div className='flex flex-col gap-2'>
-              {holidays.map((h) => (
-                <div key={h.id} className='flex flex-wrap items-start gap-x-2'>
-                  <span className='w-[90px] shrink-0 text-sm text-muted-foreground'>{formatDate(h.date)}</span>
-                  <span className='text-sm font-medium'>{h.name}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className='text-sm text-muted-foreground'>No upcoming holidays</p>
-          )}
-          </div>
-        </div>
-      </div>
-    </DashboardWidget>
+    <Widget label='Upcoming Holidays' icon={CalendarDays} href={isEmployee ? '/emp/leave/holiday' : '/leaves/holiday'}>
+      <WidgetInnerLabelValueList items={holidays ? holidays.map((h) => ({ label: formatDate(h.date), value: h.name })) : null} noRecordMessage='No upcoming holidays' />
+    </Widget>
   );
 }

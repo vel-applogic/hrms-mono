@@ -1,7 +1,6 @@
 'use client';
 
-import { CandidateStatusDtoEnum } from '@repo/dto';
-import { DashboardWidget, DashboardWidgetIcon } from '@repo/ui/component/ui/dashboard-widget';
+import { Widget, WidgetInnerMultipleCounter } from '@repo/ui/component/ui/dashboard-widget';
 import { UserRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -30,30 +29,18 @@ export function DashboardCandidateStatus() {
   }, []);
 
   return (
-    <DashboardWidget colSpan={2} href='/candidate'>
-      <div className='flex w-full flex-col gap-3'>
-        <span className='text-sm font-semibold text-muted-foreground'>Candidates by Status</span>
-        <div className='flex items-start gap-4'>
-          <DashboardWidgetIcon icon={UserRound} />
-          <div className='flex min-w-0 flex-1 flex-col'>
-          {statusCounts === null ? (
-            <div className='h-12 animate-pulse rounded bg-muted' />
-          ) : (
-            <div className='flex flex-wrap gap-4'>
-              {Object.values(CandidateStatusDtoEnum).map((status) => {
-                const info = STATUS_LABELS[status];
-                return (
-                  <div key={status} className='flex flex-col'>
-                    <span className={`text-2xl font-semibold ${info?.color ?? ''}`}>{statusCounts[status] ?? 0}</span>
-                    <span className='text-xs text-muted-foreground'>{info?.label ?? status}</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          </div>
-        </div>
-      </div>
-    </DashboardWidget>
+    <Widget label='Candidates by Status' icon={UserRound} colSpan={2} href='/candidate'>
+      <WidgetInnerMultipleCounter
+        values={
+          statusCounts
+            ? Object.entries(STATUS_LABELS).map(([key, status]) => ({
+                value: statusCounts[key] ?? 0,
+                valueColor: STATUS_LABELS[key]?.color ?? '',
+                label: STATUS_LABELS[key]?.label ?? status,
+              }))
+            : null
+        }
+      />
+    </Widget>
   );
 }

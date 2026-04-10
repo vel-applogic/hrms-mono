@@ -2,7 +2,7 @@
 
 import type { ExpenseSummaryResponseType } from '@repo/dto';
 import { getFinancialYearCode } from '@repo/shared';
-import { DashboardWidget, DashboardWidgetIcon } from '@repo/ui/component/ui/dashboard-widget';
+import { Widget, WidgetInnerSingleCounter } from '@repo/ui/component/ui/dashboard-widget';
 import { IndianRupee, TrendingUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -24,37 +24,19 @@ export function ExpenseSummaryWidget({ refreshKey, financialYearCode, compact }:
 
   return (
     <>
-      <DashboardWidget href='/expense' compact={compact}>
-        <div className={`flex w-full flex-col ${compact ? 'gap-1.5' : 'gap-3'}`}>
-          <span className={`font-semibold text-muted-foreground ${compact ? 'text-xs' : 'text-sm'}`}>This Month Expense</span>
-          <div className={`flex items-center ${compact ? 'gap-3' : 'gap-5'}`}>
-            <DashboardWidgetIcon icon={IndianRupee} compact={compact} />
-            {data === null ? (
-              <div className='h-9 w-16 animate-pulse rounded bg-muted' />
-            ) : (
-              <span className={`font-semibold text-orange-500 ${compact ? 'text-2xl' : 'text-3xl'}`}>
-                {`₹ ${data.thisMonthTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
-              </span>
-            )}
-          </div>
-        </div>
-      </DashboardWidget>
+      <Widget label='This Month Expense' icon={IndianRupee} href='/expense' compact={compact}>
+        <WidgetInnerSingleCounter
+          value={data?.thisMonthTotal ? `₹ ${data.thisMonthTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}` : null}
+          valueColor='text-orange-500'
+        />
+      </Widget>
 
-      <DashboardWidget href='/expense' compact={compact}>
-        <div className={`flex w-full flex-col ${compact ? 'gap-1.5' : 'gap-3'}`}>
-          <span className={`font-semibold text-muted-foreground ${compact ? 'text-xs' : 'text-sm'}`}>{fyCode} Expense</span>
-          <div className={`flex items-center ${compact ? 'gap-3' : 'gap-5'}`}>
-            <DashboardWidgetIcon icon={TrendingUp} compact={compact} />
-            {data === null ? (
-              <div className='h-9 w-16 animate-pulse rounded bg-muted' />
-            ) : (
-              <span className={`font-semibold text-orange-500 ${compact ? 'text-2xl' : 'text-3xl'}`}>
-                {`₹ ${data.financialYearTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
-              </span>
-            )}
-          </div>
-        </div>
-      </DashboardWidget>
+      <Widget label={`${fyCode} Expense`} icon={TrendingUp} href='/expense' compact={compact}>
+        <WidgetInnerSingleCounter
+          value={data?.financialYearTotal ? `₹ ${data.financialYearTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}` : null}
+          valueColor='text-orange-500'
+        />
+      </Widget>
     </>
   );
 }

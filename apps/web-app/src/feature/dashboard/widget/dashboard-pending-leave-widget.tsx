@@ -1,7 +1,7 @@
 'use client';
 
 import { LeaveStatusDtoEnum } from '@repo/dto';
-import { DashboardWidgetStat } from '@repo/ui/component/ui/dashboard-widget';
+import { Widget, WidgetInnerSingleCounter } from '@repo/ui/component/ui/dashboard-widget';
 import { Clock } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -25,5 +25,9 @@ export function DashboardPendingLeave({ employeeId }: Props) {
   const href = employeeId ? '/emp/leave' : '/leaves/approvals';
   const label = employeeId ? 'My Pending Leaves' : 'Leave Approvals Pending';
 
-  return <DashboardWidgetStat icon={Clock} label={label} value={count} valueColor='text-amber-600' href={href} />;
+  return (
+    <Widget label={label} icon={Clock} href={href}>
+      <WidgetInnerSingleCounter value={count} valueColor='text-amber-600' />
+    </Widget>
+  );
 }
