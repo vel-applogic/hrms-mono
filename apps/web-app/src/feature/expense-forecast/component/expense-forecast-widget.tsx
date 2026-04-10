@@ -10,15 +10,20 @@ import { ExpenseForecastUpsertDrawer } from '../container/expense-forecast-upser
 
 interface Props {
   refreshKey?: number;
+  showEdit?: boolean;
 }
 
-export function ExpenseForecastWidget({ refreshKey }: Props) {
+export function ExpenseForecastWidget({ refreshKey, showEdit }: Props) {
   const [monthlyTotal, setMonthlyTotal] = useState<number | null>(null);
+  const [yearlyTotal, setYearlyTotal] = useState<number | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [internalRefreshKey, setInternalRefreshKey] = useState(0);
 
   useEffect(() => {
-    getExpenseForecastSummary().then((data) => setMonthlyTotal(data.monthlyTotal));
+    getExpenseForecastSummary().then((data) => {
+      setMonthlyTotal(data.monthlyTotal);
+      setYearlyTotal(data.yearlyTotal);
+    });
   }, [refreshKey, internalRefreshKey]);
 
   const handleSuccess = () => {
@@ -39,18 +44,25 @@ export function ExpenseForecastWidget({ refreshKey }: Props) {
               </span>
             )}
             <span className='text-sm text-muted-foreground'>Monthly Forecast</span>
+            {yearlyTotal !== null && (
+              <span className='text-xs text-muted-foreground'>
+                Yearly: <span className='font-semibold'>₹ {yearlyTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+              </span>
+            )}
           </div>
-          <button
-            onClick={() => setDrawerOpen(true)}
-            className='inline-flex items-center justify-center rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
-            title='Edit forecast'
-          >
-            <Pencil className='h-4 w-4' />
-          </button>
+          {showEdit && (
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className='inline-flex items-center justify-center rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+              title='Edit forecast'
+            >
+              <Pencil className='h-4 w-4' />
+            </button>
+          )}
         </div>
       </DashboardWidget>
 
-      <ExpenseForecastUpsertDrawer open={drawerOpen} onOpenChange={setDrawerOpen} onSuccess={handleSuccess} />
+      {showEdit && <ExpenseForecastUpsertDrawer open={drawerOpen} onOpenChange={setDrawerOpen} onSuccess={handleSuccess} />}
     </>
   );
 }

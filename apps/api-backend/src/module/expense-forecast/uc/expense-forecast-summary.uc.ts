@@ -25,14 +25,17 @@ export class ExpenseForecastSummaryUc extends BaseUc implements IUseCase<Params,
     });
 
     let monthlyTotal = 0;
+    let yearlyTotal = 0;
     for (const record of dbRecords) {
       if (record.frequency === 'monthly') {
         monthlyTotal += record.amount;
+        yearlyTotal += record.amount * 12;
       } else {
         monthlyTotal += record.amount / 12;
+        yearlyTotal += record.amount;
       }
     }
 
-    return { monthlyTotal: Math.round(monthlyTotal) };
+    return { monthlyTotal: Math.round(monthlyTotal), yearlyTotal: Math.round(yearlyTotal) };
   }
 }

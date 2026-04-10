@@ -28,5 +28,6 @@ export type ExpenseForecastBulkSaveRequestType = z.infer<typeof ExpenseForecastB
 
 export const ExpenseForecastSummaryResponseSchema = z.object({
   monthlyTotal: z.number(),
+  yearlyTotal: z.number(),
 });
 export type ExpenseForecastSummaryResponseType = z.infer<typeof ExpenseForecastSummaryResponseSchema>;

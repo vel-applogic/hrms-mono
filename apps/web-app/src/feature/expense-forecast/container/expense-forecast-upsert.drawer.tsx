@@ -138,6 +138,14 @@ export function ExpenseForecastUpsertDrawer({ open, onOpenChange, onSuccess }: P
     return sum + amount;
   }, 0);
 
+  const yearlyTotal = items.reduce((sum, item) => {
+    const amount = Number(item.amount) || 0;
+    if (item.frequency === ExpenseForecastFrequencyDtoEnum.monthly) {
+      return sum + amount * 12;
+    }
+    return sum + amount;
+  }, 0);
+
   return (
     <Drawer
       open={open}
@@ -145,18 +153,13 @@ export function ExpenseForecastUpsertDrawer({ open, onOpenChange, onSuccess }: P
       title='Expense Forecast'
       description='Manage your recurring expense forecasts'
       footer={
-        <div className='flex items-center justify-between'>
-          <div className='text-sm text-muted-foreground'>
-            Monthly Total: <span className='font-semibold text-blue-500'>₹ {Math.round(monthlyTotal).toLocaleString('en-IN')}</span>
-          </div>
-          <div className='flex gap-3'>
-            <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type='submit' form={FORM_ID} disabled={loading || fetchLoading}>
-              {loading ? 'Saving...' : 'Save'}
-            </Button>
-          </div>
+        <div className='flex justify-end gap-3'>
+          <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button type='submit' form={FORM_ID} disabled={loading || fetchLoading}>
+            {loading ? 'Saving...' : 'Save'}
+          </Button>
         </div>
       }
     >
@@ -170,79 +173,96 @@ export function ExpenseForecastUpsertDrawer({ open, onOpenChange, onSuccess }: P
         <form id={FORM_ID} onSubmit={handleSubmit} className='flex flex-col gap-4 p-6'>
           {error && <p className='text-sm text-destructive'>{error}</p>}
 
-          {items.map((item) => (
-            <div key={item.key} className='flex items-start gap-3 border-b border-muted-foreground/25 pb-4'>
-              <div className='flex flex-1 flex-col gap-3'>
-                <div className='grid gap-3 sm:grid-cols-3'>
-                  <div className='flex flex-col gap-1'>
-                    <span className='text-xs text-muted-foreground'>Frequency</span>
-                    <Select value={item.frequency} onValueChange={(val) => handleUpdateItem(item.key, 'frequency', val)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.values(ExpenseForecastFrequencyDtoEnum).map((freq) => (
-                          <SelectItem key={freq} value={freq}>
-                            {expenseForecastFrequencyDtoEnumToReadableLabel(freq)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+          <div className='overflow-x-auto rounded-lg border border-muted-foreground/25'>
+            <table className='w-full text-sm'>
+              <thead>
+                <tr className='border-b border-border bg-muted/50'>
+                  <th className='px-3 py-2 text-left text-xs font-medium text-muted-foreground'>Frequency</th>
+                  <th className='px-3 py-2 text-left text-xs font-medium text-muted-foreground'>Type</th>
+                  <th className='px-3 py-2 text-left text-xs font-medium text-muted-foreground'>Description</th>
+                  <th className='px-3 py-2 text-right text-xs font-medium text-muted-foreground'>Amount</th>
+                  <th className='w-10 px-2 py-2' />
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item) => (
+                  <tr key={item.key} className='border-b border-border last:border-b-0'>
+                    <td className='px-1 py-1'>
+                      <Select value={item.frequency} onValueChange={(val) => handleUpdateItem(item.key, 'frequency', val)}>
+                        <SelectTrigger className='h-9 border-0 shadow-none'>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.values(ExpenseForecastFrequencyDtoEnum).map((freq) => (
+                            <SelectItem key={freq} value={freq}>
+                              {expenseForecastFrequencyDtoEnumToReadableLabel(freq)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </td>
+                    <td className='px-1 py-1'>
+                      <Select value={item.type} onValueChange={(val) => handleUpdateItem(item.key, 'type', val)}>
+                        <SelectTrigger className='h-9 border-0 shadow-none'>
+                          <SelectValue placeholder='Select type' />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.values(ExpenseTypeDtoEnum).map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {expenseTypeDtoEnumToReadableLabel(type)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </td>
+                    <td className='px-1 py-1'>
+                      <Input
+                        placeholder='Description'
+                        value={item.description}
+                        onChange={(e) => handleUpdateItem(item.key, 'description', e.target.value)}
+                        className='h-9 border-0 shadow-none'
+                      />
+                    </td>
+                    <td className='px-1 py-1'>
+                      <Input
+                        type='number'
+                        step='1'
+                        placeholder='0'
+                        value={item.amount}
+                        onChange={(e) => handleUpdateItem(item.key, 'amount', e.target.value)}
+                        className='h-9 border-0 text-right shadow-none'
+                      />
+                    </td>
+                    <td className='px-1 py-1'>
+                      <button
+                        type='button'
+                        onClick={() => handleRemoveItem(item.key)}
+                        className='inline-flex h-8 w-8 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10'
+                        title='Remove'
+                      >
+                        <Trash2 className='h-3.5 w-3.5' />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-                  <div className='flex flex-col gap-1'>
-                    <span className='text-xs text-muted-foreground'>Type</span>
-                    <Select value={item.type} onValueChange={(val) => handleUpdateItem(item.key, 'type', val)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder='Select type' />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.values(ExpenseTypeDtoEnum).map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {expenseTypeDtoEnumToReadableLabel(type)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className='flex flex-col gap-1'>
-                    <span className='text-xs text-muted-foreground'>Amount</span>
-                    <Input
-                      type='number'
-                      step='1'
-                      placeholder='0'
-                      value={item.amount}
-                      onChange={(e) => handleUpdateItem(item.key, 'amount', e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className='flex flex-col gap-1'>
-                  <span className='text-xs text-muted-foreground'>Description</span>
-                  <Input
-                    placeholder='Description'
-                    value={item.description}
-                    onChange={(e) => handleUpdateItem(item.key, 'description', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <button
-                type='button'
-                onClick={() => handleRemoveItem(item.key)}
-                className='mt-6 inline-flex items-center justify-center rounded-md p-2 text-destructive transition-colors hover:bg-destructive/10'
-                title='Remove'
-              >
-                <Trash2 className='h-4 w-4' />
-              </button>
+          <div className='flex items-center justify-between'>
+            <Button type='button' variant='outline' size='sm' onClick={handleAddItem}>
+              <Plus className='h-4 w-4' />
+              Add new
+            </Button>
+            <div className='flex gap-4 pr-12 text-sm text-muted-foreground'>
+              <span>
+                Monthly: <span className='font-semibold text-blue-500'>₹ {Math.round(monthlyTotal).toLocaleString('en-IN')}</span>
+              </span>
+              <span>
+                Yearly: <span className='font-semibold text-blue-500'>₹ {Math.round(yearlyTotal).toLocaleString('en-IN')}</span>
+              </span>
             </div>
-          ))}
-
-          <Button type='button' variant='outline' size='sm' onClick={handleAddItem} className='self-start'>
-            <Plus className='h-4 w-4' />
-            Add new
-          </Button>
+          </div>
         </form>
       )}
     </Drawer>
