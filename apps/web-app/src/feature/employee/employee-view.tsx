@@ -15,6 +15,8 @@ import { PageTabs } from '@repo/ui/component/ui/page-tabs';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
+import { DeviceEmployeeTab } from '@/feature/device/device-employee-tab';
+
 import { EmployeeViewBasicDetails } from './employee-view-basic-details';
 import { EmployeeViewBgv } from './employee-view-bgv';
 import { EmployeeViewCompensation } from './employee-view-compensation';
@@ -33,7 +35,7 @@ interface Props {
   initialBgvPage: PaginatedResponseType<EmployeeBgvFeedbackResponseType>;
   initialPayslipPage: PaginatedResponseType<PayslipListResponseType>;
   initialLeaveFinancialYear: string;
-  activeTab: 'details' | 'documents' | 'feedbacks' | 'compensation' | 'deduction' | 'leave' | 'payslip' | 'bgv';
+  activeTab: 'details' | 'documents' | 'feedbacks' | 'compensation' | 'deduction' | 'leave' | 'payslip' | 'bgv' | 'device';
 }
 
 export function EmployeeView({ employee, initialFeedbackPage, initialCompensationPage, initialDeductionPage, initialLeavePage, initialBgvPage, initialPayslipPage, initialLeaveFinancialYear, activeTab }: Props) {
@@ -46,6 +48,7 @@ export function EmployeeView({ employee, initialFeedbackPage, initialCompensatio
     { id: 'leave', label: 'Leave', href: `/employee/${employee.id}/leave` },
     { id: 'payslip', label: 'Payslip', href: `/employee/${employee.id}/payslip` },
     { id: 'bgv', label: 'BGV', href: `/employee/${employee.id}/bgv` },
+    { id: 'device', label: 'Devices', href: `/employee/${employee.id}/device` },
   ];
 
   return (
@@ -78,6 +81,7 @@ export function EmployeeView({ employee, initialFeedbackPage, initialCompensatio
           {activeTab === 'leave' && <EmployeeViewLeave employeeId={employee.id} initialData={initialLeavePage} initialFinancialYear={initialLeaveFinancialYear} />}
           {activeTab === 'payslip' && <EmployeeViewPayslip employeeId={employee.id} initialPage={initialPayslipPage} />}
           {activeTab === 'bgv' && <EmployeeViewBgv employeeId={employee.id} initialPage={initialBgvPage} />}
+          {activeTab === 'device' && <DeviceEmployeeTab employeeId={employee.id} />}
         </div>
       </div>
     </div>

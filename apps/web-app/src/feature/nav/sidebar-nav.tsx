@@ -2,7 +2,7 @@
 
 import { cn } from '@repo/ui/lib/utils';
 import type { LucideIcon } from 'lucide-react';
-import { Briefcase, Building2, CalendarDays, FileText, HandCoins, LayoutDashboard, MessageSquare, ScrollText, UserRound, Users } from 'lucide-react';
+import { Briefcase, Building2, CalendarDays, FileText, HandCoins, Laptop, LayoutDashboard, MessageSquare, ScrollText, UserRound, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -22,6 +22,7 @@ const adminNavItems: NavItem[] = [
   { label: 'Employees', href: '/employee', icon: Briefcase, superAdminOnly: false },
   { label: 'Payroll', href: '/payroll/compensation', icon: HandCoins, superAdminOnly: false },
   { label: 'Leaves & Holidays', href: '/leaves', icon: CalendarDays, superAdminOnly: false },
+  { label: 'Devices', href: '/device', icon: Laptop, superAdminOnly: false },
 ];
 
 const employeeNavItems: NavItem[] = [
@@ -32,6 +33,7 @@ const employeeNavItems: NavItem[] = [
   { label: 'Payroll', href: '/emp/payroll', icon: HandCoins, superAdminOnly: false },
   { label: 'Leaves & Holidays', href: '/emp/leave', icon: CalendarDays, superAdminOnly: false },
   { label: 'Policies', href: '/emp/policy', icon: FileText, superAdminOnly: false },
+  { label: 'My Devices', href: '/emp/device', icon: Laptop, superAdminOnly: false },
 ];
 
 interface Props {

@@ -23,6 +23,9 @@ export {
   EmployeeLeaveCounterDao,
   PolicyDao,
   PolicyHasMediaDao,
+  DeviceDao,
+  DeviceHasMediaDao,
+  DevicePossessionHistoryDao,
   PayrollPayslipDao,
   UserInviteDao,
   OrganizationSettingDao,
@@ -67,6 +70,8 @@ export type {
   PayrollPayslipWithUserType,
   PayrollPayslipWithDetailsType,
   OrganizationHasUserWithOrganizationType,
+  DeviceListRecordType,
+  DeviceDetailRecordType,
 } from './dao/index.js';
 export { CommonDbModule } from './db-module.js';
 export { PrismaService } from './prisma/prisma.service.js';

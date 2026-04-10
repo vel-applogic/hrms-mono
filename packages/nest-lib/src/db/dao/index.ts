@@ -47,3 +47,6 @@ export { CountryDao, type CountrySelectTableRecordType } from './country.dao.js'
 export { OrganizationHasAddressDao, type OrganizationHasAddressWithAddressType } from './organization-has-address.dao.js';
 export { OrganizationHasContactDao, type OrganizationHasContactWithContactType } from './organization-has-contact.dao.js';
 export { HolidayDao, type HolidaySelectTableRecordType } from './holiday.dao.js';
+export { DeviceDao, type DeviceListRecordType, type DeviceDetailRecordType } from './device.dao.js';
+export { DeviceHasMediaDao } from './device-has-media.dao.js';
+export { DevicePossessionHistoryDao } from './device-possession-history.dao.js';

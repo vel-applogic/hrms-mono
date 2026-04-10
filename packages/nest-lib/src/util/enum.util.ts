@@ -7,6 +7,8 @@ import {
   CandidateSource,
   CandidateStatus,
   ContactType,
+  DeviceStatus,
+  DeviceType,
   EmployeeStatusEnum,
   HolidayType,
   LeaveDayHalfEnum,
@@ -26,6 +28,8 @@ import {
   CandidateSourceDtoEnum,
   CandidateStatusDtoEnum,
   ContactTypeDtoEnum,
+  DeviceStatusDtoEnum,
+  DeviceTypeDtoEnum,
   EmployeeStatusDtoEnum,
   HolidayTypeDtoEnum,
   LeaveDayHalfDtoEnum,
@@ -124,6 +128,7 @@ export function auditEntityTypeDtoEnumToDbEnum(dtoEnum: AuditEntityTypeDtoEnum):
     [AuditEntityTypeDtoEnum.candidate]: 'candidate',
     [AuditEntityTypeDtoEnum.employee]: 'employee',
     [AuditEntityTypeDtoEnum.policy]: 'policy',
+    [AuditEntityTypeDtoEnum.device]: 'device',
   };
 
   const dbEnum = mapping[dtoEnum];
@@ -141,6 +146,7 @@ export function auditEntityTypeDbEnumToDtoEnum(dbEnum: AuditEntityTypeDbEnum): A
     candidate: AuditEntityTypeDtoEnum.candidate,
     employee: AuditEntityTypeDtoEnum.employee,
     policy: AuditEntityTypeDtoEnum.policy,
+    device: AuditEntityTypeDtoEnum.device,
   };
 
   const dtoEnum = mapping[dbEnum];
@@ -505,6 +511,80 @@ export function contactTypeDtoEnumToDbEnum(dtoEnum: ContactTypeDtoEnum): Contact
   const dbEnum = mapping[dtoEnum];
   if (!dbEnum) {
     throw new Error(`Unknown ContactTypeDtoEnum: ${dtoEnum}`);
+  }
+
+  return dbEnum;
+}
+
+export function deviceTypeDbEnumToDtoEnum(dbEnum: DeviceType): DeviceTypeDtoEnum {
+  const mapping: Record<DeviceType, DeviceTypeDtoEnum> = {
+    mobile: DeviceTypeDtoEnum.mobile,
+    tablet: DeviceTypeDtoEnum.tablet,
+    laptop: DeviceTypeDtoEnum.laptop,
+    cpu: DeviceTypeDtoEnum.cpu,
+    keyboard: DeviceTypeDtoEnum.keyboard,
+    mouse: DeviceTypeDtoEnum.mouse,
+    headphone: DeviceTypeDtoEnum.headphone,
+    other: DeviceTypeDtoEnum.other,
+  };
+
+  const dtoEnum = mapping[dbEnum];
+  if (!dtoEnum) {
+    throw new Error(`Unknown DeviceType: ${dbEnum}`);
+  }
+
+  return dtoEnum;
+}
+
+export function deviceTypeDtoEnumToDbEnum(dtoEnum: DeviceTypeDtoEnum): DeviceType {
+  const mapping: Record<DeviceTypeDtoEnum, DeviceType> = {
+    [DeviceTypeDtoEnum.mobile]: 'mobile',
+    [DeviceTypeDtoEnum.tablet]: 'tablet',
+    [DeviceTypeDtoEnum.laptop]: 'laptop',
+    [DeviceTypeDtoEnum.cpu]: 'cpu',
+    [DeviceTypeDtoEnum.keyboard]: 'keyboard',
+    [DeviceTypeDtoEnum.mouse]: 'mouse',
+    [DeviceTypeDtoEnum.headphone]: 'headphone',
+    [DeviceTypeDtoEnum.other]: 'other',
+  };
+
+  const dbEnum = mapping[dtoEnum];
+  if (!dbEnum) {
+    throw new Error(`Unknown DeviceTypeDtoEnum: ${dtoEnum}`);
+  }
+
+  return dbEnum;
+}
+
+export function deviceStatusDbEnumToDtoEnum(dbEnum: DeviceStatus): DeviceStatusDtoEnum {
+  const mapping: Record<DeviceStatus, DeviceStatusDtoEnum> = {
+    good: DeviceStatusDtoEnum.good,
+    physicallyDamaged: DeviceStatusDtoEnum.physicallyDamaged,
+    notWorking: DeviceStatusDtoEnum.notWorking,
+    lost: DeviceStatusDtoEnum.lost,
+    stolen: DeviceStatusDtoEnum.stolen,
+  };
+
+  const dtoEnum = mapping[dbEnum];
+  if (!dtoEnum) {
+    throw new Error(`Unknown DeviceStatus: ${dbEnum}`);
+  }
+
+  return dtoEnum;
+}
+
+export function deviceStatusDtoEnumToDbEnum(dtoEnum: DeviceStatusDtoEnum): DeviceStatus {
+  const mapping: Record<DeviceStatusDtoEnum, DeviceStatus> = {
+    [DeviceStatusDtoEnum.good]: 'good',
+    [DeviceStatusDtoEnum.physicallyDamaged]: 'physicallyDamaged',
+    [DeviceStatusDtoEnum.notWorking]: 'notWorking',
+    [DeviceStatusDtoEnum.lost]: 'lost',
+    [DeviceStatusDtoEnum.stolen]: 'stolen',
+  };
+
+  const dbEnum = mapping[dtoEnum];
+  if (!dbEnum) {
+    throw new Error(`Unknown DeviceStatusDtoEnum: ${dtoEnum}`);
   }
 
   return dbEnum;

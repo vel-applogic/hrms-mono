@@ -49,6 +49,7 @@ export enum AuditEntityTypeDtoEnum {
   candidate = 'candidate',
   employee = 'employee',
   policy = 'policy',
+  device = 'device',
 }
 
 export enum CandidateSourceDtoEnum {
@@ -128,4 +129,23 @@ export enum NoOfDaysInMonthDtoEnum {
   dynamic = 'dynamic',
   thirty = 'thirty',
   thirtyOne = 'thirtyOne',
+}
+
+export enum DeviceTypeDtoEnum {
+  mobile = 'mobile',
+  tablet = 'tablet',
+  laptop = 'laptop',
+  cpu = 'cpu',
+  keyboard = 'keyboard',
+  mouse = 'mouse',
+  headphone = 'headphone',
+  other = 'other',
+}
+
+export enum DeviceStatusDtoEnum {
+  good = 'good',
+  physicallyDamaged = 'physicallyDamaged',
+  notWorking = 'notWorking',
+  lost = 'lost',
+  stolen = 'stolen',
 }

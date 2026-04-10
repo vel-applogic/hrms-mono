@@ -28,6 +28,7 @@ model Media {
   organizationLogos           Organization[]               @relation("OrganizationLogo")
   organizationHasDocuments    OrganizationHasDocument[]
   employyBgvFeedbackHasMedias employyBgvFeedbackHasMedia[]
+  deviceHasMedias             DeviceHasMedia[]
 
   @@map("media")
 }
@@ -132,6 +133,8 @@ model User {
   organizationHasUsers       OrganizationHasUser[]
   userInBranches             UserInBranch[]
   employeeBgvFeedbacks       employeeBgvFeedback[]  @relation("EmployeeBgvFeedbackUser")
+  assignedDevices            Device[]                   @relation("DeviceAssignedTo")
+  devicePossessionHistories  DevicePossessionHistory[]
 
   @@map("users")
 }
@@ -156,6 +159,60 @@ model UserVerifyEmail {
   verifiedAt              DateTime? @map("verified_at")
 
   @@map("user_verify_email")
+}
+
+model UserInBranch {
+  id             Int          @id @default(autoincrement())
+  userId         Int          @map("user_id")
+  user           User         @relation(fields: [userId], references: [id])
+  branchId       Int          @map("branch_id")
+  branch         Branch       @relation(fields: [branchId], references: [id])
+  organizationId Int          @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, branchId])
+}
+
+model UserInvite {
+  id             Int          @id @default(autoincrement())
+  userId         Int          @map("user_id")
+  user           User         @relation("UserInviteUser", fields: [userId], references: [id])
+  organizationId Int          @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  inviteKey      String       @map("invite_key")
+  invitedById    Int          @map("invited_by_id")
+  invitedBy      User         @relation("UserInviteInvitedBy", fields: [invitedById], references: [id])
+  acceptedAt     DateTime?    @map("accepted_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([organizationId])
+  @@map("user_invite")
+}
+
+model DevicePossessionHistory {
+  id             Int       @id @default(autoincrement())
+  organizationId Int       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  userId         Int       @map("user_id")
+  user           User      @relation(fields: [userId], references: [id])
+  deviceId       Int       @map("device_id")
+  device         Device    @relation(fields: [deviceId], references: [id])
+  fromDate       DateTime  @map("from_date")
+  toDate         DateTime? @map("to_date")
+  notes          String[]  @map("notes")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([deviceId])
+  @@index([organizationId])
+  @@map("device_possession_history")
 }
 
 // ORGANIZATION
@@ -193,6 +250,8 @@ model Organization {
   organizationHasContacts  OrganizationHasContact[]
   organizationHasAddresses OrganizationHasAddress[]
   holidays                 Holiday[]
+  devices                  Device[]
+  devicePossessionHistories DevicePossessionHistory[]
 
   @@map("organization")
 }
@@ -293,39 +352,6 @@ model Branch {
   userInBranches UserInBranch[]
 
   @@map("branche")
-}
-
-model UserInBranch {
-  id             Int          @id @default(autoincrement())
-  userId         Int          @map("user_id")
-  user           User         @relation(fields: [userId], references: [id])
-  branchId       Int          @map("branch_id")
-  branch         Branch       @relation(fields: [branchId], references: [id])
-  organizationId Int          @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@unique([userId, branchId])
-}
-
-model UserInvite {
-  id             Int          @id @default(autoincrement())
-  userId         Int          @map("user_id")
-  user           User         @relation("UserInviteUser", fields: [userId], references: [id])
-  organizationId Int          @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  inviteKey      String       @map("invite_key")
-  invitedById    Int          @map("invited_by_id")
-  invitedBy      User         @relation("UserInviteInvitedBy", fields: [invitedById], references: [id])
-  acceptedAt     DateTime?    @map("accepted_at")
-  createdAt      DateTime     @default(now()) @map("created_at")
-  updatedAt      DateTime     @updatedAt @map("updated_at")
-
-  @@index([userId])
-  @@index([organizationId])
-  @@map("user_invite")
 }
 
 // EMPLOYEE
@@ -714,6 +740,65 @@ model Holiday {
   @@map("holiday")
 }
 
+// DEVICE
+
+enum DeviceType {
+  mobile
+  tablet
+  laptop
+  cpu
+  keyboard
+  mouse
+  headphone
+  other
+}
+
+enum DeviceStatus {
+  good
+  physicallyDamaged
+  notWorking
+  lost
+  stolen
+}
+
+model Device {
+  id                Int              @id @default(autoincrement())
+  organizationId    Int              @map("organization_id")
+  organization      Organization     @relation(fields: [organizationId], references: [id])
+  type              DeviceType       @map("type")
+  brand             String           @map("brand")
+  model             String           @map("model")
+  serialNumber      String           @map("serial_number")
+  price             Float            @map("price")
+  purchasedAt       DateTime?        @map("purchased_at") @db.Date
+  warrantyExpiresAt DateTime         @map("warranty_expires_at") @db.Date
+  inWarranty        Boolean          @default(true) @map("in_warranty")
+  status            DeviceStatus     @map("status")
+  config            String?          @map("config")
+  assignedToId      Int?             @map("assigned_to_id")
+  assignedTo        User?            @relation("DeviceAssignedTo", fields: [assignedToId], references: [id])
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+  deviceHasMedias   DeviceHasMedia[]
+  possessionHistories DevicePossessionHistory[]
+
+  @@map("device")
+}
+
+model DeviceHasMedia {
+  id       Int     @id @default(autoincrement())
+  deviceId Int     @map("device_id")
+  device   Device  @relation(fields: [deviceId], references: [id])
+  mediaId  Int     @map("media_id")
+  media    Media   @relation(fields: [mediaId], references: [id])
+  caption  String? @map("caption")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("device_has_media")
+}
+
 // AUDIT
 
 enum AuditEntityTypeDbEnum {
@@ -722,6 +807,7 @@ enum AuditEntityTypeDbEnum {
   candidate
   employee
   policy
+  device
 
   @@map("auditEntityTypeDbEnum")
 }

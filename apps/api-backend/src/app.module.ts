@@ -24,6 +24,7 @@ import { MediaModule } from './module/media/media.module.js';
 import { OrganizationModule } from './module/organization/organization.module.js';
 import { HolidayModule } from './module/holiday/holiday.module.js';
 import { SeederModule } from './module/seeder/seeder.module.js';
+import { DeviceModule } from './module/device/device.module.js';
 import { PolicyModule } from './module/policy/policy.module.js';
 import { ServiceModule } from './service/service.module.js';
 
@@ -54,6 +55,7 @@ import { ServiceModule } from './service/service.module.js';
     LeaveModule,
     HolidayModule,
     PolicyModule,
+    DeviceModule,
     SeederModule,
     ExternalServiceModule,
     MediaModule,
@@ -85,6 +87,8 @@ export class AppModule implements NestModule {
         'api/media',
         'api/account/{*path}',
         'api/account',
+        'api/device/{*path}',
+        'api/device',
       )
       .forRoutes('*');
   }

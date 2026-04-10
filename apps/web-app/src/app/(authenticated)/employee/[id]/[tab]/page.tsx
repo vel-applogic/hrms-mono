@@ -11,7 +11,7 @@ import { searchLeaves } from '@/lib/action/leave.actions';
 import { searchPayslips } from '@/lib/action/payslip.actions';
 import { auth } from '@/lib/auth/auth';
 
-const TABS = ['details', 'documents', 'feedbacks', 'compensation', 'deduction', 'leave', 'payslip', 'bgv'] as const;
+const TABS = ['details', 'documents', 'feedbacks', 'compensation', 'deduction', 'leave', 'payslip', 'bgv', 'device'] as const;
 type Tab = (typeof TABS)[number];
 
 function isTab(tab: string): tab is Tab {
