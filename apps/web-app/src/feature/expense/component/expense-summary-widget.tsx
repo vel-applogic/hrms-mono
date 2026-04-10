@@ -11,9 +11,10 @@ import { getExpenseSummary } from '@/lib/action/expense.actions';
 interface Props {
   refreshKey?: number;
   financialYearCode?: string;
+  compact?: boolean;
 }
 
-export function ExpenseSummaryWidget({ refreshKey, financialYearCode }: Props) {
+export function ExpenseSummaryWidget({ refreshKey, financialYearCode, compact }: Props) {
   const fyCode = financialYearCode ?? getFinancialYearCode(new Date());
   const [data, setData] = useState<ExpenseSummaryResponseType | null>(null);
 
@@ -23,15 +24,15 @@ export function ExpenseSummaryWidget({ refreshKey, financialYearCode }: Props) {
 
   return (
     <>
-      <DashboardWidget href='/expense'>
-        <div className='flex w-full items-start gap-5'>
-          <DashboardWidgetIcon icon={IndianRupee} />
-          <div className='flex flex-col'>
-            <span className='text-sm font-semibold text-muted-foreground'>This Month Expense</span>
+      <DashboardWidget href='/expense' compact={compact}>
+        <div className={`flex w-full flex-col ${compact ? 'gap-1.5' : 'gap-3'}`}>
+          <span className={`font-semibold text-muted-foreground ${compact ? 'text-xs' : 'text-sm'}`}>This Month Expense</span>
+          <div className={`flex items-center ${compact ? 'gap-3' : 'gap-5'}`}>
+            <DashboardWidgetIcon icon={IndianRupee} compact={compact} />
             {data === null ? (
               <div className='h-9 w-16 animate-pulse rounded bg-muted' />
             ) : (
-              <span className='text-3xl font-semibold text-orange-500'>
+              <span className={`font-semibold text-orange-500 ${compact ? 'text-2xl' : 'text-3xl'}`}>
                 {`₹ ${data.thisMonthTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
               </span>
             )}
@@ -39,15 +40,15 @@ export function ExpenseSummaryWidget({ refreshKey, financialYearCode }: Props) {
         </div>
       </DashboardWidget>
 
-      <DashboardWidget href='/expense'>
-        <div className='flex w-full items-start gap-5'>
-          <DashboardWidgetIcon icon={TrendingUp} />
-          <div className='flex flex-col'>
-            <span className='text-sm font-semibold text-muted-foreground'>{fyCode} Expense</span>
+      <DashboardWidget href='/expense' compact={compact}>
+        <div className={`flex w-full flex-col ${compact ? 'gap-1.5' : 'gap-3'}`}>
+          <span className={`font-semibold text-muted-foreground ${compact ? 'text-xs' : 'text-sm'}`}>{fyCode} Expense</span>
+          <div className={`flex items-center ${compact ? 'gap-3' : 'gap-5'}`}>
+            <DashboardWidgetIcon icon={TrendingUp} compact={compact} />
             {data === null ? (
               <div className='h-9 w-16 animate-pulse rounded bg-muted' />
             ) : (
-              <span className='text-3xl font-semibold text-orange-500'>
+              <span className={`font-semibold text-orange-500 ${compact ? 'text-2xl' : 'text-3xl'}`}>
                 {`₹ ${data.financialYearTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
               </span>
             )}

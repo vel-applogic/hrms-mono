@@ -11,9 +11,10 @@ import { ExpenseForecastUpsertDrawer } from '../container/expense-forecast-upser
 interface Props {
   refreshKey?: number;
   showEdit?: boolean;
+  compact?: boolean;
 }
 
-export function ExpenseForecastWidget({ refreshKey, showEdit }: Props) {
+export function ExpenseForecastWidget({ refreshKey, showEdit, compact }: Props) {
   const [monthlyTotal, setMonthlyTotal] = useState<number | null>(null);
   const [yearlyTotal, setYearlyTotal] = useState<number | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -32,33 +33,37 @@ export function ExpenseForecastWidget({ refreshKey, showEdit }: Props) {
 
   return (
     <>
-      <DashboardWidget>
-        <div className='flex w-full items-start gap-5'>
-          <DashboardWidgetIcon icon={Calculator} />
-          <div className='flex flex-1 flex-col'>
-            <span className='text-sm font-semibold text-muted-foreground'>Monthly Forecast</span>
-            {monthlyTotal === null ? (
-              <div className='h-9 w-16 animate-pulse rounded bg-muted' />
-            ) : (
-              <span className='text-3xl font-semibold text-blue-500'>
-                {`₹ ${monthlyTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
-              </span>
-            )}
-            {yearlyTotal !== null && (
-              <span className='text-xs text-muted-foreground'>
-                Yearly: <span className='font-semibold'>₹ {yearlyTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
-              </span>
+      <DashboardWidget compact={compact}>
+        <div className={`flex w-full flex-col ${compact ? 'gap-1.5' : 'gap-3'}`}>
+          <div className='flex items-center justify-between'>
+            <span className={`font-semibold text-muted-foreground ${compact ? 'text-xs' : 'text-sm'}`}>Monthly Forecast</span>
+            {showEdit && (
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className='inline-flex items-center justify-center rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+                title='Edit forecast'
+              >
+                <Pencil className='h-4 w-4' />
+              </button>
             )}
           </div>
-          {showEdit && (
-            <button
-              onClick={() => setDrawerOpen(true)}
-              className='inline-flex items-center justify-center rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
-              title='Edit forecast'
-            >
-              <Pencil className='h-4 w-4' />
-            </button>
-          )}
+          <div className={`flex items-center ${compact ? 'gap-3' : 'gap-5'}`}>
+            <DashboardWidgetIcon icon={Calculator} compact={compact} />
+            <div className='flex flex-col'>
+              {monthlyTotal === null ? (
+                <div className='h-9 w-16 animate-pulse rounded bg-muted' />
+              ) : (
+                <span className={`font-semibold text-blue-500 ${compact ? 'text-2xl' : 'text-3xl'}`}>
+                  {`₹ ${monthlyTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
+                </span>
+              )}
+              {yearlyTotal !== null && (
+                <span className='text-xs text-muted-foreground'>
+                  Yearly: <span className='font-semibold'>₹ {yearlyTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </DashboardWidget>
 

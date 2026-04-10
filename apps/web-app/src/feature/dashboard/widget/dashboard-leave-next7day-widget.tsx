@@ -52,26 +52,25 @@ export function DashboardLeaveNext7Day() {
 
   return (
     <DashboardWidget colSpan={2}>
-      <div className='flex w-full items-start gap-5'>
-        <div className='flex shrink-0 items-center gap-1.5'>
-          <div className='flex w-14 flex-col overflow-hidden rounded-lg border border-border text-center'>
-            <div className='bg-primary px-1.5 py-1 text-[10px] font-bold tracking-wider text-primary-foreground'>{fromMonth}</div>
-            <div className='flex flex-col items-center justify-center bg-card py-1'>
-              <span className='text-xl font-bold leading-tight text-foreground'>{fromDay}</span>
+      <div className='flex w-full flex-col gap-3'>
+        <span className='text-sm font-semibold text-muted-foreground'>Leaves for Next 7 Days</span>
+        <div className='flex items-start gap-5'>
+          <div className='flex shrink-0 items-center gap-1.5'>
+            <div className='flex w-14 flex-col overflow-hidden rounded-lg border border-border text-center'>
+              <div className='bg-primary px-1.5 py-1 text-[10px] font-bold tracking-wider text-primary-foreground'>{fromMonth}</div>
+              <div className='flex flex-col items-center justify-center bg-card py-1'>
+                <span className='text-xl font-bold leading-tight text-foreground'>{fromDay}</span>
+              </div>
+            </div>
+            <span className='text-xs font-medium text-muted-foreground'>—</span>
+            <div className='flex w-14 flex-col overflow-hidden rounded-lg border border-border text-center'>
+              <div className='bg-primary px-1.5 py-1 text-[10px] font-bold tracking-wider text-primary-foreground'>{toMonth}</div>
+              <div className='flex flex-col items-center justify-center bg-card py-1'>
+                <span className='text-xl font-bold leading-tight text-foreground'>{toDay}</span>
+              </div>
             </div>
           </div>
-          <span className='text-xs font-medium text-muted-foreground'>—</span>
-          <div className='flex w-14 flex-col overflow-hidden rounded-lg border border-border text-center'>
-            <div className='bg-primary px-1.5 py-1 text-[10px] font-bold tracking-wider text-primary-foreground'>{toMonth}</div>
-            <div className='flex flex-col items-center justify-center bg-card py-1'>
-              <span className='text-xl font-bold leading-tight text-foreground'>{toDay}</span>
-            </div>
-          </div>
-        </div>
-        <div className='flex min-w-0 flex-1 flex-col'>
-          <div className='mb-2'>
-            <span className='text-sm font-semibold text-muted-foreground'>Leaves for Next 7 Days</span>
-          </div>
+          <div className='flex min-w-0 flex-1 flex-col'>
           {entries === null ? (
             <div className='h-9 w-16 animate-pulse rounded bg-muted' />
           ) : entries.length > 0 ? (
@@ -86,6 +85,7 @@ export function DashboardLeaveNext7Day() {
           ) : (
             <p className='text-sm text-muted-foreground'>No upcoming leaves</p>
           )}
+          </div>
         </div>
       </div>
     </DashboardWidget>

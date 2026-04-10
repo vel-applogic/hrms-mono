@@ -31,10 +31,11 @@ export function DashboardCandidateStatus() {
 
   return (
     <DashboardWidget colSpan={2} href='/candidate'>
-      <div className='flex w-full items-start gap-4'>
-        <DashboardWidgetIcon icon={UserRound} />
-        <div className='flex min-w-0 flex-1 flex-col'>
-          <span className='mb-2 text-sm font-semibold text-muted-foreground'>Candidates by Status</span>
+      <div className='flex w-full flex-col gap-3'>
+        <span className='text-sm font-semibold text-muted-foreground'>Candidates by Status</span>
+        <div className='flex items-start gap-4'>
+          <DashboardWidgetIcon icon={UserRound} />
+          <div className='flex min-w-0 flex-1 flex-col'>
           {statusCounts === null ? (
             <div className='h-12 animate-pulse rounded bg-muted' />
           ) : (
@@ -50,6 +51,7 @@ export function DashboardCandidateStatus() {
               })}
             </div>
           )}
+          </div>
         </div>
       </div>
     </DashboardWidget>

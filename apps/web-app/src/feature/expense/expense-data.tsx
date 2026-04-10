@@ -196,8 +196,8 @@ export function ExpenseData({ data, searchParams, currentFinancialYear, financia
   return (
     <div className='flex h-full flex-col gap-4'>
       <div className='center-container grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
-        <ExpenseSummaryWidget refreshKey={widgetRefreshKey} financialYearCode={currentFinancialYear} />
-        <ExpenseForecastWidget refreshKey={widgetRefreshKey} showEdit />
+        <ExpenseSummaryWidget refreshKey={widgetRefreshKey} financialYearCode={currentFinancialYear} compact />
+        <ExpenseForecastWidget refreshKey={widgetRefreshKey} showEdit compact />
       </div>
 
       <div className='center-container flex flex-wrap items-end gap-3'>

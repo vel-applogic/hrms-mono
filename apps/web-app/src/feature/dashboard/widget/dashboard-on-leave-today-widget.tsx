@@ -37,18 +37,17 @@ export function DashboardOnLeaveToday() {
 
   return (
     <DashboardWidget colSpan={2}>
-      <div className='flex w-full items-start gap-5'>
-        <div className='flex w-16 shrink-0 flex-col overflow-hidden rounded-lg border border-border text-center'>
-          <div className='bg-primary px-2 py-1 text-[10px] font-bold tracking-wider text-primary-foreground'>{dayName}</div>
-          <div className='flex flex-1 flex-col items-center justify-center bg-card py-1'>
-            <span className='text-2xl font-bold leading-tight text-foreground'>{dayNum}</span>
-            <span className='text-[10px] font-medium text-muted-foreground'>{monthName}</span>
+      <div className='flex w-full flex-col gap-3'>
+        <span className='text-sm font-semibold text-muted-foreground'>On Leave Today</span>
+        <div className='flex items-start gap-5'>
+          <div className='flex w-16 shrink-0 flex-col overflow-hidden rounded-lg border border-border text-center'>
+            <div className='bg-primary px-2 py-1 text-[10px] font-bold tracking-wider text-primary-foreground'>{dayName}</div>
+            <div className='flex flex-1 flex-col items-center justify-center bg-card py-1'>
+              <span className='text-2xl font-bold leading-tight text-foreground'>{dayNum}</span>
+              <span className='text-[10px] font-medium text-muted-foreground'>{monthName}</span>
+            </div>
           </div>
-        </div>
-        <div className='flex min-w-0 flex-1 flex-col'>
-          <div className='mb-2'>
-            <span className='text-sm font-semibold text-muted-foreground'>On Leave Today</span>
-          </div>
+          <div className='flex min-w-0 flex-1 flex-col'>
           {entries === null ? (
             <div className='h-9 w-16 animate-pulse rounded bg-muted' />
           ) : entries.length > 0 ? (
@@ -63,6 +62,7 @@ export function DashboardOnLeaveToday() {
           ) : (
             <p className='text-sm text-muted-foreground'>No one on leave today</p>
           )}
+          </div>
         </div>
       </div>
     </DashboardWidget>
