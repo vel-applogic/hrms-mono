@@ -19,6 +19,9 @@ const pageTitleMap: Record<string, string> = {
   '/emp/payroll': 'Payroll',
   '/emp/leave': 'Leaves & Holidays',
   '/emp/policy': 'Policies',
+  '/device': 'Devices',
+  '/expense': 'Expenses',
+  '/emp/device': 'My Devices',
 };
 
 export function HeaderPageTitle() {

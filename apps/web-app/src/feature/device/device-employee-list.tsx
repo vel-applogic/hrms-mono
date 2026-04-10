@@ -2,8 +2,8 @@
 
 import { EmployeeDeviceResponseType } from '@repo/dto';
 import { deviceStatusDtoEnumToReadableLabel, deviceTypeDtoEnumToReadableLabel } from '@repo/shared';
-import { Laptop, Monitor, Smartphone, Tablet, Keyboard, Mouse, Headphones, HardDrive } from 'lucide-react';
 import { Label } from '@repo/ui/component/ui/label';
+import { HardDrive, Headphones, Keyboard, Laptop, Monitor, Mouse, Smartphone, Tablet } from 'lucide-react';
 
 function getDeviceIcon(type: EmployeeDeviceResponseType['type']) {
   switch (type) {
@@ -46,10 +46,6 @@ export function EmployeeDeviceList({ devices }: Props) {
 
   return (
     <div className='flex h-full flex-col gap-4'>
-      <div className='center-container'>
-        <h1 className='text-xl font-medium tracking-tight text-foreground'>My Devices</h1>
-      </div>
-
       <div className='center-container grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
         {devices.map((device) => {
           const Icon = getDeviceIcon(device.type);
@@ -60,7 +56,9 @@ export function EmployeeDeviceList({ devices }: Props) {
               </div>
 
               <div className='min-w-0 flex-1'>
-                <p className='font-semibold text-foreground'>{device.brand} {device.model}</p>
+                <p className='font-semibold text-foreground'>
+                  {device.brand} {device.model}
+                </p>
                 <p className='text-xs text-muted-foreground'>{deviceTypeDtoEnumToReadableLabel(device.type)}</p>
                 {device.config && <p className='mt-1 text-xs text-muted-foreground'>{device.config}</p>}
 
