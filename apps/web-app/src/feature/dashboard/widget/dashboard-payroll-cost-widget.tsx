@@ -26,8 +26,8 @@ export function DashboardPayrollCost() {
           <div className='h-9 w-16 animate-pulse rounded bg-muted' />
         ) : (
           <div className='flex flex-col'>
+            <span className='text-sm font-semibold text-muted-foreground'>Monthly Payroll Cost</span>
             <span className='text-3xl font-semibold text-primary'>{data.symbol}{data.monthly.toLocaleString('en-IN')}</span>
-            <span className='text-sm text-muted-foreground'>Monthly Payroll Cost</span>
             <span className='text-xs text-muted-foreground'>Yearly: {data.symbol}{data.yearly.toLocaleString('en-IN')}</span>
           </div>
         )}

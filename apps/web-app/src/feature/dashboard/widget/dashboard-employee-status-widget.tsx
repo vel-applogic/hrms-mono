@@ -32,7 +32,7 @@ export function DashboardEmployeeStatus() {
       <div className='flex w-full items-start gap-4'>
         <DashboardWidgetIcon icon={Users} />
         <div className='flex min-w-0 flex-1 flex-col'>
-          <span className='mb-2 text-sm font-medium text-muted-foreground'>Employees by Status</span>
+          <span className='mb-2 text-sm font-semibold text-muted-foreground'>Employees by Status</span>
           {statusCounts === null ? (
             <div className='h-12 animate-pulse rounded bg-muted' />
           ) : (

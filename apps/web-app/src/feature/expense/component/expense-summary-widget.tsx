@@ -26,32 +26,32 @@ export function ExpenseSummaryWidget({ refreshKey, financialYearCode }: Props) {
       <DashboardWidget href='/expense'>
         <div className='flex w-full items-start gap-5'>
           <DashboardWidgetIcon icon={IndianRupee} />
-          {data === null ? (
-            <div className='h-9 w-16 animate-pulse rounded bg-muted' />
-          ) : (
-            <div className='flex flex-col'>
+          <div className='flex flex-col'>
+            <span className='text-sm font-semibold text-muted-foreground'>This Month Expense</span>
+            {data === null ? (
+              <div className='h-9 w-16 animate-pulse rounded bg-muted' />
+            ) : (
               <span className='text-3xl font-semibold text-orange-500'>
                 {`₹ ${data.thisMonthTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
               </span>
-              <span className='text-sm text-muted-foreground'>This Month Expense</span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </DashboardWidget>
 
       <DashboardWidget href='/expense'>
         <div className='flex w-full items-start gap-5'>
           <DashboardWidgetIcon icon={TrendingUp} />
-          {data === null ? (
-            <div className='h-9 w-16 animate-pulse rounded bg-muted' />
-          ) : (
-            <div className='flex flex-col'>
+          <div className='flex flex-col'>
+            <span className='text-sm font-semibold text-muted-foreground'>{fyCode} Expense</span>
+            {data === null ? (
+              <div className='h-9 w-16 animate-pulse rounded bg-muted' />
+            ) : (
               <span className='text-3xl font-semibold text-orange-500'>
                 {`₹ ${data.financialYearTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
               </span>
-              <span className='text-sm text-muted-foreground'>{fyCode} Expense</span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </DashboardWidget>
     </>

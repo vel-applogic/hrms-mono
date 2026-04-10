@@ -36,6 +36,7 @@ export function ExpenseForecastWidget({ refreshKey, showEdit }: Props) {
         <div className='flex w-full items-start gap-5'>
           <DashboardWidgetIcon icon={Calculator} />
           <div className='flex flex-1 flex-col'>
+            <span className='text-sm font-semibold text-muted-foreground'>Monthly Forecast</span>
             {monthlyTotal === null ? (
               <div className='h-9 w-16 animate-pulse rounded bg-muted' />
             ) : (
@@ -43,7 +44,6 @@ export function ExpenseForecastWidget({ refreshKey, showEdit }: Props) {
                 {`₹ ${monthlyTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
               </span>
             )}
-            <span className='text-sm text-muted-foreground'>Monthly Forecast</span>
             {yearlyTotal !== null && (
               <span className='text-xs text-muted-foreground'>
                 Yearly: <span className='font-semibold'>₹ {yearlyTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>

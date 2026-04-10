@@ -50,7 +50,7 @@ export function DashboardAnniversary() {
       <div className='flex w-full items-start gap-4'>
         <DashboardWidgetIcon icon={Cake} />
         <div className='flex min-w-0 flex-1 flex-col'>
-          <span className='mb-2 text-sm font-medium text-muted-foreground'>Upcoming Work Anniversaries</span>
+          <span className='mb-2 text-sm font-semibold text-muted-foreground'>Upcoming Work Anniversaries</span>
           {anniversaries === null ? (
             <div className='h-12 animate-pulse rounded bg-muted' />
           ) : anniversaries.length > 0 ? (

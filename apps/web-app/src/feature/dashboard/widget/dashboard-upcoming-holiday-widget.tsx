@@ -39,7 +39,7 @@ export function DashboardUpcomingHoliday({ isEmployee }: Props) {
       <div className='flex w-full items-start gap-4'>
         <DashboardWidgetIcon icon={CalendarDays} />
         <div className='flex min-w-0 flex-1 flex-col'>
-          <span className='mb-2 text-sm font-medium text-muted-foreground'>Upcoming Holidays</span>
+          <span className='mb-2 text-sm font-semibold text-muted-foreground'>Upcoming Holidays</span>
           {holidays === null ? (
             <div className='h-12 animate-pulse rounded bg-muted' />
           ) : holidays.length > 0 ? (

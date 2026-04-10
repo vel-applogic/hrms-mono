@@ -54,12 +54,12 @@ export function DashboardWidgetStat({ icon, label, value, valueColor, href }: Da
       <div className='flex w-full items-start gap-5'>
         <DashboardWidgetIcon icon={icon} />
         <div className='flex flex-col'>
+          <span className='text-sm font-semibold text-muted-foreground'>{label}</span>
           {value === null ? (
             <div className='h-9 w-16 animate-pulse rounded bg-muted' />
           ) : (
             <span className={cn('text-3xl font-semibold', valueColor)}>{typeof value === 'number' ? value.toLocaleString() : value}</span>
           )}
-          <span className='text-sm text-muted-foreground'>{label}</span>
         </div>
       </div>
     </DashboardWidget>

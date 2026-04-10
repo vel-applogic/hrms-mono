@@ -47,7 +47,7 @@ export function DashboardOnLeaveToday() {
         </div>
         <div className='flex min-w-0 flex-1 flex-col'>
           <div className='mb-2'>
-            <span className='text-sm font-medium text-muted-foreground'>On Leave Today</span>
+            <span className='text-sm font-semibold text-muted-foreground'>On Leave Today</span>
           </div>
           {entries === null ? (
             <div className='h-9 w-16 animate-pulse rounded bg-muted' />

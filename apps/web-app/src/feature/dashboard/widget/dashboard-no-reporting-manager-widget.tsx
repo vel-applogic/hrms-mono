@@ -24,12 +24,12 @@ export function DashboardNoReportingManager() {
       <div className='flex w-full items-start gap-5'>
         <DashboardWidgetIcon icon={AlertTriangle} />
         <div className='flex min-w-0 flex-1 flex-col'>
+          <span className='text-sm font-semibold text-muted-foreground'>No Reporting Manager</span>
           {entries === null ? (
             <div className='h-9 w-16 animate-pulse rounded bg-muted' />
           ) : (
             <span className={`text-3xl font-semibold ${entries.length > 0 ? 'text-red-500' : 'text-emerald-600'}`}>{entries.length}</span>
           )}
-          <span className='text-sm text-muted-foreground'>No Reporting Manager</span>
           {entries && entries.length > 0 && (
             <p className='mt-2 text-sm text-muted-foreground'>{entries.map((e) => `${e.firstname} ${e.lastname}`).join(', ')}</p>
           )}
