@@ -253,6 +253,7 @@ model Organization {
   devices                  Device[]
   devicePossessionHistories DevicePossessionHistory[]
   expenses                  Expense[]
+  expenseForecasts          ExpenseForecast[]
 
   @@map("organization")
 }
@@ -873,7 +874,29 @@ model Expense {
   @@map("expense")
 }
 
+model ExpenseForecast {
+  id             Int                      @id @default(autoincrement())
+  organizationId Int                      @map("organization_id")
+  organization   Organization             @relation(fields: [organizationId], references: [id])
+  description    String?                  @map("description")
+  type           ExpenseType              @map("type")
+  amount         Float                    @map("amount")
+  frequency      ExpenseForecastFrequency @map("frequency")
+  createdAt      DateTime                 @default(now()) @map("created_at")
+  updatedAt      DateTime                 @updatedAt @map("updated_at")
+
+  @@index([organizationId])
+  @@map("expense_forecast")
+}
+
 // ENUMS
+
+enum ExpenseForecastFrequency {
+  monthly
+  yearly
+
+  @@map("expenseForecastFrequency")
+}
 
 enum ExpenseType {
   salary

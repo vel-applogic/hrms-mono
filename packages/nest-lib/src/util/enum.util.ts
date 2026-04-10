@@ -10,6 +10,7 @@ import {
   DeviceStatus,
   DeviceType,
   EmployeeStatusEnum,
+  ExpenseForecastFrequency,
     ExpenseType,
   HolidayType,
   LeaveDayHalfEnum,
@@ -32,6 +33,7 @@ import {
   DeviceStatusDtoEnum,
   DeviceTypeDtoEnum,
   EmployeeStatusDtoEnum,
+  ExpenseForecastFrequencyDtoEnum,
   ExpenseTypeDtoEnum,
   HolidayTypeDtoEnum,
   LeaveDayHalfDtoEnum,
@@ -637,6 +639,34 @@ export function expenseTypeDtoEnumToDbEnum(dtoEnum: ExpenseTypeDtoEnum): Expense
   const dbEnum = mapping[dtoEnum];
   if (!dbEnum) {
     throw new Error(`Unknown ExpenseTypeDtoEnum: ${dtoEnum}`);
+  }
+
+  return dbEnum;
+}
+
+export function expenseForecastFrequencyDbEnumToDtoEnum(dbEnum: ExpenseForecastFrequency): ExpenseForecastFrequencyDtoEnum {
+  const mapping: Record<ExpenseForecastFrequency, ExpenseForecastFrequencyDtoEnum> = {
+    monthly: ExpenseForecastFrequencyDtoEnum.monthly,
+    yearly: ExpenseForecastFrequencyDtoEnum.yearly,
+  };
+
+  const dtoEnum = mapping[dbEnum];
+  if (!dtoEnum) {
+    throw new Error(`Unknown ExpenseForecastFrequency: ${dbEnum}`);
+  }
+
+  return dtoEnum;
+}
+
+export function expenseForecastFrequencyDtoEnumToDbEnum(dtoEnum: ExpenseForecastFrequencyDtoEnum): ExpenseForecastFrequency {
+  const mapping: Record<ExpenseForecastFrequencyDtoEnum, ExpenseForecastFrequency> = {
+    [ExpenseForecastFrequencyDtoEnum.monthly]: 'monthly',
+    [ExpenseForecastFrequencyDtoEnum.yearly]: 'yearly',
+  };
+
+  const dbEnum = mapping[dtoEnum];
+  if (!dbEnum) {
+    throw new Error(`Unknown ExpenseForecastFrequencyDtoEnum: ${dtoEnum}`);
   }
 
   return dbEnum;

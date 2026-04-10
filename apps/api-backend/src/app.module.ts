@@ -26,6 +26,7 @@ import { HolidayModule } from './module/holiday/holiday.module.js';
 import { SeederModule } from './module/seeder/seeder.module.js';
 import { DeviceModule } from './module/device/device.module.js';
 import { ExpenseModule } from './module/expense/expense.module.js';
+import { ExpenseForecastModule } from './module/expense-forecast/expense-forecast.module.js';
 import { PolicyModule } from './module/policy/policy.module.js';
 import { ServiceModule } from './service/service.module.js';
 
@@ -58,6 +59,7 @@ import { ServiceModule } from './service/service.module.js';
     PolicyModule,
     DeviceModule,
     ExpenseModule,
+    ExpenseForecastModule,
     SeederModule,
     ExternalServiceModule,
     MediaModule,

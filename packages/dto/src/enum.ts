@@ -165,3 +165,8 @@ export enum ExpenseTypeDtoEnum {
   digitalSignature = 'digitalSignature',
   other = 'other',
 }
+
+export enum ExpenseForecastFrequencyDtoEnum {
+  monthly = 'monthly',
+  yearly = 'yearly',
+}

@@ -11,6 +11,8 @@ import { Pencil, Plus, Trash2, X } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+import { ExpenseForecastWidget } from '@/feature/expense-forecast/component/expense-forecast-widget';
+
 import { ExpenseSummaryWidget } from './component/expense-summary-widget';
 import { ExpenseDeleteDialog } from './container/expense-delete.dialog';
 import { ExpenseUpsertDrawer } from './container/expense-upsert.drawer';
@@ -193,8 +195,9 @@ export function ExpenseData({ data, searchParams, currentFinancialYear, financia
 
   return (
     <div className='flex h-full flex-col gap-4'>
-      <div className='center-container grid gap-4 sm:grid-cols-2'>
+      <div className='center-container grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
         <ExpenseSummaryWidget refreshKey={widgetRefreshKey} financialYearCode={currentFinancialYear} />
+        <ExpenseForecastWidget refreshKey={widgetRefreshKey} />
       </div>
 
       <div className='center-container flex flex-wrap items-end gap-3'>

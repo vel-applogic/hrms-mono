@@ -5,6 +5,7 @@ import { DashboardCandidateCount } from './widget/dashboard-candidate-count-widg
 import { DashboardCandidateStatus } from './widget/dashboard-candidate-status-widget';
 import { DashboardEmployeeCount } from './widget/dashboard-employee-count-widget';
 import { DashboardEmployeeStatus } from './widget/dashboard-employee-status-widget';
+import { ExpenseForecastWidget } from '@/feature/expense-forecast/component/expense-forecast-widget';
 import { ExpenseSummaryWidget } from '@/feature/expense/component/expense-summary-widget';
 import { DashboardLeaveNext7Day } from './widget/dashboard-leave-next7day-widget';
 import { DashboardNoReportingManager } from './widget/dashboard-no-reporting-manager-widget';
@@ -66,6 +67,7 @@ export function Dashboard({ hideAdminWidgets, employeeId }: DashboardProps) {
       {!hideAdminWidgets && (
         <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
           <ExpenseSummaryWidget />
+          <ExpenseForecastWidget />
         </div>
       )}
     </div>

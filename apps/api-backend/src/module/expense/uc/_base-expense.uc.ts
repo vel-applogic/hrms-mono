@@ -17,7 +17,7 @@ export class BaseExpenseUseCase extends BaseUc {
     return {
       id: dbRec.id,
       date: dbRec.date.toISOString().split('T')[0]!,
-      description: dbRec.description,
+      description: dbRec.description ?? '',
       type: expenseTypeDbEnumToDtoEnum(dbRec.type),
       amount: dbRec.amount,
       createdAt: dbRec.createdAt.toISOString(),
