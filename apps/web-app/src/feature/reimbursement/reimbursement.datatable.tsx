@@ -120,7 +120,7 @@ export const ReimbursementDataTable = ({ data, isAdmin, onView, onRefresh }: Pro
         valueGetter: (params) => {
           const fb = params.data?.lastFeedback;
           if (!fb) return '';
-          return `${fb.createdBy.firstname}: ${fb.message}`;
+          return fb.message;
         },
       },
       {
