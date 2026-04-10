@@ -20,7 +20,7 @@ export class PayslipListUc implements IUseCase<Params, PaginatedResponseType<Pay
   ) {}
 
   public async execute(params: Params): Promise<PaginatedResponseType<PayslipListResponseType>> {
-    this.logger.i('Listing payslips', { month: params.filterDto.month, year: params.filterDto.year });
+    this.logger.i('Listing payslips', { months: params.filterDto.months, year: params.filterDto.year });
     await this.validate(params);
     return await this.search(params);
   }
@@ -34,7 +34,7 @@ export class PayslipListUc implements IUseCase<Params, PaginatedResponseType<Pay
       this.payrollPayslipDao.findWithPagination({
         page: params.filterDto.pagination.page,
         limit: params.filterDto.pagination.limit,
-        month: params.filterDto.month,
+        months: params.filterDto.months,
         year: params.filterDto.year,
         employeeIds: params.filterDto.employeeIds,
         organizationId: params.currentUser.organizationId,

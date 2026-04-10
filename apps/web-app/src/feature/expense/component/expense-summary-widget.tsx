@@ -1,21 +1,28 @@
 'use client';
 
 import type { ExpenseSummaryResponseType } from '@repo/dto';
+import { getFinancialYearCode } from '@repo/shared';
 import { DashboardWidget, DashboardWidgetIcon } from '@repo/ui/component/ui/dashboard-widget';
 import { IndianRupee, TrendingUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { getExpenseSummary } from '@/lib/action/expense.actions';
 
-export function ExpenseSummaryWidget() {
+interface Props {
+  refreshKey?: number;
+  financialYearCode?: string;
+}
+
+export function ExpenseSummaryWidget({ refreshKey, financialYearCode }: Props) {
+  const fyCode = financialYearCode ?? getFinancialYearCode(new Date());
   const [data, setData] = useState<ExpenseSummaryResponseType | null>(null);
 
   useEffect(() => {
     getExpenseSummary().then(setData);
-  }, []);
+  }, [refreshKey]);
 
   return (
-    <div className='grid gap-4 sm:grid-cols-2'>
+    <>
       <DashboardWidget href='/expense'>
         <div className='flex w-full items-start gap-5'>
           <DashboardWidgetIcon icon={IndianRupee} />
@@ -23,8 +30,8 @@ export function ExpenseSummaryWidget() {
             <div className='h-9 w-16 animate-pulse rounded bg-muted' />
           ) : (
             <div className='flex flex-col'>
-              <span className='text-3xl font-semibold text-primary'>
-                {data.thisMonthTotal.toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 })}
+              <span className='text-3xl font-semibold text-orange-500'>
+                {`₹ ${data.thisMonthTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
               </span>
               <span className='text-sm text-muted-foreground'>This Month Expense</span>
             </div>
@@ -39,14 +46,14 @@ export function ExpenseSummaryWidget() {
             <div className='h-9 w-16 animate-pulse rounded bg-muted' />
           ) : (
             <div className='flex flex-col'>
-              <span className='text-3xl font-semibold text-primary'>
-                {data.financialYearTotal.toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 })}
+              <span className='text-3xl font-semibold text-orange-500'>
+                {`₹ ${data.financialYearTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
               </span>
-              <span className='text-sm text-muted-foreground'>Financial Year Expense</span>
+              <span className='text-sm text-muted-foreground'>{fyCode} Expense</span>
             </div>
           )}
         </div>
       </DashboardWidget>
-    </div>
+    </>
   );
 }

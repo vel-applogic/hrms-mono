@@ -84,7 +84,7 @@ export class PayrollPayslipDao extends BaseDao {
     page: number;
     limit: number;
     organizationId: number;
-    month?: number;
+    months?: number[];
     year?: number;
     employeeIds?: number[];
     tx?: Prisma.TransactionClient;
@@ -94,7 +94,7 @@ export class PayrollPayslipDao extends BaseDao {
 
     const where: Prisma.PayrollPayslipWhereInput = {
       organizationId: params.organizationId,
-      ...(params.month != null ? { month: params.month } : {}),
+      ...(params.months?.length ? { month: { in: params.months } } : {}),
       ...(params.year != null ? { year: params.year } : {}),
       ...(params.employeeIds?.length ? { userId: { in: params.employeeIds } } : {}),
     };

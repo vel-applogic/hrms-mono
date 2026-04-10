@@ -863,7 +863,7 @@ model Expense {
   organizationId Int         @map("organization_id")
   organization   Organization @relation(fields: [organizationId], references: [id])
   date           DateTime    @map("date") @db.Date
-  description    String      @map("description")
+  description    String?     @map("description")
   type           ExpenseType @map("type")
   amount         Float       @map("amount")
   createdAt      DateTime    @default(now()) @map("created_at")

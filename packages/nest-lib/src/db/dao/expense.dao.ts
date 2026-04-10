@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@repo/db';
 import type { ExpenseFilterRequestType } from '@repo/dto';
-import { DbOperationError, DbRecordNotFoundError } from '@repo/shared';
+import { DbOperationError, DbRecordNotFoundError, getFinancialYearDateRange } from '@repo/shared';
 
 import { TrackQuery } from '../../decorator/track-query.decorator.js';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -74,6 +74,23 @@ export class ExpenseDao extends BaseDao {
 
     if (params.filterDto.types && params.filterDto.types.length > 0) {
       where.type = { in: params.filterDto.types };
+    }
+
+    if (params.filterDto.financialYear && params.filterDto.months && params.filterDto.months.length > 0) {
+      const { start, end } = getFinancialYearDateRange(params.filterDto.financialYear);
+      const fyStartYear = start.getFullYear();
+      const fyEndYear = end.getFullYear();
+      const dateConditions: Prisma.ExpenseWhereInput[] = params.filterDto.months.map((m) => {
+        // FY runs Apr-Mar: months 4-12 are in start year, months 1-3 are in end year
+        const year = m >= 4 ? fyStartYear : fyEndYear;
+        const monthStart = new Date(year, m - 1, 1);
+        const monthEnd = new Date(year, m, 0, 23, 59, 59, 999);
+        return { date: { gte: monthStart, lte: monthEnd } };
+      });
+      where.AND = [{ OR: dateConditions }];
+    } else if (params.filterDto.financialYear) {
+      const { start, end } = getFinancialYearDateRange(params.filterDto.financialYear);
+      where.date = { gte: start, lte: end };
     }
 
     if (params.filterDto.dateStartDate) {

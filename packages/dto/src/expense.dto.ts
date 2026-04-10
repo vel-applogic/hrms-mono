@@ -5,9 +5,9 @@ import { FilterRequestSchema } from './pagination-filter.dto.js';
 
 const ExpenseBaseFieldsSchema = z.object({
   date: z.string().min(1, 'Date is required'),
-  description: z.string().min(1, 'Description is required').trim(),
+  description: z.string().trim().optional().default(''),
   type: z.enum(ExpenseTypeDtoEnum),
-  amount: z.number().min(0, 'Amount must be non-negative'),
+  amount: z.number().min(1, 'Amount must be at least 1'),
 });
 
 export const ExpenseCreateRequestSchema = ExpenseBaseFieldsSchema;
@@ -33,6 +33,8 @@ export type ExpenseSummaryResponseType = z.infer<typeof ExpenseSummaryResponseSc
 
 export const ExpenseFilterRequestSchema = FilterRequestSchema.extend({
   types: z.array(z.enum(ExpenseTypeDtoEnum)).optional(),
+  financialYear: z.string().optional(),
+  months: z.array(z.number().min(1).max(12)).optional(),
   dateStartDate: z.string().optional(),
   dateEndDate: z.string().optional(),
 });

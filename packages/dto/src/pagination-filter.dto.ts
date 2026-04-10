@@ -94,6 +94,16 @@ export const SearchParamsSchema = z.object({
     .transform((val) =>
       val ? val.split(',').map((s) => Number(s.trim())).filter((n) => !isNaN(n) && n > 0) : undefined,
     ),
+  deviceTypes: z
+    .string()
+    .optional()
+    .transform((val) => (val ? val.split(',').map((s) => s.trim()).filter(Boolean) : undefined)),
+  months: z
+    .string()
+    .optional()
+    .transform((val) =>
+      val ? val.split(',').map((s) => Number(s.trim())).filter((n) => !isNaN(n) && n >= 1 && n <= 12) : undefined,
+    ),
 });
 
 export type SearchParamsType = z.infer<typeof SearchParamsSchema>;

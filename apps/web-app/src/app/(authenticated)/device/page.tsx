@@ -28,6 +28,10 @@ export default async function DevicePage({ searchParams }: Props) {
     deviceFilterRequest.assignedToIds = deviceSearchParams.userId;
   }
 
+  if (deviceSearchParams.deviceTypes && deviceSearchParams.deviceTypes.length > 0) {
+    deviceFilterRequest.types = deviceSearchParams.deviceTypes as DeviceFilterRequestType['types'];
+  }
+
   const data = await deviceService.search(deviceFilterRequest);
 
   return (

@@ -2,7 +2,6 @@
 
 import type { EmployeeListResponseType, PayslipDetailResponseType, PayslipListResponseType } from '@repo/dto';
 import { SelectSearchMulti } from '@repo/ui/component/select-search-multiple';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/shadcn/select';
 import { Button } from '@repo/ui/component/ui/button';
 import { Input } from '@repo/ui/component/ui/input';
 import { DataTableSimple } from '@repo/ui/container/datatable/datatable';
@@ -18,6 +17,11 @@ import { PayslipGenerateDrawer } from './payslip-generate.drawer';
 import { PayslipViewDrawer } from './payslip-view.drawer';
 
 const MONTH_LABELS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+const MONTH_OPTIONS = MONTH_LABELS.map((label, i) => ({
+  value: String(i + 1),
+  label,
+}));
 
 function formatAmount(value: number, currencySymbol: string | null | undefined, currencyCode: string | undefined) {
   const prefix = currencySymbol ?? currencyCode ?? '';
@@ -51,7 +55,7 @@ function DownloadButton({ onDownload }: { onDownload: () => Promise<void> }) {
 
 export function PayslipData() {
   const now = new Date();
-  const [month, setMonth] = useState<string>('');
+  const [selectedMonths, setSelectedMonths] = useState<string[]>([]);
   const [year, setYear] = useState<string>(String(now.getFullYear()));
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([]);
   const [employeeOptions, setEmployeeOptions] = useState<{ value: string; label: string }[]>([]);
@@ -82,14 +86,14 @@ export function PayslipData() {
 
   useEffect(() => {
     fetchData();
-  }, [month, year, selectedEmployeeIds, page]);
+  }, [selectedMonths, year, selectedEmployeeIds, page]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const result = await searchPayslips({
         pagination: { page, limit },
-        month: month ? parseInt(month, 10) : undefined,
+        months: selectedMonths.length > 0 ? selectedMonths.map(Number) : undefined,
         year: year && !isNaN(parseInt(year, 10)) ? parseInt(year, 10) : undefined,
         employeeIds: selectedEmployeeIds.length > 0 ? selectedEmployeeIds.map(Number) : undefined,
       });
@@ -204,27 +208,18 @@ export function PayslipData() {
     <div className='flex flex-1 flex-col gap-4'>
       {/* Toolbar */}
       <div className='flex flex-wrap items-end gap-3'>
-        <div className='flex flex-col gap-1 min-w-[130px]'>
+        <div className='flex flex-col gap-1 w-[200px]'>
           <span className='text-xs text-muted-foreground'>Month</span>
-          <Select
-            value={month || 'all'}
-            onValueChange={(v) => {
-              setMonth(v === 'all' ? '' : v);
+          <SelectSearchMulti
+            values={selectedMonths}
+            options={MONTH_OPTIONS}
+            placeholder='All months'
+            searchPlaceholder='Search months...'
+            onChange={(vals) => {
+              setSelectedMonths(vals);
               setPage(1);
             }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder='All months' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='all'>All months</SelectItem>
-              {MONTH_LABELS.map((label, i) => (
-                <SelectItem key={i + 1} value={String(i + 1)}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          />
         </div>
 
         <div className='flex flex-col gap-1 w-[90px]'>

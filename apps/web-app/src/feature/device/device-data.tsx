@@ -1,10 +1,13 @@
 'use client';
 
-import { DeviceDetailResponseType, DeviceResponseType, EmployeeListResponseType, PaginatedResponseType, SearchParamsType } from '@repo/dto';
+import { DeviceDetailResponseType, DeviceResponseType, DeviceTypeDtoEnum, EmployeeListResponseType, PaginatedResponseType, SearchParamsType } from '@repo/dto';
+import { deviceTypeDtoEnumToReadableLabel } from '@repo/shared';
+import { SelectOption } from '@repo/ui/component/select-search';
+import { SelectSearchMulti } from '@repo/ui/component/select-search-multiple';
 import { Button } from '@repo/ui/component/ui/button';
 import { Plus, X } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { getDeviceById } from '@/lib/action/device.actions';
 import { getEmployeesList } from '@/lib/action/employee.actions';
@@ -31,13 +34,29 @@ export const DeviceData = ({ data, searchParams }: Props) => {
   const [viewingDevice, setViewingDevice] = useState<DeviceDetailResponseType | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingDevice, setDeletingDevice] = useState<DeviceResponseType | null>(null);
-  const [employees, setEmployees] = useState<EmployeeListResponseType[]>([]);
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>(
-    searchParams.userId && searchParams.userId.length > 0 ? String(searchParams.userId[0]) : '',
+  const [employeeOptions, setEmployeeOptions] = useState<SelectOption[]>([]);
+  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>(
+    searchParams.userId ? searchParams.userId.map(String) : [],
   );
+  const [selectedTypes, setSelectedTypes] = useState<string[]>(searchParams.deviceTypes ?? []);
+
+  const typeOptions: SelectOption[] = Object.values(DeviceTypeDtoEnum).map((t) => ({
+    value: t,
+    label: deviceTypeDtoEnumToReadableLabel(t),
+  }));
 
   useEffect(() => {
-    getEmployeesList().then(setEmployees);
+    getEmployeesList()
+      .then((employees: EmployeeListResponseType[]) =>
+        setEmployeeOptions(
+          employees.map((e) => ({
+            value: String(e.id),
+            label: `${e.firstname} ${e.lastname}`,
+            keywords: [e.email],
+          })),
+        ),
+      )
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -101,31 +120,44 @@ export const DeviceData = ({ data, searchParams }: Props) => {
     refresh();
   };
 
-  const handleEmployeeFilterChange = (value: string) => {
-    setSelectedEmployeeId(value);
+  const updateFilters = (updates: Record<string, string | undefined>) => {
     const params = new URLSearchParams(currentSearchParams.toString());
-    if (value) {
-      params.set('userId', value);
-    } else {
-      params.delete('userId');
+    for (const [key, value] of Object.entries(updates)) {
+      if (value) {
+        params.set(key, value);
+      } else {
+        params.delete(key);
+      }
     }
     params.set('page', '1');
     replace(params.toString() ? `${pathname}?${params.toString()}` : pathname);
   };
 
+  const handleEmployeeFilterChange = (values: string[]) => {
+    setSelectedEmployeeIds(values);
+    updateFilters({ userId: values.length > 0 ? values.join(',') : undefined });
+  };
+
+  const handleTypeFilterChange = (values: string[]) => {
+    setSelectedTypes(values);
+    updateFilters({ deviceTypes: values.length > 0 ? values.join(',') : undefined });
+  };
+
   const handleClearAll = () => {
     setSearchText('');
-    setSelectedEmployeeId('');
+    setSelectedEmployeeIds([]);
+    setSelectedTypes([]);
     replace(pathname);
   };
 
-  const hasActiveFilters = searchText.trim().length > 0 || (searchParams.search?.trim().length ?? 0) > 0 || selectedEmployeeId.length > 0;
+  const hasActiveFilters = searchText.trim().length > 0 || (searchParams.search?.trim().length ?? 0) > 0 || selectedEmployeeIds.length > 0 || selectedTypes.length > 0;
 
   return (
     <div className='flex h-full flex-col gap-4'>
-      <div className='center-container flex items-center justify-between'>
-        <div className='flex items-center gap-3'>
-          <div className='flex h-10 w-[298px] items-center gap-3 rounded-[40px] border border-input bg-white px-4'>
+      <div className='center-container flex flex-wrap items-end gap-3'>
+        <div className='flex flex-col gap-1 min-w-[250px]'>
+          <span className='text-xs text-muted-foreground'>Search</span>
+          <div className='flex h-10 items-center gap-3 rounded-[40px] border border-input bg-white px-4'>
             <svg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'>
               <path
                 d='M7.33 12.67A5.33 5.33 0 1 0 7.33 2a5.33 5.33 0 0 0 0 10.67ZM14 14l-2.9-2.9'
@@ -143,29 +175,39 @@ export const DeviceData = ({ data, searchParams }: Props) => {
               className='w-full bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none'
             />
           </div>
-          <select
-            value={selectedEmployeeId}
-            onChange={(e) => handleEmployeeFilterChange(e.target.value)}
-            className='h-10 rounded-[40px] border border-input bg-white px-4 text-sm font-medium text-foreground focus:outline-none'
-          >
-            <option value=''>All Employees</option>
-            {employees.map((e) => (
-              <option key={e.id} value={String(e.id)}>
-                {e.firstname} {e.lastname}
-              </option>
-            ))}
-          </select>
-          {hasActiveFilters && (
-            <Button variant='outline' size='sm' onClick={handleClearAll} className='shrink-0'>
-              <X className='h-4 w-4' />
-              Clear
-            </Button>
-          )}
         </div>
-        <Button className='rounded-[40px]' onClick={handleAdd}>
-          <Plus className='h-4 w-4' />
-          Add new device
-        </Button>
+        <div className='flex flex-col gap-1 w-[250px]'>
+          <span className='text-xs text-muted-foreground'>Employees</span>
+          <SelectSearchMulti
+            values={selectedEmployeeIds}
+            options={employeeOptions}
+            placeholder='All employees'
+            searchPlaceholder='Search employees...'
+            onChange={handleEmployeeFilterChange}
+          />
+        </div>
+        <div className='flex flex-col gap-1 w-[200px]'>
+          <span className='text-xs text-muted-foreground'>Type</span>
+          <SelectSearchMulti
+            values={selectedTypes}
+            options={typeOptions}
+            placeholder='All types'
+            searchPlaceholder='Search types...'
+            onChange={handleTypeFilterChange}
+          />
+        </div>
+        {hasActiveFilters && (
+          <Button variant='outline' size='sm' onClick={handleClearAll} className='shrink-0'>
+            <X className='h-4 w-4' />
+            Clear
+          </Button>
+        )}
+        <div className='ml-auto'>
+          <Button className='rounded-[40px]' onClick={handleAdd}>
+            <Plus className='h-4 w-4' />
+            Add new device
+          </Button>
+        </div>
       </div>
 
       <div className='center-container flex flex-1 flex-col min-h-0'>

@@ -6,7 +6,7 @@ export const PayrollPayslipLineItemTypeDtoEnum = ['earning', 'deduction'] as con
 export type PayrollPayslipLineItemTypeDtoEnum = (typeof PayrollPayslipLineItemTypeDtoEnum)[number];
 
 export const PayslipFilterRequestSchema = FilterRequestSchema.extend({
-  month: z.number().min(1).max(12).optional(),
+  months: z.array(z.number().min(1).max(12)).optional(),
   year: z.number().min(2000).max(2100).optional(),
   employeeIds: z.array(z.number()).optional(),
 });
