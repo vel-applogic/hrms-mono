@@ -2,7 +2,7 @@
 
 import { cn } from '@repo/ui/lib/utils';
 import type { LucideIcon } from 'lucide-react';
-import { Briefcase, Building2, CalendarDays, FileText, HandCoins, Laptop, LayoutDashboard, MessageSquare, Receipt, ScrollText, UserRound, Users } from 'lucide-react';
+import { Briefcase, Building2, CalendarDays, FileText, HandCoins, Laptop, LayoutDashboard, MessageSquare, Receipt, ReceiptText, ScrollText, UserRound, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -24,6 +24,7 @@ const adminNavItems: NavItem[] = [
   { label: 'Leaves & Holidays', href: '/leaves', icon: CalendarDays, superAdminOnly: false },
   { label: 'Devices', href: '/device', icon: Laptop, superAdminOnly: false },
   { label: 'Expenses', href: '/expense', icon: Receipt, superAdminOnly: false },
+  { label: 'Reimbursements', href: '/reimbursement', icon: ReceiptText, superAdminOnly: false },
 ];
 
 const employeeNavItems: NavItem[] = [
@@ -35,6 +36,7 @@ const employeeNavItems: NavItem[] = [
   { label: 'Leaves & Holidays', href: '/emp/leave', icon: CalendarDays, superAdminOnly: false },
   { label: 'Policies', href: '/emp/policy', icon: FileText, superAdminOnly: false },
   { label: 'My Devices', href: '/emp/device', icon: Laptop, superAdminOnly: false },
+  { label: 'Reimbursements', href: '/emp/reimbursement', icon: ReceiptText, superAdminOnly: false },
 ];
 
 interface Props {

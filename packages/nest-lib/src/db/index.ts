@@ -28,6 +28,9 @@ export {
   DevicePossessionHistoryDao,
   ExpenseDao,
   ExpenseForecastDao,
+  ReimbursementDao,
+  ReimbursementHasMediaDao,
+  ReimbursementHasFeedbackDao,
   PayrollPayslipDao,
   UserInviteDao,
   OrganizationSettingDao,
@@ -76,6 +79,9 @@ export type {
   DeviceDetailRecordType,
   ExpenseSelectTableRecordType,
   ExpenseForecastSelectTableRecordType,
+  ReimbursementWithRelationsType,
+  ReimbursementListRecordType,
+  ReimbursementSelectTableRecordType,
 } from './dao/index.js';
 export { CommonDbModule } from './db-module.js';
 export { PrismaService } from './prisma/prisma.service.js';

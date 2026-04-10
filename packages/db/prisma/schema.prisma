@@ -29,6 +29,7 @@ model Media {
   organizationHasDocuments    OrganizationHasDocument[]
   employyBgvFeedbackHasMedias employyBgvFeedbackHasMedia[]
   deviceHasMedias             DeviceHasMedia[]
+  reimbursementHasMedias      ReimbursementHasMedia[]
 
   @@map("media")
 }
@@ -114,27 +115,29 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  auditActivities            AuditActivity[]
-  userForgotPasswords        UserForgotPassword[]
-  userVerifyEmails           UserVerifyEmail[]
-  userInvites                UserInvite[]           @relation("UserInviteUser")
-  sentInvites                UserInvite[]           @relation("UserInviteInvitedBy")
-  candidateHasFeedbacks      CandidateHasFeedback[]
-  reportTo                   Employee[]             @relation("EmployeeReportTo")
-  employees                  Employee[]             @relation("EmployeeUser")
-  employeeHasMedias          EmployeeHasMedia[]     @relation("EmployeeHasMediaUser")
-  payrollCompensations       PayrollCompensation[]  @relation("EmployeeCompensationUser")
-  employeeFeedbacksCreatedBy EmployeeFeedback[]     @relation("EmployeeFeedbackCreatedBy")
-  employeeFeedbacks          EmployeeFeedback[]     @relation("EmployeeFeedbackUser")
-  leaves                     Leave[]
-  employeeLeaveCounters      EmployeeLeaveCounter[]
-  payrollDeductions          PayrollDeduction[]
-  payrollPayslips            PayrollPayslip[]
-  organizationHasUsers       OrganizationHasUser[]
-  userInBranches             UserInBranch[]
-  employeeBgvFeedbacks       employeeBgvFeedback[]  @relation("EmployeeBgvFeedbackUser")
-  assignedDevices            Device[]                   @relation("DeviceAssignedTo")
-  devicePossessionHistories  DevicePossessionHistory[]
+  auditActivities                 AuditActivity[]
+  userForgotPasswords             UserForgotPassword[]
+  userVerifyEmails                UserVerifyEmail[]
+  userInvites                     UserInvite[]               @relation("UserInviteUser")
+  sentInvites                     UserInvite[]               @relation("UserInviteInvitedBy")
+  candidateHasFeedbacks           CandidateHasFeedback[]
+  reportTo                        Employee[]                 @relation("EmployeeReportTo")
+  employees                       Employee[]                 @relation("EmployeeUser")
+  employeeHasMedias               EmployeeHasMedia[]         @relation("EmployeeHasMediaUser")
+  payrollCompensations            PayrollCompensation[]      @relation("EmployeeCompensationUser")
+  employeeFeedbacksCreatedBy      EmployeeFeedback[]         @relation("EmployeeFeedbackCreatedBy")
+  employeeFeedbacks               EmployeeFeedback[]         @relation("EmployeeFeedbackUser")
+  leaves                          Leave[]
+  employeeLeaveCounters           EmployeeLeaveCounter[]
+  payrollDeductions               PayrollDeduction[]
+  payrollPayslips                 PayrollPayslip[]
+  organizationHasUsers            OrganizationHasUser[]
+  userInBranches                  UserInBranch[]
+  employeeBgvFeedbacks            employeeBgvFeedback[]      @relation("EmployeeBgvFeedbackUser")
+  assignedDevices                 Device[]                   @relation("DeviceAssignedTo")
+  devicePossessionHistories       DevicePossessionHistory[]
+  reimbursements                  Reimbursement[]
+  reimbursementFeedbacksCreatedBy ReimbursementHasFeedback[]
 
   @@map("users")
 }
@@ -195,16 +198,16 @@ model UserInvite {
 }
 
 model DevicePossessionHistory {
-  id             Int       @id @default(autoincrement())
-  organizationId Int       @map("organization_id")
+  id             Int          @id @default(autoincrement())
+  organizationId Int          @map("organization_id")
   organization   Organization @relation(fields: [organizationId], references: [id])
-  userId         Int       @map("user_id")
-  user           User      @relation(fields: [userId], references: [id])
-  deviceId       Int       @map("device_id")
-  device         Device    @relation(fields: [deviceId], references: [id])
-  fromDate       DateTime  @map("from_date")
-  toDate         DateTime? @map("to_date")
-  notes          String[]  @map("notes")
+  userId         Int          @map("user_id")
+  user           User         @relation(fields: [userId], references: [id])
+  deviceId       Int          @map("device_id")
+  device         Device       @relation(fields: [deviceId], references: [id])
+  fromDate       DateTime     @map("from_date")
+  toDate         DateTime?    @map("to_date")
+  notes          String[]     @map("notes")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -228,32 +231,33 @@ model Organization {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  organizationHasUsers     OrganizationHasUser[]
-  branches                 Branch[]
-  userInBranches           UserInBranch[]
-  userInvites              UserInvite[]
-  employees                Employee[]
-  payrollCompensations     PayrollCompensation[]
-  payrollDeductions        PayrollDeduction[]
-  payrollPayslips          PayrollPayslip[]
-  employeeFeedbacks        EmployeeFeedback[]
-  employeeLeaveCounters    EmployeeLeaveCounter[]
-  leaves                   Leave[]
-  candidates               Candidate[]
-  policies                 Policy[]
-  medias                   Media[]
-  settings                 OrganizationSetting[]
-  organizationHasDocuments OrganizationHasDocument[]
-  employeeBgvFeedbacks     employeeBgvFeedback[]
-  addresses                Address[]
-  contacts                 Contact[]
-  organizationHasContacts  OrganizationHasContact[]
-  organizationHasAddresses OrganizationHasAddress[]
-  holidays                 Holiday[]
-  devices                  Device[]
+  organizationHasUsers      OrganizationHasUser[]
+  branches                  Branch[]
+  userInBranches            UserInBranch[]
+  userInvites               UserInvite[]
+  employees                 Employee[]
+  payrollCompensations      PayrollCompensation[]
+  payrollDeductions         PayrollDeduction[]
+  payrollPayslips           PayrollPayslip[]
+  employeeFeedbacks         EmployeeFeedback[]
+  employeeLeaveCounters     EmployeeLeaveCounter[]
+  leaves                    Leave[]
+  candidates                Candidate[]
+  policies                  Policy[]
+  medias                    Media[]
+  settings                  OrganizationSetting[]
+  organizationHasDocuments  OrganizationHasDocument[]
+  employeeBgvFeedbacks      employeeBgvFeedback[]
+  addresses                 Address[]
+  contacts                  Contact[]
+  organizationHasContacts   OrganizationHasContact[]
+  organizationHasAddresses  OrganizationHasAddress[]
+  holidays                  Holiday[]
+  devices                   Device[]
   devicePossessionHistories DevicePossessionHistory[]
   expenses                  Expense[]
   expenseForecasts          ExpenseForecast[]
+  reimbursements            Reimbursement[]
 
   @@map("organization")
 }
@@ -764,24 +768,24 @@ enum DeviceStatus {
 }
 
 model Device {
-  id                Int              @id @default(autoincrement())
-  organizationId    Int              @map("organization_id")
-  organization      Organization     @relation(fields: [organizationId], references: [id])
-  type              DeviceType       @map("type")
-  brand             String           @map("brand")
-  model             String           @map("model")
-  serialNumber      String           @map("serial_number")
-  price             Float            @map("price")
-  purchasedAt       DateTime?        @map("purchased_at") @db.Date
-  warrantyExpiresAt DateTime         @map("warranty_expires_at") @db.Date
-  inWarranty        Boolean          @default(true) @map("in_warranty")
-  status            DeviceStatus     @map("status")
-  config            String?          @map("config")
-  assignedToId      Int?             @map("assigned_to_id")
-  assignedTo        User?            @relation("DeviceAssignedTo", fields: [assignedToId], references: [id])
-  createdAt         DateTime         @default(now()) @map("created_at")
-  updatedAt         DateTime         @updatedAt @map("updated_at")
-  deviceHasMedias   DeviceHasMedia[]
+  id                  Int                       @id @default(autoincrement())
+  organizationId      Int                       @map("organization_id")
+  organization        Organization              @relation(fields: [organizationId], references: [id])
+  type                DeviceType                @map("type")
+  brand               String                    @map("brand")
+  model               String                    @map("model")
+  serialNumber        String                    @map("serial_number")
+  price               Float                     @map("price")
+  purchasedAt         DateTime?                 @map("purchased_at") @db.Date
+  warrantyExpiresAt   DateTime                  @map("warranty_expires_at") @db.Date
+  inWarranty          Boolean                   @default(true) @map("in_warranty")
+  status              DeviceStatus              @map("status")
+  config              String?                   @map("config")
+  assignedToId        Int?                      @map("assigned_to_id")
+  assignedTo          User?                     @relation("DeviceAssignedTo", fields: [assignedToId], references: [id])
+  createdAt           DateTime                  @default(now()) @map("created_at")
+  updatedAt           DateTime                  @updatedAt @map("updated_at")
+  deviceHasMedias     DeviceHasMedia[]
   possessionHistories DevicePossessionHistory[]
 
   @@map("device")
@@ -860,15 +864,15 @@ model AppMigration {
 
 // EXPENSE
 model Expense {
-  id             Int         @id @default(autoincrement())
-  organizationId Int         @map("organization_id")
+  id             Int          @id @default(autoincrement())
+  organizationId Int          @map("organization_id")
   organization   Organization @relation(fields: [organizationId], references: [id])
-  date           DateTime    @map("date") @db.Date
-  description    String?     @map("description")
-  type           ExpenseType @map("type")
-  amount         Float       @map("amount")
-  createdAt      DateTime    @default(now()) @map("created_at")
-  updatedAt      DateTime    @updatedAt @map("updated_at")
+  date           DateTime     @map("date") @db.Date
+  description    String?      @map("description")
+  type           ExpenseType  @map("type")
+  amount         Float        @map("amount")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
 
   @@index([organizationId])
   @@map("expense")
@@ -887,6 +891,68 @@ model ExpenseForecast {
 
   @@index([organizationId])
   @@map("expense_forecast")
+}
+
+// REIMBURSEMENT
+
+enum ReimbursementStatusDbEnum {
+  pending
+  approved
+  paid
+  rejected
+
+  @@map("reimbursementStatusDbEnum")
+}
+
+model Reimbursement {
+  id             Int                       @id @default(autoincrement())
+  organizationId Int                       @map("organization_id")
+  organization   Organization              @relation(fields: [organizationId], references: [id])
+  userId         Int                       @map("user_id")
+  user           User                      @relation(fields: [userId], references: [id])
+  title          String
+  amount         Float
+  status         ReimbursementStatusDbEnum @default(pending)
+  rejectReason   String?                   @map("reject_reason")
+  approvedAt     DateTime?                 @map("approved_at")
+  paidAt         DateTime?                 @map("paid_at")
+  createdAt      DateTime                  @default(now()) @map("created_at")
+  updatedAt      DateTime                  @updatedAt @map("updated_at")
+
+  reimbursementHasMedias    ReimbursementHasMedia[]
+  reimbursementHasFeedbacks ReimbursementHasFeedback[]
+
+  @@index([organizationId])
+  @@index([userId])
+  @@map("reimbursement")
+}
+
+model ReimbursementHasMedia {
+  id              Int           @id @default(autoincrement())
+  reimbursementId Int           @map("reimbursement_id")
+  reimbursement   Reimbursement @relation(fields: [reimbursementId], references: [id])
+  mediaId         Int           @map("media_id")
+  media           Media         @relation(fields: [mediaId], references: [id])
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  @@index([reimbursementId])
+  @@index([mediaId])
+  @@map("reimbursement_has_media")
+}
+
+model ReimbursementHasFeedback {
+  id              Int           @id @default(autoincrement())
+  reimbursementId Int           @map("reimbursement_id")
+  reimbursement   Reimbursement @relation(fields: [reimbursementId], references: [id])
+  createdById     Int           @map("created_by_id")
+  createdBy       User          @relation(fields: [createdById], references: [id])
+  message         String
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  @@index([reimbursementId])
+  @@map("reimbursement_has_feedback")
 }
 
 // ENUMS

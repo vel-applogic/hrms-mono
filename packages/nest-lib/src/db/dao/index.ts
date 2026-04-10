@@ -52,3 +52,6 @@ export { ExpenseDao, type ExpenseSelectTableRecordType } from './expense.dao.js'
 export { ExpenseForecastDao, type ExpenseForecastSelectTableRecordType } from './expense-forecast.dao.js';
 export { DeviceHasMediaDao } from './device-has-media.dao.js';
 export { DevicePossessionHistoryDao } from './device-possession-history.dao.js';
+export { ReimbursementDao, type ReimbursementWithRelationsType, type ReimbursementListRecordType, type ReimbursementSelectTableRecordType } from './reimbursement.dao.js';
+export { ReimbursementHasMediaDao } from './reimbursement-has-media.dao.js';
+export { ReimbursementHasFeedbackDao } from './reimbursement-has-feedback.dao.js';

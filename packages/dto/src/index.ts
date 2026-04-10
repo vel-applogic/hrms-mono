@@ -26,3 +26,4 @@ export * from './holiday.dto.js';
 export * from './device.dto.js';
 export * from './expense.dto.js';
 export * from './expense-forecast.dto.js';
+export * from './reimbursement.dto.js';

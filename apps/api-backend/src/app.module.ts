@@ -27,6 +27,7 @@ import { SeederModule } from './module/seeder/seeder.module.js';
 import { DeviceModule } from './module/device/device.module.js';
 import { ExpenseModule } from './module/expense/expense.module.js';
 import { ExpenseForecastModule } from './module/expense-forecast/expense-forecast.module.js';
+import { ReimbursementModule } from './module/reimbursement/reimbursement.module.js';
 import { PolicyModule } from './module/policy/policy.module.js';
 import { ServiceModule } from './service/service.module.js';
 
@@ -60,6 +61,7 @@ import { ServiceModule } from './service/service.module.js';
     DeviceModule,
     ExpenseModule,
     ExpenseForecastModule,
+    ReimbursementModule,
     SeederModule,
     ExternalServiceModule,
     MediaModule,
@@ -93,6 +95,8 @@ export class AppModule implements NestModule {
         'api/account',
         'api/device/{*path}',
         'api/device',
+        'api/reimbursement/{*path}',
+        'api/reimbursement',
       )
       .forRoutes('*');
   }

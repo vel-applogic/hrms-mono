@@ -37,6 +37,9 @@ import {
   UserInBranchDao,
   UserInviteDao,
   HolidayDao,
+  ReimbursementDao,
+  ReimbursementHasMediaDao,
+  ReimbursementHasFeedbackDao,
 } from './dao/index.js';
 import { PrismaService } from './prisma/prisma.service.js';
 import { AuditService } from '../service/audit.service.js';
@@ -82,6 +85,9 @@ import { UserForgotPasswordDao } from './dao/user-forgot-password.dao.js';
     DevicePossessionHistoryDao,
     ExpenseDao,
     ExpenseForecastDao,
+    ReimbursementDao,
+    ReimbursementHasMediaDao,
+    ReimbursementHasFeedbackDao,
     PayrollPayslipDao,
     CommonLoggerService,
     AuditActivityDao,
@@ -126,6 +132,9 @@ import { UserForgotPasswordDao } from './dao/user-forgot-password.dao.js';
     DevicePossessionHistoryDao,
     ExpenseDao,
     ExpenseForecastDao,
+    ReimbursementDao,
+    ReimbursementHasMediaDao,
+    ReimbursementHasFeedbackDao,
     PayrollPayslipDao,
     CommonLoggerService,
     AuditActivityDao,

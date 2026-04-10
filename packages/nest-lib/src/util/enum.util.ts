@@ -19,6 +19,7 @@ import {
   MediaTypeDbEnum,
   NoOfDaysInMonthDbEnum,
   NoticePeriodUnit,
+  ReimbursementStatusDbEnum,
   UserRoleDbEnum,
 } from '@repo/db';
 import {
@@ -42,6 +43,7 @@ import {
   MediaTypeDtoEnum,
   NoOfDaysInMonthDtoEnum,
   NoticePeriodUnitDtoEnum,
+  ReimbursementStatusDtoEnum,
   UserRoleDtoEnum,
 } from '@repo/dto';
 
@@ -667,6 +669,38 @@ export function expenseForecastFrequencyDtoEnumToDbEnum(dtoEnum: ExpenseForecast
   const dbEnum = mapping[dtoEnum];
   if (!dbEnum) {
     throw new Error(`Unknown ExpenseForecastFrequencyDtoEnum: ${dtoEnum}`);
+  }
+
+  return dbEnum;
+}
+
+export function reimbursementStatusDbEnumToDtoEnum(dbEnum: ReimbursementStatusDbEnum): ReimbursementStatusDtoEnum {
+  const mapping: Record<ReimbursementStatusDbEnum, ReimbursementStatusDtoEnum> = {
+    pending: ReimbursementStatusDtoEnum.pending,
+    approved: ReimbursementStatusDtoEnum.approved,
+    paid: ReimbursementStatusDtoEnum.paid,
+    rejected: ReimbursementStatusDtoEnum.rejected,
+  };
+
+  const dtoEnum = mapping[dbEnum];
+  if (!dtoEnum) {
+    throw new Error(`Unknown ReimbursementStatusDbEnum: ${dbEnum}`);
+  }
+
+  return dtoEnum;
+}
+
+export function reimbursementStatusDtoEnumToDbEnum(dtoEnum: ReimbursementStatusDtoEnum): ReimbursementStatusDbEnum {
+  const mapping: Record<ReimbursementStatusDtoEnum, ReimbursementStatusDbEnum> = {
+    [ReimbursementStatusDtoEnum.pending]: 'pending',
+    [ReimbursementStatusDtoEnum.approved]: 'approved',
+    [ReimbursementStatusDtoEnum.paid]: 'paid',
+    [ReimbursementStatusDtoEnum.rejected]: 'rejected',
+  };
+
+  const dbEnum = mapping[dtoEnum];
+  if (!dbEnum) {
+    throw new Error(`Unknown ReimbursementStatusDtoEnum: ${dtoEnum}`);
   }
 
   return dbEnum;

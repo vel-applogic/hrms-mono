@@ -170,3 +170,10 @@ export enum ExpenseForecastFrequencyDtoEnum {
   monthly = 'monthly',
   yearly = 'yearly',
 }
+
+export enum ReimbursementStatusDtoEnum {
+  pending = 'pending',
+  approved = 'approved',
+  paid = 'paid',
+  rejected = 'rejected',
+}
