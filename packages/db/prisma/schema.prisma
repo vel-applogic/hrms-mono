@@ -252,6 +252,7 @@ model Organization {
   holidays                 Holiday[]
   devices                  Device[]
   devicePossessionHistories DevicePossessionHistory[]
+  expenses                  Expense[]
 
   @@map("organization")
 }
@@ -856,7 +857,41 @@ model AppMigration {
   @@map("app_migrations")
 }
 
+// EXPENSE
+model Expense {
+  id             Int         @id @default(autoincrement())
+  organizationId Int         @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  date           DateTime    @map("date") @db.Date
+  description    String      @map("description")
+  type           ExpenseType @map("type")
+  amount         Float       @map("amount")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  @@index([organizationId])
+  @@map("expense")
+}
+
 // ENUMS
+
+enum ExpenseType {
+  salary
+  incomeTax
+  rent
+  ai
+  emailService
+  server
+  internet
+  phone
+  account
+  auditor
+  roc
+  digitalSignature
+  other
+
+  @@map("expenseType")
+}
 
 enum UserRoleDbEnum {
   admin

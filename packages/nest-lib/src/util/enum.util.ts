@@ -10,6 +10,7 @@ import {
   DeviceStatus,
   DeviceType,
   EmployeeStatusEnum,
+    ExpenseType,
   HolidayType,
   LeaveDayHalfEnum,
   LeaveStatusEnum,
@@ -31,6 +32,7 @@ import {
   DeviceStatusDtoEnum,
   DeviceTypeDtoEnum,
   EmployeeStatusDtoEnum,
+  ExpenseTypeDtoEnum,
   HolidayTypeDtoEnum,
   LeaveDayHalfDtoEnum,
   LeaveStatusDtoEnum,
@@ -585,6 +587,56 @@ export function deviceStatusDtoEnumToDbEnum(dtoEnum: DeviceStatusDtoEnum): Devic
   const dbEnum = mapping[dtoEnum];
   if (!dbEnum) {
     throw new Error(`Unknown DeviceStatusDtoEnum: ${dtoEnum}`);
+  }
+
+  return dbEnum;
+}
+
+export function expenseTypeDbEnumToDtoEnum(dbEnum: ExpenseType): ExpenseTypeDtoEnum {
+  const mapping: Record<  ExpenseType, ExpenseTypeDtoEnum> = {
+    salary: ExpenseTypeDtoEnum.salary,
+    incomeTax: ExpenseTypeDtoEnum.incomeTax,
+    rent: ExpenseTypeDtoEnum.rent,
+    ai: ExpenseTypeDtoEnum.ai,
+    emailService: ExpenseTypeDtoEnum.emailService,
+    server: ExpenseTypeDtoEnum.server,
+    internet: ExpenseTypeDtoEnum.internet,
+    phone: ExpenseTypeDtoEnum.phone,
+    account: ExpenseTypeDtoEnum.account,
+    auditor: ExpenseTypeDtoEnum.auditor,
+    roc: ExpenseTypeDtoEnum.roc,
+    digitalSignature: ExpenseTypeDtoEnum.digitalSignature,
+    other: ExpenseTypeDtoEnum.other,
+  };
+
+  const dtoEnum = mapping[dbEnum];
+  if (!dtoEnum) {
+    throw new Error(`Unknown ExpenseType: ${dbEnum}`);
+  }
+
+  return dtoEnum;
+}
+
+export function expenseTypeDtoEnumToDbEnum(dtoEnum: ExpenseTypeDtoEnum): ExpenseType {
+  const mapping: Record<ExpenseTypeDtoEnum, ExpenseType> = {
+    [ExpenseTypeDtoEnum.salary]: 'salary',
+    [ExpenseTypeDtoEnum.incomeTax]: 'incomeTax',
+    [ExpenseTypeDtoEnum.rent]: 'rent',
+    [ExpenseTypeDtoEnum.ai]: 'ai',
+    [ExpenseTypeDtoEnum.emailService]: 'emailService',
+    [ExpenseTypeDtoEnum.server]: 'server',
+    [ExpenseTypeDtoEnum.internet]: 'internet',
+    [ExpenseTypeDtoEnum.phone]: 'phone',
+    [ExpenseTypeDtoEnum.account]: 'account',
+    [ExpenseTypeDtoEnum.auditor]: 'auditor',
+    [ExpenseTypeDtoEnum.roc]: 'roc',
+    [ExpenseTypeDtoEnum.digitalSignature]: 'digitalSignature',
+    [ExpenseTypeDtoEnum.other]: 'other',
+  };
+
+  const dbEnum = mapping[dtoEnum];
+  if (!dbEnum) {
+    throw new Error(`Unknown ExpenseTypeDtoEnum: ${dtoEnum}`);
   }
 
   return dbEnum;

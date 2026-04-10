@@ -22,6 +22,8 @@ const adminTabs = [
   { label: 'Employees', href: '/employee', superAdminOnly: false },
   { label: 'Payroll', href: '/payroll/compensation', superAdminOnly: false },
   { label: 'Leaves & Holidays', href: '/leaves/counter', superAdminOnly: false },
+  { label: 'Devices', href: '/device', superAdminOnly: false },
+  { label: 'Expenses', href: '/expense', superAdminOnly: false },
 ];
 
 const employeeTabs = [

@@ -149,3 +149,19 @@ export enum DeviceStatusDtoEnum {
   lost = 'lost',
   stolen = 'stolen',
 }
+
+export enum ExpenseTypeDtoEnum {
+  salary = 'salary',
+  incomeTax = 'incomeTax',
+  rent = 'rent',
+  ai = 'ai',
+  emailService = 'emailService',
+  server = 'server',
+  internet = 'internet',
+  phone = 'phone',
+  account = 'account',
+  auditor = 'auditor',
+  roc = 'roc',
+  digitalSignature = 'digitalSignature',
+  other = 'other',
+}

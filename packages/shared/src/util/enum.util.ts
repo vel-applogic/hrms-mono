@@ -1,4 +1,4 @@
-import { ContactTypeDtoEnum, DeviceStatusDtoEnum, DeviceTypeDtoEnum, HolidayTypeDtoEnum } from '@repo/dto';
+import { ContactTypeDtoEnum, DeviceStatusDtoEnum, DeviceTypeDtoEnum, ExpenseTypeDtoEnum, HolidayTypeDtoEnum } from '@repo/dto';
 
 export function contactTypeDtoEnumToReadableLabel(dtoEnum: ContactTypeDtoEnum): string {
   const mapping: Record<ContactTypeDtoEnum, string> = {
@@ -42,6 +42,26 @@ export function deviceStatusDtoEnumToReadableLabel(dtoEnum: DeviceStatusDtoEnum)
     [DeviceStatusDtoEnum.notWorking]: 'Not Working',
     [DeviceStatusDtoEnum.lost]: 'Lost',
     [DeviceStatusDtoEnum.stolen]: 'Stolen',
+  };
+
+  return mapping[dtoEnum] ?? dtoEnum;
+}
+
+export function expenseTypeDtoEnumToReadableLabel(dtoEnum: ExpenseTypeDtoEnum): string {
+  const mapping: Record<ExpenseTypeDtoEnum, string> = {
+    [ExpenseTypeDtoEnum.salary]: 'Salary',
+    [ExpenseTypeDtoEnum.incomeTax]: 'Income Tax',
+    [ExpenseTypeDtoEnum.rent]: 'Rent',
+    [ExpenseTypeDtoEnum.ai]: 'AI',
+    [ExpenseTypeDtoEnum.emailService]: 'Email Service',
+    [ExpenseTypeDtoEnum.server]: 'Server',
+    [ExpenseTypeDtoEnum.internet]: 'Internet',
+    [ExpenseTypeDtoEnum.phone]: 'Phone',
+    [ExpenseTypeDtoEnum.account]: 'Account',
+    [ExpenseTypeDtoEnum.auditor]: 'Auditor',
+    [ExpenseTypeDtoEnum.roc]: 'ROC',
+    [ExpenseTypeDtoEnum.digitalSignature]: 'Digital Signature',
+    [ExpenseTypeDtoEnum.other]: 'Other',
   };
 
   return mapping[dtoEnum] ?? dtoEnum;

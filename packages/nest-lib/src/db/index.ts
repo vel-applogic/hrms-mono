@@ -26,6 +26,7 @@ export {
   DeviceDao,
   DeviceHasMediaDao,
   DevicePossessionHistoryDao,
+  ExpenseDao,
   PayrollPayslipDao,
   UserInviteDao,
   OrganizationSettingDao,
@@ -72,6 +73,7 @@ export type {
   OrganizationHasUserWithOrganizationType,
   DeviceListRecordType,
   DeviceDetailRecordType,
+  ExpenseSelectTableRecordType,
 } from './dao/index.js';
 export { CommonDbModule } from './db-module.js';
 export { PrismaService } from './prisma/prisma.service.js';

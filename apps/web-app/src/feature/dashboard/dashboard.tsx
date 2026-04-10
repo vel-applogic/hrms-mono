@@ -5,6 +5,7 @@ import { DashboardCandidateCount } from './widget/dashboard-candidate-count-widg
 import { DashboardCandidateStatus } from './widget/dashboard-candidate-status-widget';
 import { DashboardEmployeeCount } from './widget/dashboard-employee-count-widget';
 import { DashboardEmployeeStatus } from './widget/dashboard-employee-status-widget';
+import { DashboardExpenseFinancialYear, DashboardExpenseThisMonth } from './widget/dashboard-expense-widget';
 import { DashboardLeaveNext7Day } from './widget/dashboard-leave-next7day-widget';
 import { DashboardNoReportingManager } from './widget/dashboard-no-reporting-manager-widget';
 import { DashboardOnLeaveToday } from './widget/dashboard-on-leave-today-widget';
@@ -58,6 +59,14 @@ export function Dashboard({ hideAdminWidgets, employeeId }: DashboardProps) {
           <DashboardPayrollCost />
           <DashboardWithoutCompensation />
           <DashboardWithoutDeduction />
+        </div>
+      )}
+
+      {/* Row 6: Expenses */}
+      {!hideAdminWidgets && (
+        <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+          <DashboardExpenseThisMonth />
+          <DashboardExpenseFinancialYear />
         </div>
       )}
     </div>
