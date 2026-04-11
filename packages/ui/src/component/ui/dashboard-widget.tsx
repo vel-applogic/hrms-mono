@@ -99,7 +99,7 @@ export function WidgetInnerMultipleCounter({ values }: { values: WidgetInnerMult
     <div className='flex flex-wrap gap-4'>
       {values.map((value) => {
         return (
-          <div key={value.value} className='flex flex-col'>
+          <div key={value.label} className='flex flex-col'>
             <span className={`text-2xl font-semibold ${value.valueColor}`}>{value.value}</span>
             <span className='text-xs text-muted-foreground'>{value.label}</span>
           </div>

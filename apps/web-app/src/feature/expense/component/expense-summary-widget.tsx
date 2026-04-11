@@ -26,14 +26,14 @@ export function ExpenseSummaryWidget({ refreshKey, financialYearCode, compact }:
     <>
       <Widget label='This Month Expense' icon={IndianRupee} href='/expense' compact={compact}>
         <WidgetInnerSingleCounter
-          value={data?.thisMonthTotal ? `₹ ${data.thisMonthTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}` : null}
+          value={data !== null ? `₹ ${(data.thisMonthTotal ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}` : null}
           valueColor='text-orange-500'
         />
       </Widget>
 
       <Widget label={`${fyCode} Expense`} icon={TrendingUp} href='/expense' compact={compact}>
         <WidgetInnerSingleCounter
-          value={data?.financialYearTotal ? `₹ ${data.financialYearTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}` : null}
+          value={data !== null ? `₹ ${(data.financialYearTotal ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}` : null}
           valueColor='text-orange-500'
         />
       </Widget>
