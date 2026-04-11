@@ -139,6 +139,7 @@ model User {
   reimbursements                  Reimbursement[]
   reimbursementFeedbacksCreatedBy ReimbursementHasFeedback[]
   userInDepartments               UserInDepartment[]
+  notifications                   Notification[]
 
   @@map("users")
 }
@@ -261,6 +262,7 @@ model Organization {
   reimbursements            Reimbursement[]
   departments               Department[]
   userInDepartments         UserInDepartment[]
+  notifications             Notification[]
 
   @@map("organization")
 }
@@ -997,6 +999,51 @@ model ReimbursementHasFeedback {
 
   @@index([reimbursementId])
   @@map("reimbursement_has_feedback")
+}
+
+// NOTIFICATION
+
+enum NotificationLinkDbEnum {
+  dashboard
+  employee
+  leaves
+  reimbursement
+  device
+  payroll
+  candidate
+  policy
+  expense
+  organization
+  user
+  empDashboard
+  empLeave
+  empDetails
+  empDocuments
+  empPayroll
+  empDevice
+  empReimbursement
+  empFeedbacks
+  empPolicy
+
+  @@map("notificationLinkDbEnum")
+}
+
+model Notification {
+  id             Int                    @id @default(autoincrement())
+  organizationId Int                    @map("organization_id")
+  organization   Organization           @relation(fields: [organizationId], references: [id])
+  userId         Int                    @map("user_id")
+  user           User                   @relation(fields: [userId], references: [id])
+  title          String
+  message        String
+  link           NotificationLinkDbEnum
+  isSeen         Boolean                @default(false) @map("is_seen")
+  createdAt      DateTime               @default(now()) @map("created_at")
+  updatedAt      DateTime               @updatedAt @map("updated_at")
+
+  @@index([userId, isSeen])
+  @@index([organizationId])
+  @@map("notification")
 }
 
 // ENUMS

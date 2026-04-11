@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@repo/db';
-import type { LeaveResponseType } from '@repo/dto';
-import { BaseUc, CommonLoggerService, CurrentUserType, EmployeeLeaveCounterDao, IUseCase, LeaveDao, LeaveWithUserType, OrganizationSettingDao, leaveDayHalfDbEnumToDtoEnum, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
+import { type LeaveResponseType, NotificationLinkDtoEnum } from '@repo/dto';
+import { BaseUc, CommonLoggerService, CurrentUserType, EmployeeLeaveCounterDao, IUseCase, LeaveDao, LeaveWithUserType, NotificationService, OrganizationSettingDao, leaveDayHalfDbEnumToDtoEnum, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
 import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
@@ -17,6 +17,7 @@ export class LeaveRejectUc extends BaseUc implements IUseCase<Params, LeaveRespo
     private readonly leaveDao: LeaveDao,
     private readonly organizationSettingDao: OrganizationSettingDao,
     private readonly employeeLeaveCounterDao: EmployeeLeaveCounterDao,
+    private readonly notificationService: NotificationService,
   ) {
     super(prisma, logger);
   }
@@ -40,6 +41,14 @@ export class LeaveRejectUc extends BaseUc implements IUseCase<Params, LeaveRespo
         await this.updateStatus(params, tx);
       });
     }
+
+    void this.notificationService.send({
+      organizationId: params.currentUser.organizationId,
+      userId: existing.userId,
+      title: 'Leave Rejected',
+      message: `Your leave request from ${existing.startDate.toISOString().split('T')[0]} to ${existing.endDate.toISOString().split('T')[0]} has been rejected.`,
+      link: NotificationLinkDtoEnum.empLeave,
+    });
 
     return await this.getResponseById(params);
   }

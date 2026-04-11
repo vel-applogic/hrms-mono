@@ -41,6 +41,7 @@ export {
   OrganizationHasAddressDao,
   OrganizationHasContactDao,
   HolidayDao,
+  NotificationDao,
 } from './dao/index.js';
 export type {
   OrderByParam,
@@ -84,6 +85,7 @@ export type {
   ReimbursementWithRelationsType,
   ReimbursementListRecordType,
   ReimbursementSelectTableRecordType,
+  NotificationSelectTableRecordType,
 } from './dao/index.js';
 export { CommonDbModule } from './db-module.js';
 export { PrismaService } from './prisma/prisma.service.js';

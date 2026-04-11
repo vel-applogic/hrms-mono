@@ -32,6 +32,7 @@ import { ReimbursementModule } from './module/reimbursement/reimbursement.module
 import { PolicyModule } from './module/policy/policy.module.js';
 import { BranchModule } from './module/branch/branch.module.js';
 import { DepartmentModule } from './module/department/department.module.js';
+import { NotificationModule } from './module/notification/notification.module.js';
 import { ServiceModule } from './service/service.module.js';
 
 @Module({
@@ -72,6 +73,7 @@ import { ServiceModule } from './service/service.module.js';
     OrganizationModule,
     BranchModule,
     DepartmentModule,
+    NotificationModule,
   ],
 })
 export class AppModule implements NestModule {
@@ -103,6 +105,8 @@ export class AppModule implements NestModule {
         'api/device',
         'api/reimbursement/{*path}',
         'api/reimbursement',
+        'api/notification/{*path}',
+        'api/notification',
       )
       .forRoutes('*');
   }

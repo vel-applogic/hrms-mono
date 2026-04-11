@@ -38,12 +38,14 @@ import {
   UserInBranchDao,
   UserInviteDao,
   HolidayDao,
+  NotificationDao,
   ReimbursementDao,
   ReimbursementHasMediaDao,
   ReimbursementHasFeedbackDao,
 } from './dao/index.js';
 import { PrismaService } from './prisma/prisma.service.js';
 import { AuditService } from '../service/audit.service.js';
+import { NotificationService } from '../service/notification.service.js';
 import { AuditActivityDao } from './dao/audit-activity.dao.js';
 import { AuditActivityHasEntityDao } from './dao/audit-activity-has-entity.dao.js';
 import { UserVerifyEmailDao } from './dao/user-verify-email.dao.js';
@@ -54,6 +56,7 @@ import { UserForgotPasswordDao } from './dao/user-forgot-password.dao.js';
   providers: [
     PrismaService,
     AuditService,
+    NotificationService,
     CurrencyDao,
     CountryDao,
     UserDao,
@@ -98,10 +101,12 @@ import { UserForgotPasswordDao } from './dao/user-forgot-password.dao.js';
     UserVerifyEmailDao,
     UserInviteDao,
     HolidayDao,
+    NotificationDao,
   ],
   exports: [
     PrismaService,
     AuditService,
+    NotificationService,
     CurrencyDao,
     CountryDao,
     UserDao,
@@ -146,6 +151,7 @@ import { UserForgotPasswordDao } from './dao/user-forgot-password.dao.js';
     UserVerifyEmailDao,
     UserInviteDao,
     HolidayDao,
+    NotificationDao,
   ],
 })
 export class CommonDbModule {}

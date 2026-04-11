@@ -30,3 +30,4 @@ export * from './reimbursement.dto.js';
 export * from './dashboard.dto.js';
 export * from './branch.dto.js';
 export * from './department.dto.js';
+export * from './notification.dto.js';

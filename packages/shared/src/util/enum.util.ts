@@ -1,4 +1,4 @@
-import { ContactTypeDtoEnum, DeviceStatusDtoEnum, DeviceTypeDtoEnum, ExpenseForecastFrequencyDtoEnum, ExpenseTypeDtoEnum, HolidayTypeDtoEnum, ReimbursementStatusDtoEnum } from '@repo/dto';
+import { ContactTypeDtoEnum, DeviceStatusDtoEnum, DeviceTypeDtoEnum, ExpenseForecastFrequencyDtoEnum, ExpenseTypeDtoEnum, HolidayTypeDtoEnum, NotificationLinkDtoEnum, ReimbursementStatusDtoEnum } from '@repo/dto';
 
 export function contactTypeDtoEnumToReadableLabel(dtoEnum: ContactTypeDtoEnum): string {
   const mapping: Record<ContactTypeDtoEnum, string> = {
@@ -85,4 +85,31 @@ export function reimbursementStatusDtoEnumToReadableLabel(dtoEnum: Reimbursement
   };
 
   return mapping[dtoEnum] ?? dtoEnum;
+}
+
+export function notificationLinkDtoEnumToRoute(dtoEnum: NotificationLinkDtoEnum): string {
+  const mapping: Record<NotificationLinkDtoEnum, string> = {
+    [NotificationLinkDtoEnum.dashboard]: '/dashboard',
+    [NotificationLinkDtoEnum.employee]: '/employee',
+    [NotificationLinkDtoEnum.leaves]: '/leaves',
+    [NotificationLinkDtoEnum.reimbursement]: '/reimbursement',
+    [NotificationLinkDtoEnum.device]: '/device',
+    [NotificationLinkDtoEnum.payroll]: '/payroll/compensation',
+    [NotificationLinkDtoEnum.candidate]: '/candidate',
+    [NotificationLinkDtoEnum.policy]: '/policy',
+    [NotificationLinkDtoEnum.expense]: '/expense',
+    [NotificationLinkDtoEnum.organization]: '/organization',
+    [NotificationLinkDtoEnum.user]: '/user',
+    [NotificationLinkDtoEnum.empDashboard]: '/emp/dashboard',
+    [NotificationLinkDtoEnum.empLeave]: '/emp/leave',
+    [NotificationLinkDtoEnum.empDetails]: '/emp/details',
+    [NotificationLinkDtoEnum.empDocuments]: '/emp/documents',
+    [NotificationLinkDtoEnum.empPayroll]: '/emp/payroll',
+    [NotificationLinkDtoEnum.empDevice]: '/emp/device',
+    [NotificationLinkDtoEnum.empReimbursement]: '/emp/reimbursement',
+    [NotificationLinkDtoEnum.empFeedbacks]: '/emp/feedbacks',
+    [NotificationLinkDtoEnum.empPolicy]: '/emp/policy',
+  };
+
+  return mapping[dtoEnum] ?? '/dashboard';
 }

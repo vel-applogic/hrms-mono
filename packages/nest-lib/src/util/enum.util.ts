@@ -18,6 +18,7 @@ import {
   LeaveTypeEnum,
   MediaTypeDbEnum,
   NoOfDaysInMonthDbEnum,
+  NotificationLinkDbEnum,
   NoticePeriodUnit,
   ReimbursementStatusDbEnum,
   UserRoleDbEnum,
@@ -42,6 +43,7 @@ import {
   LeaveTypeDtoEnum,
   MediaTypeDtoEnum,
   NoOfDaysInMonthDtoEnum,
+  NotificationLinkDtoEnum,
   NoticePeriodUnitDtoEnum,
   ReimbursementStatusDtoEnum,
   UserRoleDtoEnum,
@@ -701,6 +703,70 @@ export function reimbursementStatusDtoEnumToDbEnum(dtoEnum: ReimbursementStatusD
   const dbEnum = mapping[dtoEnum];
   if (!dbEnum) {
     throw new Error(`Unknown ReimbursementStatusDtoEnum: ${dtoEnum}`);
+  }
+
+  return dbEnum;
+}
+
+export function notificationLinkDbEnumToDtoEnum(dbEnum: NotificationLinkDbEnum): NotificationLinkDtoEnum {
+  const mapping: Record<NotificationLinkDbEnum, NotificationLinkDtoEnum> = {
+    dashboard: NotificationLinkDtoEnum.dashboard,
+    employee: NotificationLinkDtoEnum.employee,
+    leaves: NotificationLinkDtoEnum.leaves,
+    reimbursement: NotificationLinkDtoEnum.reimbursement,
+    device: NotificationLinkDtoEnum.device,
+    payroll: NotificationLinkDtoEnum.payroll,
+    candidate: NotificationLinkDtoEnum.candidate,
+    policy: NotificationLinkDtoEnum.policy,
+    expense: NotificationLinkDtoEnum.expense,
+    organization: NotificationLinkDtoEnum.organization,
+    user: NotificationLinkDtoEnum.user,
+    empDashboard: NotificationLinkDtoEnum.empDashboard,
+    empLeave: NotificationLinkDtoEnum.empLeave,
+    empDetails: NotificationLinkDtoEnum.empDetails,
+    empDocuments: NotificationLinkDtoEnum.empDocuments,
+    empPayroll: NotificationLinkDtoEnum.empPayroll,
+    empDevice: NotificationLinkDtoEnum.empDevice,
+    empReimbursement: NotificationLinkDtoEnum.empReimbursement,
+    empFeedbacks: NotificationLinkDtoEnum.empFeedbacks,
+    empPolicy: NotificationLinkDtoEnum.empPolicy,
+  };
+
+  const dtoEnum = mapping[dbEnum];
+  if (!dtoEnum) {
+    throw new Error(`Unknown NotificationLinkDbEnum: ${dbEnum}`);
+  }
+
+  return dtoEnum;
+}
+
+export function notificationLinkDtoEnumToDbEnum(dtoEnum: NotificationLinkDtoEnum): NotificationLinkDbEnum {
+  const mapping: Record<NotificationLinkDtoEnum, NotificationLinkDbEnum> = {
+    [NotificationLinkDtoEnum.dashboard]: 'dashboard',
+    [NotificationLinkDtoEnum.employee]: 'employee',
+    [NotificationLinkDtoEnum.leaves]: 'leaves',
+    [NotificationLinkDtoEnum.reimbursement]: 'reimbursement',
+    [NotificationLinkDtoEnum.device]: 'device',
+    [NotificationLinkDtoEnum.payroll]: 'payroll',
+    [NotificationLinkDtoEnum.candidate]: 'candidate',
+    [NotificationLinkDtoEnum.policy]: 'policy',
+    [NotificationLinkDtoEnum.expense]: 'expense',
+    [NotificationLinkDtoEnum.organization]: 'organization',
+    [NotificationLinkDtoEnum.user]: 'user',
+    [NotificationLinkDtoEnum.empDashboard]: 'empDashboard',
+    [NotificationLinkDtoEnum.empLeave]: 'empLeave',
+    [NotificationLinkDtoEnum.empDetails]: 'empDetails',
+    [NotificationLinkDtoEnum.empDocuments]: 'empDocuments',
+    [NotificationLinkDtoEnum.empPayroll]: 'empPayroll',
+    [NotificationLinkDtoEnum.empDevice]: 'empDevice',
+    [NotificationLinkDtoEnum.empReimbursement]: 'empReimbursement',
+    [NotificationLinkDtoEnum.empFeedbacks]: 'empFeedbacks',
+    [NotificationLinkDtoEnum.empPolicy]: 'empPolicy',
+  };
+
+  const dbEnum = mapping[dtoEnum];
+  if (!dbEnum) {
+    throw new Error(`Unknown NotificationLinkDtoEnum: ${dtoEnum}`);
   }
 
   return dbEnum;

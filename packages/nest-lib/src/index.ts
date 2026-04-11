@@ -12,3 +12,4 @@ export * from './decorator/track-query.decorator.js';
 export * from './decorator/admin-only.decorator.js';
 export * from './guard/admin-only.guard.js';
 export * from './service/audit.service.js';
+export * from './service/notification.service.js';

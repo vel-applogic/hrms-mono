@@ -56,3 +56,4 @@ export { ReimbursementDao, type ReimbursementWithRelationsType, type Reimburseme
 export { ReimbursementHasMediaDao } from './reimbursement-has-media.dao.js';
 export { ReimbursementHasFeedbackDao } from './reimbursement-has-feedback.dao.js';
 export { DepartmentDao, type DepartmentSelectTableRecordType } from './department.dao.js';
+export { NotificationDao, type NotificationSelectTableRecordType } from './notification.dao.js';

@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@repo/db';
 import type { LeaveResponseType } from '@repo/dto';
 import { LeaveDayHalfEnum } from '@repo/db';
-import { BaseUc, CommonLoggerService, CurrentUserType, EmployeeLeaveCounterDao, HolidayDao, IUseCase, LeaveDao, LeaveWithUserType, OrganizationSettingDao, leaveDayHalfDbEnumToDtoEnum, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
+import { NotificationLinkDtoEnum } from '@repo/dto';
+import { BaseUc, CommonLoggerService, CurrentUserType, EmployeeLeaveCounterDao, HolidayDao, IUseCase, LeaveDao, LeaveWithUserType, NotificationService, OrganizationSettingDao, leaveDayHalfDbEnumToDtoEnum, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
 
 function toDateKey(d: Date): string {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
@@ -60,6 +61,7 @@ export class LeaveApproveUc extends BaseUc implements IUseCase<Params, LeaveResp
     private readonly organizationSettingDao: OrganizationSettingDao,
     private readonly employeeLeaveCounterDao: EmployeeLeaveCounterDao,
     private readonly holidayDao: HolidayDao,
+    private readonly notificationService: NotificationService,
   ) {
     super(prisma, logger);
   }
@@ -97,6 +99,14 @@ export class LeaveApproveUc extends BaseUc implements IUseCase<Params, LeaveResp
     await this.prisma.$transaction(async (tx) => {
       await this.updateStatusAndDays(params, recomputedDays, tx);
       await this.syncCounter(params, existing, financialYear, start, end, maxLeaves, tx);
+    });
+
+    void this.notificationService.send({
+      organizationId: params.currentUser.organizationId,
+      userId: existing.userId,
+      title: 'Leave Approved',
+      message: `Your leave request from ${existing.startDate.toISOString().split('T')[0]} to ${existing.endDate.toISOString().split('T')[0]} has been approved.`,
+      link: NotificationLinkDtoEnum.empLeave,
     });
 
     return await this.getResponseById(params);

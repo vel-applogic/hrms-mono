@@ -177,3 +177,26 @@ export enum ReimbursementStatusDtoEnum {
   paid = 'paid',
   rejected = 'rejected',
 }
+
+export enum NotificationLinkDtoEnum {
+  dashboard = 'dashboard',
+  employee = 'employee',
+  leaves = 'leaves',
+  reimbursement = 'reimbursement',
+  device = 'device',
+  payroll = 'payroll',
+  candidate = 'candidate',
+  policy = 'policy',
+  expense = 'expense',
+  organization = 'organization',
+  user = 'user',
+  empDashboard = 'empDashboard',
+  empLeave = 'empLeave',
+  empDetails = 'empDetails',
+  empDocuments = 'empDocuments',
+  empPayroll = 'empPayroll',
+  empDevice = 'empDevice',
+  empReimbursement = 'empReimbursement',
+  empFeedbacks = 'empFeedbacks',
+  empPolicy = 'empPolicy',
+}

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@repo/db';
-import { type LeaveResponseType, UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, EmployeeDao, EmployeeLeaveCounterDao, IUseCase, LeaveDao, LeaveWithUserType, OrganizationSettingDao, leaveDayHalfDbEnumToDtoEnum, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
+import { type LeaveResponseType, NotificationLinkDtoEnum, UserRoleDtoEnum } from '@repo/dto';
+import { CommonLoggerService, CurrentUserType, EmployeeDao, EmployeeLeaveCounterDao, IUseCase, LeaveDao, LeaveWithUserType, NotificationService, OrganizationSettingDao, leaveDayHalfDbEnumToDtoEnum, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
 import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
@@ -18,6 +18,7 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
     private readonly leaveDao: LeaveDao,
     private readonly organizationSettingDao: OrganizationSettingDao,
     private readonly employeeLeaveCounterDao: EmployeeLeaveCounterDao,
+    private readonly notificationService: NotificationService,
   ) {}
 
   public async execute(params: Params): Promise<LeaveResponseType> {
@@ -37,6 +38,17 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
     } else {
       await this.prisma.$transaction(async (tx) => {
         await this.updateStatus(params, tx);
+      });
+    }
+
+    const isAdmin = params.currentUser.roles.includes(UserRoleDtoEnum.admin);
+    if (isAdmin) {
+      void this.notificationService.send({
+        organizationId: params.currentUser.organizationId,
+        userId: existing.userId,
+        title: 'Leave Cancelled',
+        message: `Your leave request from ${existing.startDate.toISOString().split('T')[0]} to ${existing.endDate.toISOString().split('T')[0]} has been cancelled by admin.`,
+        link: NotificationLinkDtoEnum.empLeave,
       });
     }
 

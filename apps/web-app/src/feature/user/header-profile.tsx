@@ -1,10 +1,12 @@
 'use client';
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@repo/ui/component/ui/dropdown-menu';
-import { Bell, Building2, Check, ChevronDown, LogOut, Settings, User } from 'lucide-react';
+import { Building2, Check, ChevronDown, LogOut, Settings, User } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
+
+import { NotificationPanel } from '@/feature/notification/container/notification-panel';
 
 interface Props {
   userName: string;
@@ -32,10 +34,8 @@ export function HeaderProfile({ userName, userEmail, userImageUrl }: Props) {
 
   return (
     <div className='flex items-center gap-3'>
-      {/* Notification bell placeholder */}
-      <button className='relative flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground'>
-        <Bell className='h-5 w-5' />
-      </button>
+      {/* Notification bell */}
+      <NotificationPanel />
 
       {/* Profile dropdown */}
       <DropdownMenu>
