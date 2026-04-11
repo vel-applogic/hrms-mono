@@ -1,6 +1,8 @@
 'use client';
 
 import {
+  BranchResponseType,
+  DepartmentResponseType,
   EmployeeDetailResponseType,
   EmployeeListResponseType,
   PaginatedResponseType,
@@ -11,6 +13,8 @@ import { Plus, X } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+import { BranchFilter } from '@/app/lib/container/branch-filter';
+import { DepartmentFilter } from '@/app/lib/container/department-filter';
 import { EmployeeStatusFilter } from '@/app/lib/container/employee-status-filter';
 import { getEmployeeById } from '@/lib/action/employee.actions';
 
@@ -21,9 +25,11 @@ import { EmployeeDataTableClient } from './employee.datatable';
 interface Props {
   data: PaginatedResponseType<EmployeeListResponseType>;
   searchParams: SearchParamsType;
+  branches: BranchResponseType[];
+  departments: DepartmentResponseType[];
 }
 
-export const EmployeeData = ({ data, searchParams }: Props) => {
+export const EmployeeData = ({ data, searchParams, branches, departments }: Props) => {
   const pathname = usePathname();
   const currentSearchParams = useSearchParams();
   const { replace, refresh } = useRouter();
@@ -89,6 +95,28 @@ export const EmployeeData = ({ data, searchParams }: Props) => {
     replace(`${pathname}?${params.toString()}`);
   };
 
+  const handleBranchChange = (values: number[]) => {
+    const params = new URLSearchParams(currentSearchParams.toString());
+    if (values.length > 0) {
+      params.set('branchIds', values.join(','));
+    } else {
+      params.delete('branchIds');
+    }
+    params.set('page', '1');
+    replace(`${pathname}?${params.toString()}`);
+  };
+
+  const handleDepartmentChange = (values: number[]) => {
+    const params = new URLSearchParams(currentSearchParams.toString());
+    if (values.length > 0) {
+      params.set('departmentIds', values.join(','));
+    } else {
+      params.delete('departmentIds');
+    }
+    params.set('page', '1');
+    replace(`${pathname}?${params.toString()}`);
+  };
+
   const handleClearAll = () => {
     setSearchText('');
     replace(pathname);
@@ -97,7 +125,9 @@ export const EmployeeData = ({ data, searchParams }: Props) => {
   const hasActiveFilters =
     searchText.trim().length > 0 ||
     (searchParams.search?.trim().length ?? 0) > 0 ||
-    (searchParams.employeeStatus?.length ?? 0) > 0;
+    (searchParams.employeeStatus?.length ?? 0) > 0 ||
+    (searchParams.branchIds?.length ?? 0) > 0 ||
+    (searchParams.departmentIds?.length ?? 0) > 0;
 
   return (
     <div className='flex h-full flex-col gap-4'>
@@ -107,6 +137,18 @@ export const EmployeeData = ({ data, searchParams }: Props) => {
             <span className='text-xs text-muted-foreground'>Status</span>
             <EmployeeStatusFilter values={searchParams.employeeStatus} onChange={handleStatusChange} />
           </div>
+          {branches.length > 0 && (
+            <div className='flex flex-col gap-1'>
+              <span className='text-xs text-muted-foreground'>Branch</span>
+              <BranchFilter branches={branches} values={searchParams.branchIds} onChange={handleBranchChange} />
+            </div>
+          )}
+          {departments.length > 0 && (
+            <div className='flex flex-col gap-1'>
+              <span className='text-xs text-muted-foreground'>Department</span>
+              <DepartmentFilter departments={departments} values={searchParams.departmentIds} onChange={handleDepartmentChange} />
+            </div>
+          )}
           <div className='flex flex-col gap-1'>
             <span className='text-xs text-muted-foreground'>Search</span>
             <div className='flex h-10 w-[298px] shrink-0 items-center gap-3 rounded-[40px] border border-input bg-white px-4'>
@@ -145,7 +187,7 @@ export const EmployeeData = ({ data, searchParams }: Props) => {
         <EmployeeDataTableClient data={data} sort={sort} onEdit={handleEdit} onDelete={handleDelete} onRefresh={() => refresh()} />
       </div>
 
-      <EmployeeUpsertDrawer open={drawerOpen} onOpenChange={setDrawerOpen} employee={editingEmployee} onSuccess={() => refresh()} />
+      <EmployeeUpsertDrawer open={drawerOpen} onOpenChange={setDrawerOpen} employee={editingEmployee} onSuccess={() => refresh()} branches={branches} departments={departments} />
 
       <EmployeeDeleteDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} employee={deletingEmployee} onSuccess={() => refresh()} />
     </div>

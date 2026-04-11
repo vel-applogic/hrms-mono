@@ -19,7 +19,11 @@ export class EmployeeDao extends BaseDao {
     const pc = this.getPrismaClient(params.tx);
     return pc.employee.findMany({
       where: { organizationId: params.organizationId },
-      include: { user: true },
+      include: {
+        user: true,
+        branch: { select: { id: true, name: true } },
+        department: { select: { id: true, name: true } },
+      },
       orderBy: { user: { firstname: 'asc' } },
     });
   }
@@ -34,6 +38,8 @@ export class EmployeeDao extends BaseDao {
       include: {
         user: true,
         reportTo: { select: { id: true, firstname: true, lastname: true, email: true } },
+        branch: { select: { id: true, name: true } },
+        department: { select: { id: true, name: true } },
       },
     });
     return dbRec ?? undefined;
@@ -131,11 +137,23 @@ export class EmployeeDao extends BaseDao {
       where.status = { in: this.toEnumArray(params.filterDto.status, EmployeeStatusEnum) };
     }
 
+    if (params.filterDto.branchIds?.length) {
+      where.branchId = { in: params.filterDto.branchIds };
+    }
+
+    if (params.filterDto.departmentIds?.length) {
+      where.departmentId = { in: params.filterDto.departmentIds };
+    }
+
     const [totalRecords, dbRecords] = await Promise.all([
       pc.employee.count({ where }),
       pc.employee.findMany({
         where,
-        include: { user: true },
+        include: {
+          user: true,
+          branch: { select: { id: true, name: true } },
+          department: { select: { id: true, name: true } },
+        },
         take,
         skip,
         orderBy: params.orderBy ?? { createdAt: 'desc' },
@@ -177,11 +195,17 @@ type EmployeeInsertTableRecordType = Prisma.EmployeeCreateInput;
 type EmployeeUpdateTableRecordType = Prisma.EmployeeUpdateInput;
 
 export type EmployeeListRecordType = Prisma.EmployeeGetPayload<{
-  include: { user: true };
+  include: {
+    user: true;
+    branch: { select: { id: true; name: true } };
+    department: { select: { id: true; name: true } };
+  };
 }>;
 export type EmployeeDetailRecordType = Prisma.EmployeeGetPayload<{
   include: {
     user: true;
     reportTo: { select: { id: true; firstname: true; lastname: true; email: true } };
+    branch: { select: { id: true; name: true } };
+    department: { select: { id: true; name: true } };
   };
 }>;

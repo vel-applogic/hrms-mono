@@ -6,6 +6,7 @@ import { MediaTypeDtoEnum } from '@repo/dto';
 import type { CurrentUserType, UserSelectTableRecordType } from '@repo/nest-lib';
 import {
   AddressDao,
+  BranchDao,
   CommonLoggerService,
   ContactDao,
   IUseCase,
@@ -55,6 +56,7 @@ export class OrganizationCreateUc extends BaseOrganizationUc implements IUseCase
     private readonly mediaDao: MediaDao,
     private readonly mediaService: MediaService,
     private readonly passwordService: PasswordService,
+    private readonly branchDao: BranchDao,
     private readonly emailService: EmailService,
     private readonly appConfigService: AppConfigService,
   ) {
@@ -139,6 +141,15 @@ export class OrganizationCreateUc extends BaseOrganizationUc implements IUseCase
         organizationId,
         userId,
         roles: [UserRoleDbEnum.admin],
+        tx,
+      });
+
+      // Auto-create a default branch with the organization name
+      await this.branchDao.create({
+        data: {
+          name: params.dto.name,
+          organization: { connect: { id: organizationId } },
+        },
         tx,
       });
 

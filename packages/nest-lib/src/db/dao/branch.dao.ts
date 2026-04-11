@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@repo/db';
+import type { BranchFilterRequestType } from '@repo/dto';
 import { DbOperationError, DbRecordNotFoundError } from '@repo/shared';
 
 import { TrackQuery } from '../../decorator/track-query.decorator.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { BaseDao } from './_base.dao.js';
+import { BaseDao, OrderByParam } from './_base.dao.js';
 
 @Injectable()
 @TrackQuery()
@@ -45,6 +46,49 @@ export class BranchDao extends BaseDao {
       throw new DbRecordNotFoundError('Invalid branch id');
     }
     await pc.branch.delete({ where: { id: params.id } });
+  }
+
+  public async findByNameAndOrganization(params: { name: string; organizationId: number; excludeId?: number; tx?: Prisma.TransactionClient }): Promise<BranchSelectTableRecordType | undefined> {
+    const pc = this.getPrismaClient(params.tx);
+    const dbRec = await pc.branch.findFirst({
+      where: {
+        name: { equals: params.name, mode: 'insensitive' },
+        organizationId: params.organizationId,
+        ...(params.excludeId !== undefined ? { id: { not: params.excludeId } } : {}),
+      },
+    });
+    return dbRec ?? undefined;
+  }
+
+  public async search(params: {
+    filterDto: BranchFilterRequestType;
+    organizationId: number;
+    orderBy?: OrderByParam;
+    tx?: Prisma.TransactionClient;
+  }): Promise<{ totalRecords: number; dbRecords: BranchSelectTableRecordType[] }> {
+    const pc = this.getPrismaClient(params.tx);
+    const { take, skip } = this.getPagination({
+      pageNo: params.filterDto.pagination.page,
+      pageSize: params.filterDto.pagination.limit,
+    });
+
+    const where: Prisma.BranchWhereInput = { organizationId: params.organizationId };
+
+    if (params.filterDto.search) {
+      where.name = { contains: params.filterDto.search, mode: 'insensitive' };
+    }
+
+    const [totalRecords, dbRecords] = await Promise.all([
+      pc.branch.count({ where }),
+      pc.branch.findMany({
+        where,
+        take,
+        skip,
+        orderBy: params.orderBy ?? { createdAt: 'desc' },
+      }),
+    ]);
+
+    return { dbRecords, totalRecords };
   }
 }
 

@@ -28,3 +28,5 @@ export * from './expense.dto.js';
 export * from './expense-forecast.dto.js';
 export * from './reimbursement.dto.js';
 export * from './dashboard.dto.js';
+export * from './branch.dto.js';
+export * from './department.dto.js';

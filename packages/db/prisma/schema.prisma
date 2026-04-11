@@ -138,6 +138,7 @@ model User {
   devicePossessionHistories       DevicePossessionHistory[]
   reimbursements                  Reimbursement[]
   reimbursementFeedbacksCreatedBy ReimbursementHasFeedback[]
+  userInDepartments               UserInDepartment[]
 
   @@map("users")
 }
@@ -258,6 +259,8 @@ model Organization {
   expenses                  Expense[]
   expenseForecasts          ExpenseForecast[]
   reimbursements            Reimbursement[]
+  departments               Department[]
+  userInDepartments         UserInDepartment[]
 
   @@map("organization")
 }
@@ -356,8 +359,42 @@ model Branch {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   userInBranches UserInBranch[]
+  employees      Employee[]
 
   @@map("branche")
+}
+
+// DEPARTMENT
+model Department {
+  id             Int          @id @default(autoincrement())
+  name           String
+  organizationId Int          @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  userInDepartments UserInDepartment[]
+  employees         Employee[]
+
+  @@unique([name, organizationId])
+  @@map("department")
+}
+
+model UserInDepartment {
+  id             Int          @id @default(autoincrement())
+  userId         Int          @map("user_id")
+  user           User         @relation(fields: [userId], references: [id])
+  departmentId   Int          @map("department_id")
+  department     Department   @relation(fields: [departmentId], references: [id])
+  organizationId Int          @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, departmentId])
+  @@map("user_in_department")
 }
 
 // EMPLOYEE
@@ -383,6 +420,10 @@ model Employee {
   emergencyContactName         String             @map("emergency_contact_name")
   emergencyContactNumber       String             @map("emergency_contact_number")
   emergencyContactRelationship String             @map("emergency_contact_relationship")
+  branchId                     Int?               @map("branch_id")
+  branch                       Branch?            @relation(fields: [branchId], references: [id])
+  departmentId                 Int?               @map("department_id")
+  department                   Department?        @relation(fields: [departmentId], references: [id])
   candidateId                  Int?               @map("candidate_id")
   candidate      Candidate?         @relation("EmployeeCandidate", fields: [candidateId], references: [id])
 

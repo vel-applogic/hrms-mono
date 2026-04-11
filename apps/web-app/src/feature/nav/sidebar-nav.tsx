@@ -2,7 +2,7 @@
 
 import { cn } from '@repo/ui/lib/utils';
 import type { LucideIcon } from 'lucide-react';
-import { Briefcase, Building2, CalendarDays, FileText, HandCoins, Laptop, LayoutDashboard, MessageSquare, Receipt, ReceiptText, ScrollText, UserRound, Users } from 'lucide-react';
+import { Briefcase, Building2, CalendarDays, FileText, GitBranch, HandCoins, Laptop, LayoutDashboard, MessageSquare, Network, Receipt, ReceiptText, ScrollText, UserRound, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -20,6 +20,8 @@ const adminNavItems: NavItem[] = [
   { label: 'Policies', href: '/policy', icon: FileText, superAdminOnly: false },
   { label: 'Candidates', href: '/candidate', icon: UserRound, superAdminOnly: false },
   { label: 'Employees', href: '/employee', icon: Briefcase, superAdminOnly: false },
+  { label: 'Branches', href: '/branch', icon: GitBranch, superAdminOnly: false },
+  { label: 'Departments', href: '/department', icon: Network, superAdminOnly: false },
   { label: 'Payroll', href: '/payroll/compensation', icon: HandCoins, superAdminOnly: false },
   { label: 'Leaves & Holidays', href: '/leaves', icon: CalendarDays, superAdminOnly: false },
   { label: 'Devices', href: '/device', icon: Laptop, superAdminOnly: false },

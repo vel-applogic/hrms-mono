@@ -55,3 +55,4 @@ export { DevicePossessionHistoryDao } from './device-possession-history.dao.js';
 export { ReimbursementDao, type ReimbursementWithRelationsType, type ReimbursementListRecordType, type ReimbursementSelectTableRecordType } from './reimbursement.dao.js';
 export { ReimbursementHasMediaDao } from './reimbursement-has-media.dao.js';
 export { ReimbursementHasFeedbackDao } from './reimbursement-has-feedback.dao.js';
+export { DepartmentDao, type DepartmentSelectTableRecordType } from './department.dao.js';

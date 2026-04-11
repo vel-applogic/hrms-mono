@@ -2,6 +2,8 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
+  BranchResponseType,
+  DepartmentResponseType,
   EmergencyContactRelationshipOptions,
   EmployeeCreateRequestSchema,
   EmployeeDetailResponseType,
@@ -31,11 +33,13 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   employee?: EmployeeDetailResponseType | null;
   onSuccess: () => void;
+  branches: BranchResponseType[];
+  departments: DepartmentResponseType[];
 }
 
 const FORM_ID = 'employee-upsert-form';
 
-export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }: Props) {
+export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess, branches, departments }: Props) {
   const isEditing = !!employee;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -60,6 +64,8 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
       emergencyContactName: '',
       emergencyContactNumber: '',
       emergencyContactRelationship: '',
+      branchId: undefined,
+      departmentId: undefined,
     },
   });
 
@@ -84,6 +90,8 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
           emergencyContactName: employee.emergencyContactName,
           emergencyContactNumber: employee.emergencyContactNumber,
           emergencyContactRelationship: employee.emergencyContactRelationship,
+          branchId: employee.branch?.id ?? undefined,
+          departmentId: employee.department?.id ?? undefined,
           photo: employee.photo ? { key: employee.photo.key, name: employee.photo.name, type: employee.photo.type } : undefined,
         });
       } else {
@@ -105,6 +113,8 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
           emergencyContactName: '',
           emergencyContactNumber: '',
           emergencyContactRelationship: '',
+          branchId: undefined,
+          departmentId: undefined,
         });
       }
       setError('');
@@ -145,6 +155,8 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
           emergencyContactName: data.emergencyContactName,
           emergencyContactNumber: data.emergencyContactNumber,
           emergencyContactRelationship: data.emergencyContactRelationship,
+          branchId: data.branchId ?? null,
+          departmentId: data.departmentId ?? null,
           photo: data.photo,
         });
       } else {
@@ -166,6 +178,8 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
           emergencyContactName: data.emergencyContactName,
           emergencyContactNumber: data.emergencyContactNumber,
           emergencyContactRelationship: data.emergencyContactRelationship,
+          branchId: data.branchId ?? undefined,
+          departmentId: data.departmentId ?? undefined,
           photo: data.photo,
         });
       }
@@ -288,6 +302,48 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
             </SelectContent>
           </Select>
         </div>
+
+        {branches.length > 0 && (
+          <div className='flex flex-col gap-2'>
+            <Label>Branch</Label>
+            <Select
+              value={form.watch('branchId') ? String(form.watch('branchId')) : ''}
+              onValueChange={(val) => form.setValue('branchId', val ? Number(val) : undefined)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder='Select branch' />
+              </SelectTrigger>
+              <SelectContent>
+                {branches.map((b) => (
+                  <SelectItem key={b.id} value={String(b.id)}>
+                    {b.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {departments.length > 0 && (
+          <div className='flex flex-col gap-2'>
+            <Label>Department</Label>
+            <Select
+              value={form.watch('departmentId') ? String(form.watch('departmentId')) : ''}
+              onValueChange={(val) => form.setValue('departmentId', val ? Number(val) : undefined)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder='Select department' />
+              </SelectTrigger>
+              <SelectContent>
+                {departments.map((d) => (
+                  <SelectItem key={d.id} value={String(d.id)}>
+                    {d.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         <div className='grid grid-cols-3 gap-4'>
           <div className='flex flex-col gap-2'>

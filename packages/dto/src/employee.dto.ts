@@ -22,6 +22,8 @@ export const EmployeeBaseFieldsSchema = z.object({
   emergencyContactName: z.string().min(1, 'Emergency contact name is required'),
   emergencyContactNumber: z.string().min(1, 'Emergency contact number is required'),
   emergencyContactRelationship: z.string().min(1, 'Emergency contact relationship is required'),
+  branchId: z.number().optional().nullable(),
+  departmentId: z.number().optional().nullable(),
 });
 
 export const EmployeeCreateRequestSchema = EmployeeBaseFieldsSchema.extend({
@@ -54,6 +56,8 @@ export const EmployeeListResponseSchema = z.object({
   isBgVerified: z.boolean(),
   candidateId: z.number().optional().nullable(),
   reportToId: z.number().optional().nullable(),
+  branch: z.object({ id: z.number(), name: z.string() }).optional().nullable(),
+  department: z.object({ id: z.number(), name: z.string() }).optional().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -89,5 +93,7 @@ export const EmployeeSortableColumns = ['firstname', 'lastname', 'email', 'desig
 
 export const EmployeeFilterRequestSchema = FilterRequestSchema.extend({
   status: z.array(z.nativeEnum(EmployeeStatusDtoEnum)).optional(),
+  branchIds: z.array(z.number()).optional(),
+  departmentIds: z.array(z.number()).optional(),
 });
 export type EmployeeFilterRequestType = z.infer<typeof EmployeeFilterRequestSchema>;

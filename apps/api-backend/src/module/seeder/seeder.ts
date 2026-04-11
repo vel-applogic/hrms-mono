@@ -24,6 +24,7 @@ export class Seeder {
     );
     await this.runMigration('create-test-employee', () => this.createTestEmployee());
     await this.runMigration('init-employee-leave-counters', () => this.initEmployeeLeaveCounters());
+    await this.runMigration('seed-default-departments', () => this.seedDefaultDepartments());
     this.logger.i('Seeding data complete');
   }
 
@@ -759,5 +760,28 @@ export class Seeder {
       }
     }
     this.logger.i(`Employee leave counters initialized: ${created} created`);
+  }
+
+  private async seedDefaultDepartments() {
+    const defaultDepartments = ['HR', 'IT', 'Development', 'Accounts', 'Admin', 'Sales', 'Marketing', 'Operations', 'Finance', 'Legal'];
+
+    const organizations = await this.prisma.organization.findMany({ select: { id: true } });
+    let created = 0;
+
+    for (const org of organizations) {
+      for (const name of defaultDepartments) {
+        const existing = await this.prisma.department.findFirst({
+          where: { name: { equals: name, mode: 'insensitive' }, organizationId: org.id },
+        });
+        if (!existing) {
+          await this.prisma.department.create({
+            data: { name, organization: { connect: { id: org.id } } },
+          });
+          created++;
+        }
+      }
+    }
+
+    this.logger.i(`Default departments seeded: ${created} created`);
   }
 }

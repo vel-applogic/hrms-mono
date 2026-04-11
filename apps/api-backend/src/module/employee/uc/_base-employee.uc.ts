@@ -65,6 +65,8 @@ export class BaseEmployeeUc extends BaseUc {
       emergencyContactNumber: employee.emergencyContactNumber,
       emergencyContactRelationship: employee.emergencyContactRelationship,
       reportToId: employee.reportToId,
+      branch: employee.branch ? { id: employee.branch.id, name: employee.branch.name } : null,
+      department: employee.department ? { id: employee.department.id, name: employee.department.name } : null,
       reportTo: employee.reportTo
         ? {
             id: employee.reportTo.id,
@@ -100,6 +102,8 @@ export class BaseEmployeeUc extends BaseUc {
       isBgVerified: dbRec.isBgVerified,
       candidateId: dbRec.candidateId ?? null,
       reportToId: dbRec.reportToId ?? null,
+      branch: dbRec.branch ? { id: dbRec.branch.id, name: dbRec.branch.name } : null,
+      department: dbRec.department ? { id: dbRec.department.id, name: dbRec.department.name } : null,
       dateOfJoining: dbRec.dateOfJoining.toISOString().split('T')[0]!,
       dateOfLeaving: dbRec.dateOfLeaving?.toISOString().split('T')[0] ?? null,
       createdAt: dbRec.createdAt.toISOString(),

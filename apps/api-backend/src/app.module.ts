@@ -30,6 +30,8 @@ import { ExpenseModule } from './module/expense/expense.module.js';
 import { ExpenseForecastModule } from './module/expense-forecast/expense-forecast.module.js';
 import { ReimbursementModule } from './module/reimbursement/reimbursement.module.js';
 import { PolicyModule } from './module/policy/policy.module.js';
+import { BranchModule } from './module/branch/branch.module.js';
+import { DepartmentModule } from './module/department/department.module.js';
 import { ServiceModule } from './service/service.module.js';
 
 @Module({
@@ -68,6 +70,8 @@ import { ServiceModule } from './service/service.module.js';
     ExternalServiceModule,
     MediaModule,
     OrganizationModule,
+    BranchModule,
+    DepartmentModule,
   ],
 })
 export class AppModule implements NestModule {

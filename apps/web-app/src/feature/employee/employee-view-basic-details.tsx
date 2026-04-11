@@ -1,12 +1,14 @@
 'use client';
 
-import type { EmployeeDetailResponseType } from '@repo/dto';
+import type { BranchResponseType, DepartmentResponseType, EmployeeDetailResponseType } from '@repo/dto';
 import { Button } from '@repo/ui/component/ui/button';
 import { Label } from '@repo/ui/component/ui/label';
 import { Pencil, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
+import { getBranchList } from '@/lib/action/branch.actions';
+import { getDepartmentList } from '@/lib/action/department.actions';
 import { getEmployeeById } from '@/lib/action/employee.actions';
 
 import { EmployeeUpsertDrawer } from './container/employee-upsert.drawer';
@@ -19,14 +21,22 @@ interface Props {
 export function EmployeeViewBasicDetails({ employeeId, readOnly }: Props) {
   const router = useRouter();
   const [employee, setEmployee] = useState<EmployeeDetailResponseType | null>(null);
+  const [branches, setBranches] = useState<BranchResponseType[]>([]);
+  const [departments, setDepartments] = useState<DepartmentResponseType[]>([]);
   const [loading, setLoading] = useState(true);
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
 
   const fetchEmployee = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getEmployeeById(employeeId);
+      const [data, branchList, departmentList] = await Promise.all([
+        getEmployeeById(employeeId),
+        getBranchList(),
+        getDepartmentList(),
+      ]);
       setEmployee(data);
+      setBranches(branchList);
+      setDepartments(departmentList);
     } finally {
       setLoading(false);
     }
@@ -148,7 +158,7 @@ export function EmployeeViewBasicDetails({ employeeId, readOnly }: Props) {
         </div>
       </div>
 
-      <EmployeeUpsertDrawer open={editDrawerOpen} onOpenChange={setEditDrawerOpen} employee={employee} onSuccess={handleEditSuccess} />
+      <EmployeeUpsertDrawer open={editDrawerOpen} onOpenChange={setEditDrawerOpen} employee={employee} onSuccess={handleEditSuccess} branches={branches} departments={departments} />
     </>
   );
 }

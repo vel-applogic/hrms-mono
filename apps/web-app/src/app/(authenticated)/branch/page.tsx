@@ -1,0 +1,46 @@
+import { redirect } from 'next/navigation';
+
+import { BranchFilterRequestType, SearchParamsSchema, SortDirectionDtoEnum } from '@repo/dto';
+
+import { BranchData } from '@/feature/branch/branch-data';
+import { auth } from '@/lib/auth/auth';
+import { branchService } from '@/lib/service/branch.service';
+
+interface Props {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function BranchPage(props: Props) {
+  const session = await auth();
+  const isSuperAdmin = session?.user?.isSuperAdmin ?? false;
+  const roles = session?.user?.roles ?? [];
+  if (!isSuperAdmin && !roles.includes('admin')) {
+    redirect('/emp/dashboard');
+  }
+
+  const params = await props.searchParams;
+  const validatedParams = SearchParamsSchema.parse(params);
+
+  const filterRequest: BranchFilterRequestType = {
+    pagination: {
+      page: validatedParams.page ? Number(validatedParams.page) : 1,
+      limit: validatedParams.pageSize ? Number(validatedParams.pageSize) : 50,
+    },
+    search: validatedParams.search,
+  };
+
+  if (validatedParams.sKey && validatedParams.sVal) {
+    filterRequest.sort = {
+      field: validatedParams.sKey,
+      direction: validatedParams.sVal as SortDirectionDtoEnum,
+    };
+  }
+
+  const data = await branchService.search(filterRequest);
+
+  return (
+    <div className='flex h-full flex-col'>
+      <BranchData data={data} searchParams={validatedParams} />
+    </div>
+  );
+}
