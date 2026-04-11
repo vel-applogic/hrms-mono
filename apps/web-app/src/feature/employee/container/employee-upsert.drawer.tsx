@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
+  EmergencyContactRelationshipOptions,
   EmployeeCreateRequestSchema,
   EmployeeDetailResponseType,
   EmployeeStatusDtoEnum,
@@ -56,6 +57,9 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
       status: EmployeeStatusDtoEnum.active,
       reportToId: undefined,
       isBgVerified: false,
+      emergencyContactName: '',
+      emergencyContactNumber: '',
+      emergencyContactRelationship: '',
     },
   });
 
@@ -77,6 +81,9 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
           status: employee.status as EmployeeStatusDtoEnum,
           reportToId: employee.reportToId ?? undefined,
           isBgVerified: employee.isBgVerified ?? false,
+          emergencyContactName: employee.emergencyContactName,
+          emergencyContactNumber: employee.emergencyContactNumber,
+          emergencyContactRelationship: employee.emergencyContactRelationship,
           photo: employee.photo ? { key: employee.photo.key, name: employee.photo.name, type: employee.photo.type } : undefined,
         });
       } else {
@@ -95,6 +102,9 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
           status: EmployeeStatusDtoEnum.active,
           reportToId: undefined,
           isBgVerified: false,
+          emergencyContactName: '',
+          emergencyContactNumber: '',
+          emergencyContactRelationship: '',
         });
       }
       setError('');
@@ -132,6 +142,9 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
           status: data.status,
           reportToId: data.reportToId ?? null,
           isBgVerified: data.isBgVerified,
+          emergencyContactName: data.emergencyContactName,
+          emergencyContactNumber: data.emergencyContactNumber,
+          emergencyContactRelationship: data.emergencyContactRelationship,
           photo: data.photo,
         });
       } else {
@@ -150,6 +163,9 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
           status: data.status,
           reportToId: data.reportToId ?? undefined,
           isBgVerified: data.isBgVerified,
+          emergencyContactName: data.emergencyContactName,
+          emergencyContactNumber: data.emergencyContactNumber,
+          emergencyContactRelationship: data.emergencyContactRelationship,
           photo: data.photo,
         });
       }
@@ -271,6 +287,35 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess }
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className='grid grid-cols-3 gap-4'>
+          <div className='flex flex-col gap-2'>
+            <Label htmlFor='emergencyContactName'>Emergency contact name</Label>
+            <Input id='emergencyContactName' placeholder='Contact name' {...form.register('emergencyContactName')} />
+          </div>
+          <div className='flex flex-col gap-2'>
+            <Label htmlFor='emergencyContactNumber'>Emergency contact number</Label>
+            <Input id='emergencyContactNumber' placeholder='Contact number' {...form.register('emergencyContactNumber')} />
+          </div>
+          <div className='flex flex-col gap-2'>
+            <Label>Relationship</Label>
+            <Select
+              value={form.watch('emergencyContactRelationship')}
+              onValueChange={(val) => form.setValue('emergencyContactRelationship', val)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder='Select relationship' />
+              </SelectTrigger>
+              <SelectContent>
+                {EmergencyContactRelationshipOptions.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {r}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className='flex items-center justify-between rounded-lg border border-border p-4'>

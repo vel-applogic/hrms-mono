@@ -563,6 +563,9 @@ export class Seeder {
         dateOfJoining: new Date('2025-01-15'),
         status: 'active',
         isBgVerified: true,
+        emergencyContactName: 'Jane Doe',
+        emergencyContactNumber: '9876543210',
+        emergencyContactRelationship: 'Spouse',
       },
     });
 

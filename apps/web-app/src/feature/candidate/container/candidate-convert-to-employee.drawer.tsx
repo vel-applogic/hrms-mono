@@ -1,9 +1,11 @@
 'use client';
 
 import type { CandidateListResponseType } from '@repo/dto';
+import { EmergencyContactRelationshipOptions } from '@repo/dto';
 import { Button } from '@repo/ui/component/ui/button';
 import { Input } from '@repo/ui/component/ui/input';
 import { Label } from '@repo/ui/component/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/ui/select';
 import { Drawer } from '@repo/ui/container/drawer/drawer';
 import { useEffect, useState } from 'react';
 
@@ -22,6 +24,9 @@ export function CandidateConvertToEmployeeDrawer({ open, onOpenChange, candidate
   const [employeeCode, setEmployeeCode] = useState('');
   const [designation, setDesignation] = useState('');
   const [dateOfJoining, setDateOfJoining] = useState('');
+  const [emergencyContactName, setEmergencyContactName] = useState('');
+  const [emergencyContactNumber, setEmergencyContactNumber] = useState('');
+  const [emergencyContactRelationship, setEmergencyContactRelationship] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -31,6 +36,9 @@ export function CandidateConvertToEmployeeDrawer({ open, onOpenChange, candidate
       setEmployeeCode('');
       setDesignation('');
       setDateOfJoining('');
+      setEmergencyContactName('');
+      setEmergencyContactNumber('');
+      setEmergencyContactRelationship('');
       setError('');
       setFieldErrors({});
     }
@@ -44,6 +52,9 @@ export function CandidateConvertToEmployeeDrawer({ open, onOpenChange, candidate
     if (!employeeCode.trim()) errors.employeeCode = 'Employee code is required';
     if (!designation.trim()) errors.designation = 'Designation is required';
     if (!dateOfJoining) errors.dateOfJoining = 'Date of joining is required';
+    if (!emergencyContactName.trim()) errors.emergencyContactName = 'Emergency contact name is required';
+    if (!emergencyContactNumber.trim()) errors.emergencyContactNumber = 'Emergency contact number is required';
+    if (!emergencyContactRelationship) errors.emergencyContactRelationship = 'Emergency contact relationship is required';
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       return;
@@ -57,6 +68,9 @@ export function CandidateConvertToEmployeeDrawer({ open, onOpenChange, candidate
         employeeCode: employeeCode.trim(),
         designation: designation.trim(),
         dateOfJoining,
+        emergencyContactName: emergencyContactName.trim(),
+        emergencyContactNumber: emergencyContactNumber.trim(),
+        emergencyContactRelationship,
       });
       if (result.success) {
         onOpenChange(false);
@@ -115,6 +129,35 @@ export function CandidateConvertToEmployeeDrawer({ open, onOpenChange, candidate
           <Label htmlFor='dateOfJoining'>Date of joining</Label>
           <Input id='dateOfJoining' type='date' value={dateOfJoining} onChange={(e) => setDateOfJoining(e.target.value)} />
           {fieldErrors.dateOfJoining && <p className='text-sm text-destructive'>{fieldErrors.dateOfJoining}</p>}
+        </div>
+
+        <div className='flex flex-col gap-2'>
+          <Label htmlFor='emergencyContactName'>Emergency contact name</Label>
+          <Input id='emergencyContactName' placeholder='Contact name' value={emergencyContactName} onChange={(e) => setEmergencyContactName(e.target.value)} />
+          {fieldErrors.emergencyContactName && <p className='text-sm text-destructive'>{fieldErrors.emergencyContactName}</p>}
+        </div>
+
+        <div className='flex flex-col gap-2'>
+          <Label htmlFor='emergencyContactNumber'>Emergency contact number</Label>
+          <Input id='emergencyContactNumber' placeholder='Contact number' value={emergencyContactNumber} onChange={(e) => setEmergencyContactNumber(e.target.value)} />
+          {fieldErrors.emergencyContactNumber && <p className='text-sm text-destructive'>{fieldErrors.emergencyContactNumber}</p>}
+        </div>
+
+        <div className='flex flex-col gap-2'>
+          <Label>Relationship</Label>
+          <Select value={emergencyContactRelationship} onValueChange={setEmergencyContactRelationship}>
+            <SelectTrigger>
+              <SelectValue placeholder='Select relationship' />
+            </SelectTrigger>
+            <SelectContent>
+              {EmergencyContactRelationshipOptions.map((r) => (
+                <SelectItem key={r} value={r}>
+                  {r}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {fieldErrors.emergencyContactRelationship && <p className='text-sm text-destructive'>{fieldErrors.emergencyContactRelationship}</p>}
         </div>
 
         <p className='text-xs text-muted-foreground'>

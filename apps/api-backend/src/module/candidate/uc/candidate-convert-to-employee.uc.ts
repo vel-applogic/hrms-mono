@@ -144,6 +144,9 @@ export class CandidateConvertToEmployeeUc extends BaseCandidateUc implements IUs
         designation: params.dto.designation,
         dateOfJoining,
         status: 'active',
+        emergencyContactName: params.dto.emergencyContactName,
+        emergencyContactNumber: params.dto.emergencyContactNumber,
+        emergencyContactRelationship: params.dto.emergencyContactRelationship,
       },
       tx,
     });

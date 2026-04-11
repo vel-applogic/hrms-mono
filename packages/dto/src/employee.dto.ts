@@ -19,6 +19,9 @@ export const EmployeeBaseFieldsSchema = z.object({
   status: z.nativeEnum(EmployeeStatusDtoEnum),
   reportToId: z.number().optional().nullable(),
   isBgVerified: z.boolean().optional(),
+  emergencyContactName: z.string().min(1, 'Emergency contact name is required'),
+  emergencyContactNumber: z.string().min(1, 'Emergency contact number is required'),
+  emergencyContactRelationship: z.string().min(1, 'Emergency contact relationship is required'),
 });
 
 export const EmployeeCreateRequestSchema = EmployeeBaseFieldsSchema.extend({
@@ -61,6 +64,9 @@ export const EmployeeDetailResponseSchema = EmployeeListResponseSchema.extend({
   dob: z.string(),
   pan: z.string().optional().nullable(),
   aadhaar: z.string().optional().nullable(),
+  emergencyContactName: z.string(),
+  emergencyContactNumber: z.string(),
+  emergencyContactRelationship: z.string(),
   reportTo: z
     .object({
       id: z.number(),
@@ -76,6 +82,8 @@ export const EmployeeDetailResponseSchema = EmployeeListResponseSchema.extend({
   otherDocuments: z.array(MediaResponseSchema).optional(),
 });
 export type EmployeeDetailResponseType = z.infer<typeof EmployeeDetailResponseSchema>;
+
+export const EmergencyContactRelationshipOptions = ['Spouse', 'Parent', 'Brother', 'Sister', 'Friend'] as const;
 
 export const EmployeeSortableColumns = ['firstname', 'lastname', 'email', 'designation', 'status', 'dateOfJoining', 'createdAt', 'updatedAt'] as const;
 

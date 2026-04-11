@@ -95,5 +95,8 @@ export const CandidateConvertToEmployeeRequestSchema = z.object({
   employeeCode: z.string().min(1, 'Employee code is required'),
   designation: z.string().min(1, 'Designation is required'),
   dateOfJoining: z.string().min(1, 'Date of joining is required'),
+  emergencyContactName: z.string().min(1, 'Emergency contact name is required'),
+  emergencyContactNumber: z.string().min(1, 'Emergency contact number is required'),
+  emergencyContactRelationship: z.string().min(1, 'Emergency contact relationship is required'),
 });
 export type CandidateConvertToEmployeeRequestType = z.infer<typeof CandidateConvertToEmployeeRequestSchema>;

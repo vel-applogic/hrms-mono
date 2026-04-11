@@ -61,6 +61,9 @@ export class BaseEmployeeUc extends BaseUc {
       status: employeeStatusDbEnumToDtoEnum(employee.status),
       isBgVerified: employee.isBgVerified,
       candidateId: employee.candidateId ?? null,
+      emergencyContactName: employee.emergencyContactName,
+      emergencyContactNumber: employee.emergencyContactNumber,
+      emergencyContactRelationship: employee.emergencyContactRelationship,
       reportToId: employee.reportToId,
       reportTo: employee.reportTo
         ? {
