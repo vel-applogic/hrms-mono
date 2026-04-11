@@ -1,10 +1,8 @@
 'use client';
 
+import type { DashboardStatsResponseType } from '@repo/dto';
 import { Widget, WidgetInnerMultipleCounter } from '@repo/ui/component/ui/dashboard-widget';
 import { Users } from 'lucide-react';
-import { useEffect, useState } from 'react';
-
-import { getEmployeesList } from '@/lib/action/employee.actions';
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   active: { label: 'Active', color: 'text-emerald-600' },
@@ -13,28 +11,24 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   terminated: { label: 'Terminated', color: 'text-red-500' },
 };
 
-export function DashboardEmployeeStatus() {
-  const [statusCounts, setStatusCounts] = useState<Record<string, number> | null>(null);
+interface Props {
+  stats: DashboardStatsResponseType | null;
+}
 
-  useEffect(() => {
-    getEmployeesList().then((employees) => {
-      const counts: Record<string, number> = {};
-      for (const emp of employees) {
-        counts[emp.status] = (counts[emp.status] ?? 0) + 1;
-      }
-      setStatusCounts(counts);
-    });
-  }, []);
+export function DashboardEmployeeStatus({ stats }: Props) {
+  const statusCounts = stats
+    ? Object.fromEntries(stats.employeeCountByStatus.map((s) => [s.status, s.count]))
+    : null;
 
   return (
     <Widget label='Employees by Status' icon={Users} colSpan={2} href='/employee'>
       <WidgetInnerMultipleCounter
         values={
           statusCounts
-            ? Object.entries(STATUS_LABELS).map(([key, status]) => ({
+            ? Object.entries(STATUS_LABELS).map(([key, meta]) => ({
                 value: statusCounts[key] ?? 0,
-                valueColor: STATUS_LABELS[key]?.color ?? '',
-                label: STATUS_LABELS[key]?.label ?? status,
+                valueColor: meta.color,
+                label: meta.label,
               }))
             : null
         }

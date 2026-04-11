@@ -1,11 +1,10 @@
 'use client';
 
-import { LeaveStatusDtoEnum } from '@repo/dto';
 import { Widget, WidgetInnerSingleCounter } from '@repo/ui/component/ui/dashboard-widget';
 import { Clock } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { searchLeaves } from '@/lib/action/leave.actions';
+import { getLeavePendingCount } from '@/lib/action/leave.actions';
 
 interface Props {
   employeeId?: number;
@@ -15,11 +14,7 @@ export function DashboardPendingLeave({ employeeId }: Props) {
   const [count, setCount] = useState<number | null>(null);
 
   useEffect(() => {
-    searchLeaves({
-      pagination: { page: 1, limit: 1 },
-      status: [LeaveStatusDtoEnum.pending],
-      userId: employeeId ? [employeeId] : undefined,
-    }).then((result) => setCount(result.totalRecords));
+    getLeavePendingCount(employeeId).then((result) => setCount(result.count));
   }, [employeeId]);
 
   const href = employeeId ? '/emp/leave' : '/leaves/approvals';

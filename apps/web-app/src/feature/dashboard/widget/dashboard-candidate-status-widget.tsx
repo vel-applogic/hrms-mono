@@ -1,10 +1,8 @@
 'use client';
 
+import type { DashboardStatsResponseType } from '@repo/dto';
 import { Widget, WidgetInnerMultipleCounter } from '@repo/ui/component/ui/dashboard-widget';
 import { UserRound } from 'lucide-react';
-import { useEffect, useState } from 'react';
-
-import { getCandidatesList } from '@/lib/action/candidate.actions';
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   new: { label: 'New', color: 'text-sky-600' },
@@ -15,28 +13,24 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   rejected: { label: 'Rejected', color: 'text-red-500' },
 };
 
-export function DashboardCandidateStatus() {
-  const [statusCounts, setStatusCounts] = useState<Record<string, number> | null>(null);
+interface Props {
+  stats: DashboardStatsResponseType | null;
+}
 
-  useEffect(() => {
-    getCandidatesList().then((candidates) => {
-      const counts: Record<string, number> = {};
-      for (const c of candidates) {
-        counts[c.status] = (counts[c.status] ?? 0) + 1;
-      }
-      setStatusCounts(counts);
-    });
-  }, []);
+export function DashboardCandidateStatus({ stats }: Props) {
+  const statusCounts = stats
+    ? Object.fromEntries(stats.candidateCountByStatus.map((s) => [s.status, s.count]))
+    : null;
 
   return (
     <Widget label='Candidates by Status' icon={UserRound} colSpan={2} href='/candidate'>
       <WidgetInnerMultipleCounter
         values={
           statusCounts
-            ? Object.entries(STATUS_LABELS).map(([key, status]) => ({
+            ? Object.entries(STATUS_LABELS).map(([key, meta]) => ({
                 value: statusCounts[key] ?? 0,
-                valueColor: STATUS_LABELS[key]?.color ?? '',
-                label: STATUS_LABELS[key]?.label ?? status,
+                valueColor: meta.color,
+                label: meta.label,
               }))
             : null
         }

@@ -1,6 +1,7 @@
 'use server';
 
 import type {
+  CountResponseType,
   LeaveCreateRequestType,
   LeaveFilterRequestType,
   LeaveResponseType,
@@ -48,4 +49,8 @@ export async function rejectLeave(id: number): Promise<LeaveResponseType> {
   revalidatePath('/employee', 'layout');
   revalidatePath('/leaves', 'layout');
   return result;
+}
+
+export async function getLeavePendingCount(userId?: number): Promise<CountResponseType> {
+  return leaveService.pendingCount(userId);
 }

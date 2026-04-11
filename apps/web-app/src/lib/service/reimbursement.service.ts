@@ -1,19 +1,15 @@
 import type {
+  CountResponseType,
+  OperationStatusResponseType,
+  PaginatedResponseType,
   ReimbursementAddFeedbackRequestType,
   ReimbursementCreateRequestType,
   ReimbursementDetailResponseType,
   ReimbursementFilterRequestType,
   ReimbursementResponseType,
   ReimbursementUpdateStatusRequestType,
-  OperationStatusResponseType,
-  PaginatedResponseType,
 } from '@repo/dto';
-import {
-  ReimbursementDetailResponseSchema,
-  ReimbursementResponseSchema,
-  OperationStatusResponseSchema,
-  PaginatedResponseSchema,
-} from '@repo/dto';
+import { CountResponseSchema, OperationStatusResponseSchema, PaginatedResponseSchema, ReimbursementDetailResponseSchema, ReimbursementResponseSchema } from '@repo/dto';
 import { CreateAxiosInstance } from '@repo/ui/lib/axios/axios-instance';
 
 import { BaseService } from './_base.service';
@@ -74,6 +70,13 @@ class ReimbursementService extends BaseService {
     return this.delete<OperationStatusResponseType>({
       url: `/api/reimbursement/${id}/feedback/${feedbackId}`,
       responseSchema: OperationStatusResponseSchema,
+    });
+  }
+
+  async pendingCount(): Promise<CountResponseType> {
+    return this.get<CountResponseType>({
+      url: '/api/reimbursement/pending-count',
+      responseSchema: CountResponseSchema,
     });
   }
 }

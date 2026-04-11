@@ -118,6 +118,15 @@ export class CandidateDao extends BaseDao {
 
     return { dbRecords, totalRecords };
   }
+  public async countByStatus(params: { organizationId: number; tx?: Prisma.TransactionClient }): Promise<{ status: string; count: number }[]> {
+    const pc = this.getPrismaClient(params.tx);
+    const results = await pc.candidate.groupBy({
+      by: ['status'],
+      where: { organizationId: params.organizationId, isDeleted: false },
+      _count: true,
+    });
+    return results.map((r) => ({ status: r.status, count: r._count }));
+  }
 }
 
 // Type definitions

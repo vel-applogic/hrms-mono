@@ -1,14 +1,15 @@
 'use server';
 
 import type {
+  CountResponseType,
+  OperationStatusResponseType,
+  PaginatedResponseType,
   ReimbursementAddFeedbackRequestType,
   ReimbursementCreateRequestType,
   ReimbursementDetailResponseType,
   ReimbursementFilterRequestType,
   ReimbursementResponseType,
   ReimbursementUpdateStatusRequestType,
-  OperationStatusResponseType,
-  PaginatedResponseType,
 } from '@repo/dto';
 import { revalidatePath } from 'next/cache';
 
@@ -55,4 +56,8 @@ export async function deleteReimbursementFeedback(id: number, feedbackId: number
   revalidatePath('/reimbursement', 'layout');
   revalidatePath('/emp/reimbursement', 'layout');
   return result;
+}
+
+export async function getReimbursementPendingCount(): Promise<CountResponseType> {
+  return reimbursementService.pendingCount();
 }

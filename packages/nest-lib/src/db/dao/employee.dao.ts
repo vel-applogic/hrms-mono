@@ -144,6 +144,31 @@ export class EmployeeDao extends BaseDao {
 
     return { dbRecords, totalRecords };
   }
+  public async countByStatus(params: { organizationId: number; tx?: Prisma.TransactionClient }): Promise<{ status: string; count: number }[]> {
+    const pc = this.getPrismaClient(params.tx);
+    const results = await pc.employee.groupBy({
+      by: ['status'],
+      where: { organizationId: params.organizationId },
+      _count: true,
+    });
+    return results.map((r) => ({ status: r.status, count: r._count }));
+  }
+
+  public async countActiveWithoutReportTo(params: { organizationId: number; tx?: Prisma.TransactionClient }): Promise<number> {
+    const pc = this.getPrismaClient(params.tx);
+    return pc.employee.count({
+      where: { organizationId: params.organizationId, status: 'active', reportToId: null },
+    });
+  }
+
+  public async findActiveUserIds(params: { organizationId: number; tx?: Prisma.TransactionClient }): Promise<number[]> {
+    const pc = this.getPrismaClient(params.tx);
+    const results = await pc.employee.findMany({
+      where: { organizationId: params.organizationId, status: 'active' },
+      select: { userId: true },
+    });
+    return results.map((r) => r.userId);
+  }
 }
 
 // Type definitions

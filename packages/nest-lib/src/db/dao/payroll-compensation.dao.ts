@@ -182,6 +182,16 @@ export class PayrollCompensationDao extends BaseDao {
 
     return { dbRecords, totalRecords };
   }
+
+  public async findActiveUserIds(params: { organizationId: number; tx?: Prisma.TransactionClient }): Promise<number[]> {
+    const pc = this.getPrismaClient(params.tx);
+    const results = await pc.payrollCompensation.findMany({
+      where: { organizationId: params.organizationId, isActive: true },
+      select: { userId: true },
+      distinct: ['userId'],
+    });
+    return results.map((r) => r.userId);
+  }
 }
 
 // Base table record types

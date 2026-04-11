@@ -1,4 +1,5 @@
 import type {
+  CountResponseType,
   LeaveCounterResponseType,
   LeaveCreateRequestType,
   LeaveFilterRequestType,
@@ -7,6 +8,7 @@ import type {
   PaginatedResponseType,
 } from '@repo/dto';
 import {
+  CountResponseSchema,
   LeaveCounterResponseSchema,
   LeaveResponseSchema,
   PaginatedResponseSchema,
@@ -73,6 +75,14 @@ class LeaveService extends BaseService {
       url: `/api/leave/${id}/reject`,
       data: {},
       responseSchema: LeaveResponseSchema,
+    });
+  }
+
+  async pendingCount(userId?: number): Promise<CountResponseType> {
+    const params = userId ? `?userId=${userId}` : '';
+    return this.get<CountResponseType>({
+      url: `/api/leave/pending-count${params}`,
+      responseSchema: CountResponseSchema,
     });
   }
 }

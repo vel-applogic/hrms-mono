@@ -1,8 +1,12 @@
 'use client';
 
+import type { DashboardStatsResponseType } from '@repo/dto';
+import { useEffect, useState } from 'react';
 
-import { ExpenseSummaryWidget } from '@/feature/expense/component/expense-summary-widget';
 import { ExpenseForecastWidget } from '@/feature/expense-forecast/component/expense-forecast-widget';
+import { ExpenseSummaryWidget } from '@/feature/expense/component/expense-summary-widget';
+import { DashboardPendingReimbursement } from '@/feature/reimbursement/component/reimbursement-pending-widget';
+import { getDashboardStats } from '@/lib/action/dashboard.actions';
 
 import { DashboardAnniversary } from './widget/dashboard-anniversary-widget';
 import { DashboardCandidateCount } from './widget/dashboard-candidate-count-widget';
@@ -24,21 +28,30 @@ interface DashboardProps {
 }
 
 export function Dashboard({ hideAdminWidgets, employeeId }: DashboardProps) {
+  const [stats, setStats] = useState<DashboardStatsResponseType | null>(null);
+
+  useEffect(() => {
+    if (!hideAdminWidgets) {
+      getDashboardStats().then(setStats).catch(() => {});
+    }
+  }, [hideAdminWidgets]);
+
   return (
     <div className='flex flex-col gap-6'>
       {/* Row 1: Key stats */}
       <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-        {!hideAdminWidgets && <DashboardEmployeeCount />}
-        {!hideAdminWidgets && <DashboardCandidateCount />}
+        {!hideAdminWidgets && <DashboardEmployeeCount stats={stats} />}
+        {!hideAdminWidgets && <DashboardCandidateCount stats={stats} />}
         <DashboardPendingLeave employeeId={employeeId} />
+        <DashboardPendingReimbursement employeeId={employeeId} />
         <DashboardUpcomingHoliday isEmployee={hideAdminWidgets} />
       </div>
 
       {/* Row 2: Employee status + Candidate status */}
       {!hideAdminWidgets && (
         <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-          <DashboardEmployeeStatus />
-          <DashboardCandidateStatus />
+          <DashboardEmployeeStatus stats={stats} />
+          <DashboardCandidateStatus stats={stats} />
         </div>
       )}
 
@@ -52,7 +65,7 @@ export function Dashboard({ hideAdminWidgets, employeeId }: DashboardProps) {
       {!hideAdminWidgets && (
         <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
           <DashboardAnniversary />
-          <DashboardNoReportingManager />
+          <DashboardNoReportingManager stats={stats} />
         </div>
       )}
 
@@ -60,8 +73,8 @@ export function Dashboard({ hideAdminWidgets, employeeId }: DashboardProps) {
       {!hideAdminWidgets && (
         <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
           <DashboardPayrollCost />
-          <DashboardWithoutCompensation />
-          <DashboardWithoutDeduction />
+          <DashboardWithoutCompensation stats={stats} />
+          <DashboardWithoutDeduction stats={stats} />
         </div>
       )}
 

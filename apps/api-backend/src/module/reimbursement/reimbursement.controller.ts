@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put } from '@nestjs/common';
 import type {
+  CountResponseType,
   ReimbursementAddFeedbackRequestType,
   ReimbursementCreateRequestType,
   ReimbursementDetailResponseType,
@@ -23,6 +24,7 @@ import { ReimbursementCreateUc } from './uc/reimbursement-create.uc.js';
 import { ReimbursementDeleteFeedbackUc } from './uc/reimbursement-delete-feedback.uc.js';
 import { ReimbursementGetUc } from './uc/reimbursement-get.uc.js';
 import { ReimbursementListUc } from './uc/reimbursement-list.uc.js';
+import { ReimbursementPendingCountUc } from './uc/reimbursement-pending-count.uc.js';
 import { ReimbursementUpdateFeedbackUc } from './uc/reimbursement-update-feedback.uc.js';
 import { ReimbursementUpdateStatusUc } from './uc/reimbursement-update-status.uc.js';
 
@@ -33,10 +35,18 @@ export class ReimbursementController {
     private readonly getUc: ReimbursementGetUc,
     private readonly createUc: ReimbursementCreateUc,
     private readonly updateStatusUc: ReimbursementUpdateStatusUc,
+    private readonly pendingCountUc: ReimbursementPendingCountUc,
     private readonly addFeedbackUc: ReimbursementAddFeedbackUc,
     private readonly updateFeedbackUc: ReimbursementUpdateFeedbackUc,
     private readonly deleteFeedbackUc: ReimbursementDeleteFeedbackUc,
   ) {}
+
+  @Get('/pending-count')
+  async pendingCount(
+    @CurrentUser() currentUser: CurrentUserType,
+  ): Promise<CountResponseType> {
+    return this.pendingCountUc.execute({ currentUser });
+  }
 
   @Patch('/search')
   async search(

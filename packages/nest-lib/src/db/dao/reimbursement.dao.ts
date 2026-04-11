@@ -104,6 +104,23 @@ export class ReimbursementDao extends BaseDao {
 
     return { dbRecords, totalRecords };
   }
+
+  public async count(params: {
+    organizationId: number;
+    userId?: number;
+    where?: Prisma.ReimbursementWhereInput;
+    tx?: Prisma.TransactionClient;
+  }): Promise<number> {
+    const pc = this.getPrismaClient(params.tx);
+    const where: Prisma.ReimbursementWhereInput = {
+      organizationId: params.organizationId,
+      ...params.where,
+    };
+    if (params.userId) {
+      where.userId = params.userId;
+    }
+    return pc.reimbursement.count({ where });
+  }
 }
 
 // Base table record types

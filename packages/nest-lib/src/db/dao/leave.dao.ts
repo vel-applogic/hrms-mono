@@ -124,6 +124,13 @@ export class LeaveDao extends BaseDao {
     return result._sum.numberOfDays ?? 0;
   }
 
+  public async count(params: { organizationId: number; where?: Prisma.LeaveWhereInput; tx?: Prisma.TransactionClient }): Promise<number> {
+    const pc = this.getPrismaClient(params.tx);
+    return pc.leave.count({
+      where: { organizationId: params.organizationId, ...params.where },
+    });
+  }
+
   public async sumLopDaysByUserIdAndDateRange(params: { userId: number; organizationId: number; startDate: Date; endDate: Date; tx?: Prisma.TransactionClient }): Promise<number> {
     const pc = this.getPrismaClient(params.tx);
     const result = await pc.leave.aggregate({

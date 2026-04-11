@@ -1,20 +1,17 @@
 'use client';
 
-import { CandidateStatusDtoEnum } from '@repo/dto';
+import type { DashboardStatsResponseType } from '@repo/dto';
 import { Widget, WidgetInnerSingleCounter } from '@repo/ui/component/ui/dashboard-widget';
 import { UserRound } from 'lucide-react';
-import { useEffect, useState } from 'react';
 
-import { getCandidatesList } from '@/lib/action/candidate.actions';
+interface Props {
+  stats: DashboardStatsResponseType | null;
+}
 
-export function DashboardCandidateCount() {
-  const [count, setCount] = useState<number | null>(null);
-
-  useEffect(() => {
-    getCandidatesList().then((candidates) => {
-      setCount(candidates.filter((c) => c.status === CandidateStatusDtoEnum.new).length);
-    });
-  }, []);
+export function DashboardCandidateCount({ stats }: Props) {
+  const count = stats
+    ? stats.candidateCountByStatus.find((s) => s.status === 'new')?.count ?? 0
+    : null;
 
   return (
     <Widget label='New Candidates' icon={UserRound} href='/candidate'>

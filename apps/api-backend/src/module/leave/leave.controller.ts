@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put, Query } from '@nestjs/common';
 import type {
+  CountResponseType,
   LeaveCounterResponseType,
   LeaveCreateRequestType,
   LeaveFilterRequestType,
@@ -14,6 +15,7 @@ import { CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
 import { LeaveApproveUc } from './uc/leave-approve.uc.js';
 import { LeaveCancelUc } from './uc/leave-cancel.uc.js';
 import { LeaveCountersListUc } from './uc/leave-counters-list.uc.js';
+import { LeavePendingCountUc } from './uc/leave-pending-count.uc.js';
 import { LeaveRejectUc } from './uc/leave-reject.uc.js';
 import { LeaveCreateUc } from './uc/leave-create.uc.js';
 import { LeaveListUc } from './uc/leave-list.uc.js';
@@ -24,6 +26,7 @@ export class LeaveController {
   constructor(
     private readonly listUc: LeaveListUc,
     private readonly countersListUc: LeaveCountersListUc,
+    private readonly pendingCountUc: LeavePendingCountUc,
     private readonly createUc: LeaveCreateUc,
     private readonly updateUc: LeaveUpdateUc,
     private readonly cancelUc: LeaveCancelUc,
@@ -37,6 +40,14 @@ export class LeaveController {
     @CurrentUser() currentUser: CurrentUserType,
   ): Promise<LeaveCounterResponseType[]> {
     return this.countersListUc.execute({ currentUser, financialYear });
+  }
+
+  @Get('/pending-count')
+  async pendingCount(
+    @CurrentUser() currentUser: CurrentUserType,
+    @Query('userId') userId?: string,
+  ): Promise<CountResponseType> {
+    return this.pendingCountUc.execute({ currentUser, userId: userId ? Number(userId) : undefined });
   }
 
   @Patch('/search')

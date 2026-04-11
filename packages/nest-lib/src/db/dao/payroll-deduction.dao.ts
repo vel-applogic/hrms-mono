@@ -139,6 +139,16 @@ export class PayrollDeductionDao extends BaseDao {
 
     return { dbRecords, totalRecords };
   }
+
+  public async findDistinctUserIds(params: { organizationId: number; tx?: Prisma.TransactionClient }): Promise<number[]> {
+    const pc = this.getPrismaClient(params.tx);
+    const results = await pc.payrollDeduction.findMany({
+      where: { organizationId: params.organizationId },
+      select: { userId: true },
+      distinct: ['userId'],
+    });
+    return results.map((r) => r.userId);
+  }
 }
 
 // Base table record types

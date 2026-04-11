@@ -9,6 +9,7 @@ import { ReimbursementCreateUc } from './uc/reimbursement-create.uc.js';
 import { ReimbursementDeleteFeedbackUc } from './uc/reimbursement-delete-feedback.uc.js';
 import { ReimbursementGetUc } from './uc/reimbursement-get.uc.js';
 import { ReimbursementListUc } from './uc/reimbursement-list.uc.js';
+import { ReimbursementPendingCountUc } from './uc/reimbursement-pending-count.uc.js';
 import { ReimbursementUpdateFeedbackUc } from './uc/reimbursement-update-feedback.uc.js';
 import { ReimbursementUpdateStatusUc } from './uc/reimbursement-update-status.uc.js';
 
@@ -20,6 +21,7 @@ import { ReimbursementUpdateStatusUc } from './uc/reimbursement-update-status.uc
     ReimbursementGetUc,
     ReimbursementCreateUc,
     ReimbursementUpdateStatusUc,
+    ReimbursementPendingCountUc,
     ReimbursementAddFeedbackUc,
     ReimbursementUpdateFeedbackUc,
     ReimbursementDeleteFeedbackUc,

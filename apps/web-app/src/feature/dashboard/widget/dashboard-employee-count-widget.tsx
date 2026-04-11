@@ -1,20 +1,17 @@
 'use client';
 
-import { EmployeeStatusDtoEnum } from '@repo/dto';
+import type { DashboardStatsResponseType } from '@repo/dto';
 import { Widget, WidgetInnerSingleCounter } from '@repo/ui/component/ui/dashboard-widget';
 import { Users } from 'lucide-react';
-import { useEffect, useState } from 'react';
 
-import { getEmployeesList } from '@/lib/action/employee.actions';
+interface Props {
+  stats: DashboardStatsResponseType | null;
+}
 
-export function DashboardEmployeeCount() {
-  const [count, setCount] = useState<number | null>(null);
-
-  useEffect(() => {
-    getEmployeesList().then((employees) => {
-      setCount(employees.filter((e) => e.status === EmployeeStatusDtoEnum.active).length);
-    });
-  }, []);
+export function DashboardEmployeeCount({ stats }: Props) {
+  const count = stats
+    ? stats.employeeCountByStatus.find((s) => s.status === 'active')?.count ?? 0
+    : null;
 
   return (
     <Widget label='Employees' icon={Users} href='/employee'>

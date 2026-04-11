@@ -12,6 +12,7 @@ import { AdminUserModule } from './module/admin-user/admin-user.module.js';
 import { AppStatusModule } from './module/app-status/app-status.module.js';
 import { AuthModule } from './module/auth/auth.module.js';
 import { CandidateModule } from './module/candidate/candidate.module.js';
+import { DashboardModule } from './module/dashboard/dashboard.module.js';
 import { CandidateFeedbackModule } from './module/candidate-feedback/candidate-feedback.module.js';
 import { EmployeeModule } from './module/employee/employee.module.js';
 import { EmployeeFeedbackModule } from './module/employee-feedback/employee-feedback.module.js';
@@ -48,6 +49,7 @@ import { ServiceModule } from './service/service.module.js';
     AccountModule,
     AdminUserModule,
     CandidateModule,
+    DashboardModule,
     CandidateFeedbackModule,
     EmployeeModule,
     EmployeeFeedbackModule,
