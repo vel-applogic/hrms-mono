@@ -53,6 +53,7 @@ export class ReimbursementCreateUc extends BaseReimbursementUseCase implements I
       data: {
         title: params.dto.title,
         amount: params.dto.amount,
+        date: new Date(params.dto.date),
         organization: { connect: { id: params.currentUser.organizationId } },
         user: { connect: { id: params.currentUser.id } },
       },

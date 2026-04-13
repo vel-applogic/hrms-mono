@@ -137,6 +137,7 @@ export function auditEntityTypeDtoEnumToDbEnum(dtoEnum: AuditEntityTypeDtoEnum):
     [AuditEntityTypeDtoEnum.employee]: 'employee',
     [AuditEntityTypeDtoEnum.policy]: 'policy',
     [AuditEntityTypeDtoEnum.device]: 'device',
+    [AuditEntityTypeDtoEnum.announcement]: 'announcement',
   };
 
   const dbEnum = mapping[dtoEnum];
@@ -155,6 +156,7 @@ export function auditEntityTypeDbEnumToDtoEnum(dbEnum: AuditEntityTypeDbEnum): A
     employee: AuditEntityTypeDtoEnum.employee,
     policy: AuditEntityTypeDtoEnum.policy,
     device: AuditEntityTypeDtoEnum.device,
+    announcement: AuditEntityTypeDtoEnum.announcement,
   };
 
   const dtoEnum = mapping[dbEnum];
@@ -730,6 +732,8 @@ export function notificationLinkDbEnumToDtoEnum(dbEnum: NotificationLinkDbEnum):
     empReimbursement: NotificationLinkDtoEnum.empReimbursement,
     empFeedbacks: NotificationLinkDtoEnum.empFeedbacks,
     empPolicy: NotificationLinkDtoEnum.empPolicy,
+    announcement: NotificationLinkDtoEnum.announcement,
+    empAnnouncement: NotificationLinkDtoEnum.empAnnouncement,
   };
 
   const dtoEnum = mapping[dbEnum];
@@ -762,6 +766,8 @@ export function notificationLinkDtoEnumToDbEnum(dtoEnum: NotificationLinkDtoEnum
     [NotificationLinkDtoEnum.empReimbursement]: 'empReimbursement',
     [NotificationLinkDtoEnum.empFeedbacks]: 'empFeedbacks',
     [NotificationLinkDtoEnum.empPolicy]: 'empPolicy',
+    [NotificationLinkDtoEnum.announcement]: 'announcement',
+    [NotificationLinkDtoEnum.empAnnouncement]: 'empAnnouncement',
   };
 
   const dbEnum = mapping[dtoEnum];

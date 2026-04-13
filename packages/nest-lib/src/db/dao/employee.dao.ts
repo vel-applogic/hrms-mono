@@ -187,6 +187,30 @@ export class EmployeeDao extends BaseDao {
     });
     return results.map((r) => r.userId);
   }
+
+  public async findActiveUserIdsByFilter(params: {
+    organizationId: number;
+    branchId?: number | null;
+    departmentId?: number | null;
+    tx?: Prisma.TransactionClient;
+  }): Promise<number[]> {
+    const pc = this.getPrismaClient(params.tx);
+    const where: Prisma.EmployeeWhereInput = {
+      organizationId: params.organizationId,
+      status: EmployeeStatusEnum.active,
+    };
+    if (params.branchId) {
+      where.branchId = params.branchId;
+    }
+    if (params.departmentId) {
+      where.departmentId = params.departmentId;
+    }
+    const results = await pc.employee.findMany({
+      where,
+      select: { userId: true },
+    });
+    return results.map((r) => r.userId);
+  }
 }
 
 // Type definitions

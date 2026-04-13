@@ -7,6 +7,7 @@ import { FilterRequestSchema } from './pagination-filter.dto.js';
 const ReimbursementBaseFieldsSchema = z.object({
   title: z.string().min(1, 'Title is required').trim(),
   amount: z.number().min(1, 'Amount must be at least 1'),
+  date: z.string().min(1, 'Date is required'),
 });
 
 export const ReimbursementCreateRequestSchema = ReimbursementBaseFieldsSchema.extend({

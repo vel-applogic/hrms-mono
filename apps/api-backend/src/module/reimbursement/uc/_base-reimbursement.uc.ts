@@ -50,6 +50,7 @@ export class BaseReimbursementUseCase extends BaseUc {
       id: dbRec.id,
       title: dbRec.title,
       amount: dbRec.amount,
+      date: dbRec.date.toISOString(),
       userId: dbRec.userId,
       user: {
         id: dbRec.user.id,
@@ -91,6 +92,7 @@ export class BaseReimbursementUseCase extends BaseUc {
       id: dbRec.id,
       title: dbRec.title,
       amount: dbRec.amount,
+      date: dbRec.date.toISOString(),
       userId: dbRec.userId,
       user: {
         id: dbRec.user.id,

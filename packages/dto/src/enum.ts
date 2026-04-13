@@ -50,6 +50,7 @@ export enum AuditEntityTypeDtoEnum {
   employee = 'employee',
   policy = 'policy',
   device = 'device',
+  announcement = 'announcement',
 }
 
 export enum CandidateSourceDtoEnum {
@@ -199,4 +200,6 @@ export enum NotificationLinkDtoEnum {
   empReimbursement = 'empReimbursement',
   empFeedbacks = 'empFeedbacks',
   empPolicy = 'empPolicy',
+  announcement = 'announcement',
+  empAnnouncement = 'empAnnouncement',
 }

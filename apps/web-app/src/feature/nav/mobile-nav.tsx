@@ -18,6 +18,7 @@ const adminTabs = [
   { label: 'Organizations', href: '/organization', superAdminOnly: true },
   { label: 'Users', href: '/user', superAdminOnly: false },
   { label: 'Policies', href: '/policy', superAdminOnly: false },
+  { label: 'Announcements', href: '/announcement', superAdminOnly: false },
   { label: 'Candidates', href: '/candidate', superAdminOnly: false },
   { label: 'Employees', href: '/employee', superAdminOnly: false },
   { label: 'Payroll', href: '/payroll/compensation', superAdminOnly: false },
@@ -35,6 +36,7 @@ const employeeTabs = [
   { label: 'Payslip', href: '/emp/payslip', superAdminOnly: false },
   { label: 'Leaves & Holidays', href: '/emp/leave', superAdminOnly: false },
   { label: 'Policies', href: '/emp/policy', superAdminOnly: false },
+  { label: 'Announcements', href: '/emp/announcement', superAdminOnly: false },
 ];
 
 interface Props {

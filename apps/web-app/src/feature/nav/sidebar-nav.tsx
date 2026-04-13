@@ -2,7 +2,7 @@
 
 import { cn } from '@repo/ui/lib/utils';
 import type { LucideIcon } from 'lucide-react';
-import { Briefcase, Building2, CalendarDays, FileText, GitBranch, HandCoins, Laptop, LayoutDashboard, MessageSquare, Network, Receipt, ReceiptText, ScrollText, UserRound, Users } from 'lucide-react';
+import { Briefcase, Building2, CalendarDays, FileText, GitBranch, HandCoins, Laptop, LayoutDashboard, Megaphone, MessageSquare, Network, Receipt, ReceiptText, ScrollText, UserRound, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -18,6 +18,7 @@ const adminNavItems: NavItem[] = [
   { label: 'Organizations', href: '/organization', icon: Building2, superAdminOnly: true },
   { label: 'Users', href: '/user', icon: Users, superAdminOnly: false },
   { label: 'Policies', href: '/policy', icon: FileText, superAdminOnly: false },
+  { label: 'Announcements', href: '/announcement', icon: Megaphone, superAdminOnly: false },
   { label: 'Candidates', href: '/candidate', icon: UserRound, superAdminOnly: false },
   { label: 'Employees', href: '/employee', icon: Briefcase, superAdminOnly: false },
   { label: 'Branches', href: '/branch', icon: GitBranch, superAdminOnly: false },
@@ -37,6 +38,7 @@ const employeeNavItems: NavItem[] = [
   { label: 'Payroll', href: '/emp/payroll', icon: HandCoins, superAdminOnly: false },
   { label: 'Leaves & Holidays', href: '/emp/leave', icon: CalendarDays, superAdminOnly: false },
   { label: 'Policies', href: '/emp/policy', icon: FileText, superAdminOnly: false },
+  { label: 'Announcements', href: '/emp/announcement', icon: Megaphone, superAdminOnly: false },
   { label: 'My Devices', href: '/emp/device', icon: Laptop, superAdminOnly: false },
   { label: 'Reimbursements', href: '/emp/reimbursement', icon: ReceiptText, superAdminOnly: false },
 ];

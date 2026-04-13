@@ -109,6 +109,8 @@ export function notificationLinkDtoEnumToRoute(dtoEnum: NotificationLinkDtoEnum)
     [NotificationLinkDtoEnum.empReimbursement]: '/emp/reimbursement',
     [NotificationLinkDtoEnum.empFeedbacks]: '/emp/feedbacks',
     [NotificationLinkDtoEnum.empPolicy]: '/emp/policy',
+    [NotificationLinkDtoEnum.announcement]: '/announcement',
+    [NotificationLinkDtoEnum.empAnnouncement]: '/emp/announcement',
   };
 
   return mapping[dtoEnum] ?? '/dashboard';

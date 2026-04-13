@@ -29,6 +29,7 @@ import { DeviceModule } from './module/device/device.module.js';
 import { ExpenseModule } from './module/expense/expense.module.js';
 import { ExpenseForecastModule } from './module/expense-forecast/expense-forecast.module.js';
 import { ReimbursementModule } from './module/reimbursement/reimbursement.module.js';
+import { AnnouncementModule } from './module/announcement/announcement.module.js';
 import { PolicyModule } from './module/policy/policy.module.js';
 import { BranchModule } from './module/branch/branch.module.js';
 import { DepartmentModule } from './module/department/department.module.js';
@@ -63,6 +64,7 @@ import { ServiceModule } from './service/service.module.js';
     LeaveModule,
     HolidayModule,
     PolicyModule,
+    AnnouncementModule,
     DeviceModule,
     ExpenseModule,
     ExpenseForecastModule,
@@ -107,6 +109,8 @@ export class AppModule implements NestModule {
         'api/reimbursement',
         'api/notification/{*path}',
         'api/notification',
+        'api/announcement/{*path}',
+        'api/announcement',
       )
       .forRoutes('*');
   }

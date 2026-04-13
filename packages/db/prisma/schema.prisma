@@ -263,6 +263,7 @@ model Organization {
   departments               Department[]
   userInDepartments         UserInDepartment[]
   notifications             Notification[]
+  announcements             Announcement[]
 
   @@map("organization")
 }
@@ -362,6 +363,7 @@ model Branch {
 
   userInBranches UserInBranch[]
   employees      Employee[]
+  announcements  Announcement[]
 
   @@map("branche")
 }
@@ -378,6 +380,7 @@ model Department {
 
   userInDepartments UserInDepartment[]
   employees         Employee[]
+  announcements     Announcement[]
 
   @@unique([name, organizationId])
   @@map("department")
@@ -769,6 +772,28 @@ model PolicyHasMedia {
   @@map("policy_has_media")
 }
 
+// ANNOUNCEMENT
+model Announcement {
+  id                 Int          @id @default(autoincrement())
+  organizationId     Int          @map("organization_id")
+  organization       Organization @relation(fields: [organizationId], references: [id])
+  title              String
+  message            String
+  branchId           Int?         @map("branch_id")
+  branch             Branch?      @relation(fields: [branchId], references: [id])
+  departmentId       Int?         @map("department_id")
+  department         Department?  @relation(fields: [departmentId], references: [id])
+  scheduledAt        DateTime     @map("scheduled_at")
+  isPublished        Boolean      @default(false) @map("is_published")
+  isNotificationSent Boolean      @default(false) @map("is_notification_sent")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([isPublished, isNotificationSent, scheduledAt])
+  @@map("announcement")
+}
+
 // HOLIDAY LIST
 
 enum HolidayType {
@@ -860,6 +885,7 @@ enum AuditEntityTypeDbEnum {
   employee
   policy
   device
+  announcement
 
   @@map("auditEntityTypeDbEnum")
 }
@@ -958,6 +984,7 @@ model Reimbursement {
   user           User                      @relation(fields: [userId], references: [id])
   title          String
   amount         Float
+  date           DateTime                  @db.Date
   status         ReimbursementStatusDbEnum @default(pending)
   rejectReason   String?                   @map("reject_reason")
   approvedAt     DateTime?                 @map("approved_at")
@@ -1024,6 +1051,8 @@ enum NotificationLinkDbEnum {
   empReimbursement
   empFeedbacks
   empPolicy
+  announcement
+  empAnnouncement
 
   @@map("notificationLinkDbEnum")
 }

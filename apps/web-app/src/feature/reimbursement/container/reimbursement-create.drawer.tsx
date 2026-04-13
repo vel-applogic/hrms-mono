@@ -16,6 +16,7 @@ import { createReimbursement } from '@/lib/action/reimbursement.actions';
 const FormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   amount: z.number().min(1, 'Amount must be at least 1'),
+  date: z.string().min(1, 'Date is required'),
 });
 type FormType = z.infer<typeof FormSchema>;
 
@@ -34,12 +35,12 @@ export function ReimbursementCreateDrawer({ open, onOpenChange, onSuccess }: Pro
 
   const form = useForm<FormType>({
     resolver: zodResolver(FormSchema),
-    defaultValues: { title: '', amount: 0 },
+    defaultValues: { title: '', amount: 0, date: '' },
   });
 
   useEffect(() => {
     if (open) {
-      form.reset({ title: '', amount: 0 });
+      form.reset({ title: '', amount: 0, date: '' });
       setMedias([]);
       setError('');
     }
@@ -52,6 +53,7 @@ export function ReimbursementCreateDrawer({ open, onOpenChange, onSuccess }: Pro
       await createReimbursement({
         title: data.title,
         amount: data.amount,
+        date: data.date,
         files: medias.length > 0 ? medias : undefined,
       });
       onOpenChange(false);
@@ -99,6 +101,12 @@ export function ReimbursementCreateDrawer({ open, onOpenChange, onSuccess }: Pro
             {...form.register('amount', { valueAsNumber: true })}
           />
           {form.formState.errors.amount && <p className='text-sm text-destructive'>{form.formState.errors.amount.message}</p>}
+        </div>
+
+        <div className='flex flex-col gap-2'>
+          <Label htmlFor='date'>Date</Label>
+          <Input id='date' type='date' {...form.register('date')} />
+          {form.formState.errors.date && <p className='text-sm text-destructive'>{form.formState.errors.date.message}</p>}
         </div>
 
         <div className='flex flex-col gap-2'>

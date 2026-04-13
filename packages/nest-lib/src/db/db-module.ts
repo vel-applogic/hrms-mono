@@ -3,6 +3,7 @@ import { Global, Module } from '@nestjs/common';
 import { CommonLoggerService } from '../logger/logger.service.js';
 import {
   AddressDao,
+  AnnouncementDao,
   CandidateDao,
   CandidateHasMediaDao,
   CandidateHasFeedbackDao,
@@ -57,6 +58,7 @@ import { UserForgotPasswordDao } from './dao/user-forgot-password.dao.js';
     PrismaService,
     AuditService,
     NotificationService,
+    AnnouncementDao,
     CurrencyDao,
     CountryDao,
     UserDao,
@@ -107,6 +109,7 @@ import { UserForgotPasswordDao } from './dao/user-forgot-password.dao.js';
     PrismaService,
     AuditService,
     NotificationService,
+    AnnouncementDao,
     CurrencyDao,
     CountryDao,
     UserDao,

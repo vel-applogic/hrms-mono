@@ -31,3 +31,4 @@ export * from './dashboard.dto.js';
 export * from './branch.dto.js';
 export * from './department.dto.js';
 export * from './notification.dto.js';
+export * from './announcement.dto.js';

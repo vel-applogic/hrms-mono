@@ -301,18 +301,22 @@ export function ReimbursementDetailDrawer({ open, onOpenChange, reimbursementId,
                   <p className='font-medium'>{detail.user.firstname} {detail.user.lastname}</p>
                 </div>
                 <div>
-                  <span className='text-muted-foreground'>Created</span>
+                  <span className='text-muted-foreground'>Date</span>
+                  <p className='font-medium'>{new Date(detail.date).toLocaleDateString()}</p>
+                </div>
+                <div>
+                  <span className='text-muted-foreground'>Created at</span>
                   <p className='font-medium'>{new Date(detail.createdAt).toLocaleDateString()}</p>
                 </div>
                 {detail.approvedAt && (
                   <div>
-                    <span className='text-muted-foreground'>Approved</span>
+                    <span className='text-muted-foreground'>Approved at</span>
                     <p className='font-medium'>{new Date(detail.approvedAt).toLocaleDateString()}</p>
                   </div>
                 )}
                 {detail.paidAt && (
                   <div>
-                    <span className='text-muted-foreground'>Paid</span>
+                    <span className='text-muted-foreground'>Paid at</span>
                     <p className='font-medium'>{new Date(detail.paidAt).toLocaleDateString()}</p>
                   </div>
                 )}
