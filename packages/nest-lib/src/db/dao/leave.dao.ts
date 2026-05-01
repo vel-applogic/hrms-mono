@@ -106,6 +106,8 @@ export class LeaveDao extends BaseDao {
     userId: number;
     organizationId: number;
     statuses: LeaveStatusEnum[];
+    startDate: Date;
+    endDate: Date;
     leaveType?: LeaveTypeEnum;
     excludeLeaveId?: number;
     tx?: Prisma.TransactionClient;
@@ -116,6 +118,7 @@ export class LeaveDao extends BaseDao {
         userId: params.userId,
         organizationId: params.organizationId,
         status: { in: params.statuses },
+        startDate: { gte: params.startDate, lte: params.endDate },
         ...(params.leaveType ? { leaveType: params.leaveType } : {}),
         ...(params.excludeLeaveId ? { id: { not: params.excludeLeaveId } } : {}),
       },

@@ -1,8 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { type LeaveDayHalfEnum, LeaveStatusEnum, type LeaveTypeEnum, type Prisma } from '@repo/db';
-import { LeaveDayHalfDtoEnum, type LeaveCreateRequestType, type LeaveResponseType, UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, EmployeeDao, HolidayDao, IUseCase, LeaveDao, OrganizationSettingDao, leaveDayHalfDbEnumToDtoEnum, leaveDayHalfDtoEnumToDbEnum, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, leaveTypeDtoEnumToDbEnum, PrismaService } from '@repo/nest-lib';
-import { ApiError } from '@repo/shared';
+import { type LeaveCreateRequestType, LeaveDayHalfDtoEnum, type LeaveResponseType, UserRoleDtoEnum } from '@repo/dto';
+import {
+  CommonLoggerService,
+  CurrentUserType,
+  EmployeeDao,
+  HolidayDao,
+  IUseCase,
+  LeaveDao,
+  leaveDayHalfDbEnumToDtoEnum,
+  leaveDayHalfDtoEnumToDbEnum,
+  leaveStatusDbEnumToDtoEnum,
+  leaveTypeDbEnumToDtoEnum,
+  leaveTypeDtoEnumToDbEnum,
+  OrganizationSettingDao,
+  PrismaService,
+} from '@repo/nest-lib';
+import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
   currentUser: CurrentUserType;
@@ -111,7 +125,9 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
     return await this.getResponseById(params, createdId);
   }
 
-  private async validate(params: Params): Promise<{ startDate: Date; endDate: Date; numberOfDays: number; leaveTypeDb: LeaveTypeEnum; startDurationDb: LeaveDayHalfEnum; endDurationDb: LeaveDayHalfEnum }> {
+  private async validate(
+    params: Params,
+  ): Promise<{ startDate: Date; endDate: Date; numberOfDays: number; leaveTypeDb: LeaveTypeEnum; startDurationDb: LeaveDayHalfEnum; endDurationDb: LeaveDayHalfEnum }> {
     const targetUserId = params.dto.userId;
 
     if (!params.currentUser.roles.includes(UserRoleDtoEnum.admin) && targetUserId !== params.currentUser.id) {
@@ -133,6 +149,13 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
     if (endDate < startDate) {
       throw new ApiError('End date must be on or after start date', 400);
     }
+
+    const startFyCode = getFinancialYearCode(startDate);
+    const endFyCode = getFinancialYearCode(endDate);
+    if (startFyCode !== endFyCode) {
+      throw new ApiError('Leave start and end dates must be in the same financial year', 400);
+    }
+    const { start: fyStart, end: fyEnd } = getFinancialYearDateRange(startFyCode);
 
     const isSameDay = params.dto.startDate === params.dto.endDate;
     const startDuration = params.dto.startDuration ?? LeaveDayHalfDtoEnum.full;
@@ -160,12 +183,16 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
       userId: targetUserId,
       organizationId: params.currentUser.organizationId,
       statuses: countStatuses,
+      startDate: fyStart,
+      endDate: fyEnd,
       leaveType: leaveTypeDb,
     });
     const existingTotal = await this.leaveDao.sumDaysByUserIdAndStatus({
       userId: targetUserId,
       organizationId: params.currentUser.organizationId,
       statuses: countStatuses,
+      startDate: fyStart,
+      endDate: fyEnd,
     });
 
     const typeLimit = getTypeLimit(config, params.dto.leaveType);
@@ -173,7 +200,7 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
       throw new ApiError(`Exceeds ${params.dto.leaveType} leave limit. Used: ${existingByType}, Limit: ${typeLimit}, Requested: ${numberOfDays}`, 400);
     }
     if (existingTotal + numberOfDays > config.totalLeaveInDays) {
-      throw new ApiError(`Exceeds total leave limit. Used: ${existingTotal}, Limit: ${config.totalLeaveInDays}, Requested: ${numberOfDays}`, 400);
+      throw new ApiError(`Exceeds total leave limit, Used: ${existingTotal}, Limit: ${config.totalLeaveInDays}, Requested: ${numberOfDays}`, 400);
     }
 
     return { startDate, endDate, numberOfDays, leaveTypeDb, startDurationDb, endDurationDb };
