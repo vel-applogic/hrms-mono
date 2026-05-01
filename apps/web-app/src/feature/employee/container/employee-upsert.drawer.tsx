@@ -204,6 +204,7 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess, 
     <Drawer
       open={open}
       onOpenChange={onOpenChange}
+      dismissible={false}
       title={isEditing ? 'Edit employee' : 'New employee'}
       footer={
         <div className='flex justify-end gap-3'>
@@ -220,43 +221,61 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess, 
         {error && <p className='text-sm text-destructive'>{error}</p>}
 
         <div className='flex flex-col gap-2'>
-          <Label htmlFor='employeeCode'>Employee code</Label>
+          <Label htmlFor='employeeCode'>
+            Employee code <span className='text-destructive'>*</span>
+          </Label>
           <Input id='employeeCode' placeholder='e.g. EMP001' {...form.register('employeeCode')} />
           {form.formState.errors.employeeCode && <p className='text-sm text-destructive'>{form.formState.errors.employeeCode.message}</p>}
         </div>
 
         <div className='grid grid-cols-2 gap-4'>
           <div className='flex flex-col gap-2'>
-            <Label htmlFor='firstname'>First name</Label>
+            <Label htmlFor='firstname'>
+              First name <span className='text-destructive'>*</span>
+            </Label>
             <Input id='firstname' placeholder='First name' {...form.register('firstname')} />
             {form.formState.errors.firstname && <p className='text-sm text-destructive'>{form.formState.errors.firstname.message}</p>}
           </div>
           <div className='flex flex-col gap-2'>
-            <Label htmlFor='lastname'>Last name</Label>
+            <Label htmlFor='lastname'>
+              Last name <span className='text-destructive'>*</span>
+            </Label>
             <Input id='lastname' placeholder='Last name' {...form.register('lastname')} />
             {form.formState.errors.lastname && <p className='text-sm text-destructive'>{form.formState.errors.lastname.message}</p>}
           </div>
         </div>
 
         <div className='flex flex-col gap-2'>
-          <Label htmlFor='email'>Email</Label>
+          <Label htmlFor='email'>
+            Email <span className='text-destructive'>*</span>
+          </Label>
           <Input id='email' type='email' placeholder='employee@example.com' {...form.register('email')} />
           {form.formState.errors.email && <p className='text-sm text-destructive'>{form.formState.errors.email.message}</p>}
         </div>
 
         <div className='flex flex-col gap-2'>
           <Label htmlFor='personalEmail'>Personal email</Label>
-          <Input id='personalEmail' type='email' placeholder='personal@example.com' {...form.register('personalEmail')} />
+          <Input
+            id='personalEmail'
+            type='email'
+            placeholder='personal@example.com'
+            {...form.register('personalEmail', { setValueAs: (v) => (v === '' ? undefined : v) })}
+          />
+          {form.formState.errors.personalEmail && <p className='text-sm text-destructive'>{form.formState.errors.personalEmail.message}</p>}
         </div>
 
         <div className='grid grid-cols-2 gap-4'>
           <div className='flex flex-col gap-2'>
-            <Label htmlFor='dob'>Date of birth</Label>
+            <Label htmlFor='dob'>
+              Date of birth <span className='text-destructive'>*</span>
+            </Label>
             <Input id='dob' type='date' {...form.register('dob')} />
             {form.formState.errors.dob && <p className='text-sm text-destructive'>{form.formState.errors.dob.message}</p>}
           </div>
           <div className='flex flex-col gap-2'>
-            <Label htmlFor='designation'>Designation</Label>
+            <Label htmlFor='designation'>
+              Designation <span className='text-destructive'>*</span>
+            </Label>
             <Input id='designation' placeholder='Designation' {...form.register('designation')} />
             {form.formState.errors.designation && <p className='text-sm text-destructive'>{form.formState.errors.designation.message}</p>}
           </div>
@@ -277,7 +296,9 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess, 
 
         <div className='grid grid-cols-2 gap-4'>
           <div className='flex flex-col gap-2'>
-            <Label htmlFor='dateOfJoining'>Date of joining</Label>
+            <Label htmlFor='dateOfJoining'>
+              Date of joining <span className='text-destructive'>*</span>
+            </Label>
             <Input id='dateOfJoining' type='date' {...form.register('dateOfJoining')} />
             {form.formState.errors.dateOfJoining && <p className='text-sm text-destructive'>{form.formState.errors.dateOfJoining.message}</p>}
           </div>
@@ -288,7 +309,9 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess, 
         </div>
 
         <div className='flex flex-col gap-2'>
-          <Label>Status</Label>
+          <Label>
+            Status <span className='text-destructive'>*</span>
+          </Label>
           <Select value={form.watch('status')} onValueChange={(val) => form.setValue('status', val as EmployeeStatusDtoEnum)}>
             <SelectTrigger>
               <SelectValue placeholder='Select status' />
@@ -347,15 +370,27 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess, 
 
         <div className='grid grid-cols-3 gap-4'>
           <div className='flex flex-col gap-2'>
-            <Label htmlFor='emergencyContactName'>Emergency contact name</Label>
+            <Label htmlFor='emergencyContactName'>
+              Emergency contact name <span className='text-destructive'>*</span>
+            </Label>
             <Input id='emergencyContactName' placeholder='Contact name' {...form.register('emergencyContactName')} />
+            {form.formState.errors.emergencyContactName && (
+              <p className='text-sm text-destructive'>{form.formState.errors.emergencyContactName.message}</p>
+            )}
           </div>
           <div className='flex flex-col gap-2'>
-            <Label htmlFor='emergencyContactNumber'>Emergency contact number</Label>
+            <Label htmlFor='emergencyContactNumber'>
+              Emergency contact number <span className='text-destructive'>*</span>
+            </Label>
             <Input id='emergencyContactNumber' placeholder='Contact number' {...form.register('emergencyContactNumber')} />
+            {form.formState.errors.emergencyContactNumber && (
+              <p className='text-sm text-destructive'>{form.formState.errors.emergencyContactNumber.message}</p>
+            )}
           </div>
           <div className='flex flex-col gap-2'>
-            <Label>Relationship</Label>
+            <Label>
+              Relationship <span className='text-destructive'>*</span>
+            </Label>
             <Select
               value={form.watch('emergencyContactRelationship')}
               onValueChange={(val) => form.setValue('emergencyContactRelationship', val)}
@@ -371,6 +406,9 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess, 
                 ))}
               </SelectContent>
             </Select>
+            {form.formState.errors.emergencyContactRelationship && (
+              <p className='text-sm text-destructive'>{form.formState.errors.emergencyContactRelationship.message}</p>
+            )}
           </div>
         </div>
 

@@ -150,6 +150,7 @@ export function ExpenseForecastUpsertDrawer({ open, onOpenChange, onSuccess }: P
     <Drawer
       open={open}
       onOpenChange={onOpenChange}
+      dismissible={false}
       title='Expense Forecast'
       description='Manage your recurring expense forecasts'
       footer={

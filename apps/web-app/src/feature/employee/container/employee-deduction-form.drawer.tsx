@@ -211,6 +211,7 @@ export function EmployeeDeductionFormDrawer({ open, onOpenChange, employeeId, de
     <Drawer
       open={open}
       onOpenChange={handleOpenChange}
+      dismissible={false}
       title={isEditing ? 'Edit deduction' : 'Add deduction'}
       footer={
         <div className='flex justify-end gap-3'>

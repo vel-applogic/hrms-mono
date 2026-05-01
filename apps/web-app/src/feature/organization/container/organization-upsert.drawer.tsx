@@ -672,6 +672,7 @@ export function OrganizationUpsertDrawer({ open, onOpenChange, organization, onS
     <Drawer
       open={open}
       onOpenChange={onOpenChange}
+      dismissible={false}
       title={isEditing ? 'Edit organization' : 'New organization'}
       footer={
         <div className='flex justify-end gap-3'>

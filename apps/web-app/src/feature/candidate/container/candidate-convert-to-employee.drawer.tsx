@@ -91,6 +91,7 @@ export function CandidateConvertToEmployeeDrawer({ open, onOpenChange, candidate
     <Drawer
       open={open}
       onOpenChange={onOpenChange}
+      dismissible={false}
       title='Convert to Employee'
       footer={
         <div className='flex justify-end gap-3'>

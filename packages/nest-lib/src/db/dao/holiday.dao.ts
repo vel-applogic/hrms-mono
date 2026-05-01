@@ -82,7 +82,7 @@ export class HolidayDao extends BaseDao {
       pc.holiday.count({ where }),
       pc.holiday.findMany({
         where,
-        orderBy: { date: 'desc' },
+        orderBy: { date: 'asc' },
         take,
         skip,
       }),

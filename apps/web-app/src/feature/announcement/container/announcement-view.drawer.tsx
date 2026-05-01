@@ -42,16 +42,13 @@ export function AnnouncementViewDrawer({ open, onOpenChange, announcementId }: P
     <Drawer open={open} onOpenChange={onOpenChange} title='Announcement'>
       {loading && <div className='p-6 text-sm text-muted-foreground'>Loading...</div>}
       {!loading && detail && (
-        <div className='flex flex-col gap-5 p-6'>
-          <div className='rounded-lg border border-border p-4'>
-            <h3 className='mb-3 text-lg font-semibold'>{detail.title}</h3>
-            <div className='mb-4 flex flex-wrap items-center gap-2 text-sm text-muted-foreground'>
-              <span>Scheduled: {new Date(detail.scheduledAt).toLocaleString()}</span>
-              {detail.branch && <Badge variant='secondary'>{detail.branch.name}</Badge>}
-              {detail.department && <Badge variant='secondary'>{detail.department.name}</Badge>}
-              {detail.isPublished ? <Badge variant='default'>Published</Badge> : <Badge variant='outline'>Draft</Badge>}
-              {detail.isNotificationSent && <Badge variant='secondary'>Notified</Badge>}
-            </div>
+        <div className='flex flex-col gap-4 p-6'>
+          <div className='flex flex-wrap items-center justify-end gap-2 text-sm text-muted-foreground'>
+            <span>Scheduled: {new Date(detail.scheduledAt).toLocaleString()}</span>
+            {detail.isPublished ? <Badge variant='default'>Published</Badge> : <Badge variant='outline'>Draft</Badge>}
+          </div>
+          <div className='rounded-lg border border-border bg-white px-10 py-10 shadow-[0_2px_12px_rgba(0,0,0,0.08)]'>
+            <h1 className='mb-6 text-center text-2xl font-bold text-foreground'>{detail.title}</h1>
             <div className='prose prose-sm max-w-none'>
               <MarkdownViewer value={detail.message} />
             </div>

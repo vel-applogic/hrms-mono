@@ -172,6 +172,7 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
     <Drawer
       open={open}
       onOpenChange={onOpenChange}
+      dismissible={false}
       title={isEditing ? 'Edit candidate' : 'New candidate'}
       footer={
         <div className='flex justify-end gap-3'>

@@ -70,6 +70,7 @@ export function ReimbursementCreateDrawer({ open, onOpenChange, onSuccess }: Pro
     <Drawer
       open={open}
       onOpenChange={onOpenChange}
+      dismissible={false}
       title='New reimbursement request'
       footer={
         <div className='flex justify-end gap-3'>

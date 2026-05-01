@@ -19,10 +19,17 @@ export class Seeder {
     await this.runMigration('create-test-users', () =>
       this.createTestUsers([
         { email: 'superAdmin@test.com', firstname: 'Test', lastname: '01', organizationName: 'Test Organization', roles: [], isSuperAdmin: true },
-        { email: 'admin@test.com', firstname: 'Test', lastname: '01', organizationName: 'Test Organization', roles: [UserRoleDtoEnum.admin], isSuperAdmin: false },
+        {
+          email: 'admin@test.com',
+          firstname: 'Test',
+          lastname: '01',
+          organizationName: 'Test Organization',
+          roles: [UserRoleDtoEnum.admin, UserRoleDtoEnum.employee],
+          isSuperAdmin: false,
+        },
       ]),
     );
-    await this.runMigration('create-test-employee', () => this.createTestEmployee());
+    // await this.runMigration('create-test-employee', () => this.createTestEmployee());
     await this.runMigration('init-employee-leave-counters', () => this.initEmployeeLeaveCounters());
     await this.runMigration('seed-default-departments', () => this.seedDefaultDepartments());
     this.logger.i('Seeding data complete');

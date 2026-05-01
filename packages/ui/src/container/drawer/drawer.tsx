@@ -16,12 +16,33 @@ interface DrawerProps {
   children: React.ReactNode;
   /** When false, disables the ScrollArea wrapper and lets children handle their own scrolling. Defaults to true. */
   scrollable?: boolean;
+  /** When false, prevents close on Esc, outside click, and hides the X close button — only an explicit cancel/close button can dismiss. Defaults to true. */
+  dismissible?: boolean;
 }
 
-export const Drawer: React.FC<DrawerProps> = ({ open, onOpenChange, title, description, headerAction, tabs, footer, children, scrollable = true }) => {
+export const Drawer: React.FC<DrawerProps> = ({
+  open,
+  onOpenChange,
+  title,
+  description,
+  headerAction,
+  tabs,
+  footer,
+  children,
+  scrollable = true,
+  dismissible = true,
+}) => {
+  const blockClose = dismissible ? undefined : (e: Event) => e.preventDefault();
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex w-full flex-col p-0 sm:max-w-4xl" side="right">
+      <SheetContent
+        className="flex w-full flex-col p-0 sm:max-w-4xl"
+        side="right"
+        hideCloseButton={!dismissible}
+        onEscapeKeyDown={blockClose}
+        onPointerDownOutside={blockClose}
+        onInteractOutside={blockClose}
+      >
         <SheetHeader className="border-b px-6 pb-4 pt-4">
           <div className="min-w-0 flex-1">
             {title && <SheetTitle>{title}</SheetTitle>}

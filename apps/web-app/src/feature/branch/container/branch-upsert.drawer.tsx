@@ -78,6 +78,7 @@ export function BranchUpsertDrawer({ open, onOpenChange, branch, onSuccess }: Pr
     <Drawer
       open={open}
       onOpenChange={onOpenChange}
+      dismissible={false}
       title={isEditing ? 'Edit branch' : 'New branch'}
       footer={
         <div className='flex justify-end gap-3'>

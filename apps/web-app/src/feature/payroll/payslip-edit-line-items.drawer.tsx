@@ -130,6 +130,7 @@ export function PayslipEditLineItemsDrawer({ open, onOpenChange, payslipId, onSu
     <Drawer
       open={open}
       onOpenChange={onOpenChange}
+      dismissible={false}
       title={
         payslip
           ? `Edit Line Items — ${MONTH_LABELS[(payslip.month ?? 1) - 1]} ${payslip.year}`

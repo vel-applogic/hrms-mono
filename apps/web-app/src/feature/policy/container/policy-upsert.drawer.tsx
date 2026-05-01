@@ -78,6 +78,7 @@ export function PolicyUpsertDrawer({ open, onOpenChange, policy, onSuccess }: Po
     <Drawer
       open={open}
       onOpenChange={onOpenChange}
+      dismissible={false}
       title={isEditing ? 'Edit policy' : 'New policy'}
       footer={
         <div className='flex justify-end gap-3'>

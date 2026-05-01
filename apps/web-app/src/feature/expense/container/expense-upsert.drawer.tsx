@@ -96,6 +96,7 @@ export function ExpenseUpsertDrawer({ open, onOpenChange, expense, onSuccess }: 
     <Drawer
       open={open}
       onOpenChange={onOpenChange}
+      dismissible={false}
       title={isEditing ? 'Edit expense' : 'Add expense'}
       footer={
         <div className='flex justify-end gap-3'>

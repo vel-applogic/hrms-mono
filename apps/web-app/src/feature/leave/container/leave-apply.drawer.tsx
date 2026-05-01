@@ -212,6 +212,7 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, employeeId, onSucc
     <Drawer
       open={open}
       onOpenChange={onOpenChange}
+      dismissible={false}
       title={isEditing ? 'Edit leave' : 'Apply leave'}
       footer={
         <div className='flex justify-end gap-3'>
@@ -260,7 +261,18 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, employeeId, onSucc
           <div className='grid grid-cols-2 gap-4'>
             <div className='flex flex-col gap-2'>
               <Label htmlFor='startDate'>Start date</Label>
-              <Input id='startDate' type='date' {...form.register('startDate')} />
+              <Input
+                id='startDate'
+                type='date'
+                {...form.register('startDate', {
+                  onChange: (e) => {
+                    const value = e.target.value;
+                    if (value) {
+                      form.setValue('endDate', value, { shouldValidate: true });
+                    }
+                  },
+                })}
+              />
               {form.formState.errors.startDate && <p className='text-sm text-destructive'>{form.formState.errors.startDate.message}</p>}
             </div>
             <div className='flex flex-col gap-2'>

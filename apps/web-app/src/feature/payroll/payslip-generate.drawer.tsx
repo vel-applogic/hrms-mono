@@ -151,6 +151,7 @@ export function PayslipGenerateDrawer({ open, onOpenChange, onSuccess }: Props) 
       <Drawer
         open={open}
         onOpenChange={onOpenChange}
+        dismissible={false}
         title='Generate Payslips'
         description='Generate payslips for a specific month and year. Leave employees empty to generate for all.'
         footer={

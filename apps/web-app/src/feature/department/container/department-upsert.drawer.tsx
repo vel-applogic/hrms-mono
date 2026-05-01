@@ -78,6 +78,7 @@ export function DepartmentUpsertDrawer({ open, onOpenChange, department, onSucce
     <Drawer
       open={open}
       onOpenChange={onOpenChange}
+      dismissible={false}
       title={isEditing ? 'Edit department' : 'New department'}
       footer={
         <div className='flex justify-end gap-3'>

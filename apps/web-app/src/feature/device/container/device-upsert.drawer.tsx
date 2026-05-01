@@ -159,6 +159,7 @@ export function DeviceUpsertDrawer({ open, onOpenChange, device, onSuccess }: Pr
     <Drawer
       open={open}
       onOpenChange={onOpenChange}
+      dismissible={false}
       title={isEditing ? 'Edit device' : 'New device'}
       footer={
         <div className='flex justify-end gap-3'>

@@ -61,6 +61,7 @@ export class EmployeeDeleteUc extends BaseEmployeeUc implements IUseCase<Params,
 
   private async deleteRelations(params: Params, tx: Prisma.TransactionClient): Promise<void> {
     await tx.employeeFeedback.deleteMany({ where: { userId: params.id } });
+    await tx.payrollCompensationLineItem.deleteMany({ where: { payrollCompensation: { userId: params.id } } });
     await tx.payrollCompensation.deleteMany({ where: { userId: params.id } });
     await tx.employeeHasMedia.deleteMany({ where: { userId: params.id } });
   }

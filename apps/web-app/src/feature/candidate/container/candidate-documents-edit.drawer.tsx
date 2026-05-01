@@ -69,6 +69,7 @@ export function CandidateDocumentsEditDrawer({ open, onOpenChange, candidate, on
     <Drawer
       open={open}
       onOpenChange={handleOpenChange}
+      dismissible={false}
       title='Add/Edit Documents'
       footer={
         <div className='flex items-center gap-3'>

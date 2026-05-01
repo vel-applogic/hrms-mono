@@ -173,6 +173,7 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
     <Drawer
       open={open}
       onOpenChange={handleOpenChange}
+      dismissible={false}
       title={isEditing ? 'Edit compensation' : 'Add compensation'}
       footer={
         <div className='flex justify-end gap-3'>
