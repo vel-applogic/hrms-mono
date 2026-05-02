@@ -39,6 +39,7 @@ export function LeaveApprovalData({ initialData }: Props) {
             data={data}
             currentUserId={currentUserId}
             isAdmin
+            enableBulkApprove
             onEdit={(leave) => setEditingLeave(leave)}
             onRefresh={() => fetchData(page)}
           />

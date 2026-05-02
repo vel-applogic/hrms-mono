@@ -3,10 +3,12 @@
 import {
   LeaveDayHalfDtoEnum,
   LeaveResponseType,
+  LeaveStatusDtoEnum,
   PaginatedResponseType,
 } from '@repo/dto';
-import { DataTableSimple } from '@repo/ui/container/datatable/datatable';
+import { DataTableMultiSelect, DataTableSimple } from '@repo/ui/container/datatable/datatable';
 import { ActionOption, ActionsIconCellRenderer } from '@repo/ui/container/datatable/datatable-cell-renderer';
+import { Button } from '@repo/ui/component/ui/button';
 import { ColDef } from 'ag-grid-community';
 import { CheckCircle, Eye, Pencil, ThumbsDown, X, XCircle } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
@@ -18,6 +20,7 @@ interface Props {
   currentUserId: number | null;
   isAdmin?: boolean;
   hideEmployeeColumn?: boolean;
+  enableBulkApprove?: boolean;
   onEdit: (leave: LeaveResponseType) => void;
   onView?: (leave: LeaveResponseType) => void;
   onRefresh?: () => void;
@@ -76,6 +79,38 @@ type ConfirmAction = 'approve' | 'reject' | 'cancel';
 export const LeaveDataTableClient = (props: Props) => {
   const [confirmModal, setConfirmModal] = useState<{ action: ConfirmAction; leave: LeaveResponseType } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+  const [bulkLoading, setBulkLoading] = useState(false);
+
+  const selectablePendingIds = useMemo(
+    () => props.data.results.filter((l) => l.status === LeaveStatusDtoEnum.pending).map((l) => l.id),
+    [props.data.results],
+  );
+
+  const selectedPendingIds = useMemo(
+    () => selectedIds.filter((id) => selectablePendingIds.includes(id)),
+    [selectedIds, selectablePendingIds],
+  );
+
+  const closeBulkConfirm = useCallback(() => {
+    if (!bulkLoading) setBulkConfirmOpen(false);
+  }, [bulkLoading]);
+
+  const handleBulkApprove = useCallback(async () => {
+    if (selectedPendingIds.length === 0) return;
+    setBulkLoading(true);
+    try {
+      await Promise.all(selectedPendingIds.map((id) => approveLeave(id)));
+      setSelectedIds([]);
+      props.onRefresh?.();
+    } catch {
+      // Error handled by leave service
+    } finally {
+      setBulkConfirmOpen(false);
+      setBulkLoading(false);
+    }
+  }, [selectedPendingIds, props]);
 
   const openConfirm = useCallback((action: ConfirmAction, leave: LeaveResponseType) => {
     setConfirmModal({ action, leave });
@@ -252,20 +287,95 @@ export const LeaveDataTableClient = (props: Props) => {
     [props, openConfirm],
   );
 
+  const paginationProps = {
+    page: props.data.page,
+    pageSize: props.data.limit,
+    total: props.data.totalRecords,
+  };
+
   return (
     <>
-      <DataTableSimple<LeaveResponseType>
-        colDefs={colDefs}
-        onActionClick={onActionClick}
-        autoHeight={props.autoHeight}
-        pagination={{
-          page: props.data.page,
-          pageSize: props.data.limit,
-          total: props.data.totalRecords,
-        }}
-        rowData={props.data.results}
-        tableKey='leave-table'
-      />
+      {props.enableBulkApprove ? (
+        <div className='flex h-full flex-col gap-3'>
+          <div className='flex items-center justify-end gap-3'>
+            <span className='text-sm text-muted-foreground'>
+              {selectedPendingIds.length} selected
+            </span>
+            <Button
+              size='sm'
+              disabled={selectedPendingIds.length === 0}
+              onClick={() => setBulkConfirmOpen(true)}
+            >
+              <CheckCircle className='h-4 w-4' />
+              Approve selected
+            </Button>
+          </div>
+          <div className='min-h-0 flex-1'>
+            <DataTableMultiSelect<LeaveResponseType>
+              colDefs={colDefs}
+              onActionClick={onActionClick}
+              autoHeight={props.autoHeight}
+              pagination={paginationProps}
+              rowData={props.data.results}
+              tableKey='leave-approval-table'
+              selectedIds={selectedIds}
+              onSelectionChange={setSelectedIds}
+              rowSelectionOptions={{
+                mode: 'multiRow',
+                headerCheckbox: true,
+                isRowSelectable: (node) => node.data?.status === LeaveStatusDtoEnum.pending,
+              }}
+            />
+          </div>
+        </div>
+      ) : (
+        <DataTableSimple<LeaveResponseType>
+          colDefs={colDefs}
+          onActionClick={onActionClick}
+          autoHeight={props.autoHeight}
+          pagination={paginationProps}
+          rowData={props.data.results}
+          tableKey='leave-table'
+        />
+      )}
+      {bulkConfirmOpen && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
+          <div className='relative rounded-lg border border-border bg-background p-6 shadow-lg'>
+            <button
+              type='button'
+              onClick={closeBulkConfirm}
+              disabled={bulkLoading}
+              className='absolute right-4 top-4 rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50'
+              aria-label='Close'
+            >
+              <X className='h-4 w-4' />
+            </button>
+            <div className='mb-4 pr-8'>
+              <p className='text-sm text-foreground'>
+                Approve {selectedPendingIds.length} leave request{selectedPendingIds.length === 1 ? '' : 's'}?
+              </p>
+            </div>
+            <div className='flex justify-end gap-3'>
+              <button
+                type='button'
+                onClick={closeBulkConfirm}
+                disabled={bulkLoading}
+                className='rounded border border-border px-4 py-2 text-sm text-foreground hover:bg-muted disabled:opacity-50'
+              >
+                No
+              </button>
+              <button
+                type='button'
+                onClick={handleBulkApprove}
+                disabled={bulkLoading}
+                className='rounded bg-primary px-4 py-2 text-sm text-white hover:bg-primary/90 disabled:opacity-50'
+              >
+                {bulkLoading ? 'Approving...' : 'Yes, approve'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {confirmModal && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
           <div className='relative rounded-lg border border-border bg-background p-6 shadow-lg'>

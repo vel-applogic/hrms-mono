@@ -79,9 +79,9 @@ export function DataTableMultiSelect<Result = [Error, 'Specify the Data type par
       getRowClass={props.getRowClass}
       selectedIds={props.selectedIds}
       rowSelectionOptions={{
+        headerCheckbox: false,
         ...rowSelectionOptions,
         mode: 'multiRow',
-        headerCheckbox: false,
       }}
       hideCheckboxes={props.hideCheckboxes}
       shrink={props.autoHeight}
@@ -131,9 +131,9 @@ export function DataTableMultiSelectWithFooter<Result = [Error, 'Specify the Dat
       getRowClass={props.getRowClass}
       footerActions={props.footerActions}
       rowSelectionOptions={{
+        headerCheckbox: false,
         ...rowSelectionOptions,
         mode: 'multiRow',
-        headerCheckbox: false,
       }}
       selectedIds={props.selectedIds}
       shrink={props.autoHeight}
