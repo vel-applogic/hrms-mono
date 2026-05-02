@@ -405,23 +405,23 @@ model UserInDepartment {
 // EMPLOYEE
 
 model Employee {
-  id             Int                @id @default(autoincrement())
-  userId         Int                @map("user_id")
-  user           User               @relation("EmployeeUser", fields: [userId], references: [id])
-  organizationId Int                @map("organization_id")
-  organization   Organization       @relation(fields: [organizationId], references: [id])
-  employeeCode   String             @map("employee_code")
-  personalEmail  String?            @map("personal_email")
-  dob            DateTime
-  pan            String?
-  aadhaar        String?
-  designation    String
-  dateOfJoining  DateTime           @map("date_of_joining")
-  dateOfLeaving  DateTime?          @map("date_of_leaving")
-  status         EmployeeStatusEnum @map("status")
-  reportToId     Int?               @map("report_to_id")
-  reportTo       User?              @relation("EmployeeReportTo", fields: [reportToId], references: [id])
-  isBgVerified                Boolean            @default(false) @map("is_bg_verified")
+  id                           Int                @id @default(autoincrement())
+  userId                       Int                @map("user_id")
+  user                         User               @relation("EmployeeUser", fields: [userId], references: [id])
+  organizationId               Int                @map("organization_id")
+  organization                 Organization       @relation(fields: [organizationId], references: [id])
+  employeeCode                 String             @map("employee_code")
+  personalEmail                String?            @map("personal_email")
+  dob                          DateTime
+  pan                          String?
+  aadhaar                      String?
+  designation                  String
+  dateOfJoining                DateTime           @map("date_of_joining")
+  dateOfLeaving                DateTime?          @map("date_of_leaving")
+  status                       EmployeeStatusEnum @map("status")
+  reportToId                   Int?               @map("report_to_id")
+  reportTo                     User?              @relation("EmployeeReportTo", fields: [reportToId], references: [id])
+  isBgVerified                 Boolean            @default(false) @map("is_bg_verified")
   emergencyContactName         String             @map("emergency_contact_name")
   emergencyContactNumber       String             @map("emergency_contact_number")
   emergencyContactRelationship String             @map("emergency_contact_relationship")
@@ -430,7 +430,7 @@ model Employee {
   departmentId                 Int?               @map("department_id")
   department                   Department?        @relation(fields: [departmentId], references: [id])
   candidateId                  Int?               @map("candidate_id")
-  candidate      Candidate?         @relation("EmployeeCandidate", fields: [candidateId], references: [id])
+  candidate                    Candidate?         @relation("EmployeeCandidate", fields: [candidateId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
