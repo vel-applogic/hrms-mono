@@ -11,7 +11,7 @@ import {
   MediaUpsertType,
   OperationStatusResponseType,
 } from '@repo/dto';
-import { AuditService, CandidateDao, CandidateHasMediaDao, CommonLoggerService, CurrentUserType, IUseCase, MediaDao, PrismaService } from '@repo/nest-lib';
+import { AuditService, CandidateDao, CandidateHasMediaDao, CommonLoggerService, CurrentUserType, genderDtoEnumToDbEnum, IUseCase, MediaDao, PrismaService } from '@repo/nest-lib';
 
 import { S3Service } from '#src/external-service/s3.service.js';
 import { MediaService } from '#src/service/media.service.js';
@@ -65,6 +65,7 @@ export class CandidateUpdateUc extends BaseCandidateUc implements IUseCase<Param
         firstname: params.dto.firstname,
         lastname: params.dto.lastname,
         email: params.dto.email,
+        gender: genderDtoEnumToDbEnum(params.dto.gender),
         contactNumbers: params.dto.contactNumbers ?? [],
         source: params.dto.source,
         urls: params.dto.urls ?? [],

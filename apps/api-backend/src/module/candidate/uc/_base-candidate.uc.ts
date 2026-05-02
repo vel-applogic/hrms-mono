@@ -9,6 +9,7 @@ import {
   candidateSourceDbEnumToDtoEnum,
   candidateStatusDbEnumToDtoEnum,
   CommonLoggerService,
+  genderDbEnumToDtoEnum,
   noticePeriodUnitDbEnumToDtoEnum,
   PrismaService,
 } from '@repo/nest-lib';
@@ -56,6 +57,7 @@ export class BaseCandidateUc extends BaseUc {
       firstname: candidate.firstname,
       lastname: candidate.lastname,
       email: candidate.email,
+      gender: genderDbEnumToDtoEnum(candidate.gender),
       contactNumbers: candidate.contactNumbers,
       source: candidateSourceDbEnumToDtoEnum(candidate.source),
       urls: candidate.urls,
@@ -92,6 +94,7 @@ export class BaseCandidateUc extends BaseUc {
       firstname: dbRec.firstname,
       lastname: dbRec.lastname,
       email: dbRec.email,
+      gender: genderDbEnumToDtoEnum(dbRec.gender),
       contactNumbers: dbRec.contactNumbers,
       source: candidateSourceDbEnumToDtoEnum(dbRec.source),
       urls: dbRec.urls,

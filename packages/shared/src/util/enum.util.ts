@@ -1,4 +1,4 @@
-import { ContactTypeDtoEnum, DeviceStatusDtoEnum, DeviceTypeDtoEnum, ExpenseForecastFrequencyDtoEnum, ExpenseTypeDtoEnum, HolidayTypeDtoEnum, NotificationLinkDtoEnum, ReimbursementStatusDtoEnum } from '@repo/dto';
+import { ContactTypeDtoEnum, DeviceStatusDtoEnum, DeviceTypeDtoEnum, ExpenseForecastFrequencyDtoEnum, ExpenseTypeDtoEnum, GenderDtoEnum, HolidayTypeDtoEnum, NotificationLinkDtoEnum, ReimbursementStatusDtoEnum } from '@repo/dto';
 
 export function contactTypeDtoEnumToReadableLabel(dtoEnum: ContactTypeDtoEnum): string {
   const mapping: Record<ContactTypeDtoEnum, string> = {
@@ -71,6 +71,16 @@ export function expenseForecastFrequencyDtoEnumToReadableLabel(dtoEnum: ExpenseF
   const mapping: Record<ExpenseForecastFrequencyDtoEnum, string> = {
     [ExpenseForecastFrequencyDtoEnum.monthly]: 'Monthly',
     [ExpenseForecastFrequencyDtoEnum.yearly]: 'Yearly',
+  };
+
+  return mapping[dtoEnum] ?? dtoEnum;
+}
+
+export function genderDtoEnumToReadableLabel(dtoEnum: GenderDtoEnum): string {
+  const mapping: Record<GenderDtoEnum, string> = {
+    [GenderDtoEnum.male]: 'Male',
+    [GenderDtoEnum.female]: 'Female',
+    [GenderDtoEnum.other]: 'Other',
   };
 
   return mapping[dtoEnum] ?? dtoEnum;

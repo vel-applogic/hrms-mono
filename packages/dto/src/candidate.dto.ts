@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { CandidateMediaTypeDtoEnum, CandidateProgressDtoEnum, CandidateSourceDtoEnum, CandidateStatusDtoEnum, NoticePeriodUnitDtoEnum } from './enum.js';
+import { CandidateMediaTypeDtoEnum, CandidateProgressDtoEnum, CandidateSourceDtoEnum, CandidateStatusDtoEnum, GenderDtoEnum, NoticePeriodUnitDtoEnum } from './enum.js';
 import { MediaResponseSchema, MediaUpsertSchema } from './media.dto.js';
 import { FilterRequestSchema } from './pagination-filter.dto.js';
 
@@ -8,6 +8,7 @@ export const CandidateBaseFieldsSchema = z.object({
   firstname: z.string().min(1),
   lastname: z.string().min(1),
   email: z.string().email(),
+  gender: z.enum(GenderDtoEnum),
   contactNumbers: z.array(z.string()).default([]),
   source: z.nativeEnum(CandidateSourceDtoEnum),
   urls: z.array(z.string()).default([]),

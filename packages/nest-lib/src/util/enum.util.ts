@@ -12,6 +12,7 @@ import {
   EmployeeStatusEnum,
   ExpenseForecastFrequency,
     ExpenseType,
+  GenderDbEnum,
   HolidayType,
   LeaveDayHalfEnum,
   LeaveStatusEnum,
@@ -37,6 +38,7 @@ import {
   EmployeeStatusDtoEnum,
   ExpenseForecastFrequencyDtoEnum,
   ExpenseTypeDtoEnum,
+  GenderDtoEnum,
   HolidayTypeDtoEnum,
   LeaveDayHalfDtoEnum,
   LeaveStatusDtoEnum,
@@ -383,6 +385,36 @@ export function noticePeriodUnitDbEnumToDtoEnum(dbEnum: NoticePeriodUnit): Notic
   const dtoEnum = mapping[dbEnum];
   if (!dtoEnum) {
     throw new Error(`Unknown NoticePeriodUnit: ${dbEnum}`);
+  }
+
+  return dtoEnum;
+}
+
+export function genderDtoEnumToDbEnum(dtoEnum: GenderDtoEnum): GenderDbEnum {
+  const mapping: Record<GenderDtoEnum, GenderDbEnum> = {
+    [GenderDtoEnum.male]: 'male',
+    [GenderDtoEnum.female]: 'female',
+    [GenderDtoEnum.other]: 'other',
+  };
+
+  const dbEnum = mapping[dtoEnum];
+  if (!dbEnum) {
+    throw new Error(`Unknown GenderDtoEnum: ${dtoEnum}`);
+  }
+
+  return dbEnum;
+}
+
+export function genderDbEnumToDtoEnum(dbEnum: GenderDbEnum): GenderDtoEnum {
+  const mapping: Record<GenderDbEnum, GenderDtoEnum> = {
+    male: GenderDtoEnum.male,
+    female: GenderDtoEnum.female,
+    other: GenderDtoEnum.other,
+  };
+
+  const dtoEnum = mapping[dbEnum];
+  if (!dtoEnum) {
+    throw new Error(`Unknown GenderDbEnum: ${dbEnum}`);
   }
 
   return dtoEnum;

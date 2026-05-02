@@ -18,6 +18,7 @@ import {
   UserDao,
   EmployeeDao,
   EmployeeHasMediaDao,
+  genderDtoEnumToDbEnum,
 } from '@repo/nest-lib';
 import { ApiFieldValidationError } from '@repo/shared';
 import type { Prisma } from '@repo/db';
@@ -90,6 +91,7 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
         firstname: params.dto.firstname,
         lastname: params.dto.lastname,
         email: params.dto.email,
+        gender: genderDtoEnumToDbEnum(params.dto.gender),
       },
       tx,
     });

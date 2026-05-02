@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@repo/db';
+import { GenderDbEnum } from '@repo/db';
 import type { AdminUserCreateRequestType, OperationStatusResponseType } from '@repo/dto';
 import { AuditActivityStatusDtoEnum, AuditEntityTypeDtoEnum, AuditEventGroupDtoEnum, AuditEventTypeDtoEnum, UserRoleDtoEnum } from '@repo/dto';
 import {
@@ -99,6 +100,7 @@ export class AdminUserCreateUc extends BaseAdminUserUc implements IUseCase<Param
         firstname: '',
         lastname: '',
         password: hashedPassword,
+        gender: GenderDbEnum.other,
         isActive: false,
       },
       tx: params.tx,

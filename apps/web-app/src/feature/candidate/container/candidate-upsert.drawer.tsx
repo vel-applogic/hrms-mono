@@ -7,8 +7,10 @@ import {
   CandidateProgressDtoEnum,
   CandidateSourceDtoEnum,
   CandidateStatusDtoEnum,
+  GenderDtoEnum,
   NoticePeriodUnitDtoEnum,
 } from '@repo/dto';
+import { genderDtoEnumToReadableLabel } from '@repo/shared';
 import { Button } from '@repo/ui/component/ui/button';
 import { Input } from '@repo/ui/component/ui/input';
 import { Label } from '@repo/ui/component/ui/label';
@@ -59,6 +61,7 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
       firstname: '',
       lastname: '',
       email: '',
+      gender: undefined,
       contactNumbers: [],
       source: CandidateSourceDtoEnum.linkedin,
       urls: [],
@@ -89,6 +92,7 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
           firstname: candidate.firstname,
           lastname: candidate.lastname,
           email: candidate.email,
+          gender: candidate.gender,
           contactNumbers: candidate.contactNumbers,
           source: candidate.source as CandidateSourceDtoEnum,
           urls: candidate.urls,
@@ -114,6 +118,7 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
           firstname: '',
           lastname: '',
           email: '',
+          gender: undefined,
           contactNumbers: [],
           source: CandidateSourceDtoEnum.linkedin,
           urls: [],
@@ -198,6 +203,29 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
             <Input id='lastname' placeholder='Last name' {...form.register('lastname')} />
             {form.formState.errors.lastname && <p className='text-sm text-destructive'>{form.formState.errors.lastname.message}</p>}
           </div>
+        </div>
+
+        {/* Gender */}
+        <div className='flex flex-col gap-2'>
+          <Label>
+            Gender <span className='text-destructive'>*</span>
+          </Label>
+          <div className='flex flex-wrap gap-4'>
+            {Object.values(GenderDtoEnum).map((g) => (
+              <label key={g} className='flex cursor-pointer items-center gap-2'>
+                <input
+                  type='radio'
+                  name='gender'
+                  value={g}
+                  checked={form.watch('gender') === g}
+                  onChange={() => form.setValue('gender', g, { shouldValidate: true })}
+                  className='h-4 w-4 accent-primary'
+                />
+                <span className='text-sm text-foreground'>{genderDtoEnumToReadableLabel(g)}</span>
+              </label>
+            ))}
+          </div>
+          {form.formState.errors.gender && <p className='text-sm text-destructive'>{form.formState.errors.gender.message}</p>}
         </div>
 
         {/* Email */}

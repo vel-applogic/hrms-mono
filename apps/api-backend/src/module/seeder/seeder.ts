@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { GenderDbEnum } from '@repo/db';
 import { UserRoleDtoEnum } from '@repo/dto';
 import { CommonLoggerService, PrismaService } from '@repo/nest-lib';
 
@@ -505,6 +506,7 @@ export class Seeder {
           firstname: userData.firstname,
           lastname: userData.lastname,
           password: hashedPassword,
+          gender: GenderDbEnum.other,
           isActive: true,
           isSuperAdmin: userData.isSuperAdmin,
         },
@@ -543,6 +545,7 @@ export class Seeder {
         firstname: 'John',
         lastname: 'Doe',
         password: hashedPassword,
+        gender: GenderDbEnum.male,
         isActive: true,
         isSuperAdmin: false,
       },

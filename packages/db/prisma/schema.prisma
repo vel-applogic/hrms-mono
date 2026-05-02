@@ -103,14 +103,15 @@ model Contact {
 // USER
 
 model User {
-  id             Int       @id @default(autoincrement())
-  email          String    @unique
+  id             Int          @id @default(autoincrement())
+  email          String       @unique
   firstname      String
   lastname       String
   password       String
-  isSuperAdmin   Boolean   @default(false) @map("is_super_admin")
-  isActive       Boolean   @default(true) @map("is_active")
-  lastLoggedInAt DateTime? @map("last_logged_in_at")
+  gender         GenderDbEnum
+  isSuperAdmin   Boolean      @default(false) @map("is_super_admin")
+  isActive       Boolean      @default(true) @map("is_active")
+  lastLoggedInAt DateTime?    @map("last_logged_in_at")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -698,6 +699,7 @@ model Candidate {
   firstname          String
   lastname           String
   email              String
+  gender             GenderDbEnum
   contactNumbers     String[]
   source             CandidateSource
   urls               String[]
@@ -1107,6 +1109,14 @@ enum UserRoleDbEnum {
   employee
 
   @@map("userRoleDbEnum")
+}
+
+enum GenderDbEnum {
+  male
+  female
+  other
+
+  @@map("genderDbEnum")
 }
 
 enum EmployeeStatusEnum {

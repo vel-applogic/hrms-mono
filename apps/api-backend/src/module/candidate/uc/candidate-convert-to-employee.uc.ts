@@ -124,6 +124,7 @@ export class CandidateConvertToEmployeeUc extends BaseCandidateUc implements IUs
         firstname: candidate.firstname,
         lastname: candidate.lastname,
         password: hashedPassword,
+        gender: candidate.gender,
         isActive: false,
       },
       tx,

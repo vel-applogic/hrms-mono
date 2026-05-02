@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { EmployeeStatusDtoEnum } from './enum.js';
+import { EmployeeStatusDtoEnum, GenderDtoEnum } from './enum.js';
 import { MediaResponseSchema, MediaUpsertSchema } from './media.dto.js';
 import { FilterRequestSchema } from './pagination-filter.dto.js';
 
@@ -17,6 +17,7 @@ export const EmployeeBaseFieldsSchema = z.object({
   dateOfJoining: z.string().min(1, 'Date of joining is required'),
   dateOfLeaving: z.string().optional().nullable(),
   status: z.nativeEnum(EmployeeStatusDtoEnum),
+  gender: z.enum(GenderDtoEnum),
   reportToId: z.number().optional().nullable(),
   isBgVerified: z.boolean().optional(),
   emergencyContactName: z.string().min(1, 'Emergency contact name is required'),
@@ -65,6 +66,7 @@ export type EmployeeListResponseType = z.infer<typeof EmployeeListResponseSchema
 
 export const EmployeeDetailResponseSchema = EmployeeListResponseSchema.extend({
   personalEmail: z.string().optional().nullable(),
+  gender: z.enum(GenderDtoEnum),
   dob: z.string(),
   pan: z.string().optional().nullable(),
   aadhaar: z.string().optional().nullable(),

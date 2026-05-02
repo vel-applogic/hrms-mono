@@ -1,6 +1,7 @@
 'use client';
 
 import type { BranchResponseType, DepartmentResponseType, EmployeeDetailResponseType } from '@repo/dto';
+import { genderDtoEnumToReadableLabel } from '@repo/shared';
 import { Button } from '@repo/ui/component/ui/button';
 import { Label } from '@repo/ui/component/ui/label';
 import { Pencil, User } from 'lucide-react';
@@ -103,6 +104,10 @@ export function EmployeeViewBasicDetails({ employeeId, readOnly }: Props) {
             <div className='flex flex-col gap-2 sm:col-span-2'>
               <Label className='text-muted-foreground'>Personal email</Label>
               <p className='text-sm font-medium'>{employee.personalEmail ?? '—'}</p>
+            </div>
+            <div className='flex flex-col gap-2'>
+              <Label className='text-muted-foreground'>Gender</Label>
+              <p className='text-sm font-medium'>{genderDtoEnumToReadableLabel(employee.gender)}</p>
             </div>
             <div className='flex flex-col gap-2'>
               <Label className='text-muted-foreground'>Date of birth</Label>

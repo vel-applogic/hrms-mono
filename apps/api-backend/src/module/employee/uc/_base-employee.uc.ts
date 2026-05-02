@@ -1,7 +1,7 @@
 import { EmployeeMediaType } from '@repo/db';
 import type { EmployeeDetailResponseType, EmployeeListResponseType, MediaResponseType } from '@repo/dto';
 import type { EmployeeListRecordType } from '@repo/nest-lib';
-import { BaseUc, CommonLoggerService, EmployeeDao, EmployeeHasMediaDao, employeeStatusDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
+import { BaseUc, CommonLoggerService, EmployeeDao, EmployeeHasMediaDao, employeeStatusDbEnumToDtoEnum, genderDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
 import { ApiBadRequestError } from '@repo/shared';
 
 import type { S3Service } from '#src/external-service/s3.service.js';
@@ -52,6 +52,7 @@ export class BaseEmployeeUc extends BaseUc {
       lastname: employee.user.lastname,
       email: employee.user.email,
       personalEmail: employee.personalEmail,
+      gender: genderDbEnumToDtoEnum(employee.user.gender),
       dob: employee.dob.toISOString().split('T')[0]!,
       pan: employee.pan ?? null,
       aadhaar: employee.aadhaar ?? null,

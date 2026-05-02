@@ -8,7 +8,9 @@ import {
   EmployeeCreateRequestSchema,
   EmployeeDetailResponseType,
   EmployeeStatusDtoEnum,
+  GenderDtoEnum,
 } from '@repo/dto';
+import { genderDtoEnumToReadableLabel } from '@repo/shared';
 import { Button } from '@repo/ui/component/ui/button';
 import { Input } from '@repo/ui/component/ui/input';
 import { Label } from '@repo/ui/component/ui/label';
@@ -59,6 +61,7 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess, 
       dateOfJoining: '',
       dateOfLeaving: undefined,
       status: EmployeeStatusDtoEnum.active,
+      gender: undefined,
       reportToId: undefined,
       isBgVerified: false,
       emergencyContactName: '',
@@ -85,6 +88,7 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess, 
           dateOfJoining: employee.dateOfJoining,
           dateOfLeaving: employee.dateOfLeaving ?? undefined,
           status: employee.status as EmployeeStatusDtoEnum,
+          gender: employee.gender,
           reportToId: employee.reportToId ?? undefined,
           isBgVerified: employee.isBgVerified ?? false,
           emergencyContactName: employee.emergencyContactName,
@@ -108,6 +112,7 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess, 
           dateOfJoining: '',
           dateOfLeaving: undefined,
           status: EmployeeStatusDtoEnum.active,
+          gender: undefined,
           reportToId: undefined,
           isBgVerified: false,
           emergencyContactName: '',
@@ -150,6 +155,7 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess, 
           dateOfJoining: data.dateOfJoining,
           dateOfLeaving: data.dateOfLeaving ?? null,
           status: data.status,
+          gender: data.gender,
           reportToId: data.reportToId ?? null,
           isBgVerified: data.isBgVerified,
           emergencyContactName: data.emergencyContactName,
@@ -173,6 +179,7 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess, 
           dateOfJoining: data.dateOfJoining,
           dateOfLeaving: data.dateOfLeaving ?? undefined,
           status: data.status,
+          gender: data.gender,
           reportToId: data.reportToId ?? undefined,
           isBgVerified: data.isBgVerified,
           emergencyContactName: data.emergencyContactName,
@@ -243,6 +250,28 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess, 
             <Input id='lastname' placeholder='Last name' {...form.register('lastname')} />
             {form.formState.errors.lastname && <p className='text-sm text-destructive'>{form.formState.errors.lastname.message}</p>}
           </div>
+        </div>
+
+        <div className='flex flex-col gap-2'>
+          <Label>
+            Gender <span className='text-destructive'>*</span>
+          </Label>
+          <div className='flex flex-wrap gap-4'>
+            {Object.values(GenderDtoEnum).map((g) => (
+              <label key={g} className='flex cursor-pointer items-center gap-2'>
+                <input
+                  type='radio'
+                  name='gender'
+                  value={g}
+                  checked={form.watch('gender') === g}
+                  onChange={() => form.setValue('gender', g, { shouldValidate: true })}
+                  className='h-4 w-4 accent-primary'
+                />
+                <span className='text-sm text-foreground'>{genderDtoEnumToReadableLabel(g)}</span>
+              </label>
+            ))}
+          </div>
+          {form.formState.errors.gender && <p className='text-sm text-destructive'>{form.formState.errors.gender.message}</p>}
         </div>
 
         <div className='flex flex-col gap-2'>

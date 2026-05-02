@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@repo/db';
-import { UserRoleDbEnum } from '@repo/db';
+import { GenderDbEnum, UserRoleDbEnum } from '@repo/db';
 import type { OrganizationCreateRequestType, OrganizationResponseType } from '@repo/dto';
 import { MediaTypeDtoEnum } from '@repo/dto';
 import type { CurrentUserType, UserSelectTableRecordType } from '@repo/nest-lib';
@@ -131,6 +131,7 @@ export class OrganizationCreateUc extends BaseOrganizationUc implements IUseCase
             firstname: params.dto.email.split('@')[0] ?? '',
             lastname: '',
             password: hashedPassword,
+            gender: GenderDbEnum.other,
             isActive: false,
           },
           tx,

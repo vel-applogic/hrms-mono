@@ -3,6 +3,12 @@ export enum UserRoleDtoEnum {
   employee = 'employee',
 }
 
+export enum GenderDtoEnum {
+  male = 'male',
+  female = 'female',
+  other = 'other',
+}
+
 // Common enums
 export enum MediaTypeDtoEnum {
   doc = 'doc',
