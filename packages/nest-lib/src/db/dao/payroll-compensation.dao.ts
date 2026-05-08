@@ -50,47 +50,47 @@ export class PayrollCompensationDao extends BaseDao {
     });
   }
 
-  public async getById(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<PayrollCompensationWithLineItemsType | undefined> {
+  public async getById(params: { id: number; organisationId: number; tx?: Prisma.TransactionClient }): Promise<PayrollCompensationWithLineItemsType | undefined> {
     const pc = this.getPrismaClient(params.tx);
     const result = await pc.payrollCompensation.findFirst({
-      where: { id: params.id, organizationId: params.organizationId },
+      where: { id: params.id, organisationId: params.organisationId },
       include: lineItemsInclude,
     });
     return result ?? undefined;
   }
 
-  public async deleteByIdOrThrow(params: { id: number; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
+  public async deleteByIdOrThrow(params: { id: number; organisationId: number; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
     const dbRecord = await pc.payrollCompensation.findFirst({
-      where: { id: params.id, organizationId: params.organizationId },
+      where: { id: params.id, organisationId: params.organisationId },
     });
     if (!dbRecord) {
       throw new DbRecordNotFoundError('PayrollCompensation not found');
     }
     await pc.payrollCompensationLineItem.deleteMany({ where: { payrollCompensationId: params.id } });
     await pc.payrollCompensation.delete({
-      where: { id: params.id, organizationId: params.organizationId },
+      where: { id: params.id, organisationId: params.organisationId },
     });
   }
 
-  public async findByUserIdOrderedByEffectiveFromDesc(params: { userId: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<PayrollCompensationWithLineItemsType[]> {
+  public async findByUserIdOrderedByEffectiveFromDesc(params: { userId: number; organisationId: number; tx?: Prisma.TransactionClient }): Promise<PayrollCompensationWithLineItemsType[]> {
     const pc = this.getPrismaClient(params.tx);
     return pc.payrollCompensation.findMany({
       where: {
         userId: params.userId,
-        organizationId: params.organizationId,
+        organisationId: params.organisationId,
       },
       include: lineItemsInclude,
       orderBy: { effectiveFrom: 'desc' },
     });
   }
 
-  public async updateManyByUserId(params: { userId: number; organizationId: number; data: PayrollCompensationUpdateTableRecordType; tx: Prisma.TransactionClient }): Promise<number> {
+  public async updateManyByUserId(params: { userId: number; organisationId: number; data: PayrollCompensationUpdateTableRecordType; tx: Prisma.TransactionClient }): Promise<number> {
     const pc = this.getPrismaClient(params.tx);
     const result = await pc.payrollCompensation.updateMany({
       where: {
         userId: params.userId,
-        organizationId: params.organizationId,
+        organisationId: params.organisationId,
       },
       data: params.data,
     });
@@ -99,7 +99,7 @@ export class PayrollCompensationDao extends BaseDao {
 
   public async findByUserIdWithPagination(params: {
     userId: number;
-    organizationId: number;
+    organisationId: number;
     page: number;
     limit: number;
     tx?: Prisma.TransactionClient;
@@ -112,7 +112,7 @@ export class PayrollCompensationDao extends BaseDao {
 
     const where = {
       userId: params.userId,
-      organizationId: params.organizationId,
+      organisationId: params.organisationId,
     };
 
     const [totalRecords, dbRecords] = await Promise.all([
@@ -130,7 +130,7 @@ export class PayrollCompensationDao extends BaseDao {
   }
 
   public async findActiveWithEmployeeInfo(params: {
-    organizationId: number;
+    organisationId: number;
     page: number;
     limit: number;
     search?: string;
@@ -148,14 +148,14 @@ export class PayrollCompensationDao extends BaseDao {
             { user: { firstname: { contains: params.search, mode: 'insensitive' } } },
             { user: { lastname: { contains: params.search, mode: 'insensitive' } } },
             { user: { email: { contains: params.search, mode: 'insensitive' } } },
-            { user: { employees: { some: { employeeCode: { contains: params.search, mode: 'insensitive' }, organizationId: params.organizationId } } } },
+            { user: { employees: { some: { employeeCode: { contains: params.search, mode: 'insensitive' }, organisationId: params.organisationId } } } },
           ],
         }
       : undefined;
 
     const where: Prisma.PayrollCompensationWhereInput = {
       isActive: true,
-      organizationId: params.organizationId,
+      organisationId: params.organisationId,
       ...searchFilter,
     };
 
@@ -170,7 +170,7 @@ export class PayrollCompensationDao extends BaseDao {
               firstname: true,
               lastname: true,
               email: true,
-              employees: { where: { organizationId: params.organizationId }, select: { employeeCode: true }, take: 1 },
+              employees: { where: { organisationId: params.organisationId }, select: { employeeCode: true }, take: 1 },
             },
           },
         },
@@ -183,10 +183,10 @@ export class PayrollCompensationDao extends BaseDao {
     return { dbRecords, totalRecords };
   }
 
-  public async findActiveUserIds(params: { organizationId: number; tx?: Prisma.TransactionClient }): Promise<number[]> {
+  public async findActiveUserIds(params: { organisationId: number; tx?: Prisma.TransactionClient }): Promise<number[]> {
     const pc = this.getPrismaClient(params.tx);
     const results = await pc.payrollCompensation.findMany({
-      where: { organizationId: params.organizationId, isActive: true },
+      where: { organisationId: params.organisationId, isActive: true },
       select: { userId: true },
       distinct: ['userId'],
     });

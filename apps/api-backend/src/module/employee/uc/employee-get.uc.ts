@@ -40,6 +40,6 @@ export class EmployeeGetUc extends BaseEmployeeUc implements IUseCase<Params, Em
   }
 
   private async fetchById(params: Params): Promise<EmployeeDetailResponseType> {
-    return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    return await this.getByIdOrThrow(params.id, params.currentUser.organisationId);
   }
 }

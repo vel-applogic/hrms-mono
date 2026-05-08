@@ -19,6 +19,6 @@ export class DeviceGetUc extends BaseDeviceUc implements IUseCase<Params, Device
 
   public async execute(params: Params): Promise<DeviceDetailResponseType> {
     this.logger.i('Getting device', { id: params.id });
-    return await this.getDeviceById(params.id, params.currentUser.organizationId);
+    return await this.getDeviceById(params.id, params.currentUser.organisationId);
   }
 }

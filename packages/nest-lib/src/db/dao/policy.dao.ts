@@ -23,17 +23,17 @@ export class PolicyDao extends BaseDao {
     return created.id;
   }
 
-  public async update(params: { id: number; organizationId: number; data: PolicyUpdateTableRecordType; tx: Prisma.TransactionClient }): Promise<void> {
+  public async update(params: { id: number; organisationId: number; data: PolicyUpdateTableRecordType; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
     await pc.policy.update({
-      where: { id: params.id, organizationId: params.organizationId },
+      where: { id: params.id, organisationId: params.organisationId },
       data: params.data,
     });
   }
 
   public async search(params: {
     filterDto: PolicyFilterRequestType;
-    organizationId: number;
+    organisationId: number;
     orderBy?: OrderByParam;
     tx?: Prisma.TransactionClient;
   }): Promise<{ totalRecords: number; dbRecords: PolicyListRecordType[] }> {
@@ -44,7 +44,7 @@ export class PolicyDao extends BaseDao {
     };
     const { take, skip } = this.getPagination(pagination);
 
-    const where: Prisma.PolicyWhereInput = { organizationId: params.organizationId };
+    const where: Prisma.PolicyWhereInput = { organisationId: params.organisationId };
 
     if (params.filterDto.search && params.filterDto.search.trim().length > 0) {
       where.title = { contains: params.filterDto.search, mode: 'insensitive' };
@@ -72,12 +72,12 @@ export class PolicyDao extends BaseDao {
     return { dbRecords, totalRecords };
   }
 
-  public async getById(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<PolicyDetailRecordType | undefined> {
+  public async getById(params: { id: number; organisationId: number; tx?: Prisma.TransactionClient }): Promise<PolicyDetailRecordType | undefined> {
     const pc = this.getPrismaClient(params.tx);
     const dbRec = await pc.policy.findFirst({
       where: {
         id: params.id,
-        organizationId: params.organizationId,
+        organisationId: params.organisationId,
       },
       include: {
         policyHasMedias: {
@@ -90,7 +90,7 @@ export class PolicyDao extends BaseDao {
     return dbRec ?? undefined;
   }
 
-  public async getByIdOrThrow(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<PolicyDetailRecordType> {
+  public async getByIdOrThrow(params: { id: number; organisationId: number; tx?: Prisma.TransactionClient }): Promise<PolicyDetailRecordType> {
     const dbRec = await this.getById(params);
     if (!dbRec) {
       throw new DbRecordNotFoundError('Policy not found');
@@ -98,16 +98,16 @@ export class PolicyDao extends BaseDao {
     return dbRec;
   }
 
-  public async deleteByIdOrThrow(params: { id: number; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
+  public async deleteByIdOrThrow(params: { id: number; organisationId: number; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
     const dbRecord = await pc.policy.findFirst({
-      where: { id: params.id, organizationId: params.organizationId },
+      where: { id: params.id, organisationId: params.organisationId },
     });
     if (!dbRecord) {
       throw new DbRecordNotFoundError('Invalid policy id');
     }
     await pc.policy.delete({
-      where: { id: params.id, organizationId: params.organizationId },
+      where: { id: params.id, organisationId: params.organisationId },
     });
   }
 }

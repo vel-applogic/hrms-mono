@@ -59,7 +59,7 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
       await this.replaceEmployeePhoto(params, tx);
     });
 
-    const newEmployee = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    const newEmployee = await this.getByIdOrThrow(params.id, params.currentUser.organisationId);
     void this.recordActivity(params, oldEmployee, newEmployee);
     return { success: true, message: 'Employee updated successfully' };
   }
@@ -67,17 +67,17 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
   private async validate(params: Params): Promise<EmployeeDetailResponseType> {
     this.assertAdmin(params.currentUser);
 
-    const oldEmployee = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    const oldEmployee = await this.getByIdOrThrow(params.id, params.currentUser.organisationId);
 
-    const duplicateCode = await this.employeeDao.findByEmployeeCode({ employeeCode: params.dto.employeeCode, organizationId: params.currentUser.organizationId, excludeUserId: params.id });
+    const duplicateCode = await this.employeeDao.findByEmployeeCode({ employeeCode: params.dto.employeeCode, organisationId: params.currentUser.organisationId, excludeUserId: params.id });
     if (duplicateCode) throw new ApiFieldValidationError('employeeCode', 'Employee code already exists in this organisation');
 
     if (params.dto.pan) {
-      const duplicatePan = await this.employeeDao.findByPan({ pan: params.dto.pan, organizationId: params.currentUser.organizationId, excludeUserId: params.id });
+      const duplicatePan = await this.employeeDao.findByPan({ pan: params.dto.pan, organisationId: params.currentUser.organisationId, excludeUserId: params.id });
       if (duplicatePan) throw new ApiFieldValidationError('pan', 'PAN already registered in this organisation');
     }
     if (params.dto.aadhaar) {
-      const duplicateAadhaar = await this.employeeDao.findByAadhaar({ aadhaar: params.dto.aadhaar, organizationId: params.currentUser.organizationId, excludeUserId: params.id });
+      const duplicateAadhaar = await this.employeeDao.findByAadhaar({ aadhaar: params.dto.aadhaar, organisationId: params.currentUser.organisationId, excludeUserId: params.id });
       if (duplicateAadhaar) throw new ApiFieldValidationError('aadhaar', 'Aadhaar already registered in this organisation');
     }
 
@@ -98,7 +98,7 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
 
     await this.employeeDao.update({
       userId: params.id,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       data: {
         employeeCode: params.dto.employeeCode,
         personalEmail: params.dto.personalEmail ?? undefined,
@@ -130,7 +130,7 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
       tx,
     });
     if (params.dto.photo?.key?.startsWith('temp/')) {
-      await this.createAndLinkMedia({ media: params.dto.photo, userId: params.id, organizationId: params.currentUser.organizationId, type: EmployeeMediaType.photo, tx });
+      await this.createAndLinkMedia({ media: params.dto.photo, userId: params.id, organisationId: params.currentUser.organisationId, type: EmployeeMediaType.photo, tx });
     } else if (params.dto.photo?.id) {
       await this.employeeHasMediaDao.create({
         data: { userId: params.id, mediaId: params.dto.photo.id, type: EmployeeMediaType.photo },
@@ -142,7 +142,7 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
   private async createAndLinkMedia(params: {
     media: MediaUpsertType;
     userId: number;
-    organizationId: number;
+    organisationId: number;
     type: EmployeeMediaType;
     tx: Prisma.TransactionClient;
   }): Promise<void> {
@@ -155,7 +155,7 @@ export class EmployeeUpdateUc extends BaseEmployeeUc implements IUseCase<Params,
     if (!file) return;
 
     const mediaId = await this.mediaDao.create({
-      data: { key: file.newKey, name: params.media.name, type: params.media.type, size: file.size, ext: file.ext, organization: { connect: { id: params.organizationId } } },
+      data: { key: file.newKey, name: params.media.name, type: params.media.type, size: file.size, ext: file.ext, organisation: { connect: { id: params.organisationId } } },
       tx: params.tx,
     });
 

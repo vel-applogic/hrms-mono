@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { PayslipDetailResponseType } from '@repo/dto';
-import { CommonLoggerService, ContactDao, CurrentUserType, IUseCase, OrganizationDao, OrganizationHasAddressDao, PayrollPayslipDao } from '@repo/nest-lib';
+import { CommonLoggerService, ContactDao, CurrentUserType, IUseCase, OrganisationDao, OrganisationHasAddressDao, PayrollPayslipDao } from '@repo/nest-lib';
 import type { PayrollPayslipWithDetailsType } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
@@ -27,8 +27,8 @@ export class PayslipGetUc implements IUseCase<Params, PayslipDetailResponseType>
   public constructor(
     private readonly logger: CommonLoggerService,
     private readonly payrollPayslipDao: PayrollPayslipDao,
-    private readonly organizationDao: OrganizationDao,
-    private readonly organizationHasAddressDao: OrganizationHasAddressDao,
+    private readonly organisationDao: OrganisationDao,
+    private readonly organisationHasAddressDao: OrganisationHasAddressDao,
     private readonly contactDao: ContactDao,
     private readonly s3Service: S3Service,
   ) {}
@@ -44,11 +44,11 @@ export class PayslipGetUc implements IUseCase<Params, PayslipDetailResponseType>
   }
 
   private async getById(params: Params): Promise<PayslipDetailResponseType> {
-    const organizationId = params.currentUser.organizationId;
+    const organisationId = params.currentUser.organisationId;
 
     const [payslip, orgInfo] = await Promise.all([
-      this.payrollPayslipDao.getById({ id: params.id, organizationId }),
-      this.getOrgInfo(organizationId),
+      this.payrollPayslipDao.getById({ id: params.id, organisationId }),
+      this.getOrgInfo(organisationId),
     ]);
     if (!payslip) {
       throw new ApiError('Payslip not found', 404);
@@ -59,11 +59,11 @@ export class PayslipGetUc implements IUseCase<Params, PayslipDetailResponseType>
     return this.mapToDetail(payslip, pdfSignedUrl, orgInfo);
   }
 
-  private async getOrgInfo(organizationId: number): Promise<OrgInfo> {
+  private async getOrgInfo(organisationId: number): Promise<OrgInfo> {
     const [org, addressLinks, contacts] = await Promise.all([
-      this.organizationDao.getByIdWithLogoOrThrow({ id: organizationId }),
-      this.organizationHasAddressDao.findByOrganizationId({ organizationId }),
-      this.contactDao.findByOrganizationId({ organizationId }),
+      this.organisationDao.getByIdWithLogoOrThrow({ id: organisationId }),
+      this.organisationHasAddressDao.findByOrganisationId({ organisationId }),
+      this.contactDao.findByOrganisationId({ organisationId }),
     ]);
 
     const companyLogoUrl = org.logo ? await this.s3Service.getSignedUrl(org.logo.key) : null;

@@ -37,7 +37,7 @@ export class ReimbursementGetUc extends BaseReimbursementUseCase implements IUse
   public async execute(params: Params): Promise<ReimbursementDetailResponseType> {
     this.logger.i('Getting reimbursement', { id: params.id });
 
-    const detail = await this.getReimbursementById(params.id, params.currentUser.organizationId);
+    const detail = await this.getReimbursementById(params.id, params.currentUser.organisationId);
 
     const isAdmin = params.currentUser.isSuperAdmin || params.currentUser.roles.includes(UserRoleDtoEnum.admin);
     if (!isAdmin && detail.userId !== params.currentUser.id) {

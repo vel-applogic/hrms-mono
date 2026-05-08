@@ -112,9 +112,9 @@ export class BaseReimbursementUseCase extends BaseUc {
     };
   }
 
-  protected async getReimbursementById(id: number, organizationId: number): Promise<ReimbursementDetailResponseType> {
+  protected async getReimbursementById(id: number, organisationId: number): Promise<ReimbursementDetailResponseType> {
     try {
-      const dbRec = await this.reimbursementDao.getByIdOrThrow({ id, organizationId });
+      const dbRec = await this.reimbursementDao.getByIdOrThrow({ id, organisationId });
       return await this.dbToReimbursementDetailResponse(dbRec);
     } catch (error) {
       if (error instanceof DbRecordNotFoundError) {
@@ -124,9 +124,9 @@ export class BaseReimbursementUseCase extends BaseUc {
     }
   }
 
-  protected async getReimbursementResponseById(id: number, organizationId: number): Promise<ReimbursementResponseType> {
+  protected async getReimbursementResponseById(id: number, organisationId: number): Promise<ReimbursementResponseType> {
     try {
-      const dbRec = await this.reimbursementDao.getByIdOrThrow({ id, organizationId });
+      const dbRec = await this.reimbursementDao.getByIdOrThrow({ id, organisationId });
       return this.dbToReimbursementResponse(dbRec);
     } catch (error) {
       if (error instanceof DbRecordNotFoundError) {

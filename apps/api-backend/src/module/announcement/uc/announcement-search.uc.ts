@@ -21,7 +21,7 @@ export class AnnouncementSearchUc extends BaseAnnouncementUc implements IUseCase
     const orderBy = this.getSort(params.filterDto.sort, AnnouncementSortableColumns);
     const { dbRecords, totalRecords } = await this.announcementDao.search({
       filterDto: params.filterDto,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       orderBy,
     });
     const results = dbRecords.map((dbRec) => this.dbToAnnouncementResponse(dbRec));

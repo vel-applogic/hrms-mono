@@ -40,7 +40,7 @@ export class EmployeeSearchUc extends BaseEmployeeUc implements IUseCase<Params,
     const orderBy = this.getEmployeeOrderBy(params.filterDto.sort);
     const { dbRecords, totalRecords } = await this.employeeDao.search({
       filterDto: params.filterDto,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       orderBy,
     });
 

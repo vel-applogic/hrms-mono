@@ -30,13 +30,13 @@ export class EmployeeCompensationDeleteUc extends BaseUc implements IUseCase<Par
 
   private async validate(params: Params): Promise<void> {
     this.assertAdmin(params.currentUser);
-    const existing = await this.payrollCompensationDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
+    const existing = await this.payrollCompensationDao.getById({ id: params.id, organisationId: params.currentUser.organisationId });
     if (!existing) {
       throw new ApiError('Compensation not found', 404);
     }
   }
 
   private async delete(params: Params, tx: Prisma.TransactionClient): Promise<void> {
-    await this.payrollCompensationDao.deleteByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId, tx });
+    await this.payrollCompensationDao.deleteByIdOrThrow({ id: params.id, organisationId: params.currentUser.organisationId, tx });
   }
 }

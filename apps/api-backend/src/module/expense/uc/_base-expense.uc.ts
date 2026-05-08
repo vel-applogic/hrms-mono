@@ -25,9 +25,9 @@ export class BaseExpenseUseCase extends BaseUc {
     };
   }
 
-  protected async getExpenseResponseById(id: number, organizationId: number): Promise<ExpenseResponseType> {
+  protected async getExpenseResponseById(id: number, organisationId: number): Promise<ExpenseResponseType> {
     try {
-      const dbRec = await this.expenseDao.getByIdOrThrow({ id, organizationId });
+      const dbRec = await this.expenseDao.getByIdOrThrow({ id, organisationId });
       return this.dbToExpenseResponse(dbRec);
     } catch (error) {
       if (error instanceof DbRecordNotFoundError) {

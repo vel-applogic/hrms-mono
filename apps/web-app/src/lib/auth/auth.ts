@@ -39,7 +39,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
               name: `${user.firstname} ${user.lastname}`,
               isSuperAdmin: user.isSuperAdmin,
               organisations: user.organisations,
-              organizationId: user.organisations[0]?.id ?? 0,
+              organisationId: user.organisations[0]?.id ?? 0,
               roles: user.roles,
               photoUrl: user.photoUrl,
             };
@@ -57,12 +57,12 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         token.userId = user.id ?? '';
         token.isSuperAdmin = user.isSuperAdmin;
         token.organisations = user.organisations;
-        token.organizationId = user.organizationId;
+        token.organisationId = user.organisationId;
         token.roles = user.roles;
         token.photoUrl = user.photoUrl;
       }
-      if (trigger === 'update' && typeof session?.organizationId === 'number') {
-        token.organizationId = session.organizationId;
+      if (trigger === 'update' && typeof session?.organisationId === 'number') {
+        token.organisationId = session.organisationId;
       }
       return token;
     },
@@ -71,7 +71,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         session.user.id = String(token.userId);
         session.user.isSuperAdmin = Boolean(token.isSuperAdmin);
         session.user.organisations = token.organisations as { id: number; name: string }[];
-        session.user.organizationId = token.organizationId as number;
+        session.user.organisationId = token.organisationId as number;
         session.user.roles = token.roles as string[];
         session.user.photoUrl = (token.photoUrl as string | null) ?? null;
       }

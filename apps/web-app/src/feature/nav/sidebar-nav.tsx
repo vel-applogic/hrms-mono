@@ -15,7 +15,7 @@ interface NavItem {
 
 const adminNavItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, superAdminOnly: false },
-  { label: 'Organizations', href: '/organization', icon: Building2, superAdminOnly: true },
+  { label: 'Organisations', href: '/organisation', icon: Building2, superAdminOnly: true },
   { label: 'Users', href: '/user', icon: Users, superAdminOnly: false },
   { label: 'Policies', href: '/policy', icon: FileText, superAdminOnly: false },
   { label: 'Announcements', href: '/announcement', icon: Megaphone, superAdminOnly: false },

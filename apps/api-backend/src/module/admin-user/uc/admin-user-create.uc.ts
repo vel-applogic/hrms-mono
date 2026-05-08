@@ -8,8 +8,8 @@ import {
   CommonLoggerService,
   CurrentUserType,
   IUseCase,
-  OrganizationDao,
-  OrganizationHasUserDao,
+  OrganisationDao,
+  OrganisationHasUserDao,
   PrismaService,
   UserDao,
   UserInviteDao,
@@ -34,34 +34,34 @@ export class AdminUserCreateUc extends BaseAdminUserUc implements IUseCase<Param
     prisma: PrismaService,
     logger: CommonLoggerService,
     userDao: UserDao,
-    organizationHasUserDao: OrganizationHasUserDao,
+    organisationHasUserDao: OrganisationHasUserDao,
     private readonly userInviteDao: UserInviteDao,
-    private readonly organizationDao: OrganizationDao,
+    private readonly organisationDao: OrganisationDao,
     private readonly passwordService: PasswordService,
     private readonly emailService: EmailService,
     private readonly appConfigService: AppConfigService,
     private readonly auditService: AuditService,
   ) {
-    super(prisma, logger, userDao, organizationHasUserDao);
+    super(prisma, logger, userDao, organisationHasUserDao);
   }
 
   public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Inviting user', { email: params.dto.email });
-    const { organizationName } = await this.validate(params);
+    const { organisationName } = await this.validate(params);
 
     const { userId, inviteKey, isNew } = await this.transaction(async (tx) => {
       const { userId, isNew } = await this.upsertUser(params, tx);
       await this.createOrgMembership({ userId, currentUser: params.currentUser, tx });
       const inviteKey = await this.createInvite({
         userId,
-        organizationId: params.currentUser.organizationId,
+        organisationId: params.currentUser.organisationId,
         invitedById: params.currentUser.id,
         tx,
       });
       return { userId, inviteKey, isNew };
     });
 
-    void this.sendInviteEmail({ userId, email: params.dto.email, inviteKey, organizationName });
+    void this.sendInviteEmail({ userId, email: params.dto.email, inviteKey, organisationName });
     if (isNew) {
       void this.recordActivity(params, userId);
     }
@@ -69,17 +69,17 @@ export class AdminUserCreateUc extends BaseAdminUserUc implements IUseCase<Param
     return { success: true, message: 'Invitation sent successfully' };
   }
 
-  private async validate(params: Params): Promise<{ organizationName: string }> {
-    if (params.currentUser.organizationId <= 0) {
-      throw new ApiBadRequestError('Organization context is required to invite users');
+  private async validate(params: Params): Promise<{ organisationName: string }> {
+    if (params.currentUser.organisationId <= 0) {
+      throw new ApiBadRequestError('Organisation context is required to invite users');
     }
 
-    const org = await this.organizationDao.findById({ id: params.currentUser.organizationId });
+    const org = await this.organisationDao.findById({ id: params.currentUser.organisationId });
     if (!org) {
-      throw new ApiBadRequestError('Organization not found');
+      throw new ApiBadRequestError('Organisation not found');
     }
 
-    return { organizationName: org.name };
+    return { organisationName: org.name };
   }
 
   private async upsertUser(params: Params, tx: Prisma.TransactionClient): Promise<{ userId: number; isNew: boolean }> {
@@ -112,9 +112,9 @@ export class AdminUserCreateUc extends BaseAdminUserUc implements IUseCase<Param
     currentUser: CurrentUserType;
     tx: Prisma.TransactionClient;
   }): Promise<void> {
-    if (!this.organizationHasUserDao) return;
-    await this.organizationHasUserDao.upsert({
-      organizationId: params.currentUser.organizationId,
+    if (!this.organisationHasUserDao) return;
+    await this.organisationHasUserDao.upsert({
+      organisationId: params.currentUser.organisationId,
       userId: params.userId,
       roles: [userRoleDtoEnumToDbEnum(UserRoleDtoEnum.admin)],
       tx: params.tx,
@@ -123,7 +123,7 @@ export class AdminUserCreateUc extends BaseAdminUserUc implements IUseCase<Param
 
   private async createInvite(params: {
     userId: number;
-    organizationId: number;
+    organisationId: number;
     invitedById: number;
     tx: Prisma.TransactionClient;
   }): Promise<string> {
@@ -131,7 +131,7 @@ export class AdminUserCreateUc extends BaseAdminUserUc implements IUseCase<Param
     await this.userInviteDao.create({
       data: {
         user: { connect: { id: params.userId } },
-        organization: { connect: { id: params.organizationId } },
+        organisation: { connect: { id: params.organisationId } },
         invitedBy: { connect: { id: params.invitedById } },
         inviteKey,
       },
@@ -140,13 +140,13 @@ export class AdminUserCreateUc extends BaseAdminUserUc implements IUseCase<Param
     return inviteKey;
   }
 
-  private async sendInviteEmail(params: { userId: number; email: string; inviteKey: string; organizationName: string }): Promise<void> {
+  private async sendInviteEmail(params: { userId: number; email: string; inviteKey: string; organisationName: string }): Promise<void> {
     await this.emailService.sendUserInvite({
       userId: params.userId,
       email: params.email,
       emailData: {
         userDisplayName: params.email,
-        organizationName: params.organizationName,
+        organisationName: params.organisationName,
         link: `${this.appConfigService.webAppBaseUrl}/auth/accept-invite/${params.userId}/${params.inviteKey}`,
       },
     });

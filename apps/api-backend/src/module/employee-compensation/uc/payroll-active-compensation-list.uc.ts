@@ -26,7 +26,7 @@ export class PayrollActiveCompensationListUc implements IUseCase<Params, Paginat
 
   private async search(params: Params): Promise<PaginatedResponseType<PayrollActiveCompensationResponseType>> {
     const { dbRecords, totalRecords } = await this.payrollCompensationDao.findActiveWithEmployeeInfo({
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
       search: params.filterDto.search,

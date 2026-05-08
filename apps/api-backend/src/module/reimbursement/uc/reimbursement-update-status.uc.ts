@@ -45,7 +45,7 @@ export class ReimbursementUpdateStatusUc extends BaseReimbursementUseCase implem
       await this.updateStatus(params, tx);
     });
 
-    return await this.getReimbursementResponseById(params.id, params.currentUser.organizationId);
+    return await this.getReimbursementResponseById(params.id, params.currentUser.organisationId);
   }
 
   private async validate(params: Params): Promise<void> {

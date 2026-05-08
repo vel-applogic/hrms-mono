@@ -20,9 +20,9 @@ export class BranchDao extends BaseDao {
     return dbRec ?? undefined;
   }
 
-  public async findByOrganizationId(params: { organizationId: number; tx?: Prisma.TransactionClient }): Promise<BranchSelectTableRecordType[]> {
+  public async findByOrganisationId(params: { organisationId: number; tx?: Prisma.TransactionClient }): Promise<BranchSelectTableRecordType[]> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.branch.findMany({ where: { organizationId: params.organizationId }, orderBy: { name: 'asc' } });
+    return pc.branch.findMany({ where: { organisationId: params.organisationId }, orderBy: { name: 'asc' } });
   }
 
   public async create(params: { data: BranchInsertTableRecordType; tx: Prisma.TransactionClient }): Promise<number> {
@@ -48,12 +48,12 @@ export class BranchDao extends BaseDao {
     await pc.branch.delete({ where: { id: params.id } });
   }
 
-  public async findByNameAndOrganization(params: { name: string; organizationId: number; excludeId?: number; tx?: Prisma.TransactionClient }): Promise<BranchSelectTableRecordType | undefined> {
+  public async findByNameAndOrganisation(params: { name: string; organisationId: number; excludeId?: number; tx?: Prisma.TransactionClient }): Promise<BranchSelectTableRecordType | undefined> {
     const pc = this.getPrismaClient(params.tx);
     const dbRec = await pc.branch.findFirst({
       where: {
         name: { equals: params.name, mode: 'insensitive' },
-        organizationId: params.organizationId,
+        organisationId: params.organisationId,
         ...(params.excludeId !== undefined ? { id: { not: params.excludeId } } : {}),
       },
     });
@@ -62,7 +62,7 @@ export class BranchDao extends BaseDao {
 
   public async search(params: {
     filterDto: BranchFilterRequestType;
-    organizationId: number;
+    organisationId: number;
     orderBy?: OrderByParam;
     tx?: Prisma.TransactionClient;
   }): Promise<{ totalRecords: number; dbRecords: BranchSelectTableRecordType[] }> {
@@ -72,7 +72,7 @@ export class BranchDao extends BaseDao {
       pageSize: params.filterDto.pagination.limit,
     });
 
-    const where: Prisma.BranchWhereInput = { organizationId: params.organizationId };
+    const where: Prisma.BranchWhereInput = { organisationId: params.organisationId };
 
     if (params.filterDto.search) {
       where.name = { contains: params.filterDto.search, mode: 'insensitive' };

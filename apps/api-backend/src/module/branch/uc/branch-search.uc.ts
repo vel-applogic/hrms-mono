@@ -28,7 +28,7 @@ export class BranchSearchUc extends BaseBranchUseCase implements IUseCase<Params
 
     const { totalRecords, dbRecords } = await this.branchDao.search({
       filterDto: params.dto,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       orderBy,
     });
 

@@ -29,7 +29,7 @@ export class DepartmentCreateUc extends BaseDepartmentUseCase implements IUseCas
       return await this.departmentDao.create({
         data: {
           name: params.dto.name,
-          organization: { connect: { id: params.currentUser.organizationId } },
+          organisation: { connect: { id: params.currentUser.organisationId } },
         },
         tx,
       });
@@ -39,9 +39,9 @@ export class DepartmentCreateUc extends BaseDepartmentUseCase implements IUseCas
   }
 
   private async validate(params: Params): Promise<void> {
-    const existing = await this.departmentDao.findByNameAndOrganization({
+    const existing = await this.departmentDao.findByNameAndOrganisation({
       name: params.dto.name,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
     });
     if (existing) {
       throw new ApiFieldValidationError('name', 'Department name already exists');

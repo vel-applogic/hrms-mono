@@ -37,7 +37,7 @@ export class AnnouncementCreateUc extends BaseAnnouncementUc implements IUseCase
     const createdId = await this.transaction(async (tx) => {
       return await this.announcementDao.create({
         data: {
-          organization: { connect: { id: params.currentUser.organizationId } },
+          organisation: { connect: { id: params.currentUser.organisationId } },
           title: params.dto.title,
           message: params.dto.message,
           scheduledAt: new Date(params.dto.scheduledAt),
@@ -49,7 +49,7 @@ export class AnnouncementCreateUc extends BaseAnnouncementUc implements IUseCase
       });
     });
 
-    const response = await this.getAnnouncementResponseById(createdId, params.currentUser.organizationId);
+    const response = await this.getAnnouncementResponseById(createdId, params.currentUser.organisationId);
     void this.recordActivity(params, response);
     return response;
   }
@@ -59,14 +59,14 @@ export class AnnouncementCreateUc extends BaseAnnouncementUc implements IUseCase
 
     if (params.dto.branchId) {
       const branch = await this.branchDao.findById({ id: params.dto.branchId });
-      if (!branch || branch.organizationId !== params.currentUser.organizationId) {
+      if (!branch || branch.organisationId !== params.currentUser.organisationId) {
         throw new ApiBadRequestError('Branch not found');
       }
     }
 
     if (params.dto.departmentId) {
       const department = await this.departmentDao.findById({ id: params.dto.departmentId });
-      if (!department || department.organizationId !== params.currentUser.organizationId) {
+      if (!department || department.organisationId !== params.currentUser.organisationId) {
         throw new ApiBadRequestError('Department not found');
       }
     }

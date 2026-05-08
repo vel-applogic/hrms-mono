@@ -33,7 +33,7 @@ export class ExpenseDeleteUc extends BaseUc implements IUseCase<Params, Operatio
   private async validate(params: Params): Promise<void> {
     this.assertAdmin(params.currentUser);
     try {
-      await this.expenseDao.getByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId });
+      await this.expenseDao.getByIdOrThrow({ id: params.id, organisationId: params.currentUser.organisationId });
     } catch (error) {
       if (error instanceof DbRecordNotFoundError) {
         throw new ApiBadRequestError('Expense not found');
@@ -43,6 +43,6 @@ export class ExpenseDeleteUc extends BaseUc implements IUseCase<Params, Operatio
   }
 
   private async delete(params: Params, tx: Prisma.TransactionClient): Promise<void> {
-    await this.expenseDao.deleteByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId, tx });
+    await this.expenseDao.deleteByIdOrThrow({ id: params.id, organisationId: params.currentUser.organisationId, tx });
   }
 }

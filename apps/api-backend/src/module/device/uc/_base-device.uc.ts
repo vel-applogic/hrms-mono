@@ -69,9 +69,9 @@ export class BaseDeviceUc extends BaseUc {
     };
   }
 
-  protected async getDeviceById(id: number, organizationId: number): Promise<DeviceDetailResponseType> {
+  protected async getDeviceById(id: number, organisationId: number): Promise<DeviceDetailResponseType> {
     try {
-      const dbRec = await this.deviceDao.getByIdOrThrow({ id, organizationId });
+      const dbRec = await this.deviceDao.getByIdOrThrow({ id, organisationId });
       return await this.dbToDeviceDetailResponse(dbRec);
     } catch (error) {
       if (error instanceof DbRecordNotFoundError) {
@@ -81,9 +81,9 @@ export class BaseDeviceUc extends BaseUc {
     }
   }
 
-  protected async getDeviceResponseById(id: number, organizationId: number): Promise<DeviceResponseType> {
+  protected async getDeviceResponseById(id: number, organisationId: number): Promise<DeviceResponseType> {
     try {
-      const dbRec = await this.deviceDao.getByIdOrThrow({ id, organizationId });
+      const dbRec = await this.deviceDao.getByIdOrThrow({ id, organisationId });
       return this.dbToDeviceResponse(dbRec);
     } catch (error) {
       if (error instanceof DbRecordNotFoundError) {

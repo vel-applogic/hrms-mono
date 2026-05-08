@@ -20,7 +20,7 @@ export * from './currency.dto.js';
 export * from './country.dto.js';
 export * from './address.dto.js';
 export * from './contact.dto.js';
-export * from './organization.dto.js';
+export * from './organisation.dto.js';
 export * from './payslip.dto.js';
 export * from './holiday.dto.js';
 export * from './device.dto.js';

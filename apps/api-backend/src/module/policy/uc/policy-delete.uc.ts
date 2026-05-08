@@ -38,7 +38,7 @@ export class PolicyDeleteUc extends BasePolicyUc implements IUseCase<Params, Ope
 
     this.transaction(async (tx) => {
       await this.removeMedias({ policyId: params.id, tx });
-      await this.deletePolicy({ id: params.id, organizationId: params.currentUser.organizationId, tx });
+      await this.deletePolicy({ id: params.id, organisationId: params.currentUser.organisationId, tx });
     });
 
     void this.recordActivity(params, policy);
@@ -48,7 +48,7 @@ export class PolicyDeleteUc extends BasePolicyUc implements IUseCase<Params, Ope
 
   private async validate(params: Params): Promise<PolicyDetailResponseType> {
     this.assertAdmin(params.currentUser);
-    const policy = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    const policy = await this.getByIdOrThrow(params.id, params.currentUser.organisationId);
     return policy;
   }
 
@@ -56,8 +56,8 @@ export class PolicyDeleteUc extends BasePolicyUc implements IUseCase<Params, Ope
     await this.policyHasMediaDao.deleteManyByPolicyId({ policyId: params.policyId, tx: params.tx });
   }
 
-  private async deletePolicy(params: { id: number; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
-    await this.policyDao.deleteByIdOrThrow({ id: params.id, organizationId: params.organizationId, tx: params.tx });
+  private async deletePolicy(params: { id: number; organisationId: number; tx: Prisma.TransactionClient }): Promise<void> {
+    await this.policyDao.deleteByIdOrThrow({ id: params.id, organisationId: params.organisationId, tx: params.tx });
   }
 
   private async recordActivity(params: Params, deletedPolicy: PolicyDetailResponseType): Promise<void> {

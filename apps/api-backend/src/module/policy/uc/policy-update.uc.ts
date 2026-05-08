@@ -47,13 +47,13 @@ export class PolicyUpdateUc extends BasePolicyUc implements IUseCase<Params, Ope
     const dtoWithProcessedContent: PolicyUpdateRequestType = { ...params.dto, content: processedContent };
 
     await this.transaction(async (tx) => {
-      await this.updatePolicy(params.id, dtoWithProcessedContent, tx, params.currentUser.organizationId);
+      await this.updatePolicy(params.id, dtoWithProcessedContent, tx, params.currentUser.organisationId);
       if (params.dto.mediaIds !== undefined) {
         await this.linkMediasToPolicy({ policyId: params.id, mediaIds: params.dto.mediaIds, tx });
       }
     });
 
-    const newPolicy = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    const newPolicy = await this.getByIdOrThrow(params.id, params.currentUser.organisationId);
     void this.recordActivity(params, oldPolicy, newPolicy);
 
     return { success: true, message: 'Policy updated successfully' };
@@ -61,7 +61,7 @@ export class PolicyUpdateUc extends BasePolicyUc implements IUseCase<Params, Ope
 
   private async validate(params: Params): Promise<PolicyDetailResponseType> {
     this.assertAdmin(params.currentUser);
-    const existing = await this.policyDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
+    const existing = await this.policyDao.getById({ id: params.id, organisationId: params.currentUser.organisationId });
     if (!existing) {
       throw new ApiError('Policy not found', 404);
     }
@@ -75,17 +75,17 @@ export class PolicyUpdateUc extends BasePolicyUc implements IUseCase<Params, Ope
       }
     }
 
-    const oldPolicy = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    const oldPolicy = await this.getByIdOrThrow(params.id, params.currentUser.organisationId);
     return oldPolicy;
   }
 
-  private async updatePolicy(id: number, dto: PolicyUpdateRequestType, tx: Prisma.TransactionClient, organizationId: number): Promise<void> {
+  private async updatePolicy(id: number, dto: PolicyUpdateRequestType, tx: Prisma.TransactionClient, organisationId: number): Promise<void> {
     const updateData: Prisma.PolicyUpdateInput = {
       updatedAt: new Date(),
       title: dto.title,
       content: dto.content as unknown as Prisma.InputJsonValue,
     };
-    await this.policyDao.update({ id, organizationId, data: updateData, tx });
+    await this.policyDao.update({ id, organisationId, data: updateData, tx });
   }
 
   private async processContentImages(params: { content: PolicyUpdateRequestType['content']; policyId: number }): Promise<PolicyUpdateRequestType['content']> {

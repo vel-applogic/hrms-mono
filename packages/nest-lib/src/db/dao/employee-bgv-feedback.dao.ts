@@ -22,18 +22,18 @@ export class EmployeeBgvFeedbackDao extends BaseDao {
     return created.id;
   }
 
-  public async update(params: { id: number; organizationId: number; data: EmployeeBgvFeedbackUpdateTableRecordType; tx: Prisma.TransactionClient }): Promise<void> {
+  public async update(params: { id: number; organisationId: number; data: EmployeeBgvFeedbackUpdateTableRecordType; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
     await pc.employeeBgvFeedback.update({
-      where: { id: params.id, organizationId: params.organizationId },
+      where: { id: params.id, organisationId: params.organisationId },
       data: params.data,
     });
   }
 
-  public async deleteByIdOrThrow(params: { id: number; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
+  public async deleteByIdOrThrow(params: { id: number; organisationId: number; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
     const dbRecord = await pc.employeeBgvFeedback.findFirst({
-      where: { id: params.id, organizationId: params.organizationId },
+      where: { id: params.id, organisationId: params.organisationId },
     });
     if (!dbRecord) {
       throw new DbRecordNotFoundError('Invalid employee BGV feedback id');
@@ -47,12 +47,12 @@ export class EmployeeBgvFeedbackDao extends BaseDao {
     });
   }
 
-  public async getById(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeBgvFeedbackWithMediaType | undefined> {
+  public async getById(params: { id: number; organisationId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeBgvFeedbackWithMediaType | undefined> {
     const pc = this.getPrismaClient(params.tx);
     const dbRec = await pc.employeeBgvFeedback.findFirst({
       where: {
         id: params.id,
-        organizationId: params.organizationId,
+        organisationId: params.organisationId,
       },
       include: {
         employyBgvFeedbackHasMedias: {
@@ -63,7 +63,7 @@ export class EmployeeBgvFeedbackDao extends BaseDao {
     return dbRec ?? undefined;
   }
 
-  public async getByIdOrThrow(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeBgvFeedbackWithMediaType> {
+  public async getByIdOrThrow(params: { id: number; organisationId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeBgvFeedbackWithMediaType> {
     const dbRec = await this.getById(params);
     if (!dbRec) {
       throw new DbRecordNotFoundError('Employee BGV feedback not found');
@@ -73,7 +73,7 @@ export class EmployeeBgvFeedbackDao extends BaseDao {
 
   public async findByUserIdWithPagination(params: {
     userId: number;
-    organizationId: number;
+    organisationId: number;
     page: number;
     limit: number;
     tx?: Prisma.TransactionClient;
@@ -86,7 +86,7 @@ export class EmployeeBgvFeedbackDao extends BaseDao {
 
     const where = {
       userId: params.userId,
-      organizationId: params.organizationId,
+      organisationId: params.organisationId,
     };
 
     const [totalRecords, dbRecords] = await Promise.all([

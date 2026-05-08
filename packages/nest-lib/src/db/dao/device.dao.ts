@@ -23,17 +23,17 @@ export class DeviceDao extends BaseDao {
     return created.id;
   }
 
-  public async update(params: { id: number; organizationId: number; data: DeviceUpdateTableRecordType; tx: Prisma.TransactionClient }): Promise<void> {
+  public async update(params: { id: number; organisationId: number; data: DeviceUpdateTableRecordType; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
     await pc.device.update({
-      where: { id: params.id, organizationId: params.organizationId },
+      where: { id: params.id, organisationId: params.organisationId },
       data: params.data,
     });
   }
 
   public async search(params: {
     filterDto: DeviceFilterRequestType;
-    organizationId: number;
+    organisationId: number;
     orderBy?: OrderByParam;
     tx?: Prisma.TransactionClient;
   }): Promise<{ totalRecords: number; dbRecords: DeviceListRecordType[] }> {
@@ -44,7 +44,7 @@ export class DeviceDao extends BaseDao {
     };
     const { take, skip } = this.getPagination(pagination);
 
-    const where: Prisma.DeviceWhereInput = { organizationId: params.organizationId };
+    const where: Prisma.DeviceWhereInput = { organisationId: params.organisationId };
 
     if (params.filterDto.search && params.filterDto.search.trim().length > 0) {
       const searchTerm = params.filterDto.search.trim();
@@ -85,12 +85,12 @@ export class DeviceDao extends BaseDao {
     return { dbRecords, totalRecords };
   }
 
-  public async getById(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<DeviceDetailRecordType | undefined> {
+  public async getById(params: { id: number; organisationId: number; tx?: Prisma.TransactionClient }): Promise<DeviceDetailRecordType | undefined> {
     const pc = this.getPrismaClient(params.tx);
     const dbRec = await pc.device.findFirst({
       where: {
         id: params.id,
-        organizationId: params.organizationId,
+        organisationId: params.organisationId,
       },
       include: {
         assignedTo: { select: { id: true, firstname: true, lastname: true } },
@@ -110,7 +110,7 @@ export class DeviceDao extends BaseDao {
     return dbRec ?? undefined;
   }
 
-  public async getByIdOrThrow(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<DeviceDetailRecordType> {
+  public async getByIdOrThrow(params: { id: number; organisationId: number; tx?: Prisma.TransactionClient }): Promise<DeviceDetailRecordType> {
     const dbRec = await this.getById(params);
     if (!dbRec) {
       throw new DbRecordNotFoundError('Device not found');
@@ -118,25 +118,25 @@ export class DeviceDao extends BaseDao {
     return dbRec;
   }
 
-  public async deleteByIdOrThrow(params: { id: number; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
+  public async deleteByIdOrThrow(params: { id: number; organisationId: number; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
     const dbRecord = await pc.device.findFirst({
-      where: { id: params.id, organizationId: params.organizationId },
+      where: { id: params.id, organisationId: params.organisationId },
     });
     if (!dbRecord) {
       throw new DbRecordNotFoundError('Invalid device id');
     }
     await pc.device.delete({
-      where: { id: params.id, organizationId: params.organizationId },
+      where: { id: params.id, organisationId: params.organisationId },
     });
   }
 
-  public async getDevicesByUserId(params: { userId: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<DeviceListRecordType[]> {
+  public async getDevicesByUserId(params: { userId: number; organisationId: number; tx?: Prisma.TransactionClient }): Promise<DeviceListRecordType[]> {
     const pc = this.getPrismaClient(params.tx);
     return pc.device.findMany({
       where: {
         assignedToId: params.userId,
-        organizationId: params.organizationId,
+        organisationId: params.organisationId,
       },
       include: {
         assignedTo: { select: { id: true, firstname: true, lastname: true } },

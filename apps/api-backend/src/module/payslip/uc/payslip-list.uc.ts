@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { PayslipFilterRequestType, PayslipListResponseType, PaginatedResponseType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, OrganizationDao, PayrollPayslipDao } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, OrganisationDao, PayrollPayslipDao } from '@repo/nest-lib';
 import type { PayrollPayslipWithUserType } from '@repo/nest-lib';
 
 import { S3Service } from '../../../external-service/s3.service.js';
@@ -15,7 +15,7 @@ export class PayslipListUc implements IUseCase<Params, PaginatedResponseType<Pay
   public constructor(
     private readonly logger: CommonLoggerService,
     private readonly payrollPayslipDao: PayrollPayslipDao,
-    private readonly organizationDao: OrganizationDao,
+    private readonly organisationDao: OrganisationDao,
     private readonly s3Service: S3Service,
   ) {}
 
@@ -37,9 +37,9 @@ export class PayslipListUc implements IUseCase<Params, PaginatedResponseType<Pay
         months: params.filterDto.months,
         year: params.filterDto.year,
         employeeIds: params.filterDto.employeeIds,
-        organizationId: params.currentUser.organizationId,
+        organisationId: params.currentUser.organisationId,
       }),
-      this.organizationDao.getByIdOrThrow({ id: params.currentUser.organizationId }),
+      this.organisationDao.getByIdOrThrow({ id: params.currentUser.organisationId }),
     ]);
 
     const currency = { symbol: org.currency.symbol, code: org.currency.code };

@@ -30,7 +30,7 @@ export class EmployeeFeedbackCreateUc extends BaseUc implements IUseCase<Params,
   }
 
   private async validate(params: Params): Promise<void> {
-    const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId, organizationId: params.currentUser.organizationId });
+    const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId, organisationId: params.currentUser.organisationId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);
     }
@@ -41,7 +41,7 @@ export class EmployeeFeedbackCreateUc extends BaseUc implements IUseCase<Params,
       return await this.employeeFeedbackDao.create({
         data: {
           user: { connect: { id: params.dto.employeeId } },
-          organization: { connect: { id: params.currentUser.organizationId } },
+          organisation: { connect: { id: params.currentUser.organisationId } },
           createdBy: { connect: { id: params.currentUser.id } },
           trend: params.dto.trend,
           point: params.dto.point ?? 0,
@@ -52,7 +52,7 @@ export class EmployeeFeedbackCreateUc extends BaseUc implements IUseCase<Params,
       });
     });
 
-    const withUser = await this.employeeFeedbackDao.getByIdOrThrow({ id: createdId, organizationId: params.currentUser.organizationId });
+    const withUser = await this.employeeFeedbackDao.getByIdOrThrow({ id: createdId, organisationId: params.currentUser.organisationId });
 
     return {
       id: withUser.id,

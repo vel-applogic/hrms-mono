@@ -32,10 +32,10 @@ export class ContactDao extends BaseDao {
     });
   }
 
-  public async findByOrganizationId(params: { organizationId: number; tx?: Prisma.TransactionClient }): Promise<ContactSelectTableRecordType[]> {
+  public async findByOrganisationId(params: { organisationId: number; tx?: Prisma.TransactionClient }): Promise<ContactSelectTableRecordType[]> {
     const pc = this.getPrismaClient(params.tx);
     return pc.contact.findMany({
-      where: { organizationId: params.organizationId },
+      where: { organisationId: params.organisationId },
     });
   }
 

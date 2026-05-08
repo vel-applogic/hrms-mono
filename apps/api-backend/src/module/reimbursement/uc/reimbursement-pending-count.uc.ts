@@ -32,7 +32,7 @@ export class ReimbursementPendingCountUc extends BaseUc implements IUseCase<Para
     const isAdmin = params.currentUser.isSuperAdmin || params.currentUser.roles.includes(UserRoleDtoEnum.admin);
 
     const count = await this.reimbursementDao.count({
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       userId: isAdmin ? undefined : params.currentUser.id,
       where: {
         status: reimbursementStatusDtoEnumToDbEnum(ReimbursementStatusDtoEnum.pending),

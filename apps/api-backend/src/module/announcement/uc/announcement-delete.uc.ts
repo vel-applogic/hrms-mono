@@ -34,7 +34,7 @@ export class AnnouncementDeleteUc extends BaseAnnouncementUc implements IUseCase
     await this.transaction(async (tx) => {
       await this.announcementDao.deleteByIdOrThrow({
         id: params.id,
-        organizationId: params.currentUser.organizationId,
+        organisationId: params.currentUser.organisationId,
         tx,
       });
     });
@@ -45,7 +45,7 @@ export class AnnouncementDeleteUc extends BaseAnnouncementUc implements IUseCase
 
   private async validate(params: Params): Promise<AnnouncementResponseType> {
     this.assertAdmin(params.currentUser);
-    return await this.getAnnouncementResponseById(params.id, params.currentUser.organizationId);
+    return await this.getAnnouncementResponseById(params.id, params.currentUser.organisationId);
   }
 
   private async recordActivity(params: Params, deleted: AnnouncementResponseType): Promise<void> {

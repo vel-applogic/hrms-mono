@@ -93,7 +93,7 @@ export class AuthForgotPasswordUseCase extends BaseAuthUseCase implements IUseCa
         roles: params.user.roles,
         email: params.user.email,
         isSuperAdmin: false,
-        organizationId: 0,
+        organisationId: 0,
         firstname: params.user.firstname,
         lastname: params.user.lastname,
         isActive: params.user.isActive,

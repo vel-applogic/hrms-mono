@@ -47,7 +47,7 @@ export class DeviceUpdateUc extends BaseDeviceUc implements IUseCase<Params, Dev
     await this.transaction(async (tx) => {
       await this.deviceDao.update({
         id: params.id,
-        organizationId: params.currentUser.organizationId,
+        organisationId: params.currentUser.organisationId,
         data: {
           type: deviceTypeDtoEnumToDbEnum(params.dto.type),
           brand: params.dto.brand,
@@ -70,7 +70,7 @@ export class DeviceUpdateUc extends BaseDeviceUc implements IUseCase<Params, Dev
         await this.deviceHasMediaDao.deleteManyByDeviceId({ deviceId: params.id, tx });
         if (params.dto.medias && params.dto.medias.length > 0) {
           for (const mediaItem of params.dto.medias) {
-            const mediaId = await this.processAndCreateMedia(mediaItem, params.id, params.currentUser.organizationId, tx);
+            const mediaId = await this.processAndCreateMedia(mediaItem, params.id, params.currentUser.organisationId, tx);
             await this.deviceHasMediaDao.create({
               data: {
                 device: { connect: { id: params.id } },
@@ -98,7 +98,7 @@ export class DeviceUpdateUc extends BaseDeviceUc implements IUseCase<Params, Dev
         if (newAssignedToId) {
           await this.possessionHistoryDao.create({
             data: {
-              organization: { connect: { id: params.currentUser.organizationId } },
+              organisation: { connect: { id: params.currentUser.organisationId } },
               user: { connect: { id: newAssignedToId } },
               device: { connect: { id: params.id } },
               fromDate: new Date(),
@@ -110,7 +110,7 @@ export class DeviceUpdateUc extends BaseDeviceUc implements IUseCase<Params, Dev
       }
     });
 
-    const updatedDevice = await this.getDeviceResponseById(params.id, params.currentUser.organizationId);
+    const updatedDevice = await this.getDeviceResponseById(params.id, params.currentUser.organisationId);
     void this.recordActivity(params, oldDevice, updatedDevice);
     return updatedDevice;
   }
@@ -119,7 +119,7 @@ export class DeviceUpdateUc extends BaseDeviceUc implements IUseCase<Params, Dev
     this.assertAdmin(params.currentUser);
     let dbRec;
     try {
-      dbRec = await this.deviceDao.getByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId });
+      dbRec = await this.deviceDao.getByIdOrThrow({ id: params.id, organisationId: params.currentUser.organisationId });
     } catch (error) {
       if (error instanceof DbRecordNotFoundError) {
         throw new ApiBadRequestError('Device not found');
@@ -134,7 +134,7 @@ export class DeviceUpdateUc extends BaseDeviceUc implements IUseCase<Params, Dev
   private async processAndCreateMedia(
     mediaItem: DeviceMediaUpsertType,
     deviceId: number,
-    organizationId: number,
+    organisationId: number,
     tx: Parameters<Parameters<typeof this.prisma.$transaction>[0]>[0],
   ): Promise<number> {
     if (mediaItem.id) {
@@ -159,7 +159,7 @@ export class DeviceUpdateUc extends BaseDeviceUc implements IUseCase<Params, Dev
         type: mediaItem.type,
         size: moved.size,
         ext: moved.ext,
-        organization: { connect: { id: organizationId } },
+        organisation: { connect: { id: organisationId } },
       },
       tx,
     });

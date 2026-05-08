@@ -56,7 +56,7 @@ export class EmployeeDeleteUc extends BaseEmployeeUc implements IUseCase<Params,
 
   private async validate(params: Params): Promise<EmployeeDetailResponseType> {
     this.assertAdmin(params.currentUser);
-    return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    return await this.getByIdOrThrow(params.id, params.currentUser.organisationId);
   }
 
   private async deleteRelations(params: Params, tx: Prisma.TransactionClient): Promise<void> {
@@ -67,7 +67,7 @@ export class EmployeeDeleteUc extends BaseEmployeeUc implements IUseCase<Params,
   }
 
   private async deleteEmployee(params: Params, tx: Prisma.TransactionClient): Promise<void> {
-    await tx.employee.delete({ where: { userId_organizationId: { userId: params.id, organizationId: params.currentUser.organizationId } } });
+    await tx.employee.delete({ where: { userId_organisationId: { userId: params.id, organisationId: params.currentUser.organisationId } } });
   }
 
   private async deleteUser(params: Params, tx: Prisma.TransactionClient): Promise<void> {

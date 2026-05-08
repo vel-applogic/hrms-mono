@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { AdminUserDetailResponseType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, OrganizationHasUserDao, PrismaService, UserDao } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, OrganisationHasUserDao, PrismaService, UserDao } from '@repo/nest-lib';
 
 import { BaseAdminUserUc } from './_base-admin-user.uc.js';
 
@@ -15,9 +15,9 @@ export class AdminUserGetUc extends BaseAdminUserUc implements IUseCase<Params, 
     prisma: PrismaService,
     logger: CommonLoggerService,
     userDao: UserDao,
-    organizationHasUserDao: OrganizationHasUserDao,
+    organisationHasUserDao: OrganisationHasUserDao,
   ) {
-    super(prisma, logger, userDao, organizationHasUserDao);
+    super(prisma, logger, userDao, organisationHasUserDao);
   }
 
   public async execute(params: Params): Promise<AdminUserDetailResponseType> {
@@ -31,6 +31,6 @@ export class AdminUserGetUc extends BaseAdminUserUc implements IUseCase<Params, 
   }
 
   private async fetchById(params: Params): Promise<AdminUserDetailResponseType> {
-    return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    return await this.getByIdOrThrow(params.id, params.currentUser.organisationId);
   }
 }

@@ -29,7 +29,7 @@ export class BranchCreateUc extends BaseBranchUseCase implements IUseCase<Params
       return await this.branchDao.create({
         data: {
           name: params.dto.name,
-          organization: { connect: { id: params.currentUser.organizationId } },
+          organisation: { connect: { id: params.currentUser.organisationId } },
         },
         tx,
       });
@@ -39,9 +39,9 @@ export class BranchCreateUc extends BaseBranchUseCase implements IUseCase<Params
   }
 
   private async validate(params: Params): Promise<void> {
-    const existing = await this.branchDao.findByNameAndOrganization({
+    const existing = await this.branchDao.findByNameAndOrganisation({
       name: params.dto.name,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
     });
     if (existing) {
       throw new ApiFieldValidationError('name', 'Branch name already exists');

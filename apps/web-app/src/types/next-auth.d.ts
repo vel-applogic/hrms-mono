@@ -4,7 +4,7 @@ declare module 'next-auth' {
   interface User {
     isSuperAdmin: boolean;
     organisations: { id: number; name: string }[];
-    organizationId: number;
+    organisationId: number;
     roles: string[];
     photoUrl: string | null;
   }
@@ -14,7 +14,7 @@ declare module 'next-auth' {
       id: string;
       isSuperAdmin: boolean;
       organisations: { id: number; name: string }[];
-      organizationId: number;
+      organisationId: number;
       roles: string[];
       photoUrl: string | null;
     } & DefaultSession['user'];
@@ -26,7 +26,7 @@ declare module 'next-auth/jwt' {
     userId: string;
     isSuperAdmin: boolean;
     organisations: { id: number; name: string }[];
-    organizationId: number;
+    organisationId: number;
     roles: string[];
     photoUrl: string | null;
   }

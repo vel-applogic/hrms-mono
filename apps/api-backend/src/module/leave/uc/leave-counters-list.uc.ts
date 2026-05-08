@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { LeaveCounterResponseType } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, EmployeeDao, EmployeeLeaveCounterDao, IUseCase, OrganizationSettingDao, PrismaService } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, EmployeeDao, EmployeeLeaveCounterDao, IUseCase, OrganisationSettingDao, PrismaService } from '@repo/nest-lib';
 
 type Params = {
   currentUser: CurrentUserType;
@@ -14,7 +14,7 @@ export class LeaveCountersListUc implements IUseCase<Params, LeaveCounterRespons
     private readonly logger: CommonLoggerService,
     private readonly employeeDao: EmployeeDao,
     private readonly employeeLeaveCounterDao: EmployeeLeaveCounterDao,
-    private readonly organizationSettingDao: OrganizationSettingDao,
+    private readonly organisationSettingDao: OrganisationSettingDao,
   ) {}
 
   public async execute(params: Params): Promise<LeaveCounterResponseType[]> {
@@ -29,9 +29,9 @@ export class LeaveCountersListUc implements IUseCase<Params, LeaveCounterRespons
 
   private async countersList(params: Params): Promise<LeaveCounterResponseType[]> {
     const [employees, counters, orgSettings] = await Promise.all([
-      this.employeeDao.findAllWithUser({ organizationId: params.currentUser.organizationId }),
-      this.employeeLeaveCounterDao.findManyByFinancialYear({ financialYear: params.financialYear, organizationId: params.currentUser.organizationId }),
-      this.organizationSettingDao.findByOrganizationId({ organizationId: params.currentUser.organizationId }),
+      this.employeeDao.findAllWithUser({ organisationId: params.currentUser.organisationId }),
+      this.employeeLeaveCounterDao.findManyByFinancialYear({ financialYear: params.financialYear, organisationId: params.currentUser.organisationId }),
+      this.organisationSettingDao.findByOrganisationId({ organisationId: params.currentUser.organisationId }),
     ]);
 
     const maxLeaves = orgSettings?.totalLeaveInDays ?? 24;

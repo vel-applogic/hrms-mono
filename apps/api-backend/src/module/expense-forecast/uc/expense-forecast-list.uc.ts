@@ -18,8 +18,8 @@ export class ExpenseForecastListUc extends BaseExpenseForecastUseCase implements
     this.logger.i('Listing expense forecasts');
     this.assertAdmin(params.currentUser);
 
-    const dbRecords = await this.expenseForecastDao.findAllByOrganizationId({
-      organizationId: params.currentUser.organizationId,
+    const dbRecords = await this.expenseForecastDao.findAllByOrganisationId({
+      organisationId: params.currentUser.organisationId,
     });
 
     return dbRecords.map((dbRec) => this.dbToExpenseForecastResponse(dbRec));

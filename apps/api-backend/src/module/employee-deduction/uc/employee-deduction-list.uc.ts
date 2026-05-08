@@ -23,7 +23,7 @@ export class EmployeeDeductionListUc implements IUseCase<Params, PaginatedRespon
   }
 
   private async validate(params: Params): Promise<void> {
-    const employee = await this.employeeDao.getByUserId({ userId: params.filterDto.employeeId, organizationId: params.currentUser.organizationId });
+    const employee = await this.employeeDao.getByUserId({ userId: params.filterDto.employeeId, organisationId: params.currentUser.organisationId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);
     }
@@ -32,7 +32,7 @@ export class EmployeeDeductionListUc implements IUseCase<Params, PaginatedRespon
   private async search(params: Params): Promise<PaginatedResponseType<EmployeeDeductionResponseType>> {
     const { dbRecords, totalRecords } = await this.payrollDeductionDao.findByUserIdWithPagination({
       userId: params.filterDto.employeeId,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
     });

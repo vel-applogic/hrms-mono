@@ -45,7 +45,7 @@ export class ReimbursementCreateUc extends BaseReimbursementUseCase implements I
       return await this.create(params, tx);
     });
 
-    return await this.getReimbursementResponseById(createdId, params.currentUser.organizationId);
+    return await this.getReimbursementResponseById(createdId, params.currentUser.organisationId);
   }
 
   private async create(params: Params, tx: Prisma.TransactionClient): Promise<number> {
@@ -54,7 +54,7 @@ export class ReimbursementCreateUc extends BaseReimbursementUseCase implements I
         title: params.dto.title,
         amount: params.dto.amount,
         date: new Date(params.dto.date),
-        organization: { connect: { id: params.currentUser.organizationId } },
+        organisation: { connect: { id: params.currentUser.organisationId } },
         user: { connect: { id: params.currentUser.id } },
       },
       tx,
@@ -65,7 +65,7 @@ export class ReimbursementCreateUc extends BaseReimbursementUseCase implements I
         await this.createAndLinkMedia({
           media,
           reimbursementId: createdId,
-          organizationId: params.currentUser.organizationId,
+          organisationId: params.currentUser.organisationId,
           tx,
         });
       }
@@ -77,7 +77,7 @@ export class ReimbursementCreateUc extends BaseReimbursementUseCase implements I
   private async createAndLinkMedia(params: {
     media: UpsertMediaType;
     reimbursementId: number;
-    organizationId: number;
+    organisationId: number;
     tx: Prisma.TransactionClient;
   }): Promise<void> {
     if (params.media.id) {
@@ -103,7 +103,7 @@ export class ReimbursementCreateUc extends BaseReimbursementUseCase implements I
         type: params.media.type,
         size: file.size,
         ext: file.ext,
-        organization: { connect: { id: params.organizationId } },
+        organisation: { connect: { id: params.organisationId } },
       },
       tx: params.tx,
     });

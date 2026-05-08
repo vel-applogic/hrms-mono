@@ -7,6 +7,6 @@ export interface CurrentUserType {
   lastname: string;
   isSuperAdmin: boolean;
   roles: UserRoleDtoEnum[];
-  organizationId: number;
+  organisationId: number;
   isActive: boolean;
 }

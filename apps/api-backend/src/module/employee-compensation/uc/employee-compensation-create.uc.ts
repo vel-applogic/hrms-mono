@@ -43,7 +43,7 @@ export class EmployeeCompensationCreateUc extends BaseUc implements IUseCase<Par
     mostRecent: { id: number; effectiveFrom: Date; effectiveTill: Date | null } | undefined;
   }> {
     this.assertAdmin(params.currentUser);
-    const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId, organizationId: params.currentUser.organizationId });
+    const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId, organisationId: params.currentUser.organisationId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);
     }
@@ -52,7 +52,7 @@ export class EmployeeCompensationCreateUc extends BaseUc implements IUseCase<Par
 
     const existing = await this.payrollCompensationDao.findByUserIdOrderedByEffectiveFromDesc({
       userId: params.dto.employeeId,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
     });
 
     const mostRecent = existing[0];
@@ -87,7 +87,7 @@ export class EmployeeCompensationCreateUc extends BaseUc implements IUseCase<Par
   private async deactivateAllForUser(params: Params, tx: Prisma.TransactionClient): Promise<void> {
     await this.payrollCompensationDao.updateManyByUserId({
       userId: params.dto.employeeId,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       data: { isActive: false },
       tx,
     });
@@ -98,7 +98,7 @@ export class EmployeeCompensationCreateUc extends BaseUc implements IUseCase<Par
     return this.payrollCompensationDao.create({
       data: {
         user: { connect: { id: params.dto.employeeId } },
-        organization: { connect: { id: params.currentUser.organizationId } },
+        organisation: { connect: { id: params.currentUser.organisationId } },
         grossAmount,
         effectiveFrom: newEffectiveFrom,
         effectiveTill: params.dto.effectiveTill ? parseDateOnly(params.dto.effectiveTill) : undefined,
@@ -115,7 +115,7 @@ export class EmployeeCompensationCreateUc extends BaseUc implements IUseCase<Par
   }
 
   private async getResponseById(id: number, params: Params): Promise<EmployeeCompensationResponseType> {
-    const created = await this.payrollCompensationDao.getById({ id, organizationId: params.currentUser.organizationId });
+    const created = await this.payrollCompensationDao.getById({ id, organisationId: params.currentUser.organisationId });
     if (!created) throw new ApiError('Failed to fetch created compensation', 500);
     return this.mapToResponse(created);
   }

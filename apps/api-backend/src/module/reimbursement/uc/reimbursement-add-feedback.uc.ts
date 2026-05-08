@@ -48,6 +48,6 @@ export class ReimbursementAddFeedbackUc extends BaseReimbursementUseCase impleme
       });
     });
 
-    return await this.getReimbursementById(params.id, params.currentUser.organizationId);
+    return await this.getReimbursementById(params.id, params.currentUser.organisationId);
   }
 }

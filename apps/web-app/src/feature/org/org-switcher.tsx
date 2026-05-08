@@ -12,7 +12,7 @@ interface Props {
 export function OrgSwitcher({ variant = 'default' }: Props) {
   const { data: session, update } = useSession();
   const organisations = session?.user?.organisations ?? [];
-  const currentOrgId = session?.user?.organizationId;
+  const currentOrgId = session?.user?.organisationId;
   const currentOrg = organisations.find((o) => o.id === currentOrgId) ?? organisations[0];
   const router = useRouter();
   if (!currentOrg) return null;
@@ -49,7 +49,7 @@ export function OrgSwitcher({ variant = 'default' }: Props) {
             )}
             onClick={() => {
               if (isActive) return;
-              update({ organizationId: org.id }).then(() => {
+              update({ organisationId: org.id }).then(() => {
                 router.refresh();
               });
             }}

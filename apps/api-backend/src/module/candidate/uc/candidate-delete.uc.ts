@@ -46,7 +46,7 @@ export class CandidateDeleteUc extends BaseCandidateUc implements IUseCase<Param
   }
 
   private async validate(params: Params): Promise<CandidateDetailResponseType> {
-    return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    return await this.getByIdOrThrow(params.id, params.currentUser.organisationId);
   }
 
   private async deleteMedia(params: Params, tx: Prisma.TransactionClient): Promise<void> {
@@ -54,7 +54,7 @@ export class CandidateDeleteUc extends BaseCandidateUc implements IUseCase<Param
   }
 
   private async deleteCandidate(params: Params, tx: Prisma.TransactionClient): Promise<void> {
-    await this.candidateDao.deleteByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId, tx });
+    await this.candidateDao.deleteByIdOrThrow({ id: params.id, organisationId: params.currentUser.organisationId, tx });
   }
 
   private async recordActivity(params: Params, deleted: CandidateDetailResponseType): Promise<void> {

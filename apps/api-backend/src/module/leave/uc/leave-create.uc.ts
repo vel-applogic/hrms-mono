@@ -13,7 +13,7 @@ import {
   leaveStatusDbEnumToDtoEnum,
   leaveTypeDbEnumToDtoEnum,
   leaveTypeDtoEnumToDbEnum,
-  OrganizationSettingDao,
+  OrganisationSettingDao,
   PrismaService,
 } from '@repo/nest-lib';
 import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
@@ -109,7 +109,7 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
     private readonly logger: CommonLoggerService,
     private readonly employeeDao: EmployeeDao,
     private readonly leaveDao: LeaveDao,
-    private readonly organizationSettingDao: OrganizationSettingDao,
+    private readonly organisationSettingDao: OrganisationSettingDao,
     private readonly holidayDao: HolidayDao,
   ) {}
 
@@ -134,14 +134,14 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
       throw new ApiError('You can only apply for leave on your own behalf', 403);
     }
 
-    const employee = await this.employeeDao.getByUserId({ userId: targetUserId, organizationId: params.currentUser.organizationId });
+    const employee = await this.employeeDao.getByUserId({ userId: targetUserId, organisationId: params.currentUser.organisationId });
     if (!employee) {
       throw new ApiError('Selected user is not an employee', 403);
     }
 
-    const config = await this.organizationSettingDao.findByOrganizationId({ organizationId: params.currentUser.organizationId });
+    const config = await this.organisationSettingDao.findByOrganisationId({ organisationId: params.currentUser.organisationId });
     if (!config) {
-      throw new ApiError('Organization settings not found', 500);
+      throw new ApiError('Organisation settings not found', 500);
     }
 
     const startDate = new Date(params.dto.startDate);
@@ -164,7 +164,7 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
 
     const weeklyOffDays = config.weeklyOffDays ?? [0, 6];
     const holidays = await this.holidayDao.findByDateRange({
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       startDate,
       endDate,
     });
@@ -181,7 +181,7 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
     const leaveTypeDb = leaveTypeDtoEnumToDbEnum(params.dto.leaveType);
     const existingByType = await this.leaveDao.sumDaysByUserIdAndStatus({
       userId: targetUserId,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       statuses: countStatuses,
       startDate: fyStart,
       endDate: fyEnd,
@@ -189,7 +189,7 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
     });
     const existingTotal = await this.leaveDao.sumDaysByUserIdAndStatus({
       userId: targetUserId,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       statuses: countStatuses,
       startDate: fyStart,
       endDate: fyEnd,
@@ -217,7 +217,7 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
     return this.leaveDao.create({
       data: {
         user: { connect: { id: targetUserId } },
-        organization: { connect: { id: params.currentUser.organizationId } },
+        organisation: { connect: { id: params.currentUser.organisationId } },
         leaveType: leaveTypeDb,
         startDate,
         endDate,
@@ -232,7 +232,7 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
   }
 
   private async getResponseById(params: Params, id: number): Promise<LeaveResponseType> {
-    const withUser = await this.leaveDao.getById({ id, organizationId: params.currentUser.organizationId });
+    const withUser = await this.leaveDao.getById({ id, organisationId: params.currentUser.organisationId });
     if (!withUser) throw new ApiError('Failed to fetch created leave', 500);
 
     return {

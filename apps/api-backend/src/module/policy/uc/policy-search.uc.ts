@@ -32,7 +32,7 @@ export class PolicySearchUc extends BasePolicyUc implements IUseCase<Params, Pag
     const orderBy = this.getSort(params.filterDto.sort, PolicySortableColumns);
     const { dbRecords, totalRecords } = await this.policyDao.search({
       filterDto: params.filterDto,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       orderBy,
     });
     const results: PolicyListResponseType[] = dbRecords.map((p) => this.dbToPolicyListResponse(p));

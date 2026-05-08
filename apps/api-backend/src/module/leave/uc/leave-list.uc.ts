@@ -53,7 +53,7 @@ export class LeaveListUc implements IUseCase<Params, PaginatedResponseType<Leave
     }
 
     const { dbRecords, totalRecords } = await this.leaveDao.findManyWithPagination({
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       where,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,

@@ -32,8 +32,8 @@ export class ExpenseForecastBulkSaveUc extends BaseExpenseForecastUseCase implem
       await this.bulkSave(params, tx);
     });
 
-    const dbRecords = await this.expenseForecastDao.findAllByOrganizationId({
-      organizationId: params.currentUser.organizationId,
+    const dbRecords = await this.expenseForecastDao.findAllByOrganisationId({
+      organisationId: params.currentUser.organisationId,
     });
 
     return dbRecords.map((dbRec) => this.dbToExpenseForecastResponse(dbRec));
@@ -62,7 +62,7 @@ export class ExpenseForecastBulkSaveUc extends BaseExpenseForecastUseCase implem
             type: expenseTypeDtoEnumToDbEnum(item.type),
             amount: item.amount,
             frequency: expenseForecastFrequencyDtoEnumToDbEnum(item.frequency),
-            organization: { connect: { id: params.currentUser.organizationId } },
+            organisation: { connect: { id: params.currentUser.organisationId } },
           },
           tx,
         });
@@ -71,8 +71,8 @@ export class ExpenseForecastBulkSaveUc extends BaseExpenseForecastUseCase implem
     }
 
     // Delete items not in the list
-    await this.expenseForecastDao.deleteByOrganizationIdExcluding({
-      organizationId: params.currentUser.organizationId,
+    await this.expenseForecastDao.deleteByOrganisationIdExcluding({
+      organisationId: params.currentUser.organisationId,
       excludeIds: existingIds,
       tx,
     });

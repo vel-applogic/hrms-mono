@@ -18,6 +18,6 @@ export const CurrentUser = createParamDecorator((data: unknown, context: Executi
     isSuperAdmin: request.user.isSuperAdmin,
     isActive: request.user.isActive!,
     roles: request.user.roles,
-    organizationId: request.user.organizationId,
+    organisationId: request.user.organisationId,
   };
 });

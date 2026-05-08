@@ -33,7 +33,7 @@ export class HolidayDeleteUc extends BaseUc implements IUseCase<Params, Operatio
   private async validate(params: Params): Promise<void> {
     this.assertAdmin(params.currentUser);
     try {
-      await this.holidayDao.getByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId });
+      await this.holidayDao.getByIdOrThrow({ id: params.id, organisationId: params.currentUser.organisationId });
     } catch (error) {
       if (error instanceof DbRecordNotFoundError) {
         throw new ApiBadRequestError('Holiday not found');
@@ -43,6 +43,6 @@ export class HolidayDeleteUc extends BaseUc implements IUseCase<Params, Operatio
   }
 
   private async delete(params: Params, tx: Prisma.TransactionClient): Promise<void> {
-    await this.holidayDao.deleteByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId, tx });
+    await this.holidayDao.deleteByIdOrThrow({ id: params.id, organisationId: params.currentUser.organisationId, tx });
   }
 }

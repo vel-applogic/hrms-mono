@@ -55,7 +55,7 @@ export class UserDao extends BaseDao {
   public async search(params: {
     filterDto: UserFilterRequestType;
     orderBy?: OrderByParam;
-    organizationId: number;
+    organisationId: number;
     includeSuperAdmins?: boolean;
     tx?: Prisma.TransactionClient;
   }): Promise<{ totalRecords: number; dbRecords: UserSelectTableRecordType[] }> {
@@ -78,9 +78,9 @@ export class UserDao extends BaseDao {
 
     if (params.filterDto.role) {
       const orgRoleFilter: Prisma.UserWhereInput = {
-        organizationHasUsers: {
+        organisationHasUsers: {
           some: {
-            organizationId: params.organizationId,
+            organisationId: params.organisationId,
             roles: { has: userRoleDtoEnumToDbEnum(params.filterDto.role) },
           },
         },

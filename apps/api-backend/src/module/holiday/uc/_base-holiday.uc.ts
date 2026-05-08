@@ -24,9 +24,9 @@ export class BaseHolidayUseCase extends BaseUc {
     };
   }
 
-  protected async getHolidayResponseById(id: number, organizationId: number): Promise<HolidayResponseType> {
+  protected async getHolidayResponseById(id: number, organisationId: number): Promise<HolidayResponseType> {
     try {
-      const dbRec = await this.holidayDao.getByIdOrThrow({ id, organizationId });
+      const dbRec = await this.holidayDao.getByIdOrThrow({ id, organisationId });
       return this.dbToHolidayResponse(dbRec);
     } catch (error) {
       if (error instanceof DbRecordNotFoundError) {

@@ -14,7 +14,7 @@ interface Props {
 export function UserMenu({ userName, userEmail }: Props) {
   const { data: session, update } = useSession();
   const organisations = session?.user?.organisations ?? [];
-  const currentOrgId = session?.user?.organizationId;
+  const currentOrgId = session?.user?.organisationId;
   const currentOrg = organisations.find((o) => o.id === currentOrgId) ?? organisations[0];
   const hasMultiple = organisations.length > 1;
   const isSuperAdmin = session?.user?.isSuperAdmin ?? false;
@@ -49,9 +49,9 @@ export function UserMenu({ userName, userEmail }: Props) {
         </DropdownMenuItem>
         {canViewOrgSettings && (
           <DropdownMenuItem asChild className='cursor-pointer'>
-            <Link href='/organization/settings'>
+            <Link href='/organisation/settings'>
               <Settings />
-              Organization Settings
+              Organisation Settings
             </Link>
           </DropdownMenuItem>
         )}
@@ -64,7 +64,7 @@ export function UserMenu({ userName, userEmail }: Props) {
                 key={org.id}
                 disabled={!hasMultiple}
                 className='gap-2'
-                onClick={hasMultiple ? () => update({ organizationId: org.id }).then(() => router.refresh()) : undefined}
+                onClick={hasMultiple ? () => update({ organisationId: org.id }).then(() => router.refresh()) : undefined}
               >
                 <span className='flex-1 truncate'>{org.name}</span>
                 {org.id === currentOrgId && <Check className='h-3.5 w-3.5 shrink-0 text-primary' />}

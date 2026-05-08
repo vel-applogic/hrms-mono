@@ -60,13 +60,13 @@ export class CandidateUpdateStatusUc extends BaseCandidateUc implements IUseCase
   }
 
   private async validate(params: Params): Promise<CandidateDetailResponseType> {
-    return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    return await this.getByIdOrThrow(params.id, params.currentUser.organisationId);
   }
 
   private async updateStatus(params: Params, tx: Prisma.TransactionClient): Promise<void> {
     await this.candidateDao.update({
       id: params.id,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       data: { status: params.dto.status },
       tx,
     });

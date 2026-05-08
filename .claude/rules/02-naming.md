@@ -54,7 +54,7 @@ The app router only contains routing concerns — no business logic:
 
 ### Feature Folders (`src/feature/`)
 
-#### Folder Organization
+#### Folder Organisation
 
 - **`component/`** — pure components (no server actions or external services)
 - **`container/`** — container components (call server actions or external services)

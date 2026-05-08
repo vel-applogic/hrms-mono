@@ -60,13 +60,13 @@ export class CandidateUpdateProgressUc extends BaseCandidateUc implements IUseCa
   }
 
   private async validate(params: Params): Promise<CandidateDetailResponseType> {
-    return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    return await this.getByIdOrThrow(params.id, params.currentUser.organisationId);
   }
 
   private async updateProgress(params: Params, tx: Prisma.TransactionClient): Promise<void> {
     await this.candidateDao.update({
       id: params.id,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       data: { progress: params.dto.progress },
       tx,
     });

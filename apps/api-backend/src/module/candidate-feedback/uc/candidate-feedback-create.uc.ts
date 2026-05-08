@@ -30,7 +30,7 @@ export class CandidateFeedbackCreateUc implements IUseCase<Params, CandidateFeed
   }
 
   private async validate(params: Params): Promise<void> {
-    const candidate = await this.candidateDao.getById({ id: params.dto.candidateId, organizationId: params.currentUser.organizationId });
+    const candidate = await this.candidateDao.getById({ id: params.dto.candidateId, organisationId: params.currentUser.organisationId });
     if (!candidate) {
       throw new ApiError('Candidate not found', 404);
     }

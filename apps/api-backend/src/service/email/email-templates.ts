@@ -307,7 +307,7 @@ const EMAIL_CONTENT_MAP = {
     <tr>
         <td class="bodycopy">
             <p>
-            You have been invited to join <strong>{{organizationName}}</strong> as an admin. Click below to accept the invitation and set up your account.
+            You have been invited to join <strong>{{organisationName}}</strong> as an admin. Click below to accept the invitation and set up your account.
             </p>
         </td>
     </tr>

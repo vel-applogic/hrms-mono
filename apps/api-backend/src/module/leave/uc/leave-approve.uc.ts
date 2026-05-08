@@ -3,7 +3,7 @@ import type { Prisma } from '@repo/db';
 import type { LeaveResponseType } from '@repo/dto';
 import { LeaveDayHalfEnum } from '@repo/db';
 import { NotificationLinkDtoEnum } from '@repo/dto';
-import { BaseUc, CommonLoggerService, CurrentUserType, EmployeeLeaveCounterDao, HolidayDao, IUseCase, LeaveDao, LeaveWithUserType, NotificationService, OrganizationSettingDao, leaveDayHalfDbEnumToDtoEnum, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
+import { BaseUc, CommonLoggerService, CurrentUserType, EmployeeLeaveCounterDao, HolidayDao, IUseCase, LeaveDao, LeaveWithUserType, NotificationService, OrganisationSettingDao, leaveDayHalfDbEnumToDtoEnum, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
 
 function toDateKey(d: Date): string {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
@@ -58,7 +58,7 @@ export class LeaveApproveUc extends BaseUc implements IUseCase<Params, LeaveResp
     prisma: PrismaService,
     logger: CommonLoggerService,
     private readonly leaveDao: LeaveDao,
-    private readonly organizationSettingDao: OrganizationSettingDao,
+    private readonly organisationSettingDao: OrganisationSettingDao,
     private readonly employeeLeaveCounterDao: EmployeeLeaveCounterDao,
     private readonly holidayDao: HolidayDao,
     private readonly notificationService: NotificationService,
@@ -72,12 +72,12 @@ export class LeaveApproveUc extends BaseUc implements IUseCase<Params, LeaveResp
 
     const financialYear = getFinancialYearCode(existing.startDate);
     const { start, end } = getFinancialYearDateRange(financialYear);
-    const orgSettings = await this.organizationSettingDao.findByOrganizationId({ organizationId: params.currentUser.organizationId });
+    const orgSettings = await this.organisationSettingDao.findByOrganisationId({ organisationId: params.currentUser.organisationId });
     const maxLeaves = orgSettings?.totalLeaveInDays ?? 24;
     const weeklyOffDays = orgSettings?.weeklyOffDays ?? [0, 6];
 
     const holidays = await this.holidayDao.findByDateRange({
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       startDate: existing.startDate,
       endDate: existing.endDate,
     });
@@ -102,7 +102,7 @@ export class LeaveApproveUc extends BaseUc implements IUseCase<Params, LeaveResp
     });
 
     void this.notificationService.send({
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       userId: existing.userId,
       title: 'Leave Approved',
       message: `Your leave request from ${existing.startDate.toISOString().split('T')[0]} to ${existing.endDate.toISOString().split('T')[0]} has been approved.`,
@@ -115,7 +115,7 @@ export class LeaveApproveUc extends BaseUc implements IUseCase<Params, LeaveResp
   private async validate(params: Params): Promise<LeaveWithUserType> {
     this.assertAdmin(params.currentUser);
 
-    const existing = await this.leaveDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
+    const existing = await this.leaveDao.getById({ id: params.id, organisationId: params.currentUser.organisationId });
     if (!existing) {
       throw new ApiError('Leave not found', 404);
     }
@@ -129,7 +129,7 @@ export class LeaveApproveUc extends BaseUc implements IUseCase<Params, LeaveResp
   private async updateStatusAndDays(params: Params, numberOfDays: number, tx: Prisma.TransactionClient): Promise<void> {
     await this.leaveDao.update({
       id: params.id,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       data: { status: 'approved', numberOfDays },
       tx,
     });
@@ -146,7 +146,7 @@ export class LeaveApproveUc extends BaseUc implements IUseCase<Params, LeaveResp
   ): Promise<void> {
     const totals = await this.leaveDao.getApprovedLeaveTotalsByUserIdAndDateRange({
       userId: existing.userId,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       startDate: start,
       endDate: end,
       tx,
@@ -154,7 +154,7 @@ export class LeaveApproveUc extends BaseUc implements IUseCase<Params, LeaveResp
 
     await this.employeeLeaveCounterDao.syncFromActualLeaves({
       userId: existing.userId,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       financialYear,
       ...totals,
       maxLeaves,
@@ -163,7 +163,7 @@ export class LeaveApproveUc extends BaseUc implements IUseCase<Params, LeaveResp
   }
 
   private async getResponseById(params: Params): Promise<LeaveResponseType> {
-    const updated = await this.leaveDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
+    const updated = await this.leaveDao.getById({ id: params.id, organisationId: params.currentUser.organisationId });
     if (!updated) throw new ApiError('Failed to fetch updated leave', 500);
 
     return {

@@ -520,12 +520,12 @@ export class Seeder {
         },
       });
 
-      await this.prisma.organizationHasUser.upsert({
-        where: { organizationId_userId: { organizationId: userData.organisationId, userId: user.id } },
+      await this.prisma.organisationHasUser.upsert({
+        where: { organisationId_userId: { organisationId: userData.organisationId, userId: user.id } },
         update: { roles: userData.roles },
         create: {
           userId: user.id,
-          organizationId: userData.organisationId,
+          organisationId: userData.organisationId,
           roles: userData.roles,
         },
       });
@@ -558,15 +558,15 @@ export class Seeder {
   }
 
   private async seedOrganisation() {
-    await this.prisma.organization.create({
+    await this.prisma.organisation.create({
       data: { id: 1, name: 'Applogic Development Private Limited', currencyId: 60 },
     });
     // Create organisation settings if not exists
-    const existingSettings = await this.prisma.organizationSetting.findFirst({ where: { organizationId: 1 } });
+    const existingSettings = await this.prisma.organisationSetting.findFirst({ where: { organisationId: 1 } });
     if (!existingSettings) {
-      await this.prisma.organizationSetting.create({
+      await this.prisma.organisationSetting.create({
         data: {
-          organizationId: 1,
+          organisationId: 1,
           noOfDaysInMonth: 'thirty',
           totalLeaveInDays: 24,
           sickLeaveInDays: 10,
@@ -579,11 +579,11 @@ export class Seeder {
     }
 
     // Create organisation address (India = id 104)
-    const existingAddress = await this.prisma.organizationHasAddress.findFirst({ where: { organizationId: 1 } });
+    const existingAddress = await this.prisma.organisationHasAddress.findFirst({ where: { organisationId: 1 } });
     if (!existingAddress) {
       const address = await this.prisma.address.create({
         data: {
-          organizationId: 1,
+          organisationId: 1,
           countryId: 104,
           addressLine1: 'No: 3/308, lyyappa Nagar Ext',
           addressLine2: 'Medavakkam',
@@ -592,8 +592,8 @@ export class Seeder {
           postalCode: '600100',
         },
       });
-      await this.prisma.organizationHasAddress.create({
-        data: { organizationId: 1, addressId: address.id },
+      await this.prisma.organisationHasAddress.create({
+        data: { organisationId: 1, addressId: address.id },
       });
     }
     this.logger.i('Organisation seeded');
@@ -601,7 +601,7 @@ export class Seeder {
 
   private async seedBranch() {
     await this.prisma.branch.create({
-      data: { id: 1, name: 'Head Office', organizationId: 1 },
+      data: { id: 1, name: 'Head Office', organisationId: 1 },
     });
     this.logger.i('Branch seeded');
   }
@@ -610,7 +610,7 @@ export class Seeder {
     const departments = ['HR', 'IT', 'Development', 'Accounts', 'Admin', 'Sales', 'Marketing', 'Operations', 'Finance', 'Legal'];
     for (const department of departments) {
       await this.prisma.department.create({
-        data: { name: department, organizationId: 1 },
+        data: { name: department, organisationId: 1 },
       });
     }
     this.logger.i('Departments seeded');
@@ -639,7 +639,7 @@ export class Seeder {
       await this.createEmployee({
         userId: parseInt(row.userId, 10),
         employeeId: parseInt(row.id, 10),
-        organizationId: parseInt(row.organisationId, 10),
+        organisationId: parseInt(row.organisationId, 10),
         branchId: parseInt(row.branchId, 10),
         email: row.email,
         firstname: row.firstname,
@@ -720,7 +720,7 @@ export class Seeder {
   private async createEmployee(params: {
     userId: number;
     employeeId: number;
-    organizationId: number;
+    organisationId: number;
     branchId: number;
     email: string;
     firstname: string;
@@ -758,14 +758,14 @@ export class Seeder {
     });
 
     // Link user to organisation with employee role
-    await this.prisma.organizationHasUser.upsert({
-      where: { organizationId_userId: { organizationId: params.organizationId, userId: user.id } },
+    await this.prisma.organisationHasUser.upsert({
+      where: { organisationId_userId: { organisationId: params.organisationId, userId: user.id } },
       update: { roles: ['employee'] },
-      create: { userId: user.id, organizationId: params.organizationId, roles: ['employee'] },
+      create: { userId: user.id, organisationId: params.organisationId, roles: ['employee'] },
     });
 
     // get department id from text
-    const department = await this.prisma.department.findFirst({ where: { name: params.department, organizationId: params.organizationId } });
+    const department = await this.prisma.department.findFirst({ where: { name: params.department, organisationId: params.organisationId } });
 
     // Create employee record with explicit id from CSV
     const employee = await this.prisma.employee.upsert({
@@ -774,7 +774,7 @@ export class Seeder {
       create: {
         id: params.employeeId,
         userId: user.id,
-        organizationId: params.organizationId,
+        organisationId: params.organisationId,
         employeeCode: params.employeeCode,
         personalEmail: params.personalEmail,
         dob: params.dob,
@@ -796,7 +796,7 @@ export class Seeder {
     await this.prisma.userInBranch.upsert({
       where: { userId_branchId: { userId: user.id, branchId: params.branchId } },
       update: {},
-      create: { userId: user.id, branchId: params.branchId, organizationId: params.organizationId },
+      create: { userId: user.id, branchId: params.branchId, organisationId: params.organisationId },
     });
 
     // Create employee leave counter
@@ -804,7 +804,7 @@ export class Seeder {
     await this.prisma.employeeLeaveCounter.create({
       data: {
         userId: user.id,
-        organizationId: params.organizationId,
+        organisationId: params.organisationId,
         financialYear,
         casualLeaves: 0,
         sickLeaves: 0,
@@ -821,20 +821,20 @@ export class Seeder {
   // initialize the employee leave counters
   private async initEmployeeLeaveCounters() {
     const { getFinancialYearCode } = await import('@repo/shared');
-    const orgSetting = await this.prisma.organizationSetting.findFirst({ orderBy: { createdAt: 'desc' } });
+    const orgSetting = await this.prisma.organisationSetting.findFirst({ orderBy: { createdAt: 'desc' } });
     const totalLeavesAvailable = orgSetting?.totalLeaveInDays ?? 24;
-    const employees = await this.prisma.employee.findMany({ select: { userId: true, dateOfJoining: true, organizationId: true } });
+    const employees = await this.prisma.employee.findMany({ select: { userId: true, dateOfJoining: true, organisationId: true } });
     let created = 0;
     for (const emp of employees) {
       const financialYear = getFinancialYearCode(emp.dateOfJoining);
       const existing = await this.prisma.employeeLeaveCounter.findUnique({
-        where: { userId_organizationId_financialYear: { userId: emp.userId, organizationId: emp.organizationId, financialYear } },
+        where: { userId_organisationId_financialYear: { userId: emp.userId, organisationId: emp.organisationId, financialYear } },
       });
       if (!existing) {
         await this.prisma.employeeLeaveCounter.create({
           data: {
             user: { connect: { id: emp.userId } },
-            organization: { connect: { id: emp.organizationId } },
+            organisation: { connect: { id: emp.organisationId } },
             financialYear,
             casualLeaves: 0,
             sickLeaves: 0,
@@ -852,17 +852,17 @@ export class Seeder {
   private async seedDefaultDepartments() {
     const defaultDepartments = ['HR', 'IT', 'Development', 'Accounts', 'Admin', 'Sales', 'Marketing', 'Operations', 'Finance', 'Legal'];
 
-    const organizations = await this.prisma.organization.findMany({ select: { id: true } });
+    const organisations = await this.prisma.organisation.findMany({ select: { id: true } });
     let created = 0;
 
-    for (const org of organizations) {
+    for (const org of organisations) {
       for (const name of defaultDepartments) {
         const existing = await this.prisma.department.findFirst({
-          where: { name: { equals: name, mode: 'insensitive' }, organizationId: org.id },
+          where: { name: { equals: name, mode: 'insensitive' }, organisationId: org.id },
         });
         if (!existing) {
           await this.prisma.department.create({
-            data: { name, organization: { connect: { id: org.id } } },
+            data: { name, organisation: { connect: { id: org.id } } },
           });
           created++;
         }

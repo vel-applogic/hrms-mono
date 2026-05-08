@@ -30,7 +30,7 @@ export class EmployeeFeedbackUpdateUc extends BaseUc implements IUseCase<Params,
   }
 
   private async validate(params: Params): Promise<void> {
-    const existing = await this.employeeFeedbackDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
+    const existing = await this.employeeFeedbackDao.getById({ id: params.id, organisationId: params.currentUser.organisationId });
     if (!existing) {
       throw new ApiError('Feedback not found', 404);
     }
@@ -40,7 +40,7 @@ export class EmployeeFeedbackUpdateUc extends BaseUc implements IUseCase<Params,
     await this.prisma.$transaction(async (tx) => {
       await this.employeeFeedbackDao.update({
         id: params.id,
-        organizationId: params.currentUser.organizationId,
+        organisationId: params.currentUser.organisationId,
         data: {
           trend: params.dto.trend,
           point: params.dto.point ?? 0,
@@ -51,7 +51,7 @@ export class EmployeeFeedbackUpdateUc extends BaseUc implements IUseCase<Params,
       });
     });
 
-    const updated = await this.employeeFeedbackDao.getByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId });
+    const updated = await this.employeeFeedbackDao.getByIdOrThrow({ id: params.id, organisationId: params.currentUser.organisationId });
 
     return {
       id: updated.id,

@@ -34,9 +34,9 @@ export class BaseAnnouncementUc extends BaseUc {
     };
   }
 
-  protected async getAnnouncementById(id: number, organizationId: number): Promise<AnnouncementDetailResponseType> {
+  protected async getAnnouncementById(id: number, organisationId: number): Promise<AnnouncementDetailResponseType> {
     try {
-      const dbRec = await this.announcementDao.getByIdOrThrow({ id, organizationId });
+      const dbRec = await this.announcementDao.getByIdOrThrow({ id, organisationId });
       return this.dbToAnnouncementDetailResponse(dbRec);
     } catch (error) {
       if (error instanceof DbRecordNotFoundError) {
@@ -46,9 +46,9 @@ export class BaseAnnouncementUc extends BaseUc {
     }
   }
 
-  protected async getAnnouncementResponseById(id: number, organizationId: number): Promise<AnnouncementResponseType> {
+  protected async getAnnouncementResponseById(id: number, organisationId: number): Promise<AnnouncementResponseType> {
     try {
-      const dbRec = await this.announcementDao.getByIdOrThrow({ id, organizationId });
+      const dbRec = await this.announcementDao.getByIdOrThrow({ id, organisationId });
       return this.dbToAnnouncementResponse(dbRec);
     } catch (error) {
       if (error instanceof DbRecordNotFoundError) {

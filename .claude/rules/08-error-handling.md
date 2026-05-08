@@ -32,7 +32,7 @@ All Api errors accept an optional `extra` parameter for debugging context:
 throw new ApiBadRequestError('Project not found', {
   projectId: params.dto.id,
   userId: params.currentUser.id,
-  organizationId: params.currentUser.organizationId,
+  organisationId: params.currentUser.organisationId,
 });
 ```
 

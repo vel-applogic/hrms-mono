@@ -28,13 +28,13 @@ export class UserInviteDao extends BaseDao {
 
   public async findPendingByUserAndOrg(params: {
     userId: number;
-    organizationId: number;
+    organisationId: number;
     tx?: Prisma.TransactionClient;
   }): Promise<UserInviteSelectTableRecordType | undefined> {
     const pc = this.getPrismaClient(params.tx);
     return (
       (await pc.userInvite.findFirst({
-        where: { userId: params.userId, organizationId: params.organizationId, acceptedAt: null },
+        where: { userId: params.userId, organisationId: params.organisationId, acceptedAt: null },
         orderBy: { createdAt: 'desc' },
       })) ?? undefined
     );

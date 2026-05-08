@@ -23,6 +23,6 @@ export class HolidayYearsUc implements IUseCase<Params, number[]> {
   }
 
   private async years(params: Params): Promise<number[]> {
-    return await this.holidayDao.getDistinctYears({ organizationId: params.currentUser.organizationId });
+    return await this.holidayDao.getDistinctYears({ organisationId: params.currentUser.organisationId });
   }
 }

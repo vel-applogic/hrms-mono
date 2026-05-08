@@ -79,7 +79,7 @@ pnpm up "next@latest" --recursive
 ### Frontend Architecture (Next.js)
 
 - App router with route groups for authentication states
-- Feature-based folder organization
+- Feature-based folder organisation
 - React Hook Form with Zod validation
 - Server actions for API communication
 

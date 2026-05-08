@@ -17,7 +17,7 @@ export class NotificationUnseenCountUc extends BaseNotificationUseCase implement
   public async execute(params: Params): Promise<CountResponseType> {
     const count = await this.notificationDao.unseenCount({
       userId: params.currentUser.id,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
     });
 
     return { count };

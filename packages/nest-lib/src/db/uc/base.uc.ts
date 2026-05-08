@@ -37,12 +37,12 @@ export abstract class BaseUc {
     }
   }
 
-  protected assertOwnOrganization(currentUser: CurrentUserType, organizationId: number): void {
+  protected assertOwnOrganisation(currentUser: CurrentUserType, organisationId: number): void {
     if (currentUser.isSuperAdmin) {
       return;
     }
-    if (currentUser.organizationId !== organizationId) {
-      throw new ApiBadRequestError('Only the owner of the organization can access this resource');
+    if (currentUser.organisationId !== organisationId) {
+      throw new ApiBadRequestError('Only the owner of the organisation can access this resource');
     }
   }
 

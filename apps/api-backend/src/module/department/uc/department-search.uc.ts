@@ -28,7 +28,7 @@ export class DepartmentSearchUc extends BaseDepartmentUseCase implements IUseCas
 
     const { totalRecords, dbRecords } = await this.departmentDao.search({
       filterDto: params.dto,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       orderBy,
     });
 

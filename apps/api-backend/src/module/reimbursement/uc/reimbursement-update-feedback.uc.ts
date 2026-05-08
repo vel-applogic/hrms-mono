@@ -49,7 +49,7 @@ export class ReimbursementUpdateFeedbackUc extends BaseReimbursementUseCase impl
       });
     });
 
-    return await this.getReimbursementById(params.reimbursementId, params.currentUser.organizationId);
+    return await this.getReimbursementById(params.reimbursementId, params.currentUser.organisationId);
   }
 
   private async validate(params: Params): Promise<void> {

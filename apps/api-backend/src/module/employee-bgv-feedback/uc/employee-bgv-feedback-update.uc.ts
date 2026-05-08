@@ -29,7 +29,7 @@ export class EmployeeBgvFeedbackUpdateUc implements IUseCase<Params, EmployeeBgv
   }
 
   private async validate(params: Params): Promise<void> {
-    const existing = await this.employeeBgvFeedbackDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
+    const existing = await this.employeeBgvFeedbackDao.getById({ id: params.id, organisationId: params.currentUser.organisationId });
     if (!existing) {
       throw new ApiError('BGV feedback not found', 404);
     }
@@ -39,7 +39,7 @@ export class EmployeeBgvFeedbackUpdateUc implements IUseCase<Params, EmployeeBgv
     await this.prisma.$transaction(async (tx) => {
       await this.employeeBgvFeedbackDao.update({
         id: params.id,
-        organizationId: params.currentUser.organizationId,
+        organisationId: params.currentUser.organisationId,
         data: {
           feedback: params.dto.feedback,
         },
@@ -47,7 +47,7 @@ export class EmployeeBgvFeedbackUpdateUc implements IUseCase<Params, EmployeeBgv
       });
     });
 
-    const updated = await this.employeeBgvFeedbackDao.getByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId });
+    const updated = await this.employeeBgvFeedbackDao.getByIdOrThrow({ id: params.id, organisationId: params.currentUser.organisationId });
     return dbToResponse(updated, this.s3Service);
   }
 }

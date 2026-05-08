@@ -28,6 +28,6 @@ export class CandidateGetUc extends BaseCandidateUc implements IUseCase<Params, 
   }
 
   private async fetchCandidate(params: Params): Promise<CandidateDetailResponseType> {
-    return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    return await this.getByIdOrThrow(params.id, params.currentUser.organisationId);
   }
 }

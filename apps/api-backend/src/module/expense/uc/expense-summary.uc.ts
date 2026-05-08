@@ -31,7 +31,7 @@ export class ExpenseSummaryUc extends BaseUc implements IUseCase<Params, Expense
     const financialYearEnd = new Date(fyStartYear + 1, 2, 31);
 
     return await this.expenseDao.getSummary({
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       thisMonthStart,
       thisMonthEnd,
       financialYearStart,

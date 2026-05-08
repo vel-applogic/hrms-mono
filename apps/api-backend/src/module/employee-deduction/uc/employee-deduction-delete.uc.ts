@@ -26,7 +26,7 @@ export class EmployeeDeductionDeleteUc extends BaseUc implements IUseCase<Params
   }
 
   private async validate(params: Params): Promise<void> {
-    const existing = await this.payrollDeductionDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
+    const existing = await this.payrollDeductionDao.getById({ id: params.id, organisationId: params.currentUser.organisationId });
     if (!existing) {
       throw new ApiError('Deduction not found', 404);
     }
@@ -34,7 +34,7 @@ export class EmployeeDeductionDeleteUc extends BaseUc implements IUseCase<Params
 
   private async delete(params: Params): Promise<OperationStatusResponseType> {
     await this.prisma.$transaction(async (tx) => {
-      await this.payrollDeductionDao.deleteByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId, tx });
+      await this.payrollDeductionDao.deleteByIdOrThrow({ id: params.id, organisationId: params.currentUser.organisationId, tx });
     });
 
     return { success: true };

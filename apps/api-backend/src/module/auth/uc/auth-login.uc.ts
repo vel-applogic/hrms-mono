@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { EmployeeMediaType } from '@repo/db';
 import type { AuthLoginRequestType, AuthLoginResponseType } from '@repo/dto';
-import { CommonLoggerService, EmployeeHasMediaDao, IUseCase, OrganizationHasUserDao, UserDao, userRoleDbEnumToDtoEnum, UserVerifyEmailDao } from '@repo/nest-lib';
+import { CommonLoggerService, EmployeeHasMediaDao, IUseCase, OrganisationHasUserDao, UserDao, userRoleDbEnumToDtoEnum, UserVerifyEmailDao } from '@repo/nest-lib';
 import type { UserSelectTableRecordType } from '@repo/nest-lib';
 import { ApiBadRequestError, ApiError } from '@repo/shared';
 
@@ -18,7 +18,7 @@ export class AuthLoginUc implements IUseCase<Params, AuthLoginResponseType> {
   constructor(
     private readonly userDao: UserDao,
     private readonly userVerifyEmailDao: UserVerifyEmailDao,
-    private readonly organizationHasUserDao: OrganizationHasUserDao,
+    private readonly organisationHasUserDao: OrganisationHasUserDao,
     private readonly employeeHasMediaDao: EmployeeHasMediaDao,
     private readonly s3Service: S3Service,
     private readonly passwordService: PasswordService,
@@ -54,7 +54,7 @@ export class AuthLoginUc implements IUseCase<Params, AuthLoginResponseType> {
   }
 
   private async login(user: UserSelectTableRecordType): Promise<AuthLoginResponseType> {
-    const orgMemberships = await this.organizationHasUserDao.findAllByUserWithOrganization({ userId: user.id });
+    const orgMemberships = await this.organisationHasUserDao.findAllByUserWithOrganisation({ userId: user.id });
     const primaryMembership = orgMemberships[0];
     const roles = primaryMembership?.roles.map((r) => userRoleDbEnumToDtoEnum(r)) ?? [];
 
@@ -68,7 +68,7 @@ export class AuthLoginUc implements IUseCase<Params, AuthLoginResponseType> {
       firstname: user.firstname,
       lastname: user.lastname,
       isSuperAdmin: user.isSuperAdmin,
-      organisations: orgMemberships.map((m) => ({ id: m.organizationId, name: m.organization.name })),
+      organisations: orgMemberships.map((m) => ({ id: m.organisationId, name: m.organisation.name })),
       roles,
       photoUrl,
     };

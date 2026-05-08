@@ -20,7 +20,7 @@ export class NotificationMarkSeenUc extends BaseNotificationUseCase implements I
       await this.notificationDao.markAsSeen({
         id: params.id,
         userId: params.currentUser.id,
-        organizationId: params.currentUser.organizationId,
+        organisationId: params.currentUser.organisationId,
         tx,
       });
     });

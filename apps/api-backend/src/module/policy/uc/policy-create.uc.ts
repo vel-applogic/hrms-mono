@@ -43,11 +43,11 @@ export class PolicyCreateUc extends BasePolicyUc implements IUseCase<Params, Ope
     await this.validate(params);
 
     const createdId = await this.transaction(async (tx) => {
-      const policyId = await this.createPolicy({ dto: params.dto, organizationId: params.currentUser.organizationId, tx });
+      const policyId = await this.createPolicy({ dto: params.dto, organisationId: params.currentUser.organisationId, tx });
       const processedContent = await this.processContentImages({ content: params.dto.content, policyId });
       await this.policyDao.update({
         id: policyId,
-        organizationId: params.currentUser.organizationId,
+        organisationId: params.currentUser.organisationId,
         data: { content: processedContent as unknown as Prisma.InputJsonValue },
         tx,
       });
@@ -57,7 +57,7 @@ export class PolicyCreateUc extends BasePolicyUc implements IUseCase<Params, Ope
       return policyId;
     });
 
-    const policy = await this.getByIdOrThrow(createdId, params.currentUser.organizationId);
+    const policy = await this.getByIdOrThrow(createdId, params.currentUser.organisationId);
     void this.recordActivity(params, policy);
     return { success: true, message: 'Policy created successfully' };
   }
@@ -74,10 +74,10 @@ export class PolicyCreateUc extends BasePolicyUc implements IUseCase<Params, Ope
     }
   }
 
-  private async createPolicy(params: { dto: PolicyCreateRequestType; organizationId: number; tx: Prisma.TransactionClient }): Promise<number> {
+  private async createPolicy(params: { dto: PolicyCreateRequestType; organisationId: number; tx: Prisma.TransactionClient }): Promise<number> {
     return await this.policyDao.create({
       data: {
-        organization: { connect: { id: params.organizationId } },
+        organisation: { connect: { id: params.organisationId } },
         title: params.dto.title,
         content: params.dto.content,
       },

@@ -38,7 +38,7 @@ export class EmployeeDeductionCreateUc extends BaseUc implements IUseCase<Params
   }
 
   private async validate(params: Params): Promise<{ effectiveFrom: Date; effectiveTill: Date | null }> {
-    const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId, organizationId: params.currentUser.organizationId });
+    const employee = await this.employeeDao.getByUserId({ userId: params.dto.employeeId, organisationId: params.currentUser.organisationId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);
     }
@@ -53,7 +53,7 @@ export class EmployeeDeductionCreateUc extends BaseUc implements IUseCase<Params
   private async closePreviousDeduction(params: Params, effectiveFrom: Date, tx: Prisma.TransactionClient): Promise<void> {
     const existingDeductions = await this.payrollDeductionDao.findByUserIdOrderedByEffectiveFromDesc({
       userId: params.dto.employeeId,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       tx,
     });
 
@@ -74,7 +74,7 @@ export class EmployeeDeductionCreateUc extends BaseUc implements IUseCase<Params
   private async deactivateAllForUser(params: Params, tx: Prisma.TransactionClient): Promise<void> {
     await this.payrollDeductionDao.updateManyByUserId({
       userId: params.dto.employeeId,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       data: { isActive: false },
       tx,
     });
@@ -84,7 +84,7 @@ export class EmployeeDeductionCreateUc extends BaseUc implements IUseCase<Params
     return this.payrollDeductionDao.create({
       data: {
         user: { connect: { id: params.dto.employeeId } },
-        organization: { connect: { id: params.currentUser.organizationId } },
+        organisation: { connect: { id: params.currentUser.organisationId } },
         effectiveFrom,
         effectiveTill: effectiveTill ?? undefined,
         isActive: params.dto.isActive ?? true,
@@ -103,7 +103,7 @@ export class EmployeeDeductionCreateUc extends BaseUc implements IUseCase<Params
   }
 
   private async getResponseById(id: number, params: Params): Promise<EmployeeDeductionResponseType> {
-    const created = await this.payrollDeductionDao.getById({ id, organizationId: params.currentUser.organizationId });
+    const created = await this.payrollDeductionDao.getById({ id, organisationId: params.currentUser.organisationId });
     if (!created) throw new ApiError('Failed to fetch created deduction', 500);
     return this.mapToResponse(created);
   }

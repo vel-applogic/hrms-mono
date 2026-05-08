@@ -24,7 +24,7 @@ export class PayslipDownloadUc implements IUseCase<Params, string> {
   }
 
   private async validate(params: Params): Promise<{ pdfS3Key: string }> {
-    const payslip = await this.payrollPayslipDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
+    const payslip = await this.payrollPayslipDao.getById({ id: params.id, organisationId: params.currentUser.organisationId });
     if (!payslip) {
       throw new ApiError('Payslip not found', 404);
     }

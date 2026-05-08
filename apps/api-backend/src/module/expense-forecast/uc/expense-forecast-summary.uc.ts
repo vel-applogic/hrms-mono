@@ -20,8 +20,8 @@ export class ExpenseForecastSummaryUc extends BaseUc implements IUseCase<Params,
     this.logger.i('Getting expense forecast summary');
     this.assertAdmin(params.currentUser);
 
-    const dbRecords = await this.expenseForecastDao.findAllByOrganizationId({
-      organizationId: params.currentUser.organizationId,
+    const dbRecords = await this.expenseForecastDao.findAllByOrganisationId({
+      organisationId: params.currentUser.organisationId,
     });
 
     let monthlyTotal = 0;

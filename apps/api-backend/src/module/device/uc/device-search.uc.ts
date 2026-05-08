@@ -23,7 +23,7 @@ export class DeviceSearchUc extends BaseDeviceUc implements IUseCase<Params, Pag
     const orderBy = this.getSort(params.filterDto.sort, DeviceSortableColumns);
     const { dbRecords, totalRecords } = await this.deviceDao.search({
       filterDto: params.filterDto,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       orderBy,
     });
     const results = dbRecords.map((dbRec) => this.dbToDeviceResponse(dbRec));

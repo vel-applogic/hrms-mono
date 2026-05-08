@@ -28,10 +28,10 @@ export class ExpenseDao extends BaseDao {
     await pc.expense.update({ where: { id: params.id }, data: params.data });
   }
 
-  public async getByIdOrThrow(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<ExpenseSelectTableRecordType> {
+  public async getByIdOrThrow(params: { id: number; organisationId: number; tx?: Prisma.TransactionClient }): Promise<ExpenseSelectTableRecordType> {
     const pc = this.getPrismaClient(params.tx);
     const result = await pc.expense.findFirst({
-      where: { id: params.id, organizationId: params.organizationId },
+      where: { id: params.id, organisationId: params.organisationId },
     });
     if (!result) {
       throw new DbRecordNotFoundError('Expense not found');
@@ -39,10 +39,10 @@ export class ExpenseDao extends BaseDao {
     return result;
   }
 
-  public async deleteByIdOrThrow(params: { id: number; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
+  public async deleteByIdOrThrow(params: { id: number; organisationId: number; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
     const dbRecord = await pc.expense.findFirst({
-      where: { id: params.id, organizationId: params.organizationId },
+      where: { id: params.id, organisationId: params.organisationId },
     });
     if (!dbRecord) {
       throw new DbRecordNotFoundError('Expense not found');
@@ -51,7 +51,7 @@ export class ExpenseDao extends BaseDao {
   }
 
   public async search(params: {
-    organizationId: number;
+    organisationId: number;
     page: number;
     limit: number;
     search?: string;
@@ -65,7 +65,7 @@ export class ExpenseDao extends BaseDao {
     });
 
     const where: Prisma.ExpenseWhereInput = {
-      organizationId: params.organizationId,
+      organisationId: params.organisationId,
     };
 
     if (params.search?.trim()) {
@@ -115,7 +115,7 @@ export class ExpenseDao extends BaseDao {
   }
 
   public async getSummary(params: {
-    organizationId: number;
+    organisationId: number;
     thisMonthStart: Date;
     thisMonthEnd: Date;
     financialYearStart: Date;
@@ -127,14 +127,14 @@ export class ExpenseDao extends BaseDao {
     const [thisMonthResult, financialYearResult] = await Promise.all([
       pc.expense.aggregate({
         where: {
-          organizationId: params.organizationId,
+          organisationId: params.organisationId,
           date: { gte: params.thisMonthStart, lte: params.thisMonthEnd },
         },
         _sum: { amount: true },
       }),
       pc.expense.aggregate({
         where: {
-          organizationId: params.organizationId,
+          organisationId: params.organisationId,
           date: { gte: params.financialYearStart, lte: params.financialYearEnd },
         },
         _sum: { amount: true },

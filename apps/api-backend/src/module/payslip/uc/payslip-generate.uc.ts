@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@repo/db';
 import type { PayslipGenerateRequestType, PayslipGenerateResponseType, PayslipListResponseType } from '@repo/dto';
 import { PrismaService } from '@repo/nest-lib';
-import { CommonLoggerService, ContactDao, CurrentUserType, IUseCase, LeaveDao, OrganizationHasAddressDao, PayrollPayslipDao, PayrollCompensationDao, PayrollDeductionDao, EmployeeDao, OrganizationDao } from '@repo/nest-lib';
+import { CommonLoggerService, ContactDao, CurrentUserType, IUseCase, LeaveDao, OrganisationHasAddressDao, PayrollPayslipDao, PayrollCompensationDao, PayrollDeductionDao, EmployeeDao, OrganisationDao } from '@repo/nest-lib';
 import type { PayrollPayslipWithDetailsType, PayrollCompensationWithLineItemsType, PayrollDeductionWithLineItemsType } from '@repo/nest-lib';
 import { ApiBadRequestError } from '@repo/shared';
 import { buildPayslipTemplateData } from '@repo/shared';
@@ -37,8 +37,8 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     private readonly payrollCompensationDao: PayrollCompensationDao,
     private readonly payrollDeductionDao: PayrollDeductionDao,
     private readonly leaveDao: LeaveDao,
-    private readonly organizationDao: OrganizationDao,
-    private readonly organizationHasAddressDao: OrganizationHasAddressDao,
+    private readonly organisationDao: OrganisationDao,
+    private readonly organisationHasAddressDao: OrganisationHasAddressDao,
     private readonly contactDao: ContactDao,
     private readonly pdfGeneratorService: PdfGeneratorService,
     private readonly s3Service: S3Service,
@@ -76,8 +76,8 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     let skipped = 0;
 
     await this.prisma.$transaction(async (tx) => {
-      const organizationId = params.currentUser.organizationId;
-      await this.deleteOldPayslips({ force, existingPayslips, organizationId, tx });
+      const organisationId = params.currentUser.organisationId;
+      await this.deleteOldPayslips({ force, existingPayslips, organisationId, tx });
 
       for (const userId of targetUserIds) {
         const result = await this.generatePayslipForUser({ currentUser: params.currentUser, userId, firstDay, lastDay, totalDaysInMonth, year, month, userNameMap, tx });
@@ -92,7 +92,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
       }
     });
 
-    const orgData = await this.getOrganizationData(params.currentUser.organizationId);
+    const orgData = await this.getOrganisationData(params.currentUser.organisationId);
     await Promise.all(createdPayslips.map((p) => this.generateAndUploadPdf(p, orgData)));
 
     return { generated, skipped, alreadyExisting: false };
@@ -110,9 +110,9 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     tx: Prisma.TransactionClient;
   }): Promise<{ skipped: boolean; created?: PayrollPayslipWithDetailsType }> {
     const { userId, firstDay, lastDay, totalDaysInMonth, year, month, userNameMap, tx } = args;
-    const organizationId = args.currentUser.organizationId;
+    const organisationId = args.currentUser.organisationId;
 
-    const overlappingComps = await this.getCompensations({ userId, lastDay, firstDay, organizationId });
+    const overlappingComps = await this.getCompensations({ userId, lastDay, firstDay, organisationId });
     if (overlappingComps.length === 0) {
       return { skipped: true };
     }
@@ -122,14 +122,14 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
       throw new ApiBadRequestError(`Employee ${userId} has ${openEndedComps.length} compensations with no end date. Only the latest compensation can have no end date.`);
     }
 
-    const applicableDeductions = await this.getApplicableDeductions({ userId, lastDay, firstDay, year, month, organizationId });
+    const applicableDeductions = await this.getApplicableDeductions({ userId, lastDay, firstDay, year, month, organisationId });
 
     const earningLineItems = this.getEarningLineItems({ overlappingComps, firstDay, totalDaysInMonth, year, month });
 
     const deductionLineItems = this.getDeductionLineItems(applicableDeductions, year, month);
 
     const totalGross = earningLineItems.reduce((s, e) => s + e.amount, 0);
-    const lopDaysCount = await this.leaveDao.sumLopDaysByUserIdAndDateRange({ userId, startDate: firstDay, endDate: lastDay, organizationId });
+    const lopDaysCount = await this.leaveDao.sumLopDaysByUserIdAndDateRange({ userId, startDate: firstDay, endDate: lastDay, organisationId });
     const lopAmount = lopDaysCount > 0 ? Math.round((totalGross / totalDaysInMonth) * lopDaysCount) : 0;
     if (lopAmount > 0) {
       deductionLineItems.push({ type: 'deduction' as const, title: 'Loss of Pay', amount: lopAmount });
@@ -142,8 +142,8 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     const userName = userNameMap.get(userId);
     const s3Key = this.buildS3Key({ userId, firstname: userName?.firstname ?? '', lastname: userName?.lastname ?? '', month, year });
 
-    const createdId = await this.createPayslip({ userId, organizationId, month, year, grossAmount, deductionAmount, netAmount, earningLineItems, deductionLineItems, s3Key, tx });
-    const created = await this.payrollPayslipDao.getById({ id: createdId, organizationId, tx });
+    const createdId = await this.createPayslip({ userId, organisationId, month, year, grossAmount, deductionAmount, netAmount, earningLineItems, deductionLineItems, s3Key, tx });
+    const created = await this.payrollPayslipDao.getById({ id: createdId, organisationId, tx });
     if (!created) {
       throw new ApiBadRequestError(`Failed to fetch created payslip for employee ${userId}`);
     }
@@ -152,15 +152,15 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
 
   private async validate(params: Params): Promise<{ currency: CurrencyInfo; existingPayslips: PayslipListResponseType[]; targetUserIds: number[] }> {
     this.assertAdmin(params.currentUser);
-    const organizationId = params.currentUser.organizationId;
-    const org = await this.organizationDao.getByIdOrThrow({ id: organizationId });
+    const organisationId = params.currentUser.organisationId;
+    const org = await this.organisationDao.getByIdOrThrow({ id: organisationId });
     const currency: CurrencyInfo = { symbol: org.currency.symbol, code: org.currency.code };
 
     let targetUserIds: number[];
     if (params.dto.employeeIds?.length) {
       targetUserIds = params.dto.employeeIds;
     } else {
-      const employees = await this.employeeDao.findAllWithUser({ organizationId });
+      const employees = await this.employeeDao.findAllWithUser({ organisationId });
       targetUserIds = employees.map((e) => e.userId);
     }
 
@@ -172,7 +172,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
       month: params.dto.month,
       year: params.dto.year,
       employeeIds: targetUserIds,
-      organizationId,
+      organisationId,
     });
 
     const existingPayslips = dbExistingPayslips.map((p) => this.dbToPayslipListResponse(p, currency));
@@ -198,13 +198,13 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     }
   }
 
-  private async getOrganizationData(organizationId: number): Promise<OrgData> {
+  private async getOrganisationData(organisationId: number): Promise<OrgData> {
     try {
-      const org = await this.organizationDao.getByIdWithLogoOrThrow({ id: organizationId });
+      const org = await this.organisationDao.getByIdWithLogoOrThrow({ id: organisationId });
       const [companyLogoUrl, addressLinks, contacts] = await Promise.all([
         org.logo ? this.s3Service.getSignedUrl(org.logo.key) : Promise.resolve(null),
-        this.organizationHasAddressDao.findByOrganizationId({ organizationId }),
-        this.contactDao.findByOrganizationId({ organizationId }),
+        this.organisationHasAddressDao.findByOrganisationId({ organisationId }),
+        this.contactDao.findByOrganisationId({ organisationId }),
       ]);
 
       let companyAddress = '';
@@ -256,7 +256,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
 
   private async createPayslip(params: {
     userId: number;
-    organizationId: number;
+    organisationId: number;
     month: number;
     year: number;
     grossAmount: number;
@@ -271,7 +271,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
       tx: params.tx,
       data: {
         user: { connect: { id: params.userId } },
-        organization: { connect: { id: params.organizationId } },
+        organisation: { connect: { id: params.organisationId } },
         month: params.month,
         year: params.year,
         grossAmount: params.grossAmount,
@@ -353,12 +353,12 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     return items;
   }
 
-  private async getApplicableDeductions(params: { userId: number; lastDay: Date; firstDay: Date; year: number; month: number; organizationId: number }): Promise<PayrollDeductionWithLineItemsType[]> {
+  private async getApplicableDeductions(params: { userId: number; lastDay: Date; firstDay: Date; year: number; month: number; organisationId: number }): Promise<PayrollDeductionWithLineItemsType[]> {
     const allDeductions = await this.payrollDeductionDao.findByUserIdWithPagination({
       userId: params.userId,
       page: 1,
       limit: 1000,
-      organizationId: params.organizationId,
+      organisationId: params.organisationId,
     });
 
     return allDeductions.dbRecords.filter((d) => {
@@ -376,8 +376,8 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     });
   }
 
-  private async getCompensations(params: { userId: number; lastDay: Date; firstDay: Date; organizationId: number }): Promise<PayrollCompensationWithLineItemsType[]> {
-    const allCompensations = await this.payrollCompensationDao.findByUserIdOrderedByEffectiveFromDesc({ userId: params.userId, organizationId: params.organizationId });
+  private async getCompensations(params: { userId: number; lastDay: Date; firstDay: Date; organisationId: number }): Promise<PayrollCompensationWithLineItemsType[]> {
+    const allCompensations = await this.payrollCompensationDao.findByUserIdOrderedByEffectiveFromDesc({ userId: params.userId, organisationId: params.organisationId });
     return allCompensations.filter((c) => {
       const compFrom = new Date(c.effectiveFrom);
       compFrom.setUTCHours(0, 0, 0, 0);
@@ -388,9 +388,9 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     });
   }
 
-  private async deleteOldPayslips(params: { force: boolean | undefined; existingPayslips: PayslipListResponseType[]; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
+  private async deleteOldPayslips(params: { force: boolean | undefined; existingPayslips: PayslipListResponseType[]; organisationId: number; tx: Prisma.TransactionClient }): Promise<void> {
     if (params.force && params.existingPayslips.length > 0) {
-      await Promise.all(params.existingPayslips.map((p) => this.payrollPayslipDao.deleteByIdOrThrow({ id: p.id, organizationId: params.organizationId, tx: params.tx })));
+      await Promise.all(params.existingPayslips.map((p) => this.payrollPayslipDao.deleteByIdOrThrow({ id: p.id, organisationId: params.organisationId, tx: params.tx })));
     }
   }
 

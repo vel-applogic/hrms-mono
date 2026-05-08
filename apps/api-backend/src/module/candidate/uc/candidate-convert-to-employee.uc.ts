@@ -8,9 +8,9 @@ import {
   EmployeeDao,
   EmployeeLeaveCounterDao,
   IUseCase,
-  OrganizationDao,
-  OrganizationHasUserDao,
-  OrganizationSettingDao,
+  OrganisationDao,
+  OrganisationHasUserDao,
+  OrganisationSettingDao,
   PrismaService,
   UserDao,
   UserInviteDao,
@@ -31,7 +31,7 @@ type Params = {
 };
 
 type CandidateRecord = NonNullable<Awaited<ReturnType<CandidateDao['getById']>>>;
-type OrganizationRecord = NonNullable<Awaited<ReturnType<OrganizationDao['findById']>>>;
+type OrganisationRecord = NonNullable<Awaited<ReturnType<OrganisationDao['findById']>>>;
 type ExistingUserRecord = Awaited<ReturnType<UserDao['getByEmail']>>;
 
 @Injectable()
@@ -43,9 +43,9 @@ export class CandidateConvertToEmployeeUc extends BaseCandidateUc implements IUs
     s3Service: S3Service,
     private readonly userDao: UserDao,
     private readonly employeeDao: EmployeeDao,
-    private readonly organizationDao: OrganizationDao,
-    private readonly organizationHasUserDao: OrganizationHasUserDao,
-    private readonly organizationSettingDao: OrganizationSettingDao,
+    private readonly organisationDao: OrganisationDao,
+    private readonly organisationHasUserDao: OrganisationHasUserDao,
+    private readonly organisationSettingDao: OrganisationSettingDao,
     private readonly employeeLeaveCounterDao: EmployeeLeaveCounterDao,
     private readonly userInviteDao: UserInviteDao,
     private readonly passwordService: PasswordService,
@@ -71,13 +71,13 @@ export class CandidateConvertToEmployeeUc extends BaseCandidateUc implements IUs
       return { userId, inviteKey };
     });
 
-    void this.sendInviteEmail({ userId, email: candidate.email, inviteKey, organizationName: org.name });
+    void this.sendInviteEmail({ userId, email: candidate.email, inviteKey, organisationName: org.name });
 
     return { success: true, message: 'Candidate converted to employee successfully' };
   }
 
-  private async validate(params: Params): Promise<{ candidate: CandidateRecord; org: OrganizationRecord }> {
-    const candidate = await this.candidateDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
+  private async validate(params: Params): Promise<{ candidate: CandidateRecord; org: OrganisationRecord }> {
+    const candidate = await this.candidateDao.getById({ id: params.id, organisationId: params.currentUser.organisationId });
     if (!candidate) {
       throw new ApiBadRequestError('Candidate not found');
     }
@@ -92,21 +92,21 @@ export class CandidateConvertToEmployeeUc extends BaseCandidateUc implements IUs
     }
 
     // Check for duplicates
-    const duplicateCode = await this.employeeDao.findByEmployeeCode({ employeeCode: params.dto.employeeCode, organizationId: params.currentUser.organizationId });
+    const duplicateCode = await this.employeeDao.findByEmployeeCode({ employeeCode: params.dto.employeeCode, organisationId: params.currentUser.organisationId });
     if (duplicateCode) throw new ApiFieldValidationError('employeeCode', 'Employee code already exists');
 
     if (candidate.pan) {
-      const duplicatePan = await this.employeeDao.findByPan({ pan: candidate.pan, organizationId: params.currentUser.organizationId });
+      const duplicatePan = await this.employeeDao.findByPan({ pan: candidate.pan, organisationId: params.currentUser.organisationId });
       if (duplicatePan) throw new ApiBadRequestError('PAN already registered as an employee');
     }
     if (candidate.aadhaar) {
-      const duplicateAadhaar = await this.employeeDao.findByAadhaar({ aadhaar: candidate.aadhaar, organizationId: params.currentUser.organizationId });
+      const duplicateAadhaar = await this.employeeDao.findByAadhaar({ aadhaar: candidate.aadhaar, organisationId: params.currentUser.organisationId });
       if (duplicateAadhaar) throw new ApiBadRequestError('Aadhaar already registered as an employee');
     }
 
-    const org = await this.organizationDao.findById({ id: params.currentUser.organizationId });
+    const org = await this.organisationDao.findById({ id: params.currentUser.organisationId });
     if (!org) {
-      throw new ApiBadRequestError('Organization not found');
+      throw new ApiBadRequestError('Organisation not found');
     }
 
     return { candidate, org };
@@ -136,7 +136,7 @@ export class CandidateConvertToEmployeeUc extends BaseCandidateUc implements IUs
     return await this.employeeDao.create({
       data: {
         user: { connect: { id: userId } },
-        organization: { connect: { id: params.currentUser.organizationId } },
+        organisation: { connect: { id: params.currentUser.organisationId } },
         candidate: { connect: { id: candidate.id } },
         employeeCode: params.dto.employeeCode,
         dob: candidate.dob!,
@@ -156,12 +156,12 @@ export class CandidateConvertToEmployeeUc extends BaseCandidateUc implements IUs
   private async createLeaveCounter(params: Params, userId: number, tx: Prisma.TransactionClient): Promise<void> {
     const dateOfJoining = new Date(params.dto.dateOfJoining);
     const financialYear = getFinancialYearCode(dateOfJoining);
-    const orgSettings = await this.organizationSettingDao.findByOrganizationId({ organizationId: params.currentUser.organizationId, tx });
+    const orgSettings = await this.organisationSettingDao.findByOrganisationId({ organisationId: params.currentUser.organisationId, tx });
     const totalLeavesAvailable = orgSettings?.totalLeaveInDays ?? 24;
     await this.employeeLeaveCounterDao.create({
       data: {
         user: { connect: { id: userId } },
-        organization: { connect: { id: params.currentUser.organizationId } },
+        organisation: { connect: { id: params.currentUser.organisationId } },
         financialYear,
         casualLeaves: 0,
         sickLeaves: 0,
@@ -174,8 +174,8 @@ export class CandidateConvertToEmployeeUc extends BaseCandidateUc implements IUs
   }
 
   private async upsertOrgUser(params: Params, userId: number, tx: Prisma.TransactionClient): Promise<void> {
-    await this.organizationHasUserDao.upsert({
-      organizationId: params.currentUser.organizationId,
+    await this.organisationHasUserDao.upsert({
+      organisationId: params.currentUser.organisationId,
       userId,
       roles: [UserRoleDbEnum.employee],
       tx,
@@ -187,7 +187,7 @@ export class CandidateConvertToEmployeeUc extends BaseCandidateUc implements IUs
     await this.userInviteDao.create({
       data: {
         user: { connect: { id: userId } },
-        organization: { connect: { id: params.currentUser.organizationId } },
+        organisation: { connect: { id: params.currentUser.organisationId } },
         invitedBy: { connect: { id: params.currentUser.id } },
         inviteKey,
       },
@@ -199,20 +199,20 @@ export class CandidateConvertToEmployeeUc extends BaseCandidateUc implements IUs
   private async linkEmployeeToCandidate(params: Params, candidateId: number, employeeId: number, tx: Prisma.TransactionClient): Promise<void> {
     await this.candidateDao.update({
       id: candidateId,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       data: { status: 'selected', employee: { connect: { id: employeeId } } },
       tx,
     });
   }
 
-  private async sendInviteEmail(params: { userId: number; email: string; inviteKey: string; organizationName: string }): Promise<void> {
+  private async sendInviteEmail(params: { userId: number; email: string; inviteKey: string; organisationName: string }): Promise<void> {
     try {
       await this.emailService.sendUserInvite({
         userId: params.userId,
         email: params.email,
         emailData: {
           userDisplayName: params.email,
-          organizationName: params.organizationName,
+          organisationName: params.organisationName,
           link: `${this.appConfigService.webAppBaseUrl}/auth/accept-invite/${params.userId}/${params.inviteKey}`,
         },
       });

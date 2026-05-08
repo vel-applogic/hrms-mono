@@ -17,6 +17,6 @@ export class AnnouncementGetUc extends BaseAnnouncementUc implements IUseCase<Pa
 
   public async execute(params: Params): Promise<AnnouncementDetailResponseType> {
     this.logger.i('Getting announcement', { id: params.id });
-    return await this.getAnnouncementById(params.id, params.currentUser.organizationId);
+    return await this.getAnnouncementById(params.id, params.currentUser.organisationId);
   }
 }

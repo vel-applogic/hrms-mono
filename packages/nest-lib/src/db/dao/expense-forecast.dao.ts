@@ -27,10 +27,10 @@ export class ExpenseForecastDao extends BaseDao {
     await pc.expenseForecast.update({ where: { id: params.id }, data: params.data });
   }
 
-  public async deleteByIdOrThrow(params: { id: number; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
+  public async deleteByIdOrThrow(params: { id: number; organisationId: number; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
     const dbRecord = await pc.expenseForecast.findFirst({
-      where: { id: params.id, organizationId: params.organizationId },
+      where: { id: params.id, organisationId: params.organisationId },
     });
     if (!dbRecord) {
       throw new DbRecordNotFoundError('Expense forecast not found');
@@ -38,23 +38,23 @@ export class ExpenseForecastDao extends BaseDao {
     await pc.expenseForecast.delete({ where: { id: params.id } });
   }
 
-  public async findAllByOrganizationId(params: { organizationId: number; tx?: Prisma.TransactionClient }): Promise<ExpenseForecastSelectTableRecordType[]> {
+  public async findAllByOrganisationId(params: { organisationId: number; tx?: Prisma.TransactionClient }): Promise<ExpenseForecastSelectTableRecordType[]> {
     const pc = this.getPrismaClient(params.tx);
     return pc.expenseForecast.findMany({
-      where: { organizationId: params.organizationId },
+      where: { organisationId: params.organisationId },
       orderBy: { createdAt: 'asc' },
     });
   }
 
-  public async deleteByOrganizationIdExcluding(params: {
-    organizationId: number;
+  public async deleteByOrganisationIdExcluding(params: {
+    organisationId: number;
     excludeIds: number[];
     tx: Prisma.TransactionClient;
   }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
     await pc.expenseForecast.deleteMany({
       where: {
-        organizationId: params.organizationId,
+        organisationId: params.organisationId,
         id: { notIn: params.excludeIds },
       },
     });

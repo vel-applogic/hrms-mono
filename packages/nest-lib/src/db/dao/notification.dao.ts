@@ -27,25 +27,25 @@ export class NotificationDao extends BaseDao {
     await pc.notification.createMany({ data: params.data });
   }
 
-  public async markAsSeen(params: { id: number; userId: number; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
+  public async markAsSeen(params: { id: number; userId: number; organisationId: number; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
     await pc.notification.updateMany({
-      where: { id: params.id, userId: params.userId, organizationId: params.organizationId },
+      where: { id: params.id, userId: params.userId, organisationId: params.organisationId },
       data: { isSeen: true },
     });
   }
 
-  public async markAllAsSeen(params: { userId: number; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
+  public async markAllAsSeen(params: { userId: number; organisationId: number; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
     await pc.notification.updateMany({
-      where: { userId: params.userId, organizationId: params.organizationId, isSeen: false },
+      where: { userId: params.userId, organisationId: params.organisationId, isSeen: false },
       data: { isSeen: true },
     });
   }
 
   public async findManyWithPagination(params: {
     userId: number;
-    organizationId: number;
+    organisationId: number;
     page: number;
     limit: number;
     tx?: Prisma.TransactionClient;
@@ -58,7 +58,7 @@ export class NotificationDao extends BaseDao {
 
     const where: Prisma.NotificationWhereInput = {
       userId: params.userId,
-      organizationId: params.organizationId,
+      organisationId: params.organisationId,
     };
 
     const [totalRecords, dbRecords] = await Promise.all([
@@ -74,10 +74,10 @@ export class NotificationDao extends BaseDao {
     return { dbRecords, totalRecords };
   }
 
-  public async unseenCount(params: { userId: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<number> {
+  public async unseenCount(params: { userId: number; organisationId: number; tx?: Prisma.TransactionClient }): Promise<number> {
     const pc = this.getPrismaClient(params.tx);
     return pc.notification.count({
-      where: { userId: params.userId, organizationId: params.organizationId, isSeen: false },
+      where: { userId: params.userId, organisationId: params.organisationId, isSeen: false },
     });
   }
 }

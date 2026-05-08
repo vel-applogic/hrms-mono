@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@repo/db';
 import { type LeaveResponseType, NotificationLinkDtoEnum, UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, EmployeeDao, EmployeeLeaveCounterDao, IUseCase, LeaveDao, LeaveWithUserType, NotificationService, OrganizationSettingDao, leaveDayHalfDbEnumToDtoEnum, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, EmployeeDao, EmployeeLeaveCounterDao, IUseCase, LeaveDao, LeaveWithUserType, NotificationService, OrganisationSettingDao, leaveDayHalfDbEnumToDtoEnum, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
 import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
@@ -16,7 +16,7 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
     private readonly logger: CommonLoggerService,
     private readonly employeeDao: EmployeeDao,
     private readonly leaveDao: LeaveDao,
-    private readonly organizationSettingDao: OrganizationSettingDao,
+    private readonly organisationSettingDao: OrganisationSettingDao,
     private readonly employeeLeaveCounterDao: EmployeeLeaveCounterDao,
     private readonly notificationService: NotificationService,
   ) {}
@@ -28,7 +28,7 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
     if (existing.status === 'approved') {
       const financialYear = getFinancialYearCode(existing.startDate);
       const { start, end } = getFinancialYearDateRange(financialYear);
-      const orgSettings = await this.organizationSettingDao.findByOrganizationId({ organizationId: params.currentUser.organizationId });
+      const orgSettings = await this.organisationSettingDao.findByOrganisationId({ organisationId: params.currentUser.organisationId });
       const maxLeaves = orgSettings?.totalLeaveInDays ?? 24;
 
       await this.prisma.$transaction(async (tx) => {
@@ -44,7 +44,7 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
     const isAdmin = params.currentUser.roles.includes(UserRoleDtoEnum.admin);
     if (isAdmin) {
       void this.notificationService.send({
-        organizationId: params.currentUser.organizationId,
+        organisationId: params.currentUser.organisationId,
         userId: existing.userId,
         title: 'Leave Cancelled',
         message: `Your leave request from ${existing.startDate.toISOString().split('T')[0]} to ${existing.endDate.toISOString().split('T')[0]} has been cancelled by admin.`,
@@ -57,7 +57,7 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
 
   private async validate(params: Params): Promise<LeaveWithUserType> {
     const isAdmin = params.currentUser.roles.includes(UserRoleDtoEnum.admin);
-    const existing = await this.leaveDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
+    const existing = await this.leaveDao.getById({ id: params.id, organisationId: params.currentUser.organisationId });
     if (!existing) {
       throw new ApiError('Leave not found', 404);
     }
@@ -68,7 +68,7 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
       if (existing.status !== 'pending') {
         throw new ApiError('Only pending leave requests can be cancelled by employees', 400);
       }
-      const employee = await this.employeeDao.getByUserId({ userId: params.currentUser.id, organizationId: params.currentUser.organizationId });
+      const employee = await this.employeeDao.getByUserId({ userId: params.currentUser.id, organisationId: params.currentUser.organisationId });
       if (!employee) {
         throw new ApiError('Only employees can cancel leave. Employee not found.', 403);
       }
@@ -83,7 +83,7 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
   private async updateStatus(params: Params, tx: Prisma.TransactionClient): Promise<void> {
     await this.leaveDao.update({
       id: params.id,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       data: { status: 'cancelled' },
       tx,
     });
@@ -100,7 +100,7 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
   ): Promise<void> {
     const totals = await this.leaveDao.getApprovedLeaveTotalsByUserIdAndDateRange({
       userId: existing.userId,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       startDate: start,
       endDate: end,
       tx,
@@ -109,7 +109,7 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
     try {
       await this.employeeLeaveCounterDao.syncFromActualLeaves({
         userId: existing.userId,
-        organizationId: params.currentUser.organizationId,
+        organisationId: params.currentUser.organisationId,
         financialYear,
         ...totals,
         maxLeaves,
@@ -121,7 +121,7 @@ export class LeaveCancelUc implements IUseCase<Params, LeaveResponseType> {
   }
 
   private async getResponseById(params: Params): Promise<LeaveResponseType> {
-    const updated = await this.leaveDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
+    const updated = await this.leaveDao.getById({ id: params.id, organisationId: params.currentUser.organisationId });
     if (!updated) throw new ApiError('Failed to fetch updated leave', 500);
 
     return {

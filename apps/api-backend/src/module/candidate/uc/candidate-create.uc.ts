@@ -46,18 +46,18 @@ export class CandidateCreateUc extends BaseCandidateUc implements IUseCase<Param
     const createdId = await this.transaction(async (tx) => {
       const candidateId = await this.createCandidate(params, tx);
       if (params.dto.resume) {
-        await this.createAndLinkMedia({ media: params.dto.resume, candidateId, organizationId: params.currentUser.organizationId, type: CandidateMediaType.resume, tx });
+        await this.createAndLinkMedia({ media: params.dto.resume, candidateId, organisationId: params.currentUser.organisationId, type: CandidateMediaType.resume, tx });
       }
       return candidateId;
     });
 
-    const candidate = await this.getByIdOrThrow(createdId, params.currentUser.organizationId);
+    const candidate = await this.getByIdOrThrow(createdId, params.currentUser.organisationId);
     void this.recordActivity(params, candidate);
     return { success: true, message: 'Candidate created successfully' };
   }
 
   private async validate(params: Params): Promise<void> {
-    const existing = await this.candidateDao.getByEmail({ email: params.dto.email, organizationId: params.currentUser.organizationId });
+    const existing = await this.candidateDao.getByEmail({ email: params.dto.email, organisationId: params.currentUser.organisationId });
     if (existing) {
       throw new ApiFieldValidationError('email', 'Email already linked with a candidate');
     }
@@ -66,7 +66,7 @@ export class CandidateCreateUc extends BaseCandidateUc implements IUseCase<Param
   private async createCandidate(params: Params, tx: Prisma.TransactionClient): Promise<number> {
     return await this.candidateDao.create({
       data: {
-        organization: { connect: { id: params.currentUser.organizationId } },
+        organisation: { connect: { id: params.currentUser.organisationId } },
         firstname: params.dto.firstname,
         lastname: params.dto.lastname,
         email: params.dto.email,
@@ -91,7 +91,7 @@ export class CandidateCreateUc extends BaseCandidateUc implements IUseCase<Param
     });
   }
 
-  private async createAndLinkMedia(params: { media: MediaUpsertType; candidateId: number; organizationId: number; type: CandidateMediaType; tx: Prisma.TransactionClient }): Promise<void> {
+  private async createAndLinkMedia(params: { media: MediaUpsertType; candidateId: number; organisationId: number; type: CandidateMediaType; tx: Prisma.TransactionClient }): Promise<void> {
     const file = await this.mediaService.moveTempFileAndGetKey({
       media: params.media,
       mediaPlacement: 'candidate',
@@ -101,7 +101,7 @@ export class CandidateCreateUc extends BaseCandidateUc implements IUseCase<Param
     if (!file) return;
 
     const mediaId = await this.mediaDao.create({
-      data: { key: file.newKey, name: params.media.name, type: params.media.type, size: file.size, ext: file.ext, organization: { connect: { id: params.organizationId } } },
+      data: { key: file.newKey, name: params.media.name, type: params.media.type, size: file.size, ext: file.ext, organisation: { connect: { id: params.organisationId } } },
       tx: params.tx,
     });
 

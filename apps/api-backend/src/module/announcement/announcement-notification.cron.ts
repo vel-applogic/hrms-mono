@@ -27,14 +27,14 @@ export class AnnouncementNotificationCron {
       for (const announcement of pendingAnnouncements) {
         try {
           const userIds = await this.employeeDao.findActiveUserIdsByFilter({
-            organizationId: announcement.organizationId,
+            organisationId: announcement.organisationId,
             branchId: announcement.branchId,
             departmentId: announcement.departmentId,
           });
 
           if (userIds.length > 0) {
             await this.notificationService.sendToMany({
-              organizationId: announcement.organizationId,
+              organisationId: announcement.organisationId,
               userIds,
               title: announcement.title,
               message: `New announcement: ${announcement.title}`,

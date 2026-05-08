@@ -15,7 +15,7 @@ export class NotificationService {
   ) {}
 
   public async send(params: {
-    organizationId: number;
+    organisationId: number;
     userId: number;
     title: string;
     message: string;
@@ -25,7 +25,7 @@ export class NotificationService {
       await this.prisma.$transaction(async (tx) => {
         await this.notificationDao.create({
           data: {
-            organizationId: params.organizationId,
+            organisationId: params.organisationId,
             userId: params.userId,
             title: params.title,
             message: params.message,
@@ -40,7 +40,7 @@ export class NotificationService {
   }
 
   public async sendToMany(params: {
-    organizationId: number;
+    organisationId: number;
     userIds: number[];
     title: string;
     message: string;
@@ -48,7 +48,7 @@ export class NotificationService {
   }): Promise<void> {
     try {
       const data = params.userIds.map((userId) => ({
-        organizationId: params.organizationId,
+        organisationId: params.organisationId,
         userId,
         title: params.title,
         message: params.message,

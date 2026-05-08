@@ -31,14 +31,14 @@ export class AdminUserUpdateUc extends BaseAdminUserUc implements IUseCase<Param
       await this.applyUpdate(params, tx);
     });
 
-    const updatedUser = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    const updatedUser = await this.getByIdOrThrow(params.id, params.currentUser.organisationId);
     void this.recordActivity(params, existingUser, updatedUser);
 
     return { success: true, message: 'User updated successfully' };
   }
 
   private async validate(params: Params): Promise<AdminUserDetailResponseType> {
-    return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    return await this.getByIdOrThrow(params.id, params.currentUser.organisationId);
   }
 
   private async applyUpdate(params: Params, tx: Prisma.TransactionClient): Promise<void> {

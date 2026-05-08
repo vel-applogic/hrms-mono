@@ -27,7 +27,7 @@ export class ExpenseListUc extends BaseExpenseUseCase implements IUseCase<Params
 
   private async search(params: Params): Promise<PaginatedResponseType<ExpenseResponseType>> {
     const { dbRecords, totalRecords } = await this.expenseDao.search({
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
       search: params.filterDto.search,

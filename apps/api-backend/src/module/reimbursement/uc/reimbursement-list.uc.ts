@@ -31,7 +31,7 @@ export class ReimbursementListUc extends BaseReimbursementUseCase implements IUs
     const isAdmin = params.currentUser.isSuperAdmin || params.currentUser.roles.includes(UserRoleDtoEnum.admin);
 
     const { dbRecords, totalRecords } = await this.reimbursementDao.search({
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       userId: isAdmin ? undefined : params.currentUser.id,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,

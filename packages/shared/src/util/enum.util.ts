@@ -108,7 +108,7 @@ export function notificationLinkDtoEnumToRoute(dtoEnum: NotificationLinkDtoEnum)
     [NotificationLinkDtoEnum.candidate]: '/candidate',
     [NotificationLinkDtoEnum.policy]: '/policy',
     [NotificationLinkDtoEnum.expense]: '/expense',
-    [NotificationLinkDtoEnum.organization]: '/organization',
+    [NotificationLinkDtoEnum.organisation]: '/organisation',
     [NotificationLinkDtoEnum.user]: '/user',
     [NotificationLinkDtoEnum.empDashboard]: '/emp/dashboard',
     [NotificationLinkDtoEnum.empLeave]: '/emp/leave',

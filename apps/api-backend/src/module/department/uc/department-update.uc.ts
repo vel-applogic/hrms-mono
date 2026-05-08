@@ -39,9 +39,9 @@ export class DepartmentUpdateUc extends BaseDepartmentUseCase implements IUseCas
   private async validate(params: Params): Promise<void> {
     await this.getDepartmentById(params.dto.id);
 
-    const existing = await this.departmentDao.findByNameAndOrganization({
+    const existing = await this.departmentDao.findByNameAndOrganisation({
       name: params.dto.name,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       excludeId: params.dto.id,
     });
     if (existing) {

@@ -32,7 +32,7 @@ export class CandidateSearchUc extends BaseCandidateUc implements IUseCase<Param
   private async search(params: Params): Promise<PaginatedResponseType<CandidateListResponseType>> {
     const { results, totalRecords } = await this.runSearch({
       filterDto: params.filterDto,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       orderBy: this.getSort(params.filterDto.sort, CandidateSortableColumns),
     });
 
@@ -46,12 +46,12 @@ export class CandidateSearchUc extends BaseCandidateUc implements IUseCase<Param
 
   private async runSearch(params: {
     filterDto: CandidateFilterRequestType;
-    organizationId: number;
+    organisationId: number;
     orderBy?: OrderByParam;
   }): Promise<{ totalRecords: number; results: CandidateListResponseType[] }> {
     const { dbRecords, totalRecords } = await this.candidateDao.search({
       filterDto: params.filterDto,
-      organizationId: params.organizationId,
+      organisationId: params.organisationId,
       orderBy: params.orderBy,
     });
     return { totalRecords, results: dbRecords.map((r: CandidateListRecordType) => this.dbToCandidateListResponse(r)) };

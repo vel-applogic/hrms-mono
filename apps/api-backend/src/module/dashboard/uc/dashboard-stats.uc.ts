@@ -33,7 +33,7 @@ export class DashboardStatsUc extends BaseUc implements IUseCase<Params, Dashboa
     this.logger.i('Getting dashboard stats');
     this.assertAdmin(params.currentUser);
 
-    const organizationId = params.currentUser.organizationId;
+    const organisationId = params.currentUser.organisationId;
 
     const [
       candidateCountByStatus,
@@ -43,12 +43,12 @@ export class DashboardStatsUc extends BaseUc implements IUseCase<Params, Dashboa
       compensationUserIds,
       deductionUserIds,
     ] = await Promise.all([
-      this.candidateDao.countByStatus({ organizationId }),
-      this.employeeDao.countByStatus({ organizationId }),
-      this.employeeDao.countActiveWithoutReportTo({ organizationId }),
-      this.employeeDao.findActiveUserIds({ organizationId }),
-      this.payrollCompensationDao.findActiveUserIds({ organizationId }),
-      this.payrollDeductionDao.findDistinctUserIds({ organizationId }),
+      this.candidateDao.countByStatus({ organisationId }),
+      this.employeeDao.countByStatus({ organisationId }),
+      this.employeeDao.countActiveWithoutReportTo({ organisationId }),
+      this.employeeDao.findActiveUserIds({ organisationId }),
+      this.payrollCompensationDao.findActiveUserIds({ organisationId }),
+      this.payrollDeductionDao.findDistinctUserIds({ organisationId }),
     ]);
 
     const compensationUserIdSet = new Set(compensationUserIds);

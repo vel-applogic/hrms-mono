@@ -37,7 +37,7 @@ export class AnnouncementUpdateUc extends BaseAnnouncementUc implements IUseCase
     await this.transaction(async (tx) => {
       await this.announcementDao.update({
         id: params.dto.id,
-        organizationId: params.currentUser.organizationId,
+        organisationId: params.currentUser.organisationId,
         data: {
           title: params.dto.title,
           message: params.dto.message,
@@ -50,7 +50,7 @@ export class AnnouncementUpdateUc extends BaseAnnouncementUc implements IUseCase
       });
     });
 
-    const updatedAnnouncement = await this.getAnnouncementResponseById(params.dto.id, params.currentUser.organizationId);
+    const updatedAnnouncement = await this.getAnnouncementResponseById(params.dto.id, params.currentUser.organisationId);
     void this.recordActivity(params, oldAnnouncement, updatedAnnouncement);
     return updatedAnnouncement;
   }
@@ -58,21 +58,21 @@ export class AnnouncementUpdateUc extends BaseAnnouncementUc implements IUseCase
   private async validate(params: Params): Promise<AnnouncementResponseType> {
     this.assertAdmin(params.currentUser);
 
-    const existing = await this.announcementDao.getById({ id: params.dto.id, organizationId: params.currentUser.organizationId });
+    const existing = await this.announcementDao.getById({ id: params.dto.id, organisationId: params.currentUser.organisationId });
     if (!existing) {
       throw new ApiBadRequestError('Announcement not found');
     }
 
     if (params.dto.branchId) {
       const branch = await this.branchDao.findById({ id: params.dto.branchId });
-      if (!branch || branch.organizationId !== params.currentUser.organizationId) {
+      if (!branch || branch.organisationId !== params.currentUser.organisationId) {
         throw new ApiBadRequestError('Branch not found');
       }
     }
 
     if (params.dto.departmentId) {
       const department = await this.departmentDao.findById({ id: params.dto.departmentId });
-      if (!department || department.organizationId !== params.currentUser.organizationId) {
+      if (!department || department.organisationId !== params.currentUser.organisationId) {
         throw new ApiBadRequestError('Department not found');
       }
     }

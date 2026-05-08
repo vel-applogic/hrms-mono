@@ -56,7 +56,7 @@ export class EmailService {
   public async sendUserInvite(params: { userId: number; email: string; emailData: UserInviteEmailDto }): Promise<void> {
     await this.sendEmail<UserInviteEmailDto>({
       userId: params.userId,
-      subject: `You've been invited to ${params.emailData.organizationName}`,
+      subject: `You've been invited to ${params.emailData.organisationName}`,
       email: params.email,
       emailData: params.emailData,
       emailTemplateName: 'SEND_USER_INVITE_TEMPLATE',

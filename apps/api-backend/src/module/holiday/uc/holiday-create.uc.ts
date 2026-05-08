@@ -24,7 +24,7 @@ export class HolidayCreateUc extends BaseHolidayUseCase implements IUseCase<Para
       return await this.create(params, tx);
     });
 
-    return await this.getHolidayResponseById(createdId, params.currentUser.organizationId);
+    return await this.getHolidayResponseById(createdId, params.currentUser.organisationId);
   }
 
   private async validate(params: Params): Promise<void> {
@@ -37,7 +37,7 @@ export class HolidayCreateUc extends BaseHolidayUseCase implements IUseCase<Para
         name: params.dto.name,
         date: new Date(params.dto.date),
         types: params.dto.types.map((t) => holidayTypeDtoEnumToDbEnum(t)),
-        organization: { connect: { id: params.currentUser.organizationId } },
+        organisation: { connect: { id: params.currentUser.organisationId } },
       },
       tx,
     });

@@ -13,7 +13,7 @@ import {
   leaveStatusDbEnumToDtoEnum,
   leaveTypeDbEnumToDtoEnum,
   leaveTypeDtoEnumToDbEnum,
-  OrganizationSettingDao,
+  OrganisationSettingDao,
   PrismaService,
 } from '@repo/nest-lib';
 import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
@@ -110,7 +110,7 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
     private readonly logger: CommonLoggerService,
     private readonly employeeDao: EmployeeDao,
     private readonly leaveDao: LeaveDao,
-    private readonly organizationSettingDao: OrganizationSettingDao,
+    private readonly organisationSettingDao: OrganisationSettingDao,
     private readonly holidayDao: HolidayDao,
   ) {}
 
@@ -128,12 +128,12 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
   private async validate(
     params: Params,
   ): Promise<{ startDate: Date; endDate: Date; numberOfDays: number; leaveTypeDb: LeaveTypeEnum; startDurationDb: LeaveDayHalfEnum; endDurationDb: LeaveDayHalfEnum }> {
-    const employee = await this.employeeDao.getByUserId({ userId: params.currentUser.id, organizationId: params.currentUser.organizationId });
+    const employee = await this.employeeDao.getByUserId({ userId: params.currentUser.id, organisationId: params.currentUser.organisationId });
     if (!employee) {
       throw new ApiError('Only employees can edit leave. Employee not found.', 403);
     }
 
-    const existing = await this.leaveDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
+    const existing = await this.leaveDao.getById({ id: params.id, organisationId: params.currentUser.organisationId });
     if (!existing) {
       throw new ApiError('Leave not found', 404);
     }
@@ -144,9 +144,9 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
       throw new ApiError('Only pending leave requests can be edited', 400);
     }
 
-    const config = await this.organizationSettingDao.findByOrganizationId({ organizationId: params.currentUser.organizationId });
+    const config = await this.organisationSettingDao.findByOrganisationId({ organisationId: params.currentUser.organisationId });
     if (!config) {
-      throw new ApiError('Organization settings not found', 500);
+      throw new ApiError('Organisation settings not found', 500);
     }
 
     const startDate = new Date(params.dto.startDate);
@@ -169,7 +169,7 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
 
     const weeklyOffDays = config.weeklyOffDays ?? [0, 6];
     const holidays = await this.holidayDao.findByDateRange({
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       startDate,
       endDate,
     });
@@ -186,7 +186,7 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
     const leaveTypeDb = leaveTypeDtoEnumToDbEnum(params.dto.leaveType);
     const existingByType = await this.leaveDao.sumDaysByUserIdAndStatus({
       userId: params.currentUser.id,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       statuses: countStatuses,
       startDate: fyStart,
       endDate: fyEnd,
@@ -195,7 +195,7 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
     });
     const existingTotal = await this.leaveDao.sumDaysByUserIdAndStatus({
       userId: params.currentUser.id,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       statuses: countStatuses,
       startDate: fyStart,
       endDate: fyEnd,
@@ -222,7 +222,7 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
 
     await this.leaveDao.update({
       id: params.id,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       data: {
         leaveType: leaveTypeDb,
         startDate,
@@ -237,7 +237,7 @@ export class LeaveUpdateUc implements IUseCase<Params, LeaveResponseType> {
   }
 
   private async getResponseById(params: Params): Promise<LeaveResponseType> {
-    const updated = await this.leaveDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
+    const updated = await this.leaveDao.getById({ id: params.id, organisationId: params.currentUser.organisationId });
     if (!updated) throw new ApiError('Failed to fetch updated leave', 500);
 
     return {

@@ -132,7 +132,7 @@ export class AuthResetPasswordUseCase extends BaseAuthUseCase implements IUseCas
         id: params.user.id,
         roles: params.user.roles,
         isSuperAdmin: false,
-        organizationId: 0,
+        organisationId: 0,
         email: params.user.email!,
         firstname: params.user.firstname,
         lastname: params.user.lastname,

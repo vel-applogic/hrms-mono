@@ -44,7 +44,7 @@ export class DeviceCreateUc extends BaseDeviceUc implements IUseCase<Params, Dev
     const createdId = await this.transaction(async (tx) => {
       const deviceId = await this.deviceDao.create({
         data: {
-          organization: { connect: { id: params.currentUser.organizationId } },
+          organisation: { connect: { id: params.currentUser.organisationId } },
           type: deviceTypeDtoEnumToDbEnum(params.dto.type),
           brand: params.dto.brand,
           model: params.dto.model,
@@ -63,7 +63,7 @@ export class DeviceCreateUc extends BaseDeviceUc implements IUseCase<Params, Dev
       // Handle media uploads
       if (params.dto.medias && params.dto.medias.length > 0) {
         for (const mediaItem of params.dto.medias) {
-          const mediaId = await this.processAndCreateMedia(mediaItem, deviceId, params.currentUser.organizationId, tx);
+          const mediaId = await this.processAndCreateMedia(mediaItem, deviceId, params.currentUser.organisationId, tx);
           await this.deviceHasMediaDao.create({
             data: {
               device: { connect: { id: deviceId } },
@@ -79,7 +79,7 @@ export class DeviceCreateUc extends BaseDeviceUc implements IUseCase<Params, Dev
       if (params.dto.assignedToId) {
         await this.possessionHistoryDao.create({
           data: {
-            organization: { connect: { id: params.currentUser.organizationId } },
+            organisation: { connect: { id: params.currentUser.organisationId } },
             user: { connect: { id: params.dto.assignedToId } },
             device: { connect: { id: deviceId } },
             fromDate: new Date(),
@@ -92,7 +92,7 @@ export class DeviceCreateUc extends BaseDeviceUc implements IUseCase<Params, Dev
       return deviceId;
     });
 
-    const device = await this.getDeviceResponseById(createdId, params.currentUser.organizationId);
+    const device = await this.getDeviceResponseById(createdId, params.currentUser.organisationId);
     void this.recordActivity(params, device);
     return device;
   }
@@ -104,7 +104,7 @@ export class DeviceCreateUc extends BaseDeviceUc implements IUseCase<Params, Dev
   private async processAndCreateMedia(
     mediaItem: DeviceMediaUpsertType,
     deviceId: number,
-    organizationId: number,
+    organisationId: number,
     tx: Parameters<Parameters<typeof this.prisma.$transaction>[0]>[0],
   ): Promise<number> {
     if (mediaItem.id) {
@@ -129,7 +129,7 @@ export class DeviceCreateUc extends BaseDeviceUc implements IUseCase<Params, Dev
         type: mediaItem.type,
         size: moved.size,
         ext: moved.ext,
-        organization: { connect: { id: organizationId } },
+        organisation: { connect: { id: organisationId } },
       },
       tx,
     });

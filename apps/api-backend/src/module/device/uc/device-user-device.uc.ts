@@ -23,7 +23,7 @@ export class DeviceUserDeviceUc extends BaseDeviceUc implements IUseCase<Params,
 
     const devices = await this.deviceDao.getDevicesByUserId({
       userId: params.userId,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
     });
 
     return devices.map((dbRec) => ({

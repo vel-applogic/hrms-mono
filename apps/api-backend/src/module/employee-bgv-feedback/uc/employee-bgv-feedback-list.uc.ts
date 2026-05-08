@@ -33,7 +33,7 @@ export class EmployeeBgvFeedbackListUc implements IUseCase<Params, PaginatedResp
   }
 
   private async validate(params: Params): Promise<void> {
-    const employee = await this.employeeDao.getByUserId({ userId: params.filterDto.employeeId, organizationId: params.currentUser.organizationId });
+    const employee = await this.employeeDao.getByUserId({ userId: params.filterDto.employeeId, organisationId: params.currentUser.organisationId });
     if (!employee) {
       throw new ApiError('Employee not found', 404);
     }
@@ -42,7 +42,7 @@ export class EmployeeBgvFeedbackListUc implements IUseCase<Params, PaginatedResp
   private async search(params: Params): Promise<PaginatedResponseType<EmployeeBgvFeedbackResponseType>> {
     const { dbRecords, totalRecords } = await this.employeeBgvFeedbackDao.findByUserIdWithPagination({
       userId: params.filterDto.employeeId,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
     });

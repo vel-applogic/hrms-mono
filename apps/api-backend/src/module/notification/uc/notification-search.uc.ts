@@ -21,7 +21,7 @@ export class NotificationSearchUc extends BaseNotificationUseCase implements IUs
 
     const { totalRecords, dbRecords } = await this.notificationDao.findManyWithPagination({
       userId: params.currentUser.id,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       page,
       limit,
     });

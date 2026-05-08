@@ -36,12 +36,12 @@ export class UserInBranchDao extends BaseDao {
     return pc.userInBranch.findMany({ where: { branchId: params.branchId } });
   }
 
-  public async findAllByOrganization(params: {
-    organizationId: number;
+  public async findAllByOrganisation(params: {
+    organisationId: number;
     tx?: Prisma.TransactionClient;
   }): Promise<UserInBranchSelectTableRecordType[]> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.userInBranch.findMany({ where: { organizationId: params.organizationId } });
+    return pc.userInBranch.findMany({ where: { organisationId: params.organisationId } });
   }
 
   public async create(params: { data: UserInBranchInsertTableRecordType; tx: Prisma.TransactionClient }): Promise<number> {

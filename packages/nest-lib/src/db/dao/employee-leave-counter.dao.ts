@@ -15,14 +15,14 @@ export class EmployeeLeaveCounterDao extends BaseDao {
 
   public async findManyByFinancialYear(params: {
     financialYear: string;
-    organizationId: number;
+    organisationId: number;
     tx?: Prisma.TransactionClient;
   }): Promise<EmployeeLeaveCounterWithUserType[]> {
     const pc = this.getPrismaClient(params.tx);
     return pc.employeeLeaveCounter.findMany({
       where: {
         financialYear: params.financialYear,
-        organizationId: params.organizationId,
+        organisationId: params.organisationId,
       },
       include: { user: { select: { id: true, firstname: true, lastname: true, email: true } } },
       orderBy: { user: { firstname: 'asc' } },
@@ -32,15 +32,15 @@ export class EmployeeLeaveCounterDao extends BaseDao {
   public async findByUserIdAndFinancialYear(params: {
     userId: number;
     financialYear: string;
-    organizationId: number;
+    organisationId: number;
     tx?: Prisma.TransactionClient;
   }): Promise<EmployeeLeaveCounterSelectTableRecordType | undefined> {
     const pc = this.getPrismaClient(params.tx);
     const result = await pc.employeeLeaveCounter.findUnique({
       where: {
-        userId_organizationId_financialYear: {
+        userId_organisationId_financialYear: {
           userId: params.userId,
-          organizationId: params.organizationId,
+          organisationId: params.organisationId,
           financialYear: params.financialYear,
         },
       },
@@ -63,16 +63,16 @@ export class EmployeeLeaveCounterDao extends BaseDao {
   public async upsert(params: {
     userId: number;
     financialYear: string;
-    organizationId: number;
+    organisationId: number;
     data: EmployeeLeaveCounterInsertTableRecordType;
     tx: Prisma.TransactionClient;
   }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
     await pc.employeeLeaveCounter.upsert({
       where: {
-        userId_organizationId_financialYear: {
+        userId_organisationId_financialYear: {
           userId: params.userId,
-          organizationId: params.organizationId,
+          organisationId: params.organisationId,
           financialYear: params.financialYear,
         },
       },
@@ -87,7 +87,7 @@ export class EmployeeLeaveCounterDao extends BaseDao {
    */
   public async syncFromActualLeaves(params: {
     userId: number;
-    organizationId: number;
+    organisationId: number;
     financialYear: string;
     casualLeaves: number;
     sickLeaves: number;
@@ -99,7 +99,7 @@ export class EmployeeLeaveCounterDao extends BaseDao {
     const totalLeavesAvailable = Math.max(0, params.maxLeaves - params.totalLeavesUsed);
     const data: EmployeeLeaveCounterInsertTableRecordType = {
       user: { connect: { id: params.userId } },
-      organization: { connect: { id: params.organizationId } },
+      organisation: { connect: { id: params.organisationId } },
       financialYear: params.financialYear,
       casualLeaves: params.casualLeaves,
       sickLeaves: params.sickLeaves,
@@ -110,7 +110,7 @@ export class EmployeeLeaveCounterDao extends BaseDao {
     await this.upsert({
       userId: params.userId,
       financialYear: params.financialYear,
-      organizationId: params.organizationId,
+      organisationId: params.organisationId,
       data,
       tx: params.tx,
     });

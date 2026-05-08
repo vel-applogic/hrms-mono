@@ -10,8 +10,8 @@ datasource db {
 // MEDIA
 model Media {
   id             Int             @id @default(autoincrement())
-  organizationId Int             @map("organization_id")
-  organization   Organization    @relation(fields: [organizationId], references: [id])
+  organisationId Int             @map("organisation_id")
+  organisation   Organisation    @relation(fields: [organisationId], references: [id])
   key            String
   thumbnailKey   String?         @map("thumbnail_key")
   type           MediaTypeDbEnum
@@ -25,8 +25,8 @@ model Media {
   policyHasMedias             PolicyHasMedia[]
   employeeHasMedias           EmployeeHasMedia[]
   leaveHasMedias              LeaveHasMedia[]
-  organizationLogos           Organization[]               @relation("OrganizationLogo")
-  organizationHasDocuments    OrganizationHasDocument[]
+  organisationLogos           Organisation[]               @relation("OrganisationLogo")
+  organisationHasDocuments    OrganisationHasDocument[]
   employyBgvFeedbackHasMedias employyBgvFeedbackHasMedia[]
   deviceHasMedias             DeviceHasMedia[]
   reimbursementHasMedias      ReimbursementHasMedia[]
@@ -40,7 +40,7 @@ model Currency {
   code          String         @unique
   name          String
   symbol        String?
-  organizations Organization[]
+  organisations Organisation[]
 
   @@map("currency")
 }
@@ -59,8 +59,8 @@ model Country {
 // ADDRESS
 model Address {
   id             Int          @id @default(autoincrement())
-  organizationId Int          @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organisationId Int          @map("organisation_id")
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
   countryId      Int          @map("country_id")
   country        Country      @relation(fields: [countryId], references: [id])
   addressLine1   String       @map("address_line_1")
@@ -73,7 +73,7 @@ model Address {
 
   createdAt                DateTime                 @default(now()) @map("created_at")
   updatedAt                DateTime                 @updatedAt @map("updated_at")
-  organizationHasAddresses OrganizationHasAddress[]
+  organisationHasAddresses OrganisationHasAddress[]
 
   @@map("address")
 }
@@ -89,13 +89,13 @@ enum ContactType {
 
 model Contact {
   id                      Int                      @id @default(autoincrement())
-  organizationId          Int                      @map("organization_id")
-  organization            Organization             @relation(fields: [organizationId], references: [id])
+  organisationId          Int                      @map("organisation_id")
+  organisation            Organisation             @relation(fields: [organisationId], references: [id])
   contact                 String                   @map("contact_number")
   contactType             ContactType              @map("contact_type")
   createdAt               DateTime                 @default(now()) @map("created_at")
   updatedAt               DateTime                 @updatedAt @map("updated_at")
-  organizationHasContacts OrganizationHasContact[]
+  organisationHasContacts OrganisationHasContact[]
 
   @@map("contact")
 }
@@ -132,7 +132,7 @@ model User {
   employeeLeaveCounters           EmployeeLeaveCounter[]
   payrollDeductions               PayrollDeduction[]
   payrollPayslips                 PayrollPayslip[]
-  organizationHasUsers            OrganizationHasUser[]
+  organisationHasUsers            OrganisationHasUser[]
   userInBranches                  UserInBranch[]
   employeeBgvFeedbacks            employeeBgvFeedback[]      @relation("EmployeeBgvFeedbackUser")
   assignedDevices                 Device[]                   @relation("DeviceAssignedTo")
@@ -173,8 +173,8 @@ model UserInBranch {
   user           User         @relation(fields: [userId], references: [id])
   branchId       Int          @map("branch_id")
   branch         Branch       @relation(fields: [branchId], references: [id])
-  organizationId Int          @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organisationId Int          @map("organisation_id")
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -186,8 +186,8 @@ model UserInvite {
   id             Int          @id @default(autoincrement())
   userId         Int          @map("user_id")
   user           User         @relation("UserInviteUser", fields: [userId], references: [id])
-  organizationId Int          @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organisationId Int          @map("organisation_id")
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
   inviteKey      String       @map("invite_key")
   invitedById    Int          @map("invited_by_id")
   invitedBy      User         @relation("UserInviteInvitedBy", fields: [invitedById], references: [id])
@@ -196,14 +196,14 @@ model UserInvite {
   updatedAt      DateTime     @updatedAt @map("updated_at")
 
   @@index([userId])
-  @@index([organizationId])
+  @@index([organisationId])
   @@map("user_invite")
 }
 
 model DevicePossessionHistory {
   id             Int          @id @default(autoincrement())
-  organizationId Int          @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organisationId Int          @map("organisation_id")
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
   userId         Int          @map("user_id")
   user           User         @relation(fields: [userId], references: [id])
   deviceId       Int          @map("device_id")
@@ -217,16 +217,16 @@ model DevicePossessionHistory {
 
   @@index([userId])
   @@index([deviceId])
-  @@index([organizationId])
+  @@index([organisationId])
   @@map("device_possession_history")
 }
 
-// ORGANIZATION
-model Organization {
+// ORGANISATION
+model Organisation {
   id         Int      @id @default(autoincrement())
   name       String
   logoId     Int?     @map("logo_id")
-  logo       Media?   @relation("OrganizationLogo", fields: [logoId], references: [id])
+  logo       Media?   @relation("OrganisationLogo", fields: [logoId], references: [id])
   website    String?  @map("website")
   currencyId Int      @map("currency_id")
   currency   Currency @relation(fields: [currencyId], references: [id])
@@ -234,7 +234,7 @@ model Organization {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  organizationHasUsers       OrganizationHasUser[]
+  organisationHasUsers       OrganisationHasUser[]
   branches                   Branch[]
   userInBranches             UserInBranch[]
   userInvites                UserInvite[]
@@ -248,13 +248,13 @@ model Organization {
   candidates                 Candidate[]
   policies                   Policy[]
   medias                     Media[]
-  settings                   OrganizationSetting[]
-  organizationHasDocuments   OrganizationHasDocument[]
+  settings                   OrganisationSetting[]
+  organisationHasDocuments   OrganisationHasDocument[]
   employeeBgvFeedbacks       employeeBgvFeedback[]
   addresses                  Address[]
   contacts                   Contact[]
-  organizationHasContacts    OrganizationHasContact[]
-  organizationHasAddresses   OrganizationHasAddress[]
+  organisationHasContacts    OrganisationHasContact[]
+  organisationHasAddresses   OrganisationHasAddress[]
   holidays                   Holiday[]
   devices                    Device[]
   devicePossessionHistories  DevicePossessionHistory[]
@@ -267,51 +267,51 @@ model Organization {
   announcements              Announcement[]
   organisationFinancialYears OrganisationFinancialYear[]
 
-  @@map("organization")
+  @@map("organisation")
 }
 
 model OrganisationFinancialYear {
   id             Int          @id @default(autoincrement())
-  organizationId Int          @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organisationId Int          @map("organisation_id")
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
   startDate      DateTime     @map("start_date")
   endDate        DateTime     @map("end_date")
   createdAt      DateTime     @default(now()) @map("created_at")
   updatedAt      DateTime     @updatedAt @map("updated_at")
 }
 
-model OrganizationHasContact {
+model OrganisationHasContact {
   id             Int          @id @default(autoincrement())
-  organizationId Int          @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organisationId Int          @map("organisation_id")
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
   contactId      Int          @map("contact_id")
   contact        Contact      @relation(fields: [contactId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([organizationId, contactId])
-  @@map("organization_has_contact")
+  @@unique([organisationId, contactId])
+  @@map("organisation_has_contact")
 }
 
-model OrganizationHasAddress {
+model OrganisationHasAddress {
   id             Int          @id @default(autoincrement())
-  organizationId Int          @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organisationId Int          @map("organisation_id")
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
   addressId      Int          @map("address_id")
   address        Address      @relation(fields: [addressId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([organizationId, addressId])
-  @@map("organization_has_address")
+  @@unique([organisationId, addressId])
+  @@map("organisation_has_address")
 }
 
-model OrganizationHasUser {
+model OrganisationHasUser {
   id             Int          @id @default(autoincrement())
-  organizationId Int          @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organisationId Int          @map("organisation_id")
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
   userId         Int          @map("user_id")
   user           User         @relation(fields: [userId], references: [id])
 
@@ -320,8 +320,8 @@ model OrganizationHasUser {
 
   roles UserRoleDbEnum[]
 
-  @@unique([organizationId, userId])
-  @@map("organization_has_user")
+  @@unique([organisationId, userId])
+  @@map("organisation_has_user")
 }
 
 enum NoOfDaysInMonthDbEnum {
@@ -330,10 +330,10 @@ enum NoOfDaysInMonthDbEnum {
   thirtyOne
 }
 
-model OrganizationSetting {
+model OrganisationSetting {
   id                   Int                   @id @default(autoincrement())
-  organizationId       Int                   @map("organization_id")
-  organization         Organization          @relation(fields: [organizationId], references: [id])
+  organisationId       Int                   @map("organisation_id")
+  organisation         Organisation          @relation(fields: [organisationId], references: [id])
   noOfDaysInMonth      NoOfDaysInMonthDbEnum @default(thirty) @map("no_of_days_in_month")
   totalLeaveInDays     Int                   @default(24) @map("total_leave_in_days")
   sickLeaveInDays      Int                   @default(10) @map("sick_leave_in_days")
@@ -346,13 +346,13 @@ model OrganizationSetting {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("organization_settings")
+  @@map("organisation_settings")
 }
 
-model OrganizationHasDocument {
+model OrganisationHasDocument {
   id             Int             @id @default(autoincrement())
-  organizationId Int             @map("organization_id")
-  organization   Organization    @relation(fields: [organizationId], references: [id])
+  organisationId Int             @map("organisation_id")
+  organisation   Organisation    @relation(fields: [organisationId], references: [id])
   documentId     Int             @map("document_id")
   document       Media           @relation(fields: [documentId], references: [id])
   mediaType      MediaTypeDbEnum @map("media_type")
@@ -360,15 +360,15 @@ model OrganizationHasDocument {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("organization_has_document")
+  @@map("organisation_has_document")
 }
 
 // BRANCH
 model Branch {
   id             Int          @id @default(autoincrement())
   name           String
-  organizationId Int          @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organisationId Int          @map("organisation_id")
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -384,8 +384,8 @@ model Branch {
 model Department {
   id             Int          @id @default(autoincrement())
   name           String
-  organizationId Int          @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organisationId Int          @map("organisation_id")
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -394,7 +394,7 @@ model Department {
   employees         Employee[]
   announcements     Announcement[]
 
-  @@unique([name, organizationId])
+  @@unique([name, organisationId])
   @@map("department")
 }
 
@@ -404,8 +404,8 @@ model UserInDepartment {
   user           User         @relation(fields: [userId], references: [id])
   departmentId   Int          @map("department_id")
   department     Department   @relation(fields: [departmentId], references: [id])
-  organizationId Int          @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organisationId Int          @map("organisation_id")
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -420,8 +420,8 @@ model Employee {
   id                           Int                @id @default(autoincrement())
   userId                       Int                @map("user_id")
   user                         User               @relation("EmployeeUser", fields: [userId], references: [id])
-  organizationId               Int                @map("organization_id")
-  organization                 Organization       @relation(fields: [organizationId], references: [id])
+  organisationId               Int                @map("organisation_id")
+  organisation                 Organisation       @relation(fields: [organisationId], references: [id])
   employeeCode                 String             @map("employee_code")
   personalEmail                String?            @map("personal_email")
   dob                          DateTime
@@ -449,10 +449,10 @@ model Employee {
 
   candidatesConverted Candidate[] @relation("CandidateEmployee")
 
-  @@unique([userId, organizationId])
-  @@unique([employeeCode, organizationId])
-  @@unique([pan, organizationId])
-  @@unique([aadhaar, organizationId])
+  @@unique([userId, organisationId])
+  @@unique([employeeCode, organisationId])
+  @@unique([pan, organisationId])
+  @@unique([aadhaar, organisationId])
   @@index([userId])
   @@index([reportToId])
   @@index([status])
@@ -463,8 +463,8 @@ model employeeBgvFeedback {
   id             Int          @id @default(autoincrement())
   userId         Int          @map("user_id")
   user           User         @relation("EmployeeBgvFeedbackUser", fields: [userId], references: [id])
-  organizationId Int          @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organisationId Int          @map("organisation_id")
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
   feedback       String       @map("feedback")
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -511,8 +511,8 @@ model PayrollCompensation {
   id             Int          @id @default(autoincrement())
   userId         Int          @map("user_id")
   user           User         @relation("EmployeeCompensationUser", fields: [userId], references: [id])
-  organizationId Int          @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organisationId Int          @map("organisation_id")
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
   grossAmount    Float        @map("gross_amount")
   effectiveFrom  DateTime     @map("effective_from") @db.Date
   effectiveTill  DateTime?    @map("effective_till") @db.Date
@@ -543,8 +543,8 @@ model PayrollDeduction {
   id             Int          @id @default(autoincrement())
   userId         Int          @map("user_id")
   user           User         @relation(fields: [userId], references: [id])
-  organizationId Int          @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organisationId Int          @map("organisation_id")
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
   effectiveFrom  DateTime     @map("effective_from") @db.Date
   effectiveTill  DateTime?    @map("effective_till") @db.Date
   isActive       Boolean      @default(true) @map("is_active")
@@ -579,8 +579,8 @@ model EmployeeFeedback {
   id             Int                   @id @default(autoincrement())
   userId         Int                   @map("user_id")
   user           User                  @relation("EmployeeFeedbackUser", fields: [userId], references: [id])
-  organizationId Int                   @map("organization_id")
-  organization   Organization          @relation(fields: [organizationId], references: [id])
+  organisationId Int                   @map("organisation_id")
+  organisation   Organisation          @relation(fields: [organisationId], references: [id])
   trend          EmployeeFeedbackTrend @map("trend")
   point          Int?                  @default(0) @map("point")
   title          String                @map("title")
@@ -598,8 +598,8 @@ model EmployeeLeaveCounter {
   id                   Int          @id @default(autoincrement())
   userId               Int          @map("user_id")
   user                 User         @relation(fields: [userId], references: [id])
-  organizationId       Int          @map("organization_id")
-  organization         Organization @relation(fields: [organizationId], references: [id])
+  organisationId       Int          @map("organisation_id")
+  organisation         Organisation @relation(fields: [organisationId], references: [id])
   casualLeaves         Float        @map("casual_leaves")
   sickLeaves           Float        @map("sick_leaves")
   earnedLeaves         Float        @map("earned_leaves")
@@ -609,8 +609,8 @@ model EmployeeLeaveCounter {
   createdAt            DateTime     @default(now()) @map("created_at")
   updatedAt            DateTime     @updatedAt @map("updated_at")
 
-  @@unique([userId, organizationId, financialYear])
-  @@index([userId, organizationId])
+  @@unique([userId, organisationId, financialYear])
+  @@index([userId, organisationId])
   @@map("user_employee_leave_counter")
 }
 
@@ -619,8 +619,8 @@ model PayrollPayslip {
   id                      Int                      @id @default(autoincrement())
   userId                  Int                      @map("user_id")
   user                    User                     @relation(fields: [userId], references: [id])
-  organizationId          Int                      @map("organization_id")
-  organization            Organization             @relation(fields: [organizationId], references: [id])
+  organisationId          Int                      @map("organisation_id")
+  organisation            Organisation             @relation(fields: [organisationId], references: [id])
   month                   Int                      @map("month")
   year                    Int                      @map("year")
   createdAt               DateTime                 @default(now()) @map("created_at")
@@ -656,8 +656,8 @@ model Leave {
   id              Int              @id @default(autoincrement())
   userId          Int              @map("user_id")
   user            User             @relation(fields: [userId], references: [id])
-  organizationId  Int              @map("organization_id")
-  organization    Organization     @relation(fields: [organizationId], references: [id])
+  organisationId  Int              @map("organisation_id")
+  organisation    Organisation     @relation(fields: [organisationId], references: [id])
   leaveType       LeaveTypeEnum    @map("leave_type")
   startDate       DateTime         @map("start_date") @db.Date
   endDate         DateTime         @map("end_date") @db.Date
@@ -705,8 +705,8 @@ model CandidateHasMedia {
 
 model Candidate {
   id                 Int               @id @default(autoincrement())
-  organizationId     Int               @map("organization_id")
-  organization       Organization      @relation(fields: [organizationId], references: [id])
+  organisationId     Int               @map("organisation_id")
+  organisation       Organisation      @relation(fields: [organisationId], references: [id])
   firstname          String
   lastname           String
   email              String
@@ -737,8 +737,8 @@ model Candidate {
   candidateHasMedias    CandidateHasMedia[]
   candidateHasFeedbacks CandidateHasFeedback[]
 
-  @@unique([email, organizationId])
-  @@index([organizationId])
+  @@unique([email, organisationId])
+  @@index([organisationId])
   @@map("candidate")
 }
 
@@ -759,8 +759,8 @@ model CandidateHasFeedback {
 // POLICIES
 model Policy {
   id             Int          @id @default(autoincrement())
-  organizationId Int          @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organisationId Int          @map("organisation_id")
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
   title          String
   content        Json
 
@@ -788,8 +788,8 @@ model PolicyHasMedia {
 // ANNOUNCEMENT
 model Announcement {
   id                 Int          @id @default(autoincrement())
-  organizationId     Int          @map("organization_id")
-  organization       Organization @relation(fields: [organizationId], references: [id])
+  organisationId     Int          @map("organisation_id")
+  organisation       Organisation @relation(fields: [organisationId], references: [id])
   title              String
   message            String
   branchId           Int?         @map("branch_id")
@@ -818,8 +818,8 @@ enum HolidayType {
 
 model Holiday {
   id             Int           @id @default(autoincrement())
-  organizationId Int           @map("organization_id")
-  organization   Organization  @relation(fields: [organizationId], references: [id])
+  organisationId Int           @map("organisation_id")
+  organisation   Organisation  @relation(fields: [organisationId], references: [id])
   name           String
   date           DateTime      @map("date") @db.Date
   types          HolidayType[] @map("types")
@@ -853,8 +853,8 @@ enum DeviceStatus {
 
 model Device {
   id                  Int                       @id @default(autoincrement())
-  organizationId      Int                       @map("organization_id")
-  organization        Organization              @relation(fields: [organizationId], references: [id])
+  organisationId      Int                       @map("organisation_id")
+  organisation        Organisation              @relation(fields: [organisationId], references: [id])
   type                DeviceType                @map("type")
   brand               String                    @map("brand")
   model               String                    @map("model")
@@ -950,8 +950,8 @@ model AppMigration {
 // EXPENSE
 model Expense {
   id             Int          @id @default(autoincrement())
-  organizationId Int          @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organisationId Int          @map("organisation_id")
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
   date           DateTime     @map("date") @db.Date
   description    String?      @map("description")
   type           ExpenseType  @map("type")
@@ -959,14 +959,14 @@ model Expense {
   createdAt      DateTime     @default(now()) @map("created_at")
   updatedAt      DateTime     @updatedAt @map("updated_at")
 
-  @@index([organizationId])
+  @@index([organisationId])
   @@map("expense")
 }
 
 model ExpenseForecast {
   id             Int                      @id @default(autoincrement())
-  organizationId Int                      @map("organization_id")
-  organization   Organization             @relation(fields: [organizationId], references: [id])
+  organisationId Int                      @map("organisation_id")
+  organisation   Organisation             @relation(fields: [organisationId], references: [id])
   description    String?                  @map("description")
   type           ExpenseType              @map("type")
   amount         Float                    @map("amount")
@@ -974,7 +974,7 @@ model ExpenseForecast {
   createdAt      DateTime                 @default(now()) @map("created_at")
   updatedAt      DateTime                 @updatedAt @map("updated_at")
 
-  @@index([organizationId])
+  @@index([organisationId])
   @@map("expense_forecast")
 }
 
@@ -991,8 +991,8 @@ enum ReimbursementStatusDbEnum {
 
 model Reimbursement {
   id             Int                       @id @default(autoincrement())
-  organizationId Int                       @map("organization_id")
-  organization   Organization              @relation(fields: [organizationId], references: [id])
+  organisationId Int                       @map("organisation_id")
+  organisation   Organisation              @relation(fields: [organisationId], references: [id])
   userId         Int                       @map("user_id")
   user           User                      @relation(fields: [userId], references: [id])
   title          String
@@ -1008,7 +1008,7 @@ model Reimbursement {
   reimbursementHasMedias    ReimbursementHasMedia[]
   reimbursementHasFeedbacks ReimbursementHasFeedback[]
 
-  @@index([organizationId])
+  @@index([organisationId])
   @@index([userId])
   @@map("reimbursement")
 }
@@ -1053,7 +1053,7 @@ enum NotificationLinkDbEnum {
   candidate
   policy
   expense
-  organization
+  organisation
   user
   empDashboard
   empLeave
@@ -1072,8 +1072,8 @@ enum NotificationLinkDbEnum {
 
 model Notification {
   id             Int                    @id @default(autoincrement())
-  organizationId Int                    @map("organization_id")
-  organization   Organization           @relation(fields: [organizationId], references: [id])
+  organisationId Int                    @map("organisation_id")
+  organisation   Organisation           @relation(fields: [organisationId], references: [id])
   userId         Int                    @map("user_id")
   user           User                   @relation(fields: [userId], references: [id])
   title          String
@@ -1084,7 +1084,7 @@ model Notification {
   updatedAt      DateTime               @updatedAt @map("updated_at")
 
   @@index([userId, isSeen])
-  @@index([organizationId])
+  @@index([organisationId])
   @@map("notification")
 }
 

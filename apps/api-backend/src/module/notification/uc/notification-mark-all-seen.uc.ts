@@ -18,7 +18,7 @@ export class NotificationMarkAllSeenUc extends BaseNotificationUseCase implement
     await this.prisma.$transaction(async (tx) => {
       await this.notificationDao.markAllAsSeen({
         userId: params.currentUser.id,
-        organizationId: params.currentUser.organizationId,
+        organisationId: params.currentUser.organisationId,
         tx,
       });
     });

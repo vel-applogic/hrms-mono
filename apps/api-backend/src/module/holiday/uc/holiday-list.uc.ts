@@ -27,7 +27,7 @@ export class HolidayListUc extends BaseHolidayUseCase implements IUseCase<Params
 
   private async search(params: Params): Promise<PaginatedResponseType<HolidayResponseType>> {
     const { dbRecords, totalRecords } = await this.holidayDao.search({
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       page: params.filterDto.pagination.page,
       limit: params.filterDto.pagination.limit,
       search: params.filterDto.search,

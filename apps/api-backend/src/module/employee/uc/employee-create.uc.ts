@@ -21,9 +21,9 @@ import {
   genderDtoEnumToDbEnum,
   IUseCase,
   MediaDao,
-  OrganizationDao,
-  OrganizationHasUserDao,
-  OrganizationSettingDao,
+  OrganisationDao,
+  OrganisationHasUserDao,
+  OrganisationSettingDao,
   PrismaService,
   UserDao,
   UserInviteDao,
@@ -57,9 +57,9 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
     private readonly passwordService: PasswordService,
     private readonly auditService: AuditService,
     private readonly employeeLeaveCounterDao: EmployeeLeaveCounterDao,
-    private readonly organizationHasUserDao: OrganizationHasUserDao,
-    private readonly organizationDao: OrganizationDao,
-    private readonly organizationSettingDao: OrganizationSettingDao,
+    private readonly organisationHasUserDao: OrganisationHasUserDao,
+    private readonly organisationDao: OrganisationDao,
+    private readonly organisationSettingDao: OrganisationSettingDao,
     private readonly userInviteDao: UserInviteDao,
     private readonly emailService: EmailService,
     private readonly appConfigService: AppConfigService,
@@ -70,7 +70,7 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
   public async execute(params: Params): Promise<OperationStatusResponseType> {
     this.logger.i('Creating employee', { email: params.dto.email });
     const validateResult = await this.validate(params);
-    const { organizationName, existingUserId } = validateResult;
+    const { organisationName, existingUserId } = validateResult;
 
     const { userId, inviteKey } = await this.transaction(async (tx) => {
       let userId: number;
@@ -88,44 +88,44 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
       return { userId, inviteKey };
     });
 
-    void this.sendInviteEmail({ userId, email: params.dto.email, inviteKey, organizationName });
+    void this.sendInviteEmail({ userId, email: params.dto.email, inviteKey, organisationName });
 
     if (existingUserId === null) {
-      const employee = await this.getById(userId, params.currentUser.organizationId);
+      const employee = await this.getById(userId, params.currentUser.organisationId);
       void this.recordActivity(params, employee ?? null);
     }
 
     return { success: true, message: 'Employee added and invitation sent' };
   }
 
-  private async validate(params: Params): Promise<{ organizationName: string; existingUserId: number | null }> {
+  private async validate(params: Params): Promise<{ organisationName: string; existingUserId: number | null }> {
     this.assertAdmin(params.currentUser);
 
-    if (params.currentUser.organizationId <= 0) {
-      throw new ApiBadRequestError('Organization context is required to create employees');
+    if (params.currentUser.organisationId <= 0) {
+      throw new ApiBadRequestError('Organisation context is required to create employees');
     }
 
-    const org = await this.organizationDao.findById({ id: params.currentUser.organizationId });
+    const org = await this.organisationDao.findById({ id: params.currentUser.organisationId });
     if (!org) {
-      throw new ApiBadRequestError('Organization not found');
+      throw new ApiBadRequestError('Organisation not found');
     }
 
     const existingUser = await this.userDao.getByEmail({ email: params.dto.email });
 
-    const duplicateCode = await this.employeeDao.findByEmployeeCode({ employeeCode: params.dto.employeeCode, organizationId: params.currentUser.organizationId });
+    const duplicateCode = await this.employeeDao.findByEmployeeCode({ employeeCode: params.dto.employeeCode, organisationId: params.currentUser.organisationId });
     if (duplicateCode) throw new ApiFieldValidationError('employeeCode', 'Employee code already exists in this organisation');
 
     if (params.dto.pan) {
-      const duplicatePan = await this.employeeDao.findByPan({ pan: params.dto.pan, organizationId: params.currentUser.organizationId });
+      const duplicatePan = await this.employeeDao.findByPan({ pan: params.dto.pan, organisationId: params.currentUser.organisationId });
       if (duplicatePan) throw new ApiFieldValidationError('pan', 'PAN already registered in this organisation');
     }
     if (params.dto.aadhaar) {
-      const duplicateAadhaar = await this.employeeDao.findByAadhaar({ aadhaar: params.dto.aadhaar, organizationId: params.currentUser.organizationId });
+      const duplicateAadhaar = await this.employeeDao.findByAadhaar({ aadhaar: params.dto.aadhaar, organisationId: params.currentUser.organisationId });
       if (duplicateAadhaar) throw new ApiFieldValidationError('aadhaar', 'Aadhaar already registered in this organisation');
     }
 
     return {
-      organizationName: org.name,
+      organisationName: org.name,
       existingUserId: existingUser?.id ?? null,
     };
   }
@@ -151,7 +151,7 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
     await this.employeeDao.create({
       data: {
         user: { connect: { id: userId } },
-        organization: { connect: { id: params.currentUser.organizationId } },
+        organisation: { connect: { id: params.currentUser.organisationId } },
         employeeCode: params.dto.employeeCode,
         personalEmail: params.dto.personalEmail ?? undefined,
         dob: new Date(params.dto.dob),
@@ -173,12 +173,12 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
     });
 
     const financialYear = getFinancialYearCode(dateOfJoining);
-    const orgSettings = await this.organizationSettingDao.findByOrganizationId({ organizationId: params.currentUser.organizationId, tx });
+    const orgSettings = await this.organisationSettingDao.findByOrganisationId({ organisationId: params.currentUser.organisationId, tx });
     const totalLeavesAvailable = orgSettings?.totalLeaveInDays ?? 24;
     await this.employeeLeaveCounterDao.create({
       data: {
         user: { connect: { id: userId } },
-        organization: { connect: { id: params.currentUser.organizationId } },
+        organisation: { connect: { id: params.currentUser.organisationId } },
         financialYear,
         casualLeaves: 0,
         sickLeaves: 0,
@@ -190,7 +190,7 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
     });
 
     if (params.dto.photo?.key?.startsWith('temp/')) {
-      await this.createAndLinkMedia({ media: params.dto.photo, userId, organizationId: params.currentUser.organizationId, type: EmployeeMediaType.photo, tx });
+      await this.createAndLinkMedia({ media: params.dto.photo, userId, organisationId: params.currentUser.organisationId, type: EmployeeMediaType.photo, tx });
     }
 
     return userId;
@@ -198,8 +198,8 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
 
   private async upsertOrgMembership(params: Params, userId: number, tx: Prisma.TransactionClient): Promise<void> {
     // Always upsert org membership with employee role
-    await this.organizationHasUserDao.upsert({
-      organizationId: params.currentUser.organizationId,
+    await this.organisationHasUserDao.upsert({
+      organisationId: params.currentUser.organisationId,
       userId,
       roles: [UserRoleDbEnum.employee],
       tx,
@@ -212,7 +212,7 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
     await this.userInviteDao.create({
       data: {
         user: { connect: { id: userId } },
-        organization: { connect: { id: params.currentUser.organizationId } },
+        organisation: { connect: { id: params.currentUser.organisationId } },
         invitedBy: { connect: { id: params.currentUser.id } },
         inviteKey,
       },
@@ -221,13 +221,13 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
     return inviteKey;
   }
 
-  private async sendInviteEmail(params: { userId: number; email: string; inviteKey: string; organizationName: string }): Promise<void> {
+  private async sendInviteEmail(params: { userId: number; email: string; inviteKey: string; organisationName: string }): Promise<void> {
     await this.emailService.sendUserInvite({
       userId: params.userId,
       email: params.email,
       emailData: {
         userDisplayName: params.email,
-        organizationName: params.organizationName,
+        organisationName: params.organisationName,
         link: `${this.appConfigService.webAppBaseUrl}/auth/accept-invite/${params.userId}/${params.inviteKey}`,
       },
     });
@@ -236,7 +236,7 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
   private async createAndLinkMedia(params: {
     media: MediaUpsertType;
     userId: number;
-    organizationId: number;
+    organisationId: number;
     type: EmployeeMediaType;
     tx: Prisma.TransactionClient;
   }): Promise<void> {
@@ -249,7 +249,7 @@ export class EmployeeCreateUc extends BaseEmployeeUc implements IUseCase<Params,
     if (!file) return;
 
     const mediaId = await this.mediaDao.create({
-      data: { key: file.newKey, name: params.media.name, type: params.media.type, size: file.size, ext: file.ext, organization: { connect: { id: params.organizationId } } },
+      data: { key: file.newKey, name: params.media.name, type: params.media.type, size: file.size, ext: file.ext, organisation: { connect: { id: params.organisationId } } },
       tx: params.tx,
     });
 

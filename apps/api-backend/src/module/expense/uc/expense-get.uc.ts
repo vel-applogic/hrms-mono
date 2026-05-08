@@ -18,6 +18,6 @@ export class ExpenseGetUc extends BaseExpenseUseCase implements IUseCase<Params,
   public async execute(params: Params): Promise<ExpenseResponseType> {
     this.logger.i('Getting expense', { id: params.id });
     this.assertAdmin(params.currentUser);
-    return await this.getExpenseResponseById(params.id, params.currentUser.organizationId);
+    return await this.getExpenseResponseById(params.id, params.currentUser.organisationId);
   }
 }

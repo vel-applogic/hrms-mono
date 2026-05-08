@@ -27,7 +27,7 @@ export class LeavePendingCountUc extends BaseUc implements IUseCase<Params, Coun
     const userId = isAdmin ? params.userId : params.currentUser.id;
 
     const count = await this.leaveDao.count({
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       where: {
         status: leaveStatusDtoEnumToDbEnum(LeaveStatusDtoEnum.pending),
         ...(userId ? { userId } : {}),

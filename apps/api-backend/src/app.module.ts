@@ -22,7 +22,7 @@ import { EmployeeDeductionModule } from './module/employee-deduction/employee-de
 import { PayslipModule } from './module/payslip/payslip.module.js';
 import { LeaveModule } from './module/leave/leave.module.js';
 import { MediaModule } from './module/media/media.module.js';
-import { OrganizationModule } from './module/organization/organization.module.js';
+import { OrganisationModule } from './module/organisation/organisation.module.js';
 import { HolidayModule } from './module/holiday/holiday.module.js';
 import { SeederModule } from './module/seeder/seeder.module.js';
 import { DeviceModule } from './module/device/device.module.js';
@@ -72,7 +72,7 @@ import { ServiceModule } from './service/service.module.js';
     SeederModule,
     ExternalServiceModule,
     MediaModule,
-    OrganizationModule,
+    OrganisationModule,
     BranchModule,
     DepartmentModule,
     NotificationModule,

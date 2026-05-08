@@ -15,7 +15,7 @@ import { OrgSwitcher } from '@/feature/org/org-switcher';
 
 const adminTabs = [
   { label: 'Dashboard', href: '/dashboard', superAdminOnly: false },
-  { label: 'Organizations', href: '/organization', superAdminOnly: true },
+  { label: 'Organisations', href: '/organisation', superAdminOnly: true },
   { label: 'Users', href: '/user', superAdminOnly: false },
   { label: 'Policies', href: '/policy', superAdminOnly: false },
   { label: 'Announcements', href: '/announcement', superAdminOnly: false },

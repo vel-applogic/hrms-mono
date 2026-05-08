@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@repo/db';
 import type { PayslipDetailResponseType, PayslipUpdateLineItemsRequestType } from '@repo/dto';
-import { BaseUc, CommonLoggerService, ContactDao, CurrentUserType, IUseCase, OrganizationDao, OrganizationHasAddressDao, PayrollPayslipDao, PrismaService } from '@repo/nest-lib';
+import { BaseUc, CommonLoggerService, ContactDao, CurrentUserType, IUseCase, OrganisationDao, OrganisationHasAddressDao, PayrollPayslipDao, PrismaService } from '@repo/nest-lib';
 import type { PayrollPayslipWithDetailsType } from '@repo/nest-lib';
 import { ApiError } from '@repo/shared';
 
@@ -19,8 +19,8 @@ export class PayslipUpdateLineItemsUc extends BaseUc implements IUseCase<Params,
     prisma: PrismaService,
     logger: CommonLoggerService,
     private readonly payrollPayslipDao: PayrollPayslipDao,
-    private readonly organizationDao: OrganizationDao,
-    private readonly organizationHasAddressDao: OrganizationHasAddressDao,
+    private readonly organisationDao: OrganisationDao,
+    private readonly organisationHasAddressDao: OrganisationHasAddressDao,
     private readonly contactDao: ContactDao,
     private readonly s3Service: S3Service,
   ) {
@@ -44,8 +44,8 @@ export class PayslipUpdateLineItemsUc extends BaseUc implements IUseCase<Params,
 
   private async validate(params: Params): Promise<void> {
     this.assertAdmin(params.currentUser);
-    const organizationId = params.currentUser.organizationId;
-    const existing = await this.payrollPayslipDao.getById({ id: params.id, organizationId });
+    const organisationId = params.currentUser.organisationId;
+    const existing = await this.payrollPayslipDao.getById({ id: params.id, organisationId });
     if (!existing) {
       throw new ApiError('Payslip not found', 404);
     }
@@ -64,12 +64,12 @@ export class PayslipUpdateLineItemsUc extends BaseUc implements IUseCase<Params,
   }
 
   private async buildResponse(params: Params, updated: PayrollPayslipWithDetailsType): Promise<PayslipDetailResponseType> {
-    const organizationId = params.currentUser.organizationId;
+    const organisationId = params.currentUser.organisationId;
 
     const [org, addressLinks, contacts] = await Promise.all([
-      this.organizationDao.getByIdWithLogoOrThrow({ id: organizationId }),
-      this.organizationHasAddressDao.findByOrganizationId({ organizationId }),
-      this.contactDao.findByOrganizationId({ organizationId }),
+      this.organisationDao.getByIdWithLogoOrThrow({ id: organisationId }),
+      this.organisationHasAddressDao.findByOrganisationId({ organisationId }),
+      this.contactDao.findByOrganisationId({ organisationId }),
     ]);
     const companyLogoUrl = org.logo ? await this.s3Service.getSignedUrl(org.logo.key) : null;
 

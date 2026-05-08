@@ -1,5 +1,5 @@
 import { AdminUserDetailResponseType, UserRoleDtoEnum } from '@repo/dto';
-import { BaseUc, CommonLoggerService, OrganizationHasUserDao, PrismaService, UserDao, userRoleDbEnumToDtoEnum } from '@repo/nest-lib';
+import { BaseUc, CommonLoggerService, OrganisationHasUserDao, PrismaService, UserDao, userRoleDbEnumToDtoEnum } from '@repo/nest-lib';
 import { ApiBadRequestError } from '@repo/shared';
 
 export class BaseAdminUserUc extends BaseUc {
@@ -7,31 +7,31 @@ export class BaseAdminUserUc extends BaseUc {
     prisma: PrismaService,
     logger: CommonLoggerService,
     protected readonly userDao: UserDao,
-    protected readonly organizationHasUserDao?: OrganizationHasUserDao,
+    protected readonly organisationHasUserDao?: OrganisationHasUserDao,
   ) {
     super(prisma, logger);
   }
 
-  public async getById(id: number, organizationId: number): Promise<AdminUserDetailResponseType | undefined> {
+  public async getById(id: number, organisationId: number): Promise<AdminUserDetailResponseType | undefined> {
     const user = await this.userDao.getById({ id });
     if (!user) {
       return undefined;
     }
 
-    const roles = await this.fetchOrgRoles(user.id, organizationId);
+    const roles = await this.fetchOrgRoles(user.id, organisationId);
     return this.dbToAdminUserDetailResponse(user, roles);
   }
 
-  public async getByIdOrThrow(id: number, organizationId: number): Promise<AdminUserDetailResponseType> {
-    const user = await this.getById(id, organizationId);
+  public async getByIdOrThrow(id: number, organisationId: number): Promise<AdminUserDetailResponseType> {
+    const user = await this.getById(id, organisationId);
     if (!user) {
       throw new ApiBadRequestError('User not found', { userId: id });
     }
     return user;
   }
 
-  protected async fetchOrgRoles(userId: number, organizationId: number): Promise<UserRoleDtoEnum[]> {
-    const orgHasUser = await this.organizationHasUserDao?.findByUserAndOrg({ userId, organizationId });
+  protected async fetchOrgRoles(userId: number, organisationId: number): Promise<UserRoleDtoEnum[]> {
+    const orgHasUser = await this.organisationHasUserDao?.findByUserAndOrg({ userId, organisationId });
     return orgHasUser?.roles.map((r) => userRoleDbEnumToDtoEnum(r)) ?? [];
   }
 }

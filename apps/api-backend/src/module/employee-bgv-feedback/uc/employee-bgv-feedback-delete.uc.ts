@@ -23,7 +23,7 @@ export class EmployeeBgvFeedbackDeleteUc implements IUseCase<Params, OperationSt
   }
 
   private async validate(params: Params): Promise<void> {
-    const existing = await this.employeeBgvFeedbackDao.getById({ id: params.id, organizationId: params.currentUser.organizationId });
+    const existing = await this.employeeBgvFeedbackDao.getById({ id: params.id, organisationId: params.currentUser.organisationId });
     if (!existing) {
       throw new ApiError('BGV feedback not found', 404);
     }
@@ -31,7 +31,7 @@ export class EmployeeBgvFeedbackDeleteUc implements IUseCase<Params, OperationSt
 
   private async delete(params: Params): Promise<OperationStatusResponseType> {
     await this.prisma.$transaction(async (tx) => {
-      await this.employeeBgvFeedbackDao.deleteByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId, tx });
+      await this.employeeBgvFeedbackDao.deleteByIdOrThrow({ id: params.id, organisationId: params.currentUser.organisationId, tx });
     });
 
     return { success: true };

@@ -10,6 +10,6 @@ export interface UserActivationRequestEmailDto {
 
 export interface UserInviteEmailDto {
   userDisplayName: string;
-  organizationName: string;
+  organisationName: string;
   link: string;
 }

@@ -39,7 +39,7 @@ export class DeviceDeleteUc extends BaseDeviceUc implements IUseCase<Params, Ope
     await this.transaction(async (tx) => {
       await this.deviceHasMediaDao.deleteManyByDeviceId({ deviceId: params.id, tx });
       await this.deletePossessionHistories(params.id, tx);
-      await this.deviceDao.deleteByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId, tx });
+      await this.deviceDao.deleteByIdOrThrow({ id: params.id, organisationId: params.currentUser.organisationId, tx });
     });
 
     void this.recordActivity(params, device);
@@ -48,7 +48,7 @@ export class DeviceDeleteUc extends BaseDeviceUc implements IUseCase<Params, Ope
 
   private async validate(params: Params): Promise<DeviceDetailResponseType> {
     this.assertAdmin(params.currentUser);
-    return await this.getDeviceById(params.id, params.currentUser.organizationId);
+    return await this.getDeviceById(params.id, params.currentUser.organisationId);
   }
 
   private async deletePossessionHistories(deviceId: number, tx: Prisma.TransactionClient): Promise<void> {

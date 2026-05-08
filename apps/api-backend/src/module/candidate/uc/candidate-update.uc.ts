@@ -48,19 +48,19 @@ export class CandidateUpdateUc extends BaseCandidateUc implements IUseCase<Param
       await this.syncResume(params, tx);
     });
 
-    const newCandidate = await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    const newCandidate = await this.getByIdOrThrow(params.id, params.currentUser.organisationId);
     void this.recordActivity(params, oldCandidate, newCandidate);
     return { success: true, message: 'Candidate updated successfully' };
   }
 
   private async validate(params: Params): Promise<CandidateDetailResponseType> {
-    return await this.getByIdOrThrow(params.id, params.currentUser.organizationId);
+    return await this.getByIdOrThrow(params.id, params.currentUser.organisationId);
   }
 
   private async updateCandidate(params: Params, tx: Prisma.TransactionClient): Promise<void> {
     await this.candidateDao.update({
       id: params.id,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
       data: {
         firstname: params.dto.firstname,
         lastname: params.dto.lastname,
@@ -92,11 +92,11 @@ export class CandidateUpdateUc extends BaseCandidateUc implements IUseCase<Param
       await this.candidateHasMediaDao.deleteManyByCandidateIdAndType({ candidateId: params.id, type: CandidateMediaType.resume, tx });
     } else if (params.dto.resume.key?.startsWith('temp/')) {
       await this.candidateHasMediaDao.deleteManyByCandidateIdAndType({ candidateId: params.id, type: CandidateMediaType.resume, tx });
-      await this.createAndLinkMedia({ media: params.dto.resume, candidateId: params.id, organizationId: params.currentUser.organizationId, type: CandidateMediaType.resume, tx });
+      await this.createAndLinkMedia({ media: params.dto.resume, candidateId: params.id, organisationId: params.currentUser.organisationId, type: CandidateMediaType.resume, tx });
     }
   }
 
-  private async createAndLinkMedia(params: { media: MediaUpsertType; candidateId: number; organizationId: number; type: CandidateMediaType; tx: Prisma.TransactionClient }): Promise<void> {
+  private async createAndLinkMedia(params: { media: MediaUpsertType; candidateId: number; organisationId: number; type: CandidateMediaType; tx: Prisma.TransactionClient }): Promise<void> {
     const file = await this.mediaService.moveTempFileAndGetKey({
       media: params.media,
       mediaPlacement: 'candidate',
@@ -106,7 +106,7 @@ export class CandidateUpdateUc extends BaseCandidateUc implements IUseCase<Param
     if (!file) return;
 
     const mediaId = await this.mediaDao.create({
-      data: { key: file.newKey, name: params.media.name, type: params.media.type, size: file.size, ext: file.ext, organization: { connect: { id: params.organizationId } } },
+      data: { key: file.newKey, name: params.media.name, type: params.media.type, size: file.size, ext: file.ext, organisation: { connect: { id: params.organisationId } } },
       tx: params.tx,
     });
 

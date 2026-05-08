@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { AdminUserStatsResponseType } from '@repo/dto';
 import { UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, OrganizationHasUserDao, PrismaService, UserDao, userRoleDtoEnumToDbEnum } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, OrganisationHasUserDao, PrismaService, UserDao, userRoleDtoEnumToDbEnum } from '@repo/nest-lib';
 
 import { BaseAdminUserUc } from './_base-admin-user.uc.js';
 
@@ -15,9 +15,9 @@ export class AdminUserGetStatsUc extends BaseAdminUserUc implements IUseCase<Par
     prisma: PrismaService,
     logger: CommonLoggerService,
     userDao: UserDao,
-    organizationHasUserDao: OrganizationHasUserDao,
+    organisationHasUserDao: OrganisationHasUserDao,
   ) {
-    super(prisma, logger, userDao, organizationHasUserDao);
+    super(prisma, logger, userDao, organisationHasUserDao);
   }
 
   public async execute(params: Params): Promise<AdminUserStatsResponseType> {
@@ -33,9 +33,9 @@ export class AdminUserGetStatsUc extends BaseAdminUserUc implements IUseCase<Par
   private async getStats(params: Params): Promise<AdminUserStatsResponseType> {
     const totalUsers = await this.userDao.getCount({
       where: {
-        organizationHasUsers: {
+        organisationHasUsers: {
           some: {
-            organizationId: params.currentUser.organizationId,
+            organisationId: params.currentUser.organisationId,
             roles: { has: userRoleDtoEnumToDbEnum(UserRoleDtoEnum.admin) },
           },
         },

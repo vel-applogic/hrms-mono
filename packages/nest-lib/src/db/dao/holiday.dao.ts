@@ -27,10 +27,10 @@ export class HolidayDao extends BaseDao {
     await pc.holiday.update({ where: { id: params.id }, data: params.data });
   }
 
-  public async getByIdOrThrow(params: { id: number; organizationId: number; tx?: Prisma.TransactionClient }): Promise<HolidaySelectTableRecordType> {
+  public async getByIdOrThrow(params: { id: number; organisationId: number; tx?: Prisma.TransactionClient }): Promise<HolidaySelectTableRecordType> {
     const pc = this.getPrismaClient(params.tx);
     const result = await pc.holiday.findFirst({
-      where: { id: params.id, organizationId: params.organizationId },
+      where: { id: params.id, organisationId: params.organisationId },
     });
     if (!result) {
       throw new DbRecordNotFoundError('Holiday not found');
@@ -38,10 +38,10 @@ export class HolidayDao extends BaseDao {
     return result;
   }
 
-  public async deleteByIdOrThrow(params: { id: number; organizationId: number; tx: Prisma.TransactionClient }): Promise<void> {
+  public async deleteByIdOrThrow(params: { id: number; organisationId: number; tx: Prisma.TransactionClient }): Promise<void> {
     const pc = this.getPrismaClient(params.tx);
     const dbRecord = await pc.holiday.findFirst({
-      where: { id: params.id, organizationId: params.organizationId },
+      where: { id: params.id, organisationId: params.organisationId },
     });
     if (!dbRecord) {
       throw new DbRecordNotFoundError('Holiday not found');
@@ -50,7 +50,7 @@ export class HolidayDao extends BaseDao {
   }
 
   public async search(params: {
-    organizationId: number;
+    organisationId: number;
     page: number;
     limit: number;
     search?: string;
@@ -64,7 +64,7 @@ export class HolidayDao extends BaseDao {
     });
 
     const where: Prisma.HolidayWhereInput = {
-      organizationId: params.organizationId,
+      organisationId: params.organisationId,
     };
 
     if (params.search?.trim()) {
@@ -92,7 +92,7 @@ export class HolidayDao extends BaseDao {
   }
 
   public async findByDateRange(params: {
-    organizationId: number;
+    organisationId: number;
     startDate: Date;
     endDate: Date;
     tx?: Prisma.TransactionClient;
@@ -100,18 +100,18 @@ export class HolidayDao extends BaseDao {
     const pc = this.getPrismaClient(params.tx);
     return pc.holiday.findMany({
       where: {
-        organizationId: params.organizationId,
+        organisationId: params.organisationId,
         date: { gte: params.startDate, lte: params.endDate },
       },
     });
   }
 
-  public async getDistinctYears(params: { organizationId: number; tx?: Prisma.TransactionClient }): Promise<number[]> {
+  public async getDistinctYears(params: { organisationId: number; tx?: Prisma.TransactionClient }): Promise<number[]> {
     const pc = this.getPrismaClient(params.tx);
     const results = await pc.$queryRaw<Array<{ year: number }>>`
       SELECT DISTINCT EXTRACT(YEAR FROM date)::int AS year
       FROM holiday
-      WHERE organization_id = ${params.organizationId}
+      WHERE organisation_id = ${params.organisationId}
       ORDER BY year DESC
     `;
     return results.map((r) => r.year);

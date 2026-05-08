@@ -20,7 +20,7 @@ export class DeviceMyDeviceUc extends BaseDeviceUc implements IUseCase<Params, E
     this.logger.i('Getting my devices', { userId: params.currentUser.id });
     const devices = await this.deviceDao.getDevicesByUserId({
       userId: params.currentUser.id,
-      organizationId: params.currentUser.organizationId,
+      organisationId: params.currentUser.organisationId,
     });
 
     const results: EmployeeDeviceResponseType[] = [];

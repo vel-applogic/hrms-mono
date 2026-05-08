@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { AdminUserListResponseType, PaginatedResponseType, UserFilterRequestType } from '@repo/dto';
 import { AdminUsersSortableColumns, UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, OrganizationHasUserDao, PrismaService, UserDao, userRoleDbEnumToDtoEnum } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, OrganisationHasUserDao, PrismaService, UserDao, userRoleDbEnumToDtoEnum } from '@repo/nest-lib';
 
 import { BaseAdminUserUc } from './_base-admin-user.uc.js';
 
@@ -12,8 +12,8 @@ type Params = {
 
 @Injectable()
 export class AdminUserSearchUc extends BaseAdminUserUc implements IUseCase<Params, PaginatedResponseType<AdminUserListResponseType>> {
-  constructor(prisma: PrismaService, logger: CommonLoggerService, userDao: UserDao, organizationHasUserDao: OrganizationHasUserDao) {
-    super(prisma, logger, userDao, organizationHasUserDao);
+  constructor(prisma: PrismaService, logger: CommonLoggerService, userDao: UserDao, organisationHasUserDao: OrganisationHasUserDao) {
+    super(prisma, logger, userDao, organisationHasUserDao);
   }
 
   public async execute(params: Params): Promise<PaginatedResponseType<AdminUserListResponseType>> {
@@ -27,7 +27,7 @@ export class AdminUserSearchUc extends BaseAdminUserUc implements IUseCase<Param
   }
 
   private async search(params: Params): Promise<PaginatedResponseType<AdminUserListResponseType>> {
-    const organizationId = params.currentUser.organizationId;
+    const organisationId = params.currentUser.organisationId;
     const orderBy = this.getSort(params.filterDto.sort, AdminUsersSortableColumns);
 
     const filterDto: UserFilterRequestType = {
@@ -38,13 +38,13 @@ export class AdminUserSearchUc extends BaseAdminUserUc implements IUseCase<Param
     const { dbRecords, totalRecords } = await this.userDao.search({
       filterDto,
       orderBy,
-      organizationId,
+      organisationId,
     });
 
-    const orgRoles = this.organizationHasUserDao
-      ? await this.organizationHasUserDao.findManyByUsersAndOrg({
+    const orgRoles = this.organisationHasUserDao
+      ? await this.organisationHasUserDao.findManyByUsersAndOrg({
           userIds: dbRecords.map((u) => u.id),
-          organizationId,
+          organisationId,
         })
       : [];
 

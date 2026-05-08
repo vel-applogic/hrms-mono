@@ -195,7 +195,7 @@ export enum NotificationLinkDtoEnum {
   candidate = 'candidate',
   policy = 'policy',
   expense = 'expense',
-  organization = 'organization',
+  organisation = 'organisation',
   user = 'user',
   empDashboard = 'empDashboard',
   empLeave = 'empLeave',

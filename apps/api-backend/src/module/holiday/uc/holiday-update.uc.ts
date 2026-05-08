@@ -26,13 +26,13 @@ export class HolidayUpdateUc extends BaseHolidayUseCase implements IUseCase<Para
       await this.update(params, tx);
     });
 
-    return await this.getHolidayResponseById(params.id, params.currentUser.organizationId);
+    return await this.getHolidayResponseById(params.id, params.currentUser.organisationId);
   }
 
   private async validate(params: Params): Promise<void> {
     this.assertAdmin(params.currentUser);
     try {
-      await this.holidayDao.getByIdOrThrow({ id: params.id, organizationId: params.currentUser.organizationId });
+      await this.holidayDao.getByIdOrThrow({ id: params.id, organisationId: params.currentUser.organisationId });
     } catch (error) {
       if (error instanceof DbRecordNotFoundError) {
         throw new ApiBadRequestError('Holiday not found');

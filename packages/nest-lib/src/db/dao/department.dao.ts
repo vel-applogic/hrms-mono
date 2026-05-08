@@ -20,17 +20,17 @@ export class DepartmentDao extends BaseDao {
     return dbRec ?? undefined;
   }
 
-  public async findByOrganizationId(params: { organizationId: number; tx?: Prisma.TransactionClient }): Promise<DepartmentSelectTableRecordType[]> {
+  public async findByOrganisationId(params: { organisationId: number; tx?: Prisma.TransactionClient }): Promise<DepartmentSelectTableRecordType[]> {
     const pc = this.getPrismaClient(params.tx);
-    return pc.department.findMany({ where: { organizationId: params.organizationId }, orderBy: { name: 'asc' } });
+    return pc.department.findMany({ where: { organisationId: params.organisationId }, orderBy: { name: 'asc' } });
   }
 
-  public async findByNameAndOrganization(params: { name: string; organizationId: number; excludeId?: number; tx?: Prisma.TransactionClient }): Promise<DepartmentSelectTableRecordType | undefined> {
+  public async findByNameAndOrganisation(params: { name: string; organisationId: number; excludeId?: number; tx?: Prisma.TransactionClient }): Promise<DepartmentSelectTableRecordType | undefined> {
     const pc = this.getPrismaClient(params.tx);
     const dbRec = await pc.department.findFirst({
       where: {
         name: { equals: params.name, mode: 'insensitive' },
-        organizationId: params.organizationId,
+        organisationId: params.organisationId,
         ...(params.excludeId !== undefined ? { id: { not: params.excludeId } } : {}),
       },
     });
@@ -62,7 +62,7 @@ export class DepartmentDao extends BaseDao {
 
   public async search(params: {
     filterDto: DepartmentFilterRequestType;
-    organizationId: number;
+    organisationId: number;
     orderBy?: OrderByParam;
     tx?: Prisma.TransactionClient;
   }): Promise<{ totalRecords: number; dbRecords: DepartmentSelectTableRecordType[] }> {
@@ -72,7 +72,7 @@ export class DepartmentDao extends BaseDao {
       pageSize: params.filterDto.pagination.limit,
     });
 
-    const where: Prisma.DepartmentWhereInput = { organizationId: params.organizationId };
+    const where: Prisma.DepartmentWhereInput = { organisationId: params.organisationId };
 
     if (params.filterDto.search) {
       where.name = { contains: params.filterDto.search, mode: 'insensitive' };

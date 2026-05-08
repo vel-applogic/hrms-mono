@@ -10,7 +10,7 @@ export abstract class BaseAxiosService {
     this.isDevMode = process.env.APP_ENV !== 'prod';
   }
 
-  abstract getAuthHeaderInfo(): Promise<{ userId: number; organizationId: number }>;
+  abstract getAuthHeaderInfo(): Promise<{ userId: number; organisationId: number }>;
 
   private formatError(method: string, url: string, error: any): Error {
     // If it's already an APIError, re-throw it as-is to preserve validation errors
@@ -75,8 +75,8 @@ export abstract class BaseAxiosService {
   }
 
   private async getAuthHeaders(): Promise<Record<string, number>> {
-    const { userId, organizationId } = await this.getAuthHeaderInfo();
-    return { 'x-user-id': userId, 'x-organization-id': organizationId };
+    const { userId, organisationId } = await this.getAuthHeaderInfo();
+    return { 'x-user-id': userId, 'x-organisation-id': organisationId };
   }
 
   protected async get<Result = [Error, 'Specify the Result type parameter'], R extends Result = Result>(params: { url: string; responseSchema: ZodSchema }): Promise<NoInfer<R>> {
