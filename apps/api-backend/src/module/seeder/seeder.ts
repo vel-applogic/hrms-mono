@@ -1,7 +1,12 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { Injectable } from '@nestjs/common';
-import { GenderDbEnum } from '@repo/db';
+import { EmployeeStatusEnum, GenderDbEnum } from '@repo/db';
 import { UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, PrismaService } from '@repo/nest-lib';
+import { CommonLoggerService, PrismaService, stringToEmployeeStatusDbEnum, stringToGenderDbEnum } from '@repo/nest-lib';
+import { getFinancialYearCode } from '@repo/shared';
 
 import { PasswordService } from '../../service/password.service.js';
 
@@ -17,22 +22,34 @@ export class Seeder {
     this.logger.i('Seeding data start');
     await this.runMigration('seed-currencies', () => this.seedCurrencies());
     await this.runMigration('seed-countries', () => this.seedCountries());
+    await this.runMigration('seed-default-departments', () => this.seedDefaultDepartments());
+    await this.runMigration('seed-organisation', () => this.seedOrganisation());
+    await this.runMigration('seed-branch', () => this.seedBranch());
+    await this.runMigration('seed-departments', () => this.seedDepartments());
+    await this.runMigration('seed-employees-from-csv', () => this.seedEmployeesFromCSV());
+    await this.runMigration('resync-id-sequences-after-csv', () => this.resyncIdSequencesAfterCsv());
+
+    // should run after all the data is seeded
     await this.runMigration('create-test-users', () =>
-      this.createTestUsers([
-        { email: 'superAdmin@test.com', firstname: 'Test', lastname: '01', organizationName: 'Test Organization', roles: [], isSuperAdmin: true },
+      this.createAdminUsers([
         {
           email: 'admin@test.com',
           firstname: 'Test',
           lastname: '01',
-          organizationName: 'Test Organization',
-          roles: [UserRoleDtoEnum.admin, UserRoleDtoEnum.employee],
-          isSuperAdmin: false,
+          organisationId: 1,
+          roles: [UserRoleDtoEnum.admin],
         },
       ]),
     );
-    // await this.runMigration('create-test-employee', () => this.createTestEmployee());
-    await this.runMigration('init-employee-leave-counters', () => this.initEmployeeLeaveCounters());
-    await this.runMigration('seed-default-departments', () => this.seedDefaultDepartments());
+    await this.runMigration('create-super-admin-users', () =>
+      this.createSuperAdminUsers([
+        {
+          email: 'superadmin@test.com',
+          firstname: 'Test',
+          lastname: '01',
+        },
+      ]),
+    );
     this.logger.i('Seeding data complete');
   }
 
@@ -483,22 +500,46 @@ export class Seeder {
     this.logger.i(`Countries seeded: ${countries.length}`);
   }
 
-  // create test users
-  private async createTestUsers(users: { email: string; firstname: string; lastname: string; organizationName: string; roles: UserRoleDtoEnum[]; isSuperAdmin: boolean }[]) {
+  // create admin users
+  private async createAdminUsers(users: { email: string; firstname: string; lastname: string; organisationId: number; roles: UserRoleDtoEnum[] }[]) {
     const hashedPassword = await this.passwordService.hash('test');
 
     for (const userData of users) {
-      let organisation = await this.prisma.organization.findFirst({ where: { name: userData.organizationName } });
-      if (!organisation) {
-        organisation = await this.prisma.organization.create({
-          data: {
-            name: userData.organizationName,
-            currency: { connect: { id: 60 } },
-          },
-        });
-      }
-
       const user = await this.prisma.user.upsert({
+        where: { email: userData.email },
+        update: {},
+        create: {
+          email: userData.email,
+          firstname: userData.firstname,
+          lastname: userData.lastname,
+          password: hashedPassword,
+          gender: GenderDbEnum.male,
+          isActive: true,
+          isSuperAdmin: false,
+          createdAt: new Date(),
+        },
+      });
+
+      await this.prisma.organizationHasUser.upsert({
+        where: { organizationId_userId: { organizationId: userData.organisationId, userId: user.id } },
+        update: { roles: userData.roles },
+        create: {
+          userId: user.id,
+          organizationId: userData.organisationId,
+          roles: userData.roles,
+        },
+      });
+    }
+
+    this.logger.i('Admin users created');
+  }
+
+  // create super admin users
+  private async createSuperAdminUsers(users: { email: string; firstname: string; lastname: string }[]) {
+    const hashedPassword = await this.passwordService.hash('test');
+
+    for (const userData of users) {
+      await this.prisma.user.upsert({
         where: { email: userData.email },
         update: {},
         create: {
@@ -508,17 +549,7 @@ export class Seeder {
           password: hashedPassword,
           gender: GenderDbEnum.other,
           isActive: true,
-          isSuperAdmin: userData.isSuperAdmin,
-        },
-      });
-
-      await this.prisma.organizationHasUser.upsert({
-        where: { organizationId_userId: { organizationId: organisation.id, userId: user.id } },
-        update: { roles: userData.roles },
-        create: {
-          userId: user.id,
-          organizationId: organisation.id,
-          roles: userData.roles,
+          isSuperAdmin: true,
         },
       });
     }
@@ -526,146 +557,16 @@ export class Seeder {
     this.logger.i('Test users created');
   }
 
-  // create a sample employee with all possible data for the seeder-generated organisation
-  private async createTestEmployee() {
-    const org = await this.prisma.organization.findFirst({ where: { name: 'Test Organization' } });
-    if (!org) {
-      this.logger.w('Test Organization not found, skipping sample employee creation');
-      return;
-    }
-
-    const hashedPassword = await this.passwordService.hash('test');
-
-    // Create employee user
-    const user = await this.prisma.user.upsert({
-      where: { email: 'John@test.com' },
-      update: {},
-      create: {
-        email: 'John@test.com',
-        firstname: 'John',
-        lastname: 'Doe',
-        password: hashedPassword,
-        gender: GenderDbEnum.male,
-        isActive: true,
-        isSuperAdmin: false,
-      },
+  private async seedOrganisation() {
+    await this.prisma.organization.create({
+      data: { id: 1, name: 'Applogic Development Private Limited', currencyId: 60 },
     });
-
-    // Link user to organisation with employee role
-    await this.prisma.organizationHasUser.upsert({
-      where: { organizationId_userId: { organizationId: org.id, userId: user.id } },
-      update: { roles: ['employee'] },
-      create: { userId: user.id, organizationId: org.id, roles: ['employee'] },
-    });
-
-    // Create employee record
-    const employee = await this.prisma.employee.upsert({
-      where: { userId_organizationId: { userId: user.id, organizationId: org.id } },
-      update: {},
-      create: {
-        userId: user.id,
-        organizationId: org.id,
-        employeeCode: 'EMP-001',
-        personalEmail: 'john.doe.personal@email.com',
-        dob: new Date('1995-06-15'),
-        pan: 'ABCDE1234F',
-        aadhaar: '123456789012',
-        designation: 'Software Engineer',
-        dateOfJoining: new Date('2025-01-15'),
-        status: 'active',
-        isBgVerified: true,
-        emergencyContactName: 'Jane Doe',
-        emergencyContactNumber: '9876543210',
-        emergencyContactRelationship: 'Spouse',
-      },
-    });
-
-    // Create branch and assign employee
-    const branch = await this.prisma.branch.upsert({
-      where: { id: 1 },
-      update: {},
-      create: { name: 'Head Office', organizationId: org.id },
-    });
-
-    await this.prisma.userInBranch.upsert({
-      where: { userId_branchId: { userId: user.id, branchId: branch.id } },
-      update: {},
-      create: { userId: user.id, branchId: branch.id, organizationId: org.id },
-    });
-
-    // Create compensation (annual CTC of 12,00,000)
-    const existingComp = await this.prisma.payrollCompensation.findFirst({
-      where: { userId: user.id, organizationId: org.id, isActive: true },
-    });
-
-    if (!existingComp) {
-      await this.prisma.payrollCompensation.create({
-        data: {
-          userId: user.id,
-          organizationId: org.id,
-          grossAmount: 1200000,
-          effectiveFrom: new Date('2025-01-15'),
-          isActive: true,
-          payrollCompensationLineItems: {
-            create: [
-              { title: 'Basic Salary', amount: 600000 },
-              { title: 'House Rent Allowance', amount: 300000 },
-              { title: 'Special Allowance', amount: 200000 },
-              { title: 'Conveyance Allowance', amount: 100000 },
-            ],
-          },
-        },
-      });
-    }
-
-    // Create deductions
-    const existingDeduction = await this.prisma.payrollDeduction.findFirst({
-      where: { userId: user.id, organizationId: org.id, isActive: true },
-    });
-
-    if (!existingDeduction) {
-      await this.prisma.payrollDeduction.create({
-        data: {
-          userId: user.id,
-          organizationId: org.id,
-          effectiveFrom: new Date('2025-01-15'),
-          isActive: true,
-          payrollDeductionLineItems: {
-            create: [
-              { type: 'providentFund', frequency: 'monthly', amount: 1800 },
-              { type: 'professionalTax', frequency: 'monthly', amount: 200 },
-              { type: 'incomeTax', frequency: 'monthly', amount: 5000 },
-              { type: 'insurance', frequency: 'monthly', amount: 500 },
-            ],
-          },
-        },
-      });
-    }
-
-    // Create employee leave counter
-    const { getFinancialYearCode } = await import('@repo/shared');
-    const financialYear = getFinancialYearCode(employee.dateOfJoining);
-    await this.prisma.employeeLeaveCounter.upsert({
-      where: { userId_organizationId_financialYear: { userId: user.id, organizationId: org.id, financialYear } },
-      update: {},
-      create: {
-        userId: user.id,
-        organizationId: org.id,
-        financialYear,
-        casualLeaves: 2,
-        sickLeaves: 1,
-        earnedLeaves: 0,
-        totalLeavesUsed: 3,
-        totalLeavesAvailable: 24,
-      },
-    });
-
     // Create organisation settings if not exists
-    const existingSettings = await this.prisma.organizationSetting.findFirst({ where: { organizationId: org.id } });
+    const existingSettings = await this.prisma.organizationSetting.findFirst({ where: { organizationId: 1 } });
     if (!existingSettings) {
       await this.prisma.organizationSetting.create({
         data: {
-          organizationId: org.id,
+          organizationId: 1,
           noOfDaysInMonth: 'thirty',
           totalLeaveInDays: 24,
           sickLeaveInDays: 10,
@@ -678,67 +579,243 @@ export class Seeder {
     }
 
     // Create organisation address (India = id 104)
-    const existingAddress = await this.prisma.organizationHasAddress.findFirst({ where: { organizationId: org.id } });
+    const existingAddress = await this.prisma.organizationHasAddress.findFirst({ where: { organizationId: 1 } });
     if (!existingAddress) {
       const address = await this.prisma.address.create({
         data: {
-          organizationId: org.id,
+          organizationId: 1,
           countryId: 104,
-          addressLine1: '123, Tech Park, Whitefield',
-          addressLine2: 'Main Road, ITPL',
-          city: 'Bangalore',
-          state: 'Karnataka',
-          postalCode: '560066',
-          latitude: 12.9716,
-          longitude: 77.5946,
+          addressLine1: 'No: 3/308, lyyappa Nagar Ext',
+          addressLine2: 'Medavakkam',
+          city: 'Chennai',
+          state: 'Tamilnadu',
+          postalCode: '600100',
         },
       });
       await this.prisma.organizationHasAddress.create({
-        data: { organizationId: org.id, addressId: address.id },
+        data: { organizationId: 1, addressId: address.id },
+      });
+    }
+    this.logger.i('Organisation seeded');
+  }
+
+  private async seedBranch() {
+    await this.prisma.branch.create({
+      data: { id: 1, name: 'Head Office', organizationId: 1 },
+    });
+    this.logger.i('Branch seeded');
+  }
+
+  private async seedDepartments() {
+    const departments = ['HR', 'IT', 'Development', 'Accounts', 'Admin', 'Sales', 'Marketing', 'Operations', 'Finance', 'Legal'];
+    for (const department of departments) {
+      await this.prisma.department.create({
+        data: { name: department, organizationId: 1 },
+      });
+    }
+    this.logger.i('Departments seeded');
+  }
+
+  private async seedEmployeesFromCSV() {
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    const csvPath = join(__dirname, 'data', 'employee.csv');
+    const csvContent = readFileSync(csvPath, 'utf-8');
+
+    const lines = csvContent
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0);
+
+    const headers = lines[0].split(',').map((h) => h.trim());
+    const dataRows = lines.slice(1);
+
+    for (const line of dataRows) {
+      const values = line.split(',').map((v) => v.trim());
+      const row: Record<string, string> = {};
+      headers.forEach((h, i) => {
+        row[h] = values[i] ?? '';
+      });
+
+      await this.createEmployee({
+        userId: parseInt(row.userId, 10),
+        employeeId: parseInt(row.id, 10),
+        organizationId: parseInt(row.organisationId, 10),
+        branchId: parseInt(row.branchId, 10),
+        email: row.email,
+        firstname: row.firstname,
+        lastname: row.lastname,
+        gender: stringToGenderDbEnum(row.gender),
+        personalEmail: row.personalEmail,
+        dob: this.parseCsvDate(row.dob)!,
+        employeeCode: row.employeeCode,
+        pan: row.pan,
+        aadhaar: row.aadhaar,
+        designation: row.designation,
+        dateOfJoining: this.parseCsvDate(row.dateOfJoining)!,
+        dateOfLeaving: this.parseCsvDate(row.dateOfLeaving),
+        status: stringToEmployeeStatusDbEnum(row.status),
+        department: row.department,
+        emergencyContactName: row.emergencyContactName,
+        emergencyContactNumber: row.emergencyContactNumber,
+        emergencyContactRelationship: row.emergencyContactRelationship,
       });
     }
 
-    // Create organisation contacts
-    const existingContacts = await this.prisma.organizationHasContact.findFirst({ where: { organizationId: org.id } });
-    if (!existingContacts) {
-      const contactsData = [
-        { contact: '+91 80 1234 5678', contactType: 'phone' as const },
-        { contact: '+91 98765 43210', contactType: 'phone' as const },
-        { contact: 'hr@testorganization.com', contactType: 'email' as const },
-        { contact: 'info@testorganization.com', contactType: 'email' as const },
-        { contact: 'https://www.testorganization.com', contactType: 'website' as const },
-        { contact: 'https://linkedin.com/company/testorganization', contactType: 'socialMediaLink' as const },
-      ];
-      for (const c of contactsData) {
-        const contact = await this.prisma.contact.create({
-          data: { organizationId: org.id, contact: c.contact, contactType: c.contactType },
-        });
-        await this.prisma.organizationHasContact.create({
-          data: { organizationId: org.id, contactId: contact.id },
-        });
-      }
+    this.logger.i(`Employees seeded from CSV: ${dataRows.length}`);
+  }
+
+  // After inserting rows with explicit ids (CSV import), Postgres' auto-increment sequence is left at its
+  // initial value, so subsequent inserts collide on the primary key. Resync each affected table's sequence
+  // to MAX(id) + 1 so later seeders (e.g. createAdminUsers) can insert without specifying an id.
+  private async resyncIdSequencesAfterCsv() {
+    const tables = ['users', 'user_employee_detail'];
+    for (const table of tables) {
+      await this.prisma.$executeRawUnsafe(`SELECT setval(pg_get_serial_sequence('${table}', 'id'), COALESCE((SELECT MAX(id) FROM "${table}"), 0) + 1, false)`);
+    }
+    this.logger.i(`Resynced id sequences for: ${tables.join(', ')}`);
+  }
+
+  // Parses CSV dates in either DD-MMM-YY (e.g. "08-Dec-90") or DD/MM/YY (e.g. "15/02/26") format.
+  private parseCsvDate(value: string): Date | null {
+    const trimmed = value?.trim();
+    if (!trimmed) return null;
+
+    const monthMap: Record<string, number> = {
+      jan: 0,
+      feb: 1,
+      mar: 2,
+      apr: 3,
+      may: 4,
+      jun: 5,
+      jul: 6,
+      aug: 7,
+      sep: 8,
+      oct: 9,
+      nov: 10,
+      dec: 11,
+    };
+
+    const expandYear = (yy: number): number => (yy < 50 ? 2000 + yy : 1900 + yy);
+
+    if (trimmed.includes('-')) {
+      const [dayStr, monStr, yyStr] = trimmed.split('-');
+      const day = parseInt(dayStr, 10);
+      const month = monthMap[monStr.toLowerCase()];
+      const year = expandYear(parseInt(yyStr, 10));
+      return new Date(Date.UTC(year, month, day));
     }
 
-    // Create employee feedback
-    const adminUser = await this.prisma.user.findFirst({ where: { email: 'admin@test.com' } });
-    if (adminUser) {
-      const existingFeedback = await this.prisma.employeeFeedback.findFirst({ where: { userId: user.id, organizationId: org.id } });
-      if (!existingFeedback) {
-        await this.prisma.employeeFeedback.create({
-          data: {
-            userId: user.id,
-            organizationId: org.id,
-            createdById: adminUser.id,
-            trend: 'positive',
-            point: 5,
-            title: 'Excellent first quarter performance',
-            feedback: 'John has shown exceptional skills in his first quarter. Great team player and delivers quality code consistently.',
-          },
-        });
-      }
+    if (trimmed.includes('/')) {
+      const [dayStr, monStr, yyStr] = trimmed.split('/');
+      const day = parseInt(dayStr, 10);
+      const month = parseInt(monStr, 10) - 1;
+      const year = expandYear(parseInt(yyStr, 10));
+      return new Date(Date.UTC(year, month, day));
     }
 
-    this.logger.i('Sample employee created with full data', { userId: user.id, employeeId: employee.id });
+    return null;
+  }
+
+  // create a mployee with all possible data for the seeder-generated organisation
+  private async createEmployee(params: {
+    userId: number;
+    employeeId: number;
+    organizationId: number;
+    branchId: number;
+    email: string;
+    firstname: string;
+    lastname: string;
+    gender: GenderDbEnum;
+    personalEmail: string;
+    dob: Date;
+    employeeCode: string;
+    pan: string;
+    aadhaar: string;
+    designation: string;
+    dateOfJoining: Date;
+    dateOfLeaving: Date | null;
+    status: EmployeeStatusEnum;
+    department: string;
+    emergencyContactName: string;
+    emergencyContactNumber: string;
+    emergencyContactRelationship: string;
+  }) {
+    const hashedPassword = await this.passwordService.hash('test');
+
+    // Create employee user with explicit id from CSV
+    const user = await this.prisma.user.upsert({
+      where: { id: params.userId },
+      update: {},
+      create: {
+        id: params.userId,
+        email: params.email,
+        firstname: params.firstname,
+        lastname: params.lastname,
+        password: hashedPassword,
+        gender: params.gender,
+        isActive: true,
+      },
+    });
+
+    // Link user to organisation with employee role
+    await this.prisma.organizationHasUser.upsert({
+      where: { organizationId_userId: { organizationId: params.organizationId, userId: user.id } },
+      update: { roles: ['employee'] },
+      create: { userId: user.id, organizationId: params.organizationId, roles: ['employee'] },
+    });
+
+    // get department id from text
+    const department = await this.prisma.department.findFirst({ where: { name: params.department, organizationId: params.organizationId } });
+
+    // Create employee record with explicit id from CSV
+    const employee = await this.prisma.employee.upsert({
+      where: { id: params.employeeId },
+      update: {},
+      create: {
+        id: params.employeeId,
+        userId: user.id,
+        organizationId: params.organizationId,
+        employeeCode: params.employeeCode,
+        personalEmail: params.personalEmail,
+        dob: params.dob,
+        pan: params.pan,
+        aadhaar: params.aadhaar,
+        designation: params.designation,
+        dateOfJoining: params.dateOfJoining,
+        dateOfLeaving: params.dateOfLeaving,
+        status: params.status,
+        isBgVerified: true,
+        emergencyContactName: params.emergencyContactName,
+        emergencyContactNumber: params.emergencyContactNumber,
+        emergencyContactRelationship: params.emergencyContactRelationship,
+        departmentId: department?.id,
+        branchId: params.branchId,
+      },
+    });
+
+    await this.prisma.userInBranch.upsert({
+      where: { userId_branchId: { userId: user.id, branchId: params.branchId } },
+      update: {},
+      create: { userId: user.id, branchId: params.branchId, organizationId: params.organizationId },
+    });
+
+    // Create employee leave counter
+    const financialYear = getFinancialYearCode(employee.dateOfJoining);
+    await this.prisma.employeeLeaveCounter.create({
+      data: {
+        userId: user.id,
+        organizationId: params.organizationId,
+        financialYear,
+        casualLeaves: 0,
+        sickLeaves: 0,
+        earnedLeaves: 0,
+        totalLeavesUsed: 0,
+        totalLeavesAvailable: 24,
+      },
+    });
+
+    this.logger.i(`employee created ${params.email}`);
+    return employee;
   }
 
   // initialize the employee leave counters

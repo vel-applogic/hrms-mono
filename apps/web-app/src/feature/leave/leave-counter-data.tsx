@@ -32,16 +32,17 @@ export const LeaveCounterData = ({ counters, financialYear, financialYearOptions
     return counters.filter((c) => {
       const fullName = `${c.user.firstname} ${c.user.lastname}`.toLowerCase();
       const email = (c.user.email ?? '').toLowerCase();
-      return fullName.includes(q) || email.includes(q);
+      const code = (c.employeeCode ?? '').toLowerCase();
+      return fullName.includes(q) || email.includes(q) || code.includes(q);
     });
   }, [counters, searchText]);
 
   const colDefs = useMemo<ColDef<LeaveCounterResponseType>[]>(
     () => [
       {
-        headerName: 'Id',
-        field: 'id',
-        width: 80,
+        headerName: 'Employee Code',
+        field: 'employeeCode',
+        width: 130,
       },
       {
         headerName: 'Employee',

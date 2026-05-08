@@ -42,6 +42,7 @@ export class LeaveCountersListUc implements IUseCase<Params, LeaveCounterRespons
       return {
         id: counter?.id ?? 0,
         userId: emp.userId,
+        employeeCode: emp.employeeCode,
         financialYear: params.financialYear,
         casualLeaves: counter?.casualLeaves ?? 0,
         sickLeaves: counter?.sickLeaves ?? 0,

@@ -234,39 +234,50 @@ model Organization {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  organizationHasUsers      OrganizationHasUser[]
-  branches                  Branch[]
-  userInBranches            UserInBranch[]
-  userInvites               UserInvite[]
-  employees                 Employee[]
-  payrollCompensations      PayrollCompensation[]
-  payrollDeductions         PayrollDeduction[]
-  payrollPayslips           PayrollPayslip[]
-  employeeFeedbacks         EmployeeFeedback[]
-  employeeLeaveCounters     EmployeeLeaveCounter[]
-  leaves                    Leave[]
-  candidates                Candidate[]
-  policies                  Policy[]
-  medias                    Media[]
-  settings                  OrganizationSetting[]
-  organizationHasDocuments  OrganizationHasDocument[]
-  employeeBgvFeedbacks      employeeBgvFeedback[]
-  addresses                 Address[]
-  contacts                  Contact[]
-  organizationHasContacts   OrganizationHasContact[]
-  organizationHasAddresses  OrganizationHasAddress[]
-  holidays                  Holiday[]
-  devices                   Device[]
-  devicePossessionHistories DevicePossessionHistory[]
-  expenses                  Expense[]
-  expenseForecasts          ExpenseForecast[]
-  reimbursements            Reimbursement[]
-  departments               Department[]
-  userInDepartments         UserInDepartment[]
-  notifications             Notification[]
-  announcements             Announcement[]
+  organizationHasUsers       OrganizationHasUser[]
+  branches                   Branch[]
+  userInBranches             UserInBranch[]
+  userInvites                UserInvite[]
+  employees                  Employee[]
+  payrollCompensations       PayrollCompensation[]
+  payrollDeductions          PayrollDeduction[]
+  payrollPayslips            PayrollPayslip[]
+  employeeFeedbacks          EmployeeFeedback[]
+  employeeLeaveCounters      EmployeeLeaveCounter[]
+  leaves                     Leave[]
+  candidates                 Candidate[]
+  policies                   Policy[]
+  medias                     Media[]
+  settings                   OrganizationSetting[]
+  organizationHasDocuments   OrganizationHasDocument[]
+  employeeBgvFeedbacks       employeeBgvFeedback[]
+  addresses                  Address[]
+  contacts                   Contact[]
+  organizationHasContacts    OrganizationHasContact[]
+  organizationHasAddresses   OrganizationHasAddress[]
+  holidays                   Holiday[]
+  devices                    Device[]
+  devicePossessionHistories  DevicePossessionHistory[]
+  expenses                   Expense[]
+  expenseForecasts           ExpenseForecast[]
+  reimbursements             Reimbursement[]
+  departments                Department[]
+  userInDepartments          UserInDepartment[]
+  notifications              Notification[]
+  announcements              Announcement[]
+  organisationFinancialYears OrganisationFinancialYear[]
 
   @@map("organization")
+}
+
+model OrganisationFinancialYear {
+  id             Int          @id @default(autoincrement())
+  organizationId Int          @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  startDate      DateTime     @map("start_date")
+  endDate        DateTime     @map("end_date")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
 }
 
 model OrganizationHasContact {

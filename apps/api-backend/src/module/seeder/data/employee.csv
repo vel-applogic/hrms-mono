@@ -1,0 +1,10 @@
+﻿userId,id,organisationId,firstname,lastname,gender,email,dob,employeeCode,personalEmail,pan,aadhaar,designation,dateOfJoining,dateOfLeaving,status,emergencyContactName,emergencyContactNumber,emergencyContactRelationship,branchId,department
+1,1,1,Deepika,Vijayakumar,female,deepika@applogic.tech,08-Dec-90,AL0001,deepin005@gmail.com,BABPV6080R,2968 0609 6189,Director,04-Jan-23,,active,Karan / Husband,+44 7475 788121,spouse,1,Operations
+2,2,1,Velmurugan ,M,male,velmurugan@applogic.tech,14-Nov-82,AL0002,velnet2k@gmail.com,AFLPV6557K,6324 3401 2586,Director,04-Jan-23,,active,Premavathi / Wife,9789131609,spouse,1,Development
+3,3,1,Karthigeyan,N,male,karthik@applogic.tech,29-Nov-93,AL0003,,DPSPK9229D,7632 7675 3327,Senior developer,04-Jan-23,,active,Balaji / Brother,9886530004,brother,1,Development
+4,4,1,Nikhil,Shakya,male,nikhil@applogic.tech,03-Jul-00,AL0004,,MNXPS4463D,9593 8513 4555,Full stack developer,01-Dec-25,,active,Akhil shakya / Brother ,8009797714,brother,1,Development
+5,5,1,Meena Arthi,Ganesan,female,arthi@applogic.tech,24-Feb-00,AL0005,,HJEPM7578F,6044 8128 7681,Manual Tester,01-Dec-25,,active,Ganesan / Father,father,father,1,Development
+6,6,1,Om Jee ,Mishra,male,omjee@applogic.tech,25-Jul-95,AL0006,,CQBPM4392N,9571 2338 9398,Generative AI Engineer,02-Jan-26,15/02/26,resigned,Brother,brother,brother,1,Development
+7,7,1,Ramya,Eswaran,female,ramya@applogic.tech,08-Jun-94,AL0007,,BKOPR1220C,3565 5382 2936,Manual Tester,02-Jan-26,,active,Pradeep / Husband,98862 77749,spouse,1,Development
+8,8,1,Jayanthi,B,female,jayanthi@applogic.tech,26-Jun-94,AL0008,,,7940 1415 2325,Office Admin,02-Feb-26,,active,Sakthivel / Husband,8939571656,spouse,1,Operations
+9,9,1,Mohana,M,female,mohana@applogic.tech,30-Oct-94,AL0009,mohanamurukan@gmail.com,DIPPM7717C,7038 2667 5886,Generative AI Engineer,10-Feb-26,,active,S M. Gowtham / Husband,husband,spouse,1,Development

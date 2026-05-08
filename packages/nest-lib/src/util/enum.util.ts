@@ -420,6 +420,21 @@ export function genderDbEnumToDtoEnum(dbEnum: GenderDbEnum): GenderDtoEnum {
   return dtoEnum;
 }
 
+export function stringToGenderDbEnum(value: string): GenderDbEnum {
+  const mapping: Record<string, GenderDbEnum> = {
+    male: 'male',
+    female: 'female',
+    other: 'other',
+  };
+
+  const dbEnum = mapping[value];
+  if (!dbEnum) {
+    throw new Error(`Unknown gender string: ${value}`);
+  }
+
+  return dbEnum;
+}
+
 export function employeeStatusDbEnumToDtoEnum(dbEnum: EmployeeStatusEnum): EmployeeStatusDtoEnum {
   const mapping: Record<EmployeeStatusEnum, EmployeeStatusDtoEnum> = {
     active: EmployeeStatusDtoEnum.active,
@@ -434,6 +449,22 @@ export function employeeStatusDbEnumToDtoEnum(dbEnum: EmployeeStatusEnum): Emplo
   }
 
   return dtoEnum;
+}
+
+export function stringToEmployeeStatusDbEnum(value: string): EmployeeStatusEnum {
+  const mapping: Record<string, EmployeeStatusEnum> = {
+    active: 'active',
+    resigned: 'resigned',
+    onLeave: 'onLeave',
+    terminated: 'terminated',
+  };
+
+  const dbEnum = mapping[value];
+  if (!dbEnum) {
+    throw new Error(`Unknown employee status string: ${value}`);
+  }
+
+  return dbEnum;
 }
 
 export function noOfDaysInMonthDtoEnumToDbEnum(dtoEnum: NoOfDaysInMonthDtoEnum): NoOfDaysInMonthDbEnum {

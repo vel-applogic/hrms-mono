@@ -32,6 +32,7 @@ export type LeaveFilterRequestType = z.infer<typeof LeaveFilterRequestSchema>;
 export const LeaveCounterResponseSchema = z.object({
   id: z.number(),
   userId: z.number(),
+  employeeCode: z.string(),
   financialYear: z.string(),
   casualLeaves: z.number(),
   sickLeaves: z.number(),
