@@ -234,50 +234,39 @@ model Organisation {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  organisationHasUsers       OrganisationHasUser[]
-  branches                   Branch[]
-  userInBranches             UserInBranch[]
-  userInvites                UserInvite[]
-  employees                  Employee[]
-  payrollCompensations       PayrollCompensation[]
-  payrollDeductions          PayrollDeduction[]
-  payrollPayslips            PayrollPayslip[]
-  employeeFeedbacks          EmployeeFeedback[]
-  employeeLeaveCounters      EmployeeLeaveCounter[]
-  leaves                     Leave[]
-  candidates                 Candidate[]
-  policies                   Policy[]
-  medias                     Media[]
-  settings                   OrganisationSetting[]
-  organisationHasDocuments   OrganisationHasDocument[]
-  employeeBgvFeedbacks       employeeBgvFeedback[]
-  addresses                  Address[]
-  contacts                   Contact[]
-  organisationHasContacts    OrganisationHasContact[]
-  organisationHasAddresses   OrganisationHasAddress[]
-  holidays                   Holiday[]
-  devices                    Device[]
-  devicePossessionHistories  DevicePossessionHistory[]
-  expenses                   Expense[]
-  expenseForecasts           ExpenseForecast[]
-  reimbursements             Reimbursement[]
-  departments                Department[]
-  userInDepartments          UserInDepartment[]
-  notifications              Notification[]
-  announcements              Announcement[]
-  organisationFinancialYears OrganisationFinancialYear[]
+  organisationHasUsers      OrganisationHasUser[]
+  branches                  Branch[]
+  userInBranches            UserInBranch[]
+  userInvites               UserInvite[]
+  employees                 Employee[]
+  payrollCompensations      PayrollCompensation[]
+  payrollDeductions         PayrollDeduction[]
+  payrollPayslips           PayrollPayslip[]
+  employeeFeedbacks         EmployeeFeedback[]
+  employeeLeaveCounters     EmployeeLeaveCounter[]
+  leaves                    Leave[]
+  candidates                Candidate[]
+  policies                  Policy[]
+  medias                    Media[]
+  settings                  OrganisationSetting[]
+  organisationHasDocuments  OrganisationHasDocument[]
+  employeeBgvFeedbacks      employeeBgvFeedback[]
+  addresses                 Address[]
+  contacts                  Contact[]
+  organisationHasContacts   OrganisationHasContact[]
+  organisationHasAddresses  OrganisationHasAddress[]
+  holidays                  Holiday[]
+  devices                   Device[]
+  devicePossessionHistories DevicePossessionHistory[]
+  expenses                  Expense[]
+  expenseForecasts          ExpenseForecast[]
+  reimbursements            Reimbursement[]
+  departments               Department[]
+  userInDepartments         UserInDepartment[]
+  notifications             Notification[]
+  announcements             Announcement[]
 
   @@map("organisation")
-}
-
-model OrganisationFinancialYear {
-  id             Int          @id @default(autoincrement())
-  organisationId Int          @map("organisation_id")
-  organisation   Organisation @relation(fields: [organisationId], references: [id])
-  startDate      DateTime     @map("start_date")
-  endDate        DateTime     @map("end_date")
-  createdAt      DateTime     @default(now()) @map("created_at")
-  updatedAt      DateTime     @updatedAt @map("updated_at")
 }
 
 model OrganisationHasContact {
@@ -331,17 +320,18 @@ enum NoOfDaysInMonthDbEnum {
 }
 
 model OrganisationSetting {
-  id                   Int                   @id @default(autoincrement())
-  organisationId       Int                   @map("organisation_id")
-  organisation         Organisation          @relation(fields: [organisationId], references: [id])
-  noOfDaysInMonth      NoOfDaysInMonthDbEnum @default(thirty) @map("no_of_days_in_month")
-  totalLeaveInDays     Int                   @default(24) @map("total_leave_in_days")
-  sickLeaveInDays      Int                   @default(10) @map("sick_leave_in_days")
-  earnedLeaveInDays    Int                   @default(10) @map("earned_leave_in_days")
-  casualLeaveInDays    Int                   @default(10) @map("casual_leave_in_days")
-  maternityLeaveInDays Int                   @default(10) @map("maternity_leave_in_days")
-  paternityLeaveInDays Int                   @default(10) @map("paternity_leave_in_days")
-  weeklyOffDays        Int[]                 @default([0, 6]) @map("weekly_off_days")
+  id                    Int                   @id @default(autoincrement())
+  organisationId        Int                   @map("organisation_id")
+  organisation          Organisation          @relation(fields: [organisationId], references: [id])
+  noOfDaysInMonth       NoOfDaysInMonthDbEnum @default(thirty) @map("no_of_days_in_month")
+  totalLeaveInDays      Int                   @default(24) @map("total_leave_in_days")
+  sickLeaveInDays       Int                   @default(10) @map("sick_leave_in_days")
+  earnedLeaveInDays     Int                   @default(10) @map("earned_leave_in_days")
+  casualLeaveInDays     Int                   @default(10) @map("casual_leave_in_days")
+  maternityLeaveInDays  Int                   @default(10) @map("maternity_leave_in_days")
+  paternityLeaveInDays  Int                   @default(10) @map("paternity_leave_in_days")
+  weeklyOffDays         Int[]                 @default([0, 6]) @map("weekly_off_days")
+  financialYearStartsAt Int                   @default(4) @map("financial_year_starts_at")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -1098,7 +1088,6 @@ enum ExpenseForecastFrequency {
 }
 
 enum ExpenseType {
-  salary
   incomeTax
   rent
   ai
@@ -1110,6 +1099,11 @@ enum ExpenseType {
   auditor
   roc
   digitalSignature
+  healthInsurance
+  accidentInsurance
+  travelInsurance
+  liabilityInsurance
+  propertyInsurance
   other
 
   @@map("expenseType")

@@ -158,7 +158,6 @@ export enum DeviceStatusDtoEnum {
 }
 
 export enum ExpenseTypeDtoEnum {
-  salary = 'salary',
   incomeTax = 'incomeTax',
   rent = 'rent',
   ai = 'ai',
@@ -170,6 +169,11 @@ export enum ExpenseTypeDtoEnum {
   auditor = 'auditor',
   roc = 'roc',
   digitalSignature = 'digitalSignature',
+  healthInsurance = 'healthInsurance',
+  accidentInsurance = 'accidentInsurance',
+  travelInsurance = 'travelInsurance',
+  liabilityInsurance = 'liabilityInsurance',
+  propertyInsurance = 'propertyInsurance',
   other = 'other',
 }
 

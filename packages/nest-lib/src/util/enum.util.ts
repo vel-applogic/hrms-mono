@@ -679,7 +679,6 @@ export function deviceStatusDtoEnumToDbEnum(dtoEnum: DeviceStatusDtoEnum): Devic
 
 export function expenseTypeDbEnumToDtoEnum(dbEnum: ExpenseType): ExpenseTypeDtoEnum {
   const mapping: Record<  ExpenseType, ExpenseTypeDtoEnum> = {
-    salary: ExpenseTypeDtoEnum.salary,
     incomeTax: ExpenseTypeDtoEnum.incomeTax,
     rent: ExpenseTypeDtoEnum.rent,
     ai: ExpenseTypeDtoEnum.ai,
@@ -691,6 +690,11 @@ export function expenseTypeDbEnumToDtoEnum(dbEnum: ExpenseType): ExpenseTypeDtoE
     auditor: ExpenseTypeDtoEnum.auditor,
     roc: ExpenseTypeDtoEnum.roc,
     digitalSignature: ExpenseTypeDtoEnum.digitalSignature,
+    healthInsurance: ExpenseTypeDtoEnum.healthInsurance,
+    accidentInsurance: ExpenseTypeDtoEnum.accidentInsurance,
+    travelInsurance: ExpenseTypeDtoEnum.travelInsurance,
+    liabilityInsurance: ExpenseTypeDtoEnum.liabilityInsurance,
+    propertyInsurance: ExpenseTypeDtoEnum.propertyInsurance,
     other: ExpenseTypeDtoEnum.other,
   };
 
@@ -704,7 +708,6 @@ export function expenseTypeDbEnumToDtoEnum(dbEnum: ExpenseType): ExpenseTypeDtoE
 
 export function expenseTypeDtoEnumToDbEnum(dtoEnum: ExpenseTypeDtoEnum): ExpenseType {
   const mapping: Record<ExpenseTypeDtoEnum, ExpenseType> = {
-    [ExpenseTypeDtoEnum.salary]: 'salary',
     [ExpenseTypeDtoEnum.incomeTax]: 'incomeTax',
     [ExpenseTypeDtoEnum.rent]: 'rent',
     [ExpenseTypeDtoEnum.ai]: 'ai',
@@ -716,6 +719,11 @@ export function expenseTypeDtoEnumToDbEnum(dtoEnum: ExpenseTypeDtoEnum): Expense
     [ExpenseTypeDtoEnum.auditor]: 'auditor',
     [ExpenseTypeDtoEnum.roc]: 'roc',
     [ExpenseTypeDtoEnum.digitalSignature]: 'digitalSignature',
+    [ExpenseTypeDtoEnum.healthInsurance]: 'healthInsurance',
+    [ExpenseTypeDtoEnum.accidentInsurance]: 'accidentInsurance',
+    [ExpenseTypeDtoEnum.travelInsurance]: 'travelInsurance',
+    [ExpenseTypeDtoEnum.liabilityInsurance]: 'liabilityInsurance',
+    [ExpenseTypeDtoEnum.propertyInsurance]: 'propertyInsurance',
     [ExpenseTypeDtoEnum.other]: 'other',
   };
 

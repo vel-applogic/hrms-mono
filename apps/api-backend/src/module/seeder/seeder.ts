@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { Injectable } from '@nestjs/common';
-import { EmployeeStatusEnum, GenderDbEnum, HolidayType, PayrollDeductionFrequency, PayrollDeductionType } from '@repo/db';
+import { EmployeeStatusEnum, ExpenseForecastFrequency, ExpenseType, GenderDbEnum, HolidayType, PayrollDeductionFrequency, PayrollDeductionType } from '@repo/db';
 import { UserRoleDtoEnum } from '@repo/dto';
 import { CommonLoggerService, CurrentUserType, PrismaService, stringToEmployeeStatusDbEnum, stringToGenderDbEnum, stringToHolidayTypeDbEnum } from '@repo/nest-lib';
 import { getFinancialYearCode } from '@repo/shared';
@@ -28,6 +28,7 @@ export class Seeder {
     await this.runMigration('seed-organisation', () => this.seedOrganisation());
     await this.runMigration('seed-branch', () => this.seedBranch());
     await this.runMigration('seed-departments', () => this.seedDepartments());
+    await this.runMigration('seed-expense-forecasts', () => this.seedExpenseForecasts());
     await this.runMigration('seed-employees-from-csv', () => this.seedEmployeesFromCSV());
     await this.runMigration('seed-compensations-from-csv', () => this.seedCompensationsFromCSV());
     await this.runMigration('seed-deductions-from-csv', () => this.seedDeductionsFromCSV());
@@ -1099,5 +1100,50 @@ export class Seeder {
     }
 
     this.logger.i(`Default departments seeded: ${created} created`);
+  }
+
+  private async seedExpenseForecasts() {
+    // Sample data — will be updated later
+    const expenseForecasts: Array<{
+      organisationId: number;
+      description: string;
+      type: ExpenseType;
+      amount: number;
+      frequency: ExpenseForecastFrequency;
+    }> = [
+      { organisationId: 1, description: 'Office rent', type: ExpenseType.rent, amount: 15000, frequency: ExpenseForecastFrequency.monthly },
+      { organisationId: 1, description: 'Claude', type: ExpenseType.ai, amount: 11500, frequency: ExpenseForecastFrequency.monthly },
+      { organisationId: 1, description: 'Cursor', type: ExpenseType.ai, amount: 9400, frequency: ExpenseForecastFrequency.monthly },
+      { organisationId: 1, description: 'Office 365', type: ExpenseType.emailService, amount: 5650, frequency: ExpenseForecastFrequency.monthly },
+      { organisationId: 1, description: 'Office Mobile', type: ExpenseType.phone, amount: 529, frequency: ExpenseForecastFrequency.monthly },
+      { organisationId: 1, description: 'Accountant fees', type: ExpenseType.account, amount: 5900, frequency: ExpenseForecastFrequency.monthly },
+      { organisationId: 1, description: 'Annual audit fees', type: ExpenseType.auditor, amount: 15000, frequency: ExpenseForecastFrequency.yearly },
+      { organisationId: 1, description: 'ROC filing charges', type: ExpenseType.roc, amount: 8500, frequency: ExpenseForecastFrequency.yearly },
+      { organisationId: 1, description: 'Digital Signature', type: ExpenseType.digitalSignature, amount: 7000, frequency: ExpenseForecastFrequency.yearly },
+      { organisationId: 1, description: 'Niva Bupa', type: ExpenseType.healthInsurance, amount: 80000, frequency: ExpenseForecastFrequency.yearly },
+      { organisationId: 1, description: 'Sriram Finance', type: ExpenseType.healthInsurance, amount: 1500, frequency: ExpenseForecastFrequency.yearly },
+    ];
+
+    let created = 0;
+
+    for (const forecast of expenseForecasts) {
+      const existing = await this.prisma.expenseForecast.findFirst({
+        where: { organisationId: forecast.organisationId, description: forecast.description, type: forecast.type },
+      });
+      if (!existing) {
+        await this.prisma.expenseForecast.create({
+          data: {
+            organisation: { connect: { id: forecast.organisationId } },
+            description: forecast.description,
+            type: forecast.type,
+            amount: forecast.amount,
+            frequency: forecast.frequency,
+          },
+        });
+        created++;
+      }
+    }
+
+    this.logger.i(`Expense forecasts seeded: ${created} created`);
   }
 }

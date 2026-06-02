@@ -49,7 +49,6 @@ export function deviceStatusDtoEnumToReadableLabel(dtoEnum: DeviceStatusDtoEnum)
 
 export function expenseTypeDtoEnumToReadableLabel(dtoEnum: ExpenseTypeDtoEnum): string {
   const mapping: Record<ExpenseTypeDtoEnum, string> = {
-    [ExpenseTypeDtoEnum.salary]: 'Salary',
     [ExpenseTypeDtoEnum.incomeTax]: 'Income Tax',
     [ExpenseTypeDtoEnum.rent]: 'Rent',
     [ExpenseTypeDtoEnum.ai]: 'AI',
@@ -61,6 +60,11 @@ export function expenseTypeDtoEnumToReadableLabel(dtoEnum: ExpenseTypeDtoEnum): 
     [ExpenseTypeDtoEnum.auditor]: 'Auditor',
     [ExpenseTypeDtoEnum.roc]: 'ROC',
     [ExpenseTypeDtoEnum.digitalSignature]: 'Digital Signature',
+    [ExpenseTypeDtoEnum.healthInsurance]: 'Health Insurance',
+    [ExpenseTypeDtoEnum.accidentInsurance]: 'Accident Insurance',
+    [ExpenseTypeDtoEnum.travelInsurance]: 'Travel Insurance',
+    [ExpenseTypeDtoEnum.liabilityInsurance]: 'Liability Insurance',
+    [ExpenseTypeDtoEnum.propertyInsurance]: 'Property Insurance',
     [ExpenseTypeDtoEnum.other]: 'Other',
   };
 
