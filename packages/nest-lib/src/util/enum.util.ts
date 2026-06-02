@@ -573,6 +573,20 @@ export function holidayTypeDtoEnumToDbEnum(dtoEnum: HolidayTypeDtoEnum): Holiday
   return dbEnum;
 }
 
+export function stringToHolidayTypeDbEnum(value: string): HolidayType {
+  const mapping: Record<string, HolidayType> = {
+    national: 'national',
+    state: 'state',
+  };
+
+  const dbEnum = mapping[value];
+  if (!dbEnum) {
+    throw new Error(`Unknown holiday type string: ${value}`);
+  }
+
+  return dbEnum;
+}
+
 export function contactTypeDtoEnumToDbEnum(dtoEnum: ContactTypeDtoEnum): ContactType {
   const mapping: Record<ContactTypeDtoEnum, ContactType> = {
     [ContactTypeDtoEnum.phone]: 'phone',

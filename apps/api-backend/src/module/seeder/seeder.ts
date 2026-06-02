@@ -3,9 +3,9 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { Injectable } from '@nestjs/common';
-import { EmployeeStatusEnum, GenderDbEnum } from '@repo/db';
+import { EmployeeStatusEnum, GenderDbEnum, HolidayType } from '@repo/db';
 import { UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, PrismaService, stringToEmployeeStatusDbEnum, stringToGenderDbEnum } from '@repo/nest-lib';
+import { CommonLoggerService, PrismaService, stringToEmployeeStatusDbEnum, stringToGenderDbEnum, stringToHolidayTypeDbEnum } from '@repo/nest-lib';
 import { getFinancialYearCode } from '@repo/shared';
 
 import { PasswordService } from '../../service/password.service.js';
@@ -27,6 +27,7 @@ export class Seeder {
     await this.runMigration('seed-branch', () => this.seedBranch());
     await this.runMigration('seed-departments', () => this.seedDepartments());
     await this.runMigration('seed-employees-from-csv', () => this.seedEmployeesFromCSV());
+    await this.runMigration('seed-holidays-from-csv', () => this.seedHolidaysFromCSV());
     await this.runMigration('resync-id-sequences-after-csv', () => this.resyncIdSequencesAfterCsv());
 
     // should run after all the data is seeded
@@ -664,11 +665,54 @@ export class Seeder {
     this.logger.i(`Employees seeded from CSV: ${dataRows.length}`);
   }
 
+  private async seedHolidaysFromCSV() {
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    const csvPath = join(__dirname, 'data', 'holiday.csv');
+    const csvContent = readFileSync(csvPath, 'utf-8');
+
+    const lines = csvContent
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0);
+
+    const headers = lines[0].split(',').map((h) => h.trim());
+    const dataRows = lines.slice(1);
+
+    for (const line of dataRows) {
+      const values = line.split(',').map((v) => v.trim());
+      const row: Record<string, string> = {};
+      headers.forEach((h, i) => {
+        row[h] = values[i] ?? '';
+      });
+
+      const types: HolidayType[] = row.types
+        .split('|')
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0)
+        .map((t) => stringToHolidayTypeDbEnum(t));
+
+      const id = parseInt(row.id, 10);
+      await this.prisma.holiday.upsert({
+        where: { id },
+        update: {},
+        create: {
+          id,
+          organisationId: parseInt(row.organisationId, 10),
+          name: row.name,
+          date: this.parseCsvDate(row.date)!,
+          types,
+        },
+      });
+    }
+
+    this.logger.i(`Holidays seeded from CSV: ${dataRows.length}`);
+  }
+
   // After inserting rows with explicit ids (CSV import), Postgres' auto-increment sequence is left at its
   // initial value, so subsequent inserts collide on the primary key. Resync each affected table's sequence
   // to MAX(id) + 1 so later seeders (e.g. createAdminUsers) can insert without specifying an id.
   private async resyncIdSequencesAfterCsv() {
-    const tables = ['users', 'user_employee_detail'];
+    const tables = ['users', 'user_employee_detail', 'holiday'];
     for (const table of tables) {
       await this.prisma.$executeRawUnsafe(`SELECT setval(pg_get_serial_sequence('${table}', 'id'), COALESCE((SELECT MAX(id) FROM "${table}"), 0) + 1, false)`);
     }

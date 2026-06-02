@@ -7,9 +7,9 @@
   "types": "./dist/index.d.cts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.cts",
       "require": "./dist/index.cjs",
-      "import": "./dist/index.cjs",
-      "types": "./dist/index.d.cts"
+      "import": "./dist/index.cjs"
     }
   },
   "scripts": {

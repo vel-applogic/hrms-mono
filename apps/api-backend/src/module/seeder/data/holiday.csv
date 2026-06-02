@@ -1,0 +1,22 @@
+id,organisationId,name,date,types
+1,1,New Year's Day,01-Jan-26,national
+2,1,Bogi,13-Jan-26,state
+3,1,Pongal,14-Jan-26,state
+4,1,Mattu Pongal,15-Jan-26,state
+5,1,Kaanum Pongal / Uzhavar Tirunal,16-Jan-26,state
+6,1,Republic Day,26-Jan-26,national
+7,1,Good Friday,03-Apr-26,national
+8,1,Tamil New Year,14-Apr-26,state
+9,1,May Day,01-May-26,state
+10,1,Bakrith,28-May-26,national
+11,1,Moharam,26-Jun-26,national
+12,1,Independence Day,15-Aug-26,national
+13,1,Milad-un-nabi,26-Aug-26,national
+14,1,Krishna Jayanthi ,04-Sep-26,state
+15,1,Vinayakar�Chadurthi�,14-Sep-26,national
+16,1,Gandhi Jayanti,02-Oct-26,national
+17,1,Ayudha Pooja,19-Oct-26,state
+18,1,Vijaya Dashami,20-Oct-26,state
+19,1,Deepavali,08-Nov-26,national
+20,1,Deepavali,09-Nov-26,national
+21,1,Christmas,25-Dec-26,national
