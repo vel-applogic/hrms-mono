@@ -10,6 +10,7 @@ import { Drawer } from '@repo/ui/container/drawer/drawer';
 import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { getMonthlyPayrollCost } from '@/lib/action/employee-compensation.actions';
 import { bulkSaveExpenseForecasts, getExpenseForecasts } from '@/lib/action/expense-forecast.actions';
 
 interface ForecastItem {
@@ -52,6 +53,7 @@ const FORM_ID = 'expense-forecast-upsert-form';
 
 export function ExpenseForecastUpsertDrawer({ open, onOpenChange, onSuccess }: Props) {
   const [items, setItems] = useState<ForecastItem[]>([]);
+  const [payroll, setPayroll] = useState<{ monthly: number; yearly: number } | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
   const [error, setError] = useState('');
@@ -60,6 +62,10 @@ export function ExpenseForecastUpsertDrawer({ open, onOpenChange, onSuccess }: P
     if (open) {
       setFetchLoading(true);
       setError('');
+      setPayroll(null);
+      getMonthlyPayrollCost()
+        .then(setPayroll)
+        .catch(() => setPayroll(null));
       getExpenseForecasts()
         .then((data) => {
           if (data.length > 0) {
@@ -130,21 +136,23 @@ export function ExpenseForecastUpsertDrawer({ open, onOpenChange, onSuccess }: P
     }
   };
 
-  const monthlyTotal = items.reduce((sum, item) => {
-    const amount = Number(item.amount) || 0;
-    if (item.frequency === ExpenseForecastFrequencyDtoEnum.yearly) {
-      return sum + amount / 12;
-    }
-    return sum + amount;
-  }, 0);
+  const monthlyTotal =
+    items.reduce((sum, item) => {
+      const amount = Number(item.amount) || 0;
+      if (item.frequency === ExpenseForecastFrequencyDtoEnum.yearly) {
+        return sum + amount / 12;
+      }
+      return sum + amount;
+    }, 0) + (payroll?.monthly ?? 0);
 
-  const yearlyTotal = items.reduce((sum, item) => {
-    const amount = Number(item.amount) || 0;
-    if (item.frequency === ExpenseForecastFrequencyDtoEnum.monthly) {
-      return sum + amount * 12;
-    }
-    return sum + amount;
-  }, 0);
+  const yearlyTotal =
+    items.reduce((sum, item) => {
+      const amount = Number(item.amount) || 0;
+      if (item.frequency === ExpenseForecastFrequencyDtoEnum.monthly) {
+        return sum + amount * 12;
+      }
+      return sum + amount;
+    }, 0) + (payroll?.yearly ?? 0);
 
   return (
     <Drawer
@@ -186,6 +194,17 @@ export function ExpenseForecastUpsertDrawer({ open, onOpenChange, onSuccess }: P
                 </tr>
               </thead>
               <tbody>
+                {payroll !== null && (
+                  <tr className='border-b border-border bg-muted/30 last:border-b-0'>
+                    <td className='px-3 py-2 text-muted-foreground'>Monthly</td>
+                    <td className='px-3 py-2 text-muted-foreground'>Payroll</td>
+                    <td className='px-3 py-2 text-muted-foreground'>Active employee compensation (auto-calculated)</td>
+                    <td className='px-3 py-2 text-right font-medium text-muted-foreground'>
+                      ₹ {payroll.monthly.toLocaleString('en-IN')}
+                    </td>
+                    <td className='px-2 py-2' />
+                  </tr>
+                )}
                 {items.map((item) => (
                   <tr key={item.key} className='border-b border-border last:border-b-0'>
                     <td className='px-1 py-1'>

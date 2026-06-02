@@ -4,6 +4,7 @@ import { Widget } from '@repo/ui/component/ui/dashboard-widget';
 import { Calculator, Pencil } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { getMonthlyPayrollCost } from '@/lib/action/employee-compensation.actions';
 import { getExpenseForecastSummary } from '@/lib/action/expense-forecast.actions';
 
 import { ExpenseForecastUpsertDrawer } from '../container/expense-forecast-upsert.drawer';
@@ -21,9 +22,9 @@ export function ExpenseForecastWidget({ refreshKey, showEdit, compact }: Props) 
   const [internalRefreshKey, setInternalRefreshKey] = useState(0);
 
   useEffect(() => {
-    getExpenseForecastSummary().then((data) => {
-      setMonthlyTotal(data.monthlyTotal);
-      setYearlyTotal(data.yearlyTotal);
+    Promise.all([getExpenseForecastSummary(), getMonthlyPayrollCost()]).then(([forecast, payroll]) => {
+      setMonthlyTotal(forecast.monthlyTotal + payroll.monthly);
+      setYearlyTotal(forecast.yearlyTotal + payroll.yearly);
     });
   }, [refreshKey, internalRefreshKey]);
 

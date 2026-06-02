@@ -3,8 +3,8 @@
 import type { DashboardStatsResponseType } from '@repo/dto';
 import { useEffect, useState } from 'react';
 
-import { ExpenseForecastWidget } from '@/feature/expense-forecast/component/expense-forecast-widget';
 import { ExpenseSummaryWidget } from '@/feature/expense/component/expense-summary-widget';
+import { ExpenseForecastWidget } from '@/feature/expense-forecast/component/expense-forecast-widget';
 import { DashboardPendingReimbursement } from '@/feature/reimbursement/component/reimbursement-pending-widget';
 import { getDashboardStats } from '@/lib/action/dashboard.actions';
 
@@ -32,7 +32,9 @@ export function Dashboard({ hideAdminWidgets, employeeId }: DashboardProps) {
 
   useEffect(() => {
     if (!hideAdminWidgets) {
-      getDashboardStats().then(setStats).catch(() => {});
+      getDashboardStats()
+        .then(setStats)
+        .catch(() => {});
     }
   }, [hideAdminWidgets]);
 
@@ -72,6 +74,7 @@ export function Dashboard({ hideAdminWidgets, employeeId }: DashboardProps) {
       {/* Row 5: Payroll */}
       {!hideAdminWidgets && (
         <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+          <ExpenseForecastWidget />
           <DashboardPayrollCost />
           <DashboardWithoutCompensation stats={stats} />
           <DashboardWithoutDeduction stats={stats} />
@@ -82,7 +85,6 @@ export function Dashboard({ hideAdminWidgets, employeeId }: DashboardProps) {
       {!hideAdminWidgets && (
         <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
           <ExpenseSummaryWidget />
-          <ExpenseForecastWidget />
         </div>
       )}
     </div>

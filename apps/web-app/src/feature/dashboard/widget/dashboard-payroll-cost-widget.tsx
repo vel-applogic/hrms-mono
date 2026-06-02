@@ -4,17 +4,14 @@ import { Widget } from '@repo/ui/component/ui/dashboard-widget';
 import { DollarSign } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { searchPayrollActiveCompensations } from '@/lib/action/employee-compensation.actions';
+import { getMonthlyPayrollCost } from '@/lib/action/employee-compensation.actions';
 
 export function DashboardPayrollCost() {
   const [data, setData] = useState<{ monthly: number; yearly: number; symbol: string } | null>(null);
 
   useEffect(() => {
-    searchPayrollActiveCompensations({
-      pagination: { page: 1, limit: 500 },
-    }).then((result) => {
-      const yearly = result.results.reduce((sum, c) => sum + c.grossAmount, 0);
-      setData({ monthly: Math.round(yearly / 12), yearly, symbol: '₹' });
+    getMonthlyPayrollCost().then(({ monthly, yearly }) => {
+      setData({ monthly, yearly, symbol: '₹' });
     });
   }, []);
 

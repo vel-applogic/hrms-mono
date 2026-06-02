@@ -26,6 +26,12 @@ export async function searchPayrollActiveCompensations(
   return employeeCompensationService.searchActiveAll(params);
 }
 
+export async function getMonthlyPayrollCost(): Promise<{ monthly: number; yearly: number }> {
+  const result = await employeeCompensationService.searchActiveAll({ pagination: { page: 1, limit: 500 } });
+  const yearly = result.results.reduce((sum, c) => sum + c.grossAmount, 0);
+  return { monthly: Math.round(yearly / 12), yearly };
+}
+
 export async function createEmployeeCompensation(
   data: EmployeeCompensationCreateRequestType,
 ): Promise<EmployeeCompensationResponseType> {
