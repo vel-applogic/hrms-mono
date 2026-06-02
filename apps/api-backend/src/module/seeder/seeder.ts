@@ -5,10 +5,11 @@ import { fileURLToPath } from 'node:url';
 import { Injectable } from '@nestjs/common';
 import { EmployeeStatusEnum, GenderDbEnum, HolidayType, PayrollDeductionFrequency, PayrollDeductionType } from '@repo/db';
 import { UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, PrismaService, stringToEmployeeStatusDbEnum, stringToGenderDbEnum, stringToHolidayTypeDbEnum } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, PrismaService, stringToEmployeeStatusDbEnum, stringToGenderDbEnum, stringToHolidayTypeDbEnum } from '@repo/nest-lib';
 import { getFinancialYearCode } from '@repo/shared';
 
 import { PasswordService } from '../../service/password.service.js';
+import { PayslipGenerateUc } from '../payslip/uc/payslip-generate.uc.js';
 
 @Injectable()
 export class Seeder {
@@ -16,6 +17,7 @@ export class Seeder {
     private readonly prisma: PrismaService,
     private readonly passwordService: PasswordService,
     private readonly logger: CommonLoggerService,
+    private readonly payslipGenerateUc: PayslipGenerateUc,
   ) {}
 
   async seed() {
@@ -31,6 +33,7 @@ export class Seeder {
     await this.runMigration('seed-deductions-from-csv', () => this.seedDeductionsFromCSV());
     await this.runMigration('seed-holidays-from-csv', () => this.seedHolidaysFromCSV());
     await this.runMigration('resync-id-sequences-after-csv', () => this.resyncIdSequencesAfterCsv());
+    await this.runMigration('generate-payslips-onetime', () => this.generatePayslipsOneTime());
 
     // should run after all the data is seeded
     await this.runMigration('create-test-users', () =>
@@ -824,6 +827,68 @@ export class Seeder {
       await this.prisma.$executeRawUnsafe(`SELECT setval(pg_get_serial_sequence('${table}', 'id'), COALESCE((SELECT MAX(id) FROM "${table}"), 0) + 1, false)`);
     }
     this.logger.i(`Resynced id sequences for: ${tables.join(', ')}`);
+  }
+
+  // One-time backfill of payslips for organisation 1. Generates a payslip for every month from the
+  // earliest employee joining month up to (and including) the previous calendar month. Reuses
+  // PayslipGenerateUc so the seeded payslips match production generation exactly.
+  private async generatePayslipsOneTime() {
+    const organisationId = 1;
+
+    // "from" = earliest joining month/year across the organisation's employees
+    const earliest = await this.prisma.employee.aggregate({
+      where: { organisationId },
+      _min: { dateOfJoining: true },
+    });
+    const fromDate = earliest._min.dateOfJoining;
+    if (!fromDate) {
+      this.logger.w('Payslip generation skipped - no employees found for organisation', { organisationId });
+      return;
+    }
+    const fromMonth = fromDate.getUTCMonth() + 1;
+    const fromYear = fromDate.getUTCFullYear();
+
+    // "to" = previous calendar month/year relative to now
+    const now = new Date();
+    let toMonth = now.getUTCMonth(); // 0-based current month == 1-based previous month
+    let toYear = now.getUTCFullYear();
+    if (toMonth === 0) {
+      toMonth = 12;
+      toYear -= 1;
+    }
+
+    if (fromYear > toYear || (fromYear === toYear && fromMonth > toMonth)) {
+      this.logger.w('Payslip generation skipped - earliest joining month is after the previous month', { fromMonth, fromYear, toMonth, toYear });
+      return;
+    }
+
+    const currentUser: CurrentUserType = {
+      id: 0,
+      email: 'seeder@system',
+      firstname: 'Seeder',
+      lastname: 'System',
+      isSuperAdmin: true,
+      roles: [UserRoleDtoEnum.admin],
+      organisationId,
+      isActive: true,
+    };
+
+    let totalGenerated = 0;
+    let totalSkipped = 0;
+    let month = fromMonth;
+    let year = fromYear;
+    while (year < toYear || (year === toYear && month <= toMonth)) {
+      const result = await this.payslipGenerateUc.execute({ currentUser, dto: { month, year, force: false } });
+      totalGenerated += result.generated;
+      totalSkipped += result.skipped;
+      month += 1;
+      if (month > 12) {
+        month = 1;
+        year += 1;
+      }
+    }
+
+    this.logger.i('Payslips generated one-time', { organisationId, fromMonth, fromYear, toMonth, toYear, totalGenerated, totalSkipped });
   }
 
   // Parses CSV dates in either DD-MMM-YY (e.g. "08-Dec-90") or DD/MM/YY (e.g. "15/02/26") format.

@@ -2,10 +2,11 @@ import { Module } from '@nestjs/common';
 import { CommonDbModule, CommonLoggerService } from '@repo/nest-lib';
 
 import { PasswordService } from '../../service/password.service.js';
+import { PayslipModule } from '../payslip/payslip.module.js';
 import { Seeder } from './seeder.js';
 
 @Module({
-  imports: [CommonDbModule],
+  imports: [CommonDbModule, PayslipModule],
   providers: [Seeder, PasswordService, CommonLoggerService],
 })
 export class SeederModule {}

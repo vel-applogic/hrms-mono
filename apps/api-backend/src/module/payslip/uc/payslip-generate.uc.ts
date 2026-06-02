@@ -1,9 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@repo/db';
 import type { PayslipGenerateRequestType, PayslipGenerateResponseType, PayslipListResponseType } from '@repo/dto';
+import type { PayrollCompensationWithLineItemsType, PayrollDeductionWithLineItemsType, PayrollPayslipWithDetailsType } from '@repo/nest-lib';
 import { PrismaService } from '@repo/nest-lib';
-import { CommonLoggerService, ContactDao, CurrentUserType, IUseCase, LeaveDao, OrganisationHasAddressDao, PayrollPayslipDao, PayrollCompensationDao, PayrollDeductionDao, EmployeeDao, OrganisationDao } from '@repo/nest-lib';
-import type { PayrollPayslipWithDetailsType, PayrollCompensationWithLineItemsType, PayrollDeductionWithLineItemsType } from '@repo/nest-lib';
+import {
+  CommonLoggerService,
+  ContactDao,
+  CurrentUserType,
+  EmployeeDao,
+  IUseCase,
+  LeaveDao,
+  OrganisationDao,
+  OrganisationHasAddressDao,
+  PayrollCompensationDao,
+  PayrollDeductionDao,
+  PayrollPayslipDao,
+} from '@repo/nest-lib';
 import { ApiBadRequestError } from '@repo/shared';
 import { buildPayslipTemplateData } from '@repo/shared';
 
@@ -48,7 +60,7 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
 
   public async execute(params: Params): Promise<PayslipGenerateResponseType> {
     const { month, year, force, employeeIds } = params.dto;
-    this.logger.i('Generating payslips', { month, year, employeeIds, force });
+    this.logger.i(`Generating payslips: month=${month}, year=${year}, employeeIds=${employeeIds}, force=${force}`);
     const validateResult = await this.validate(params);
     const { existingPayslips, targetUserIds } = validateResult;
 
@@ -218,9 +230,27 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
       const companyEmails = contacts.filter((c) => c.contactType === 'email').map((c) => c.contact);
       const companyWebsites = contacts.filter((c) => c.contactType === 'website').map((c) => c.contact);
 
-      return { companyName: org.name, companyLogoUrl, currencySymbol: org.currency.symbol, currencyCode: org.currency.code, companyAddress, companyPhones, companyEmails, companyWebsites };
+      return {
+        companyName: org.name,
+        companyLogoUrl,
+        currencySymbol: org.currency.symbol,
+        currencyCode: org.currency.code,
+        companyAddress,
+        companyPhones,
+        companyEmails,
+        companyWebsites,
+      };
     } catch {
-      return { companyName: 'Company Name', companyLogoUrl: null, currencySymbol: '₹', currencyCode: 'INR', companyAddress: '', companyPhones: [], companyEmails: [], companyWebsites: [] };
+      return {
+        companyName: 'Company Name',
+        companyLogoUrl: null,
+        currencySymbol: '₹',
+        currencyCode: 'INR',
+        companyAddress: '',
+        companyPhones: [],
+        companyEmails: [],
+        companyWebsites: [],
+      };
     }
   }
 
@@ -334,7 +364,11 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
    * For line items with specificMonth frequency, only include if their specificMonth matches the target month.
    * For monthly/yearly line items, include all.
    */
-  private getDeductionLineItems(applicableDeductions: PayrollDeductionWithLineItemsType[], year: number, month: number): Array<{ type: 'deduction'; title: string; amount: number }> {
+  private getDeductionLineItems(
+    applicableDeductions: PayrollDeductionWithLineItemsType[],
+    year: number,
+    month: number,
+  ): Array<{ type: 'deduction'; title: string; amount: number }> {
     const items: Array<{ type: 'deduction'; title: string; amount: number }> = [];
     for (const deduction of applicableDeductions) {
       for (const li of deduction.payrollDeductionLineItems) {
@@ -353,7 +387,14 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     return items;
   }
 
-  private async getApplicableDeductions(params: { userId: number; lastDay: Date; firstDay: Date; year: number; month: number; organisationId: number }): Promise<PayrollDeductionWithLineItemsType[]> {
+  private async getApplicableDeductions(params: {
+    userId: number;
+    lastDay: Date;
+    firstDay: Date;
+    year: number;
+    month: number;
+    organisationId: number;
+  }): Promise<PayrollDeductionWithLineItemsType[]> {
     const allDeductions = await this.payrollDeductionDao.findByUserIdWithPagination({
       userId: params.userId,
       page: 1,
@@ -361,9 +402,10 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
       organisationId: params.organisationId,
     });
 
+    // Applicability is determined purely by the effective date range overlapping the target month — same as
+    // getCompensations(). `isActive` only flags the current open-ended record; filtering on it would drop
+    // superseded (closed) deductions and skip them for past months they were actually valid for.
     return allDeductions.dbRecords.filter((d) => {
-      if (!d.isActive) return false;
-
       const dFrom = new Date(d.effectiveFrom);
       dFrom.setUTCHours(0, 0, 0, 0);
       const dTill = d.effectiveTill ? new Date(d.effectiveTill) : null;
@@ -388,7 +430,12 @@ export class PayslipGenerateUc extends BasePayslipUc implements IUseCase<Params,
     });
   }
 
-  private async deleteOldPayslips(params: { force: boolean | undefined; existingPayslips: PayslipListResponseType[]; organisationId: number; tx: Prisma.TransactionClient }): Promise<void> {
+  private async deleteOldPayslips(params: {
+    force: boolean | undefined;
+    existingPayslips: PayslipListResponseType[];
+    organisationId: number;
+    tx: Prisma.TransactionClient;
+  }): Promise<void> {
     if (params.force && params.existingPayslips.length > 0) {
       await Promise.all(params.existingPayslips.map((p) => this.payrollPayslipDao.deleteByIdOrThrow({ id: p.id, organisationId: params.organisationId, tx: params.tx })));
     }

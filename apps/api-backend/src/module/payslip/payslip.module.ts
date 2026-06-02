@@ -12,5 +12,6 @@ import { PayslipDownloadUc } from './uc/payslip-download.uc.js';
   imports: [ServiceModule],
   controllers: [PayslipController],
   providers: [PayslipListUc, PayslipGenerateUc, PayslipGetUc, PayslipUpdateLineItemsUc, PayslipDownloadUc],
+  exports: [PayslipGenerateUc],
 })
 export class PayslipModule {}
