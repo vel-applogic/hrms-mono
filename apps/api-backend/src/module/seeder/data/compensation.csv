@@ -1,12 +1,12 @@
 organisationId,email,effectiveFrom,effectiveTill,Basic,HRA,Other Allowances
-1,karthik@applogic.tech,01-Apr-23,31-Aug-23,32000,16000,32000
-1,karthik@applogic.tech,01-Sep-23,31-Apr-25,40000,20000,40000
-1,karthik@applogic.tech,01-May-25,31-Mar-26,48000,24000,48000
-1,karthik@applogic.tech,01-Apr-26,,54000,27000,54000
-1,velmurugan@applogic.tech,01-Apr-23,,80000,40000,80000
-1,nikhil@applogic.tech,01-Dec-25,,39000,19500,39000
-1,arthi@applogic.tech,01-Dec-2025,,8000,4000,8000
-1,omjee@applogic.tech,02-Jan-2026,15-Feb-2026,51667,25833,51667
-1,ramya@applogic.tech,02-Jan-2026,,6000,3000,6000
-1,jayanthi@applogic.tech,02-Jan-2026,,4000,2000,4000
-1,mohana@applogic.tech,10-Feb-2026,,26667,13333,26667
+1,karthik@applogic.tech,01-Apr-23,31-Aug-23,384000,192000,384000
+1,karthik@applogic.tech,01-Sep-23,30-Apr-25,480000,240000,480000
+1,karthik@applogic.tech,01-May-25,31-Mar-26,576000,288000,576000
+1,karthik@applogic.tech,01-Apr-26,,648000,324000,648000
+1,velmurugan@applogic.tech,01-Apr-23,,960000,480000,960000
+1,nikhil@applogic.tech,01-Dec-25,,468000,234000,468000
+1,arthi@applogic.tech,01-Dec-2025,,96000,48000,96000
+1,omjee@applogic.tech,02-Jan-2026,15-Feb-2026,620004,309996,620004
+1,ramya@applogic.tech,02-Jan-2026,,72000,36000,72000
+1,jayanthi@applogic.tech,02-Jan-2026,,48000,24000,48000
+1,mohana@applogic.tech,10-Feb-2026,,320004,159996,320004

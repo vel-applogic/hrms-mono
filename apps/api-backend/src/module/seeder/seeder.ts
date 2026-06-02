@@ -848,12 +848,25 @@ export class Seeder {
 
     const expandYear = (yy: number): number => (yy >= 100 ? yy : yy < 50 ? 2000 + yy : 1900 + yy);
 
+    // Builds a UTC date and rejects invalid values (e.g. "31-Apr-25") instead of letting
+    // Date.UTC silently roll them over to the next month.
+    const buildDate = (day: number, month: number, year: number): Date => {
+      if (Number.isNaN(day) || Number.isNaN(month) || Number.isNaN(year)) {
+        throw new Error(`Invalid CSV date: "${trimmed}"`);
+      }
+      const date = new Date(Date.UTC(year, month, day));
+      if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month || date.getUTCDate() !== day) {
+        throw new Error(`Invalid CSV date: "${trimmed}"`);
+      }
+      return date;
+    };
+
     if (trimmed.includes('-')) {
       const [dayStr, monStr, yyStr] = trimmed.split('-');
       const day = parseInt(dayStr, 10);
       const month = monthMap[monStr.toLowerCase()];
       const year = expandYear(parseInt(yyStr, 10));
-      return new Date(Date.UTC(year, month, day));
+      return buildDate(day, month, year);
     }
 
     if (trimmed.includes('/')) {
@@ -861,7 +874,7 @@ export class Seeder {
       const day = parseInt(dayStr, 10);
       const month = parseInt(monStr, 10) - 1;
       const year = expandYear(parseInt(yyStr, 10));
-      return new Date(Date.UTC(year, month, day));
+      return buildDate(day, month, year);
     }
 
     return null;
