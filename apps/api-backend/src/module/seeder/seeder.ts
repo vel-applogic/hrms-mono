@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { Injectable } from '@nestjs/common';
-import { EmployeeStatusEnum, GenderDbEnum, HolidayType } from '@repo/db';
+import { EmployeeStatusEnum, GenderDbEnum, HolidayType, PayrollDeductionFrequency, PayrollDeductionType } from '@repo/db';
 import { UserRoleDtoEnum } from '@repo/dto';
 import { CommonLoggerService, PrismaService, stringToEmployeeStatusDbEnum, stringToGenderDbEnum, stringToHolidayTypeDbEnum } from '@repo/nest-lib';
 import { getFinancialYearCode } from '@repo/shared';
@@ -27,6 +27,8 @@ export class Seeder {
     await this.runMigration('seed-branch', () => this.seedBranch());
     await this.runMigration('seed-departments', () => this.seedDepartments());
     await this.runMigration('seed-employees-from-csv', () => this.seedEmployeesFromCSV());
+    await this.runMigration('seed-compensations-from-csv', () => this.seedCompensationsFromCSV());
+    await this.runMigration('seed-deductions-from-csv', () => this.seedDeductionsFromCSV());
     await this.runMigration('seed-holidays-from-csv', () => this.seedHolidaysFromCSV());
     await this.runMigration('resync-id-sequences-after-csv', () => this.resyncIdSequencesAfterCsv());
 
@@ -665,6 +667,111 @@ export class Seeder {
     this.logger.i(`Employees seeded from CSV: ${dataRows.length}`);
   }
 
+  private async seedCompensationsFromCSV() {
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    const csvPath = join(__dirname, 'data', 'compensation.csv');
+    const csvContent = readFileSync(csvPath, 'utf-8');
+
+    const lines = csvContent
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0);
+
+    const headers = lines[0].split(',').map((h) => h.trim());
+    const dataRows = lines.slice(1);
+
+    for (const line of dataRows) {
+      const values = line.split(',').map((v) => v.trim());
+      const row: Record<string, string> = {};
+      headers.forEach((h, i) => {
+        row[h] = values[i] ?? '';
+      });
+
+      const organisationId = parseInt(row.organisationId, 10);
+      const user = await this.prisma.user.findUnique({ where: { email: row.email } });
+      if (!user) {
+        this.logger.w(`Compensation skipped - user not found: ${row.email}`);
+        continue;
+      }
+
+      const lineItems = [
+        { title: 'Basic', amount: parseFloat(row.Basic) },
+        { title: 'HRA', amount: parseFloat(row.HRA) },
+        { title: 'Other Allowances', amount: parseFloat(row['Other Allowances']) },
+      ];
+      const grossAmount = lineItems.reduce((sum, item) => sum + item.amount, 0);
+      const effectiveTill = this.parseCsvDate(row.effectiveTill);
+
+      await this.prisma.payrollCompensation.create({
+        data: {
+          userId: user.id,
+          organisationId,
+          grossAmount,
+          effectiveFrom: this.parseCsvDate(row.effectiveFrom)!,
+          effectiveTill,
+          isActive: effectiveTill === null,
+          payrollCompensationLineItems: {
+            create: lineItems.map((item) => ({ title: item.title, amount: item.amount })),
+          },
+        },
+      });
+    }
+
+    this.logger.i(`Compensations seeded from CSV: ${dataRows.length}`);
+  }
+
+  private async seedDeductionsFromCSV() {
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    const csvPath = join(__dirname, 'data', 'deduction.csv');
+    const csvContent = readFileSync(csvPath, 'utf-8');
+
+    const lines = csvContent
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0);
+
+    const headers = lines[0].split(',').map((h) => h.trim());
+    const dataRows = lines.slice(1);
+
+    for (const line of dataRows) {
+      const values = line.split(',').map((v) => v.trim());
+      const row: Record<string, string> = {};
+      headers.forEach((h, i) => {
+        row[h] = values[i] ?? '';
+      });
+
+      const organisationId = parseInt(row.organisationId, 10);
+      const user = await this.prisma.user.findUnique({ where: { email: row.email } });
+      if (!user) {
+        this.logger.w(`Deduction skipped - user not found: ${row.email}`);
+        continue;
+      }
+
+      const effectiveTill = this.parseCsvDate(row.effectiveTill);
+
+      await this.prisma.payrollDeduction.create({
+        data: {
+          userId: user.id,
+          organisationId,
+          effectiveFrom: this.parseCsvDate(row.effectiveFrom)!,
+          effectiveTill,
+          isActive: effectiveTill === null,
+          payrollDeductionLineItems: {
+            create: [
+              {
+                type: PayrollDeductionType.incomeTax,
+                frequency: PayrollDeductionFrequency.monthly,
+                amount: parseFloat(row.TDS),
+              },
+            ],
+          },
+        },
+      });
+    }
+
+    this.logger.i(`Deductions seeded from CSV: ${dataRows.length}`);
+  }
+
   private async seedHolidaysFromCSV() {
     const __dirname = dirname(fileURLToPath(import.meta.url));
     const csvPath = join(__dirname, 'data', 'holiday.csv');
@@ -739,7 +846,7 @@ export class Seeder {
       dec: 11,
     };
 
-    const expandYear = (yy: number): number => (yy < 50 ? 2000 + yy : 1900 + yy);
+    const expandYear = (yy: number): number => (yy >= 100 ? yy : yy < 50 ? 2000 + yy : 1900 + yy);
 
     if (trimmed.includes('-')) {
       const [dayStr, monStr, yyStr] = trimmed.split('-');
