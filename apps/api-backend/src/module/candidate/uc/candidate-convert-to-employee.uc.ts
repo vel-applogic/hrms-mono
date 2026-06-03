@@ -15,7 +15,7 @@ import {
   UserDao,
   UserInviteDao,
 } from '@repo/nest-lib';
-import { ApiBadRequestError, ApiFieldValidationError, getFinancialYearCode } from '@repo/shared';
+import { ApiBadRequestError, ApiFieldValidationError, DEFAULT_FINANCIAL_YEAR_START_MONTH, getFinancialYearCode } from '@repo/shared';
 
 import { AppConfigService } from '#src/config/app-config.service.js';
 import { S3Service } from '#src/external-service/s3.service.js';
@@ -155,8 +155,8 @@ export class CandidateConvertToEmployeeUc extends BaseCandidateUc implements IUs
 
   private async createLeaveCounter(params: Params, userId: number, tx: Prisma.TransactionClient): Promise<void> {
     const dateOfJoining = new Date(params.dto.dateOfJoining);
-    const financialYear = getFinancialYearCode(dateOfJoining);
     const orgSettings = await this.organisationSettingDao.findByOrganisationId({ organisationId: params.currentUser.organisationId, tx });
+    const financialYear = getFinancialYearCode(dateOfJoining, orgSettings?.financialYearStartsAt ?? DEFAULT_FINANCIAL_YEAR_START_MONTH);
     const totalLeavesAvailable = orgSettings?.totalLeaveInDays ?? 24;
     await this.employeeLeaveCounterDao.create({
       data: {

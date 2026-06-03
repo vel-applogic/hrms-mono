@@ -45,7 +45,7 @@ function computeWorkingDays(params: {
   if (endDuration === LeaveDayHalfEnum.firstHalf && !isExcluded(end)) count -= 0.5;
   return count;
 }
-import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
+import { ApiError, DEFAULT_FINANCIAL_YEAR_START_MONTH, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
   currentUser: CurrentUserType;
@@ -70,9 +70,10 @@ export class LeaveApproveUc extends BaseUc implements IUseCase<Params, LeaveResp
     this.logger.i('Approving leave request', { id: params.id, userId: params.currentUser.id });
     const existing = await this.validate(params);
 
-    const financialYear = getFinancialYearCode(existing.startDate);
-    const { start, end } = getFinancialYearDateRange(financialYear);
     const orgSettings = await this.organisationSettingDao.findByOrganisationId({ organisationId: params.currentUser.organisationId });
+    const startMonth = orgSettings?.financialYearStartsAt ?? DEFAULT_FINANCIAL_YEAR_START_MONTH;
+    const financialYear = getFinancialYearCode(existing.startDate, startMonth);
+    const { start, end } = getFinancialYearDateRange(financialYear, startMonth);
     const maxLeaves = orgSettings?.totalLeaveInDays ?? 24;
     const weeklyOffDays = orgSettings?.weeklyOffDays ?? [0, 6];
 

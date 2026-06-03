@@ -150,12 +150,13 @@ export class LeaveCreateUc implements IUseCase<Params, LeaveResponseType> {
       throw new ApiError('End date must be on or after start date', 400);
     }
 
-    const startFyCode = getFinancialYearCode(startDate);
-    const endFyCode = getFinancialYearCode(endDate);
+    const startMonth = config.financialYearStartsAt;
+    const startFyCode = getFinancialYearCode(startDate, startMonth);
+    const endFyCode = getFinancialYearCode(endDate, startMonth);
     if (startFyCode !== endFyCode) {
       throw new ApiError('Leave start and end dates must be in the same financial year', 400);
     }
-    const { start: fyStart, end: fyEnd } = getFinancialYearDateRange(startFyCode);
+    const { start: fyStart, end: fyEnd } = getFinancialYearDateRange(startFyCode, startMonth);
 
     const isSameDay = params.dto.startDate === params.dto.endDate;
     const startDuration = params.dto.startDuration ?? LeaveDayHalfDtoEnum.full;

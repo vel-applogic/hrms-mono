@@ -10,6 +10,7 @@ import { searchEmployeeFeedbacks } from '@/lib/action/employee-feedback.actions'
 import { searchLeaves } from '@/lib/action/leave.actions';
 import { searchPayslips } from '@/lib/action/payslip.actions';
 import { auth } from '@/lib/auth/auth';
+import { getCurrentOrgFinancialYearStartMonth } from '@/lib/financial-year';
 
 const TABS = ['details', 'documents', 'feedbacks', 'compensation', 'deduction', 'leave', 'payslip', 'bgv', 'device'] as const;
 type Tab = (typeof TABS)[number];
@@ -35,7 +36,8 @@ export default async function EmployeeViewPage(props: Props) {
     notFound();
   }
 
-  const defaultFinancialYear = getFinancialYearCode(new Date());
+  const startMonth = await getCurrentOrgFinancialYearStartMonth();
+  const defaultFinancialYear = getFinancialYearCode(new Date(), startMonth);
 
   const [employee, feedbackPage, compensationPage, deductionPage, leavePage, bgvPage, payslipPage] = await Promise.all([
     getEmployeeById(employeeId),
@@ -66,6 +68,7 @@ export default async function EmployeeViewPage(props: Props) {
         initialBgvPage={bgvPage ?? { results: [], totalRecords: 0, page: 1, limit: 10 }}
         initialPayslipPage={payslipPage ?? { results: [], totalRecords: 0, page: 1, limit: 50 }}
         initialLeaveFinancialYear={defaultFinancialYear}
+        leaveFinancialYearStartMonth={startMonth}
         activeTab={tab}
       />
     </div>

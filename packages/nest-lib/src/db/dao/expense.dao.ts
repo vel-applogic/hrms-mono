@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@repo/db';
 import type { ExpenseFilterRequestType } from '@repo/dto';
-import { DbOperationError, DbRecordNotFoundError, getFinancialYearDateRange } from '@repo/shared';
+import { DbOperationError, DbRecordNotFoundError } from '@repo/shared';
 
 import { TrackQuery } from '../../decorator/track-query.decorator.js';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -56,6 +56,7 @@ export class ExpenseDao extends BaseDao {
     limit: number;
     search?: string;
     filterDto: ExpenseFilterRequestType;
+    dateRanges?: Array<{ start: Date; end: Date }>;
     tx?: Prisma.TransactionClient;
   }): Promise<{ dbRecords: ExpenseSelectTableRecordType[]; totalRecords: number }> {
     const pc = this.getPrismaClient(params.tx);
@@ -76,21 +77,10 @@ export class ExpenseDao extends BaseDao {
       where.type = { in: params.filterDto.types };
     }
 
-    if (params.filterDto.financialYear && params.filterDto.months && params.filterDto.months.length > 0) {
-      const { start, end } = getFinancialYearDateRange(params.filterDto.financialYear);
-      const fyStartYear = start.getFullYear();
-      const fyEndYear = end.getFullYear();
-      const dateConditions: Prisma.ExpenseWhereInput[] = params.filterDto.months.map((m) => {
-        // FY runs Apr-Mar: months 4-12 are in start year, months 1-3 are in end year
-        const year = m >= 4 ? fyStartYear : fyEndYear;
-        const monthStart = new Date(year, m - 1, 1);
-        const monthEnd = new Date(year, m, 0, 23, 59, 59, 999);
-        return { date: { gte: monthStart, lte: monthEnd } };
-      });
-      where.AND = [{ OR: dateConditions }];
-    } else if (params.filterDto.financialYear) {
-      const { start, end } = getFinancialYearDateRange(params.filterDto.financialYear);
-      where.date = { gte: start, lte: end };
+    if (params.dateRanges && params.dateRanges.length > 1) {
+      where.AND = [{ OR: params.dateRanges.map((r) => ({ date: { gte: r.start, lte: r.end } })) }];
+    } else if (params.dateRanges && params.dateRanges.length === 1) {
+      where.date = { gte: params.dateRanges[0]!.start, lte: params.dateRanges[0]!.end };
     }
 
     if (params.filterDto.dateStartDate) {

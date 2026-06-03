@@ -1,7 +1,8 @@
 import { LeaveFilterRequestType, SearchParamsSchema, SortDirectionDtoEnum } from '@repo/dto';
-import { getFinancialYearCode, getLastFinancialYearCodes } from '@repo/shared';
+import { getFinancialYearCode } from '@repo/shared';
 
 import { LeaveData } from '@/feature/leave/leave-data';
+import { getCurrentOrgFinancialYearStartMonth } from '@/lib/financial-year';
 import { employeeService } from '@/lib/service/employee.service';
 import { leaveService } from '@/lib/service/leave.service';
 
@@ -13,7 +14,8 @@ export default async function LeavesDetailsPage(props: Props) {
   const params = await props.searchParams;
   const validatedParams = SearchParamsSchema.parse(params);
 
-  const defaultFinancialYear = getFinancialYearCode(new Date());
+  const startMonth = await getCurrentOrgFinancialYearStartMonth();
+  const defaultFinancialYear = getFinancialYearCode(new Date(), startMonth);
 
   const filterRequest: LeaveFilterRequestType = {
     pagination: {
@@ -55,7 +57,7 @@ export default async function LeavesDetailsPage(props: Props) {
         employees={employees}
         searchParams={validatedParams}
         defaultFinancialYear={defaultFinancialYear}
-        financialYearOptions={getLastFinancialYearCodes(3).map((code) => ({ value: code, label: code }))}
+        financialYearStartMonth={startMonth}
       />
     </div>
   );

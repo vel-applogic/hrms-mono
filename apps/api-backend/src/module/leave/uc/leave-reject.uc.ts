@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@repo/db';
 import { type LeaveResponseType, NotificationLinkDtoEnum } from '@repo/dto';
 import { BaseUc, CommonLoggerService, CurrentUserType, EmployeeLeaveCounterDao, IUseCase, LeaveDao, LeaveWithUserType, NotificationService, OrganisationSettingDao, leaveDayHalfDbEnumToDtoEnum, leaveStatusDbEnumToDtoEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
-import { ApiError, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
+import { ApiError, DEFAULT_FINANCIAL_YEAR_START_MONTH, getFinancialYearCode, getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
   currentUser: CurrentUserType;
@@ -27,9 +27,10 @@ export class LeaveRejectUc extends BaseUc implements IUseCase<Params, LeaveRespo
     const existing = await this.validate(params);
 
     if (existing.status === 'approved') {
-      const financialYear = getFinancialYearCode(existing.startDate);
-      const { start, end } = getFinancialYearDateRange(financialYear);
       const orgSettings = await this.organisationSettingDao.findByOrganisationId({ organisationId: params.currentUser.organisationId });
+      const startMonth = orgSettings?.financialYearStartsAt ?? DEFAULT_FINANCIAL_YEAR_START_MONTH;
+      const financialYear = getFinancialYearCode(existing.startDate, startMonth);
+      const { start, end } = getFinancialYearDateRange(financialYear, startMonth);
       const maxLeaves = orgSettings?.totalLeaveInDays ?? 24;
 
       await this.prisma.$transaction(async (tx) => {

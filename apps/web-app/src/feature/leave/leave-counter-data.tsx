@@ -1,7 +1,7 @@
 'use client';
 
 import type { LeaveCounterResponseType } from '@repo/dto';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/shadcn/select';
+import { FinancialYearFilter } from '@repo/ui/component/financial-year-filter';
 import { DataTableSimple } from '@repo/ui/container/datatable/datatable';
 import { ColDef } from 'ag-grid-community';
 import { Eye } from 'lucide-react';
@@ -9,15 +9,13 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
-type SelectOption = { value: string; label: string };
-
 interface Props {
   counters: LeaveCounterResponseType[];
   financialYear: string;
-  financialYearOptions: SelectOption[];
+  financialYearStartMonth: number;
 }
 
-export const LeaveCounterData = ({ counters, financialYear, financialYearOptions }: Props) => {
+export const LeaveCounterData = ({ counters, financialYear, financialYearStartMonth }: Props) => {
   const pathname = usePathname();
   const { replace } = useRouter();
   const [searchText, setSearchText] = useState('');
@@ -143,18 +141,7 @@ export const LeaveCounterData = ({ counters, financialYear, financialYearOptions
         </div>
         <div className='flex flex-col gap-1'>
           <span className='text-xs text-muted-foreground'>Financial Year</span>
-          <Select value={financialYear} onValueChange={handleFinancialYearChange}>
-            <SelectTrigger className='h-10 w-[140px]'>
-              <SelectValue placeholder='Financial Year' />
-            </SelectTrigger>
-            <SelectContent>
-              {financialYearOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <FinancialYearFilter value={financialYear} onChange={handleFinancialYearChange} startMonth={financialYearStartMonth} />
         </div>
       </div>
 

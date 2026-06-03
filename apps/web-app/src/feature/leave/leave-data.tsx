@@ -1,8 +1,8 @@
 'use client';
 
 import type { LeaveFilterRequestType, LeaveResponseType, PaginatedResponseType, SearchParamsType } from '@repo/dto';
+import { FinancialYearFilter } from '@repo/ui/component/financial-year-filter';
 import { SelectSearchMulti } from '@repo/ui/component/select-search-multiple';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/shadcn/select';
 import { Button } from '@repo/ui/component/ui/button';
 import { CalendarPlus, X } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -14,17 +14,15 @@ import { LeaveStatusFilter } from '@/app/lib/container/leave-status-filter';
 import { LeaveApplyDrawer } from './container/leave-apply.drawer';
 import { LeaveDataTableClient } from './leave.datatable';
 
-type SelectOption = { value: string; label: string };
-
 interface Props {
   data: PaginatedResponseType<LeaveResponseType>;
   employees: { id: number; label: string; value: string }[];
   defaultFinancialYear: string;
-  financialYearOptions: SelectOption[];
+  financialYearStartMonth: number;
   searchParams: SearchParamsType;
 }
 
-export const LeaveData = ({ data, employees, defaultFinancialYear, financialYearOptions, searchParams }: Props) => {
+export const LeaveData = ({ data, employees, defaultFinancialYear, financialYearStartMonth, searchParams }: Props) => {
   const { data: session } = useSession();
   const currentUserId = session?.user?.id ? Number(session.user.id) : null;
   const isAdmin = session?.user?.roles?.includes('admin') ?? false;
@@ -126,18 +124,7 @@ export const LeaveData = ({ data, employees, defaultFinancialYear, financialYear
         <div className='flex flex-wrap items-end gap-3'>
           <div className='flex flex-col gap-1'>
             <span className='text-xs text-muted-foreground'>Financial Year</span>
-            <Select value={currentFinancialYear} onValueChange={handleFinancialYearChange}>
-              <SelectTrigger className='h-10 w-[140px]'>
-                <SelectValue placeholder='Financial Year' />
-              </SelectTrigger>
-              <SelectContent>
-                {financialYearOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <FinancialYearFilter value={currentFinancialYear} onChange={handleFinancialYearChange} startMonth={financialYearStartMonth} />
           </div>
           <div className='flex flex-col gap-1'>
             <span className='text-xs text-muted-foreground'>Status</span>

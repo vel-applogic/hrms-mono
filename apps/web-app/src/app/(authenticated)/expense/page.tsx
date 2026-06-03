@@ -1,7 +1,8 @@
 import { SearchParamsSchema, ExpenseFilterRequestType } from '@repo/dto';
-import { getFinancialYearCode, getLastFinancialYearCodes } from '@repo/shared';
+import { getFinancialYearCode } from '@repo/shared';
 
 import { ExpenseData } from '@/feature/expense/expense-data';
+import { getCurrentOrgFinancialYearStartMonth } from '@/lib/financial-year';
 import { expenseService } from '@/lib/service/expense.service';
 
 export const dynamic = 'force-dynamic';
@@ -12,8 +13,8 @@ interface Props {
 
 export default async function ExpensePage({ searchParams }: Props) {
   const expenseSearchParams = SearchParamsSchema.parse(await searchParams);
-  const currentFinancialYear = expenseSearchParams.financialYear ?? getFinancialYearCode(new Date());
-  const financialYearOptions = getLastFinancialYearCodes(3).map((code) => ({ value: code, label: code }));
+  const startMonth = await getCurrentOrgFinancialYearStartMonth();
+  const currentFinancialYear = expenseSearchParams.financialYear ?? getFinancialYearCode(new Date(), startMonth);
 
   const filterRequest: ExpenseFilterRequestType = {
     pagination: {
@@ -36,7 +37,7 @@ export default async function ExpensePage({ searchParams }: Props) {
         data={data}
         searchParams={expenseSearchParams}
         currentFinancialYear={currentFinancialYear}
-        financialYearOptions={financialYearOptions}
+        financialYearStartMonth={startMonth}
       />
     </div>
   );

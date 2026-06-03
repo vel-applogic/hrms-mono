@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@repo/db';
-import { DbOperationError, DbRecordNotFoundError } from '@repo/shared';
+import { DbOperationError, DEFAULT_FINANCIAL_YEAR_START_MONTH } from '@repo/shared';
 
 import { TrackQuery } from '../../decorator/track-query.decorator.js';
 import { BaseDao } from './_base.dao.js';
@@ -38,6 +38,15 @@ export class OrganisationSettingDao extends BaseDao {
       where: { organisationId: params.organisationId },
     });
     return dbRec ?? undefined;
+  }
+
+  public async getFinancialYearStartMonth(params: { organisationId: number; tx?: Prisma.TransactionClient }): Promise<number> {
+    const pc = this.getPrismaClient(params.tx);
+    const dbRec = await pc.organisationSetting.findFirst({
+      where: { organisationId: params.organisationId },
+      select: { financialYearStartsAt: true },
+    });
+    return dbRec?.financialYearStartsAt ?? DEFAULT_FINANCIAL_YEAR_START_MONTH;
   }
 }
 

@@ -11,11 +11,12 @@ import { getExpenseSummary } from '@/lib/action/expense.actions';
 interface Props {
   refreshKey?: number;
   financialYearCode?: string;
+  financialYearStartMonth?: number;
   compact?: boolean;
 }
 
-export function ExpenseSummaryWidget({ refreshKey, financialYearCode, compact }: Props) {
-  const fyCode = financialYearCode ?? getFinancialYearCode(new Date());
+export function ExpenseSummaryWidget({ refreshKey, financialYearCode, financialYearStartMonth, compact }: Props) {
+  const fyCode = financialYearCode ?? getFinancialYearCode(new Date(), financialYearStartMonth);
   const [data, setData] = useState<ExpenseSummaryResponseType | null>(null);
 
   useEffect(() => {

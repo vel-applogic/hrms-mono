@@ -12,7 +12,7 @@ import {
   OrganisationResponseType,
   UpsertMediaType,
 } from '@repo/dto';
-import { contactTypeDtoEnumToReadableLabel } from '@repo/shared';
+import { contactTypeDtoEnumToReadableLabel, getFinancialYearCode } from '@repo/shared';
 import { Button } from '@repo/ui/component/ui/button';
 import { Input } from '@repo/ui/component/ui/input';
 import { Label } from '@repo/ui/component/ui/label';
@@ -36,6 +36,7 @@ const SettingsSchema = z.object({
   maternityLeaveInDays: z.number().int().min(0),
   paternityLeaveInDays: z.number().int().min(0),
   weeklyOffDays: z.array(z.number().int().min(0).max(6)),
+  financialYearStartsAt: z.number().int().min(1).max(12),
 });
 
 const WEEK_DAY_OPTIONS: { value: number; label: string }[] = [
@@ -89,6 +90,7 @@ const DEFAULT_SETTINGS = {
   maternityLeaveInDays: 10,
   paternityLeaveInDays: 10,
   weeklyOffDays: [0, 6],
+  financialYearStartsAt: 4,
 };
 
 const DEFAULT_ADDRESS = {
@@ -104,6 +106,21 @@ const NO_OF_DAYS_OPTIONS: { value: NoOfDaysInMonthDtoEnum; label: string }[] = [
   { value: NoOfDaysInMonthDtoEnum.dynamic, label: 'Dynamic' },
   { value: NoOfDaysInMonthDtoEnum.thirty, label: '30 Days' },
   { value: NoOfDaysInMonthDtoEnum.thirtyOne, label: '31 Days' },
+];
+
+const MONTH_OPTIONS: { value: number; label: string }[] = [
+  { value: 1, label: 'January' },
+  { value: 2, label: 'February' },
+  { value: 3, label: 'March' },
+  { value: 4, label: 'April' },
+  { value: 5, label: 'May' },
+  { value: 6, label: 'June' },
+  { value: 7, label: 'July' },
+  { value: 8, label: 'August' },
+  { value: 9, label: 'September' },
+  { value: 10, label: 'October' },
+  { value: 11, label: 'November' },
+  { value: 12, label: 'December' },
 ];
 
 const CONTACT_TYPE_OPTIONS = Object.values(ContactTypeDtoEnum).map((value) => ({
@@ -184,6 +201,7 @@ export function OrganisationUpsertDrawer({ open, onOpenChange, organisation, onS
                 maternityLeaveInDays: detail.settings.maternityLeaveInDays,
                 paternityLeaveInDays: detail.settings.paternityLeaveInDays,
                 weeklyOffDays: detail.settings.weeklyOffDays,
+                financialYearStartsAt: detail.settings.financialYearStartsAt,
               } : DEFAULT_SETTINGS,
               contacts: detail.contacts.map((c: ContactResponseType) => ({
                 id: c.id,
@@ -257,6 +275,7 @@ export function OrganisationUpsertDrawer({ open, onOpenChange, organisation, onS
       maternityLeaveInDays: data.settings.maternityLeaveInDays,
       paternityLeaveInDays: data.settings.paternityLeaveInDays,
       weeklyOffDays: data.settings.weeklyOffDays,
+      financialYearStartsAt: data.settings.financialYearStartsAt,
     };
   };
 
@@ -487,6 +506,39 @@ export function OrganisationUpsertDrawer({ open, onOpenChange, organisation, onS
     </div>
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const renderFinancialYearFields = (form: UseFormReturn<any>) => (
+    <div className='flex flex-col gap-4 rounded-lg border border-muted-foreground/30 p-4'>
+      <span className='text-sm font-semibold'>Financial year</span>
+      <div className='flex flex-col gap-2'>
+        <Label>Financial year starts in</Label>
+        <Controller
+          name='settings.financialYearStartsAt'
+          control={form.control}
+          render={({ field }) => (
+            <div className='flex flex-col gap-2'>
+              <Select value={field.value != null ? String(field.value) : undefined} onValueChange={(v) => field.onChange(Number(v))}>
+                <SelectTrigger>
+                  <SelectValue placeholder='Select month' />
+                </SelectTrigger>
+                <SelectContent>
+                  {MONTH_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={String(opt.value)}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className='text-xs text-muted-foreground'>
+                Current financial year: <span className='font-medium'>{getFinancialYearCode(new Date(), Number(field.value) || 4)}</span>
+              </p>
+            </div>
+          )}
+        />
+      </div>
+    </div>
+  );
+
   const renderAddressFields = (form: UseFormReturn<CreateFormType> | UseFormReturn<UpdateFormType>) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const f = form as UseFormReturn<any>;
@@ -713,6 +765,7 @@ export function OrganisationUpsertDrawer({ open, onOpenChange, organisation, onS
           {renderContactsFields(updateForm, updateContactsField)}
           {renderSettingsFields(updateForm)}
           {renderWeekoffFields(updateForm)}
+          {renderFinancialYearFields(updateForm)}
           {renderDocumentsSection()}
         </form>
       ) : (
@@ -750,6 +803,7 @@ export function OrganisationUpsertDrawer({ open, onOpenChange, organisation, onS
           {renderContactsFields(createForm, createContactsField)}
           {renderSettingsFields(createForm)}
           {renderWeekoffFields(createForm)}
+          {renderFinancialYearFields(createForm)}
           {renderDocumentsSection()}
         </form>
       )}

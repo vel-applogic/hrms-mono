@@ -6,6 +6,7 @@ import type {
   OrganisationDetailResponseType,
   OrganisationFilterRequestType,
   OrganisationResponseType,
+  OrganisationSettingResponseType,
   OrganisationUpdateRequestType,
   OperationStatusResponseType,
   PaginatedResponseType,
@@ -24,6 +25,7 @@ import { OrganisationCreateUc } from './uc/organisation-create.uc.js';
 import { OrganisationDeleteUc } from './uc/organisation-delete.uc.js';
 import { OrganisationGetUc } from './uc/organisation-get.uc.js';
 import { OrganisationSearchUc } from './uc/organisation-search.uc.js';
+import { OrganisationSettingGetUc } from './uc/organisation-setting-get.uc.js';
 import { OrganisationUpdateUc } from './uc/organisation-update.uc.js';
 
 @Controller('api/organisation')
@@ -33,6 +35,7 @@ export class OrganisationController {
     private readonly countryListUc: CountryListUc,
     private readonly searchUc: OrganisationSearchUc,
     private readonly getUc: OrganisationGetUc,
+    private readonly settingGetUc: OrganisationSettingGetUc,
     private readonly createUc: OrganisationCreateUc,
     private readonly updateUc: OrganisationUpdateUc,
     private readonly deleteUc: OrganisationDeleteUc,
@@ -71,6 +74,11 @@ export class OrganisationController {
     @Body(new ZodValidationPipe(OrganisationFilterRequestSchema)) filterDto: OrganisationFilterRequestType,
   ): Promise<PaginatedResponseType<OrganisationResponseType>> {
     return this.searchUc.execute({ currentUser, filterDto });
+  }
+
+  @Get('/setting')
+  async getSetting(@CurrentUser() currentUser: CurrentUserType): Promise<OrganisationSettingResponseType | null> {
+    return this.settingGetUc.execute({ currentUser });
   }
 
   @Get(':id')

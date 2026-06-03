@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@repo/db';
 import type { LeaveFilterRequestType, LeaveResponseType, PaginatedResponseType } from '@repo/dto';
 import { UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, IUseCase, LeaveDao, leaveDayHalfDbEnumToDtoEnum, leaveStatusDbEnumToDtoEnum, leaveStatusDtoEnumToDbEnum, leaveTypeDbEnumToDtoEnum, PrismaService } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, IUseCase, LeaveDao, leaveDayHalfDbEnumToDtoEnum, leaveStatusDbEnumToDtoEnum, leaveStatusDtoEnumToDbEnum, leaveTypeDbEnumToDtoEnum, OrganisationSettingDao, PrismaService } from '@repo/nest-lib';
 import { getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
@@ -16,6 +16,7 @@ export class LeaveListUc implements IUseCase<Params, PaginatedResponseType<Leave
     prisma: PrismaService,
     private readonly logger: CommonLoggerService,
     private readonly leaveDao: LeaveDao,
+    private readonly organisationSettingDao: OrganisationSettingDao,
   ) {}
 
   public async execute(params: Params): Promise<PaginatedResponseType<LeaveResponseType>> {
@@ -41,7 +42,8 @@ export class LeaveListUc implements IUseCase<Params, PaginatedResponseType<Leave
       where.userId = { in: params.filterDto.userId };
     }
     if (params.filterDto.financialYear) {
-      const { start, end } = getFinancialYearDateRange(params.filterDto.financialYear);
+      const startMonth = await this.organisationSettingDao.getFinancialYearStartMonth({ organisationId: params.currentUser.organisationId });
+      const { start, end } = getFinancialYearDateRange(params.filterDto.financialYear, startMonth);
       where.startDate = { gte: start, lte: end };
     }
     if (params.filterDto.search?.trim()) {

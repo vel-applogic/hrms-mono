@@ -125,6 +125,7 @@ export class BaseOrganisationUc extends BaseUc {
       maternityLeaveInDays: setting.maternityLeaveInDays,
       paternityLeaveInDays: setting.paternityLeaveInDays,
       weeklyOffDays: setting.weeklyOffDays,
+      financialYearStartsAt: setting.financialYearStartsAt,
     };
   }
 

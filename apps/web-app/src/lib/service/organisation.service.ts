@@ -9,6 +9,8 @@ import {
   OrganisationFilterRequestType,
   OrganisationResponseSchema,
   OrganisationResponseType,
+  OrganisationSettingResponseSchema,
+  OrganisationSettingResponseType,
   OrganisationUpdateRequestType,
   OperationStatusResponseSchema,
   OperationStatusResponseType,
@@ -35,6 +37,13 @@ class OrganisationService extends BaseService {
     return this.get<CountryResponseType[]>({
       url: '/api/organisation/country',
       responseSchema: CountryResponseSchema.array(),
+    });
+  }
+
+  async getMySetting(): Promise<OrganisationSettingResponseType | null> {
+    return this.get<OrganisationSettingResponseType | null>({
+      url: '/api/organisation/setting',
+      responseSchema: OrganisationSettingResponseSchema.nullable(),
     });
   }
 

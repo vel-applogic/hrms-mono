@@ -3,6 +3,7 @@ import { getFinancialYearCode } from '@repo/shared';
 
 import { EmpLeaveData } from '@/feature/emp/emp-leave-data';
 import { auth } from '@/lib/auth/auth';
+import { getCurrentOrgFinancialYearStartMonth } from '@/lib/financial-year';
 import { searchLeaves } from '@/lib/action/leave.actions';
 
 interface Props {
@@ -15,7 +16,8 @@ export default async function EmpLeavePage(props: Props) {
 
   const employeeId = Number(session.user.id);
   const params = await props.searchParams;
-  const defaultFinancialYear = getFinancialYearCode(new Date());
+  const startMonth = await getCurrentOrgFinancialYearStartMonth();
+  const defaultFinancialYear = getFinancialYearCode(new Date(), startMonth);
   const financialYear = (typeof params.financialYear === 'string' ? params.financialYear : null) ?? defaultFinancialYear;
 
   const initialData = await searchLeaves({
@@ -26,7 +28,7 @@ export default async function EmpLeavePage(props: Props) {
 
   return (
     <div className='flex h-full flex-col'>
-      <EmpLeaveData employeeId={employeeId} initialData={initialData} initialFinancialYear={financialYear} />
+      <EmpLeaveData employeeId={employeeId} initialData={initialData} initialFinancialYear={financialYear} financialYearStartMonth={startMonth} />
     </div>
   );
 }

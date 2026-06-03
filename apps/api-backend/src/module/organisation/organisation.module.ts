@@ -10,6 +10,7 @@ import { OrganisationCreateUc } from './uc/organisation-create.uc.js';
 import { OrganisationDeleteUc } from './uc/organisation-delete.uc.js';
 import { OrganisationGetUc } from './uc/organisation-get.uc.js';
 import { OrganisationSearchUc } from './uc/organisation-search.uc.js';
+import { OrganisationSettingGetUc } from './uc/organisation-setting-get.uc.js';
 import { OrganisationUpdateUc } from './uc/organisation-update.uc.js';
 
 @Module({
@@ -20,6 +21,7 @@ import { OrganisationUpdateUc } from './uc/organisation-update.uc.js';
     CountryListUc,
     OrganisationSearchUc,
     OrganisationGetUc,
+    OrganisationSettingGetUc,
     OrganisationCreateUc,
     OrganisationUpdateUc,
     OrganisationDeleteUc,

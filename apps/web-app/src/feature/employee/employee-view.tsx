@@ -35,10 +35,11 @@ interface Props {
   initialBgvPage: PaginatedResponseType<EmployeeBgvFeedbackResponseType>;
   initialPayslipPage: PaginatedResponseType<PayslipListResponseType>;
   initialLeaveFinancialYear: string;
+  leaveFinancialYearStartMonth: number;
   activeTab: 'details' | 'documents' | 'feedbacks' | 'compensation' | 'deduction' | 'leave' | 'payslip' | 'bgv' | 'device';
 }
 
-export function EmployeeView({ employee, initialFeedbackPage, initialCompensationPage, initialDeductionPage, initialLeavePage, initialBgvPage, initialPayslipPage, initialLeaveFinancialYear, activeTab }: Props) {
+export function EmployeeView({ employee, initialFeedbackPage, initialCompensationPage, initialDeductionPage, initialLeavePage, initialBgvPage, initialPayslipPage, initialLeaveFinancialYear, leaveFinancialYearStartMonth, activeTab }: Props) {
   const tabs = [
     { id: 'details', label: 'Employee Details', href: `/employee/${employee.id}/details` },
     { id: 'documents', label: 'Documents', href: `/employee/${employee.id}/documents` },
@@ -78,7 +79,7 @@ export function EmployeeView({ employee, initialFeedbackPage, initialCompensatio
           {activeTab === 'feedbacks' && <EmployeeViewFeedbacks employeeId={employee.id} initialPage={initialFeedbackPage} />}
           {activeTab === 'compensation' && <EmployeeViewCompensation employeeId={employee.id} initialPage={initialCompensationPage} />}
           {activeTab === 'deduction' && <EmployeeViewDeduction employeeId={employee.id} initialPage={initialDeductionPage} />}
-          {activeTab === 'leave' && <EmployeeViewLeave employeeId={employee.id} initialData={initialLeavePage} initialFinancialYear={initialLeaveFinancialYear} />}
+          {activeTab === 'leave' && <EmployeeViewLeave employeeId={employee.id} initialData={initialLeavePage} initialFinancialYear={initialLeaveFinancialYear} financialYearStartMonth={leaveFinancialYearStartMonth} />}
           {activeTab === 'payslip' && <EmployeeViewPayslip employeeId={employee.id} initialPage={initialPayslipPage} />}
           {activeTab === 'bgv' && <EmployeeViewBgv employeeId={employee.id} initialPage={initialBgvPage} />}
           {activeTab === 'device' && <DeviceEmployeeTab employeeId={employee.id} />}

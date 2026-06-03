@@ -1,8 +1,7 @@
 'use client';
 
 import type { LeaveFilterRequestType, LeaveResponseType, PaginatedResponseType } from '@repo/dto';
-import { getLastFinancialYearCodes } from '@repo/shared';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/shadcn/select';
+import { FinancialYearFilter } from '@repo/ui/component/financial-year-filter';
 import { Button } from '@repo/ui/component/ui/button';
 import { CalendarPlus } from 'lucide-react';
 import { useSession } from 'next-auth/react';
@@ -13,15 +12,14 @@ import { LeaveApplyDrawer } from '@/feature/leave/container/leave-apply.drawer';
 import { LeaveDataTableClient } from '@/feature/leave/leave.datatable';
 import { searchLeaves } from '@/lib/action/leave.actions';
 
-const FY_OPTIONS = getLastFinancialYearCodes(3);
-
 interface Props {
   employeeId: number;
   initialData: PaginatedResponseType<LeaveResponseType>;
   initialFinancialYear: string;
+  financialYearStartMonth: number;
 }
 
-export function EmpLeaveData({ employeeId, initialData, initialFinancialYear }: Props) {
+export function EmpLeaveData({ employeeId, initialData, initialFinancialYear, financialYearStartMonth }: Props) {
   const { data: session } = useSession();
   const currentUserId = session?.user?.id ? Number(session.user.id) : null;
 
@@ -74,18 +72,7 @@ export function EmpLeaveData({ employeeId, initialData, initialFinancialYear }: 
           </div>
           <div className='flex flex-col gap-1'>
             <span className='text-xs text-muted-foreground'>Financial Year</span>
-            <Select value={financialYear} onValueChange={handleFyChange}>
-              <SelectTrigger className='h-10 w-[140px]'>
-                <SelectValue placeholder='Financial Year' />
-              </SelectTrigger>
-              <SelectContent>
-                {FY_OPTIONS.map((fy) => (
-                  <SelectItem key={fy} value={fy}>
-                    {fy}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <FinancialYearFilter value={financialYear} onChange={handleFyChange} startMonth={financialYearStartMonth} />
           </div>
         </div>
         <Button

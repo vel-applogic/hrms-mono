@@ -2,8 +2,8 @@
 
 import type { ExpenseResponseType, PaginatedResponseType, SearchParamsType } from '@repo/dto';
 import { expenseTypeDtoEnumToReadableLabel } from '@repo/shared';
+import { FinancialYearFilter } from '@repo/ui/component/financial-year-filter';
 import { SelectSearchMulti } from '@repo/ui/component/select-search-multiple';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/ui/select';
 import { Button } from '@repo/ui/component/ui/button';
 import { DataTableSimple } from '@repo/ui/container/datatable/datatable';
 import type { ColDef } from 'ag-grid-community';
@@ -36,10 +36,10 @@ interface Props {
   data: PaginatedResponseType<ExpenseResponseType>;
   searchParams: SearchParamsType;
   currentFinancialYear: string;
-  financialYearOptions: { value: string; label: string }[];
+  financialYearStartMonth: number;
 }
 
-export function ExpenseData({ data, searchParams, currentFinancialYear, financialYearOptions }: Props) {
+export function ExpenseData({ data, searchParams, currentFinancialYear, financialYearStartMonth }: Props) {
   const pathname = usePathname();
   const currentSearchParams = useSearchParams();
   const { replace, refresh } = useRouter();
@@ -196,25 +196,14 @@ export function ExpenseData({ data, searchParams, currentFinancialYear, financia
   return (
     <div className='flex h-full flex-col gap-4'>
       <div className='center-container grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
-        <ExpenseSummaryWidget refreshKey={widgetRefreshKey} financialYearCode={currentFinancialYear} compact />
+        <ExpenseSummaryWidget refreshKey={widgetRefreshKey} financialYearCode={currentFinancialYear} financialYearStartMonth={financialYearStartMonth} compact />
         <ExpenseForecastWidget refreshKey={widgetRefreshKey} showEdit compact />
       </div>
 
       <div className='center-container flex flex-wrap items-end gap-3'>
         <div className='flex flex-col gap-1'>
           <span className='text-xs text-muted-foreground'>Financial Year</span>
-          <Select value={currentFinancialYear} onValueChange={handleFinancialYearChange}>
-            <SelectTrigger className='h-10 w-[140px]'>
-              <SelectValue placeholder='Financial Year' />
-            </SelectTrigger>
-            <SelectContent>
-              {financialYearOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <FinancialYearFilter value={currentFinancialYear} onChange={handleFinancialYearChange} startMonth={financialYearStartMonth} />
         </div>
         <div className='flex flex-col gap-1 w-[200px]'>
           <span className='text-xs text-muted-foreground'>Month</span>

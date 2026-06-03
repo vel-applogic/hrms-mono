@@ -1,54 +1,107 @@
 /**
- * Get financial year code for a date.
- * FY2526 = April 1, 2025 to March 31, 2026
- * If date is April or later: FY{YY}{YY+1}
- * If date is Jan-Mar: FY{YY-1}{YY}
+ * Financial year helpers.
+ *
+ * The financial year start month is configurable per organisation
+ * (`OrganisationSetting.financialYearStartsAt`, 1 = January … 12 = December).
+ * When not supplied, it defaults to April (4).
+ *
+ * Code format:
+ * - Start month other than January spans two calendar years, e.g. a year
+ *   starting April 2026 (ending March 2027) is `FY2627`.
+ * - Start month January spans a single calendar year, e.g. `FY2026`.
  */
-export function getFinancialYearCode(date: Date): string {
-  const d = new Date(date);
-  const year = d.getFullYear();
-  const month = d.getMonth(); // 0-indexed: Jan=0, Apr=3
 
-  if (month >= 3) {
-    // April (3) or later -> current FY
-    return `FY${String(year).slice(-2)}${String(year + 1).slice(-2)}`;
+export const DEFAULT_FINANCIAL_YEAR_START_MONTH = 4;
+
+function normaliseStartMonth(startMonth?: number): number {
+  if (!startMonth || startMonth < 1 || startMonth > 12) {
+    return DEFAULT_FINANCIAL_YEAR_START_MONTH;
   }
-  // Jan, Feb, Mar -> previous FY
-  return `FY${String(year - 1).slice(-2)}${String(year).slice(-2)}`;
+  return Math.floor(startMonth);
 }
 
 /**
- * Get last N financial year codes including current.
- * E.g. getLastFinancialYearCodes(3) -> ['FY2526', 'FY2425', 'FY2324'] when current is FY2526
+ * Calendar year in which the financial year containing `date` begins.
  */
-export function getLastFinancialYearCodes(count: number): string[] {
-  const current = getFinancialYearCode(new Date());
-  const match = current.match(/^FY(\d{2})(\d{2})$/);
-  if (!match) return [current];
+function getFinancialYearStartYear(date: Date, startMonth: number): number {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1; // 1-indexed: Jan=1, Apr=4
+  return month >= startMonth ? year : year - 1;
+}
+
+function buildFinancialYearCode(startYear: number, startMonth: number): string {
+  if (startMonth === 1) {
+    // Single calendar year, e.g. FY2026
+    return `FY${startYear}`;
+  }
+  // Two calendar years, e.g. FY2627 for Apr 2026 - Mar 2027
+  return `FY${String(startYear).slice(-2)}${String(startYear + 1).slice(-2)}`;
+}
+
+/**
+ * Financial year code for a date.
+ * e.g. startMonth 4 + June 2026 -> 'FY2627'; startMonth 1 + June 2026 -> 'FY2026'.
+ */
+export function getFinancialYearCode(date: Date, startMonth?: number): string {
+  const month = normaliseStartMonth(startMonth);
+  const startYear = getFinancialYearStartYear(new Date(date), month);
+  return buildFinancialYearCode(startYear, month);
+}
+
+/**
+ * Last N financial year codes including current, newest first.
+ * e.g. getLastFinancialYearCodes(3, 4) -> ['FY2627', 'FY2526', 'FY2425'] when current is FY2627.
+ */
+export function getLastFinancialYearCodes(count: number, startMonth?: number): string[] {
+  const month = normaliseStartMonth(startMonth);
+  let startYear = getFinancialYearStartYear(new Date(), month);
   const codes: string[] = [];
-  let startYY = parseInt(match[1]!, 10);
-  let endYY = parseInt(match[2]!, 10);
   for (let i = 0; i < count; i++) {
-    codes.push(`FY${String(startYY).padStart(2, '0')}${String(endYY).padStart(2, '0')}`);
-    startYY -= 1;
-    endYY -= 1;
+    codes.push(buildFinancialYearCode(startYear, month));
+    startYear -= 1;
   }
   return codes;
 }
 
-/**
- * Get date range for a financial year code.
- * FY2526 -> April 1, 2025 to March 31, 2026
- */
-export function getFinancialYearDateRange(financialYear: string): { start: Date; end: Date } {
+function getFinancialYearStartYearFromCode(financialYear: string, startMonth: number): number {
+  if (startMonth === 1) {
+    const match = financialYear.match(/^FY(\d{4})$/);
+    if (!match) {
+      throw new Error(`Invalid financial year code: ${financialYear}`);
+    }
+    return parseInt(match[1]!, 10);
+  }
   const match = financialYear.match(/^FY(\d{2})(\d{2})$/);
   if (!match) {
     throw new Error(`Invalid financial year code: ${financialYear}`);
   }
-  const startYear = 2000 + parseInt(match[1]!, 10);
-  const endYear = 2000 + parseInt(match[2]!, 10);
-  return {
-    start: new Date(startYear, 3, 1), // April 1
-    end: new Date(endYear, 2, 31), // March 31
-  };
+  return 2000 + parseInt(match[1]!, 10);
+}
+
+/**
+ * Date range for a financial year code.
+ * e.g. 'FY2627' with startMonth 4 -> April 1, 2026 to March 31, 2027.
+ */
+export function getFinancialYearDateRange(financialYear: string, startMonth?: number): { start: Date; end: Date } {
+  const month = normaliseStartMonth(startMonth);
+  const startYear = getFinancialYearStartYearFromCode(financialYear, month);
+  const start = new Date(startYear, month - 1, 1, 0, 0, 0, 0);
+  const end = new Date(startYear + 1, month - 1, 1, 0, 0, 0, 0);
+  end.setDate(end.getDate() - 1);
+  end.setHours(23, 59, 59, 999);
+  return { start, end };
+}
+
+/**
+ * Human-readable label for a financial year code, e.g. 'FY2627 (Apr 2026 - Mar 2027)'.
+ */
+export function getFinancialYearLabel(financialYear: string, startMonth?: number): string {
+  const month = normaliseStartMonth(startMonth);
+  try {
+    const { start, end } = getFinancialYearDateRange(financialYear, month);
+    const fmt = (d: Date): string => `${d.toLocaleString('en-US', { month: 'short' })} ${d.getFullYear()}`;
+    return `${financialYear} (${fmt(start)} - ${fmt(end)})`;
+  } catch {
+    return financialYear;
+  }
 }
