@@ -25,9 +25,13 @@ export const LeaveCounterData = ({ counters, financialYear, financialYearStartMo
   };
 
   const filteredCounters = useMemo(() => {
+    // The datatable keys rows by `id`; employees without a counter row for the selected
+    // financial year all share `id: 0`, which collapses them into one visible row. Use the
+    // per-employee `userId` as the stable, unique row id instead.
+    const rows = counters.map((c) => ({ ...c, id: c.userId }));
     const q = searchText.trim().toLowerCase();
-    if (!q) return counters;
-    return counters.filter((c) => {
+    if (!q) return rows;
+    return rows.filter((c) => {
       const fullName = `${c.user.firstname} ${c.user.lastname}`.toLowerCase();
       const email = (c.user.email ?? '').toLowerCase();
       const code = (c.employeeCode ?? '').toLowerCase();

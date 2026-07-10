@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { LeaveCounterResponseType } from '@repo/dto';
 import { CommonLoggerService, CurrentUserType, EmployeeDao, EmployeeLeaveCounterDao, IUseCase, OrganisationSettingDao, PrismaService } from '@repo/nest-lib';
+import { getFinancialYearDateRange } from '@repo/shared';
 
 type Params = {
   currentUser: CurrentUserType;
@@ -28,10 +29,12 @@ export class LeaveCountersListUc implements IUseCase<Params, LeaveCounterRespons
   }
 
   private async countersList(params: Params): Promise<LeaveCounterResponseType[]> {
-    const [employees, counters, orgSettings] = await Promise.all([
-      this.employeeDao.findAllWithUser({ organisationId: params.currentUser.organisationId }),
+    const orgSettings = await this.organisationSettingDao.findByOrganisationId({ organisationId: params.currentUser.organisationId });
+    const activeBetween = getFinancialYearDateRange(params.financialYear, orgSettings?.financialYearStartsAt);
+
+    const [employees, counters] = await Promise.all([
+      this.employeeDao.findAllWithUser({ organisationId: params.currentUser.organisationId, activeBetween }),
       this.employeeLeaveCounterDao.findManyByFinancialYear({ financialYear: params.financialYear, organisationId: params.currentUser.organisationId }),
-      this.organisationSettingDao.findByOrganisationId({ organisationId: params.currentUser.organisationId }),
     ]);
 
     const maxLeaves = orgSettings?.totalLeaveInDays ?? 24;

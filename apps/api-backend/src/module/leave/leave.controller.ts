@@ -15,10 +15,10 @@ import { CurrentUser, ZodValidationPipe } from '@repo/nest-lib';
 import { LeaveApproveUc } from './uc/leave-approve.uc.js';
 import { LeaveCancelUc } from './uc/leave-cancel.uc.js';
 import { LeaveCountersListUc } from './uc/leave-counters-list.uc.js';
-import { LeavePendingCountUc } from './uc/leave-pending-count.uc.js';
-import { LeaveRejectUc } from './uc/leave-reject.uc.js';
 import { LeaveCreateUc } from './uc/leave-create.uc.js';
 import { LeaveListUc } from './uc/leave-list.uc.js';
+import { LeavePendingCountUc } from './uc/leave-pending-count.uc.js';
+import { LeaveRejectUc } from './uc/leave-reject.uc.js';
 import { LeaveUpdateUc } from './uc/leave-update.uc.js';
 
 @Controller('api/leave')
@@ -35,18 +35,12 @@ export class LeaveController {
   ) {}
 
   @Get('/counters')
-  async getCounters(
-    @Query('financialYear') financialYear: string,
-    @CurrentUser() currentUser: CurrentUserType,
-  ): Promise<LeaveCounterResponseType[]> {
+  async getCounters(@Query('financialYear') financialYear: string, @CurrentUser() currentUser: CurrentUserType): Promise<LeaveCounterResponseType[]> {
     return this.countersListUc.execute({ currentUser, financialYear });
   }
 
   @Get('/pending-count')
-  async pendingCount(
-    @CurrentUser() currentUser: CurrentUserType,
-    @Query('userId') userId?: string,
-  ): Promise<CountResponseType> {
+  async pendingCount(@CurrentUser() currentUser: CurrentUserType, @Query('userId') userId?: string): Promise<CountResponseType> {
     return this.pendingCountUc.execute({ currentUser, userId: userId ? Number(userId) : undefined });
   }
 
@@ -59,10 +53,7 @@ export class LeaveController {
   }
 
   @Post()
-  async create(
-    @Body(new ZodValidationPipe(LeaveCreateRequestSchema)) body: LeaveCreateRequestType,
-    @CurrentUser() currentUser: CurrentUserType,
-  ): Promise<LeaveResponseType> {
+  async create(@Body(new ZodValidationPipe(LeaveCreateRequestSchema)) body: LeaveCreateRequestType, @CurrentUser() currentUser: CurrentUserType): Promise<LeaveResponseType> {
     return this.createUc.execute({ currentUser, dto: body });
   }
 
@@ -76,26 +67,17 @@ export class LeaveController {
   }
 
   @Post(':id/cancel')
-  async cancel(
-    @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() currentUser: CurrentUserType,
-  ): Promise<LeaveResponseType> {
+  async cancel(@Param('id', ParseIntPipe) id: number, @CurrentUser() currentUser: CurrentUserType): Promise<LeaveResponseType> {
     return this.cancelUc.execute({ currentUser, id });
   }
 
   @Post(':id/approve')
-  async approve(
-    @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() currentUser: CurrentUserType,
-  ): Promise<LeaveResponseType> {
+  async approve(@Param('id', ParseIntPipe) id: number, @CurrentUser() currentUser: CurrentUserType): Promise<LeaveResponseType> {
     return this.approveUc.execute({ currentUser, id });
   }
 
   @Post(':id/reject')
-  async reject(
-    @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() currentUser: CurrentUserType,
-  ): Promise<LeaveResponseType> {
+  async reject(@Param('id', ParseIntPipe) id: number, @CurrentUser() currentUser: CurrentUserType): Promise<LeaveResponseType> {
     return this.rejectUc.execute({ currentUser, id });
   }
 }

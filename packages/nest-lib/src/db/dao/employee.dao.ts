@@ -15,16 +15,27 @@ export class EmployeeDao extends BaseDao {
     super(prisma);
   }
 
-  public async findAllWithUser(params: { organisationId: number; tx?: Prisma.TransactionClient }): Promise<EmployeeListRecordType[]> {
+  public async findAllWithUser(params: {
+    organisationId: number;
+    activeBetween?: { start: Date; end: Date };
+    tx?: Prisma.TransactionClient;
+  }): Promise<EmployeeListRecordType[]> {
     const pc = this.getPrismaClient(params.tx);
+    const where: Prisma.EmployeeWhereInput = { organisationId: params.organisationId };
+    if (params.activeBetween) {
+      // Employee is on the roster for a financial year if they had joined on or before the
+      // period end and had not left before the period start (null = still employed).
+      where.dateOfJoining = { lte: params.activeBetween.end };
+      where.OR = [{ dateOfLeaving: null }, { dateOfLeaving: { gte: params.activeBetween.start } }];
+    }
     return pc.employee.findMany({
-      where: { organisationId: params.organisationId },
+      where,
       include: {
         user: true,
         branch: { select: { id: true, name: true } },
         department: { select: { id: true, name: true } },
       },
-      orderBy: { user: { firstname: 'asc' } },
+      orderBy: { employeeCode: 'asc' },
     });
   }
 
