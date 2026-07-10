@@ -2,30 +2,31 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
+  ContactResponseType,
   ContactTypeDtoEnum,
   CountryResponseType,
   CurrencyResponseType,
   MediaTypeDtoEnum,
   NoOfDaysInMonthDtoEnum,
-  ContactResponseType,
   OrganisationDocumentResponseType,
   OrganisationResponseType,
   UpsertMediaType,
 } from '@repo/dto';
 import { contactTypeDtoEnumToReadableLabel, getFinancialYearCode } from '@repo/shared';
+import { SelectSearchSingle } from '@repo/ui/component/select-search';
 import { Button } from '@repo/ui/component/ui/button';
 import { Input } from '@repo/ui/component/ui/input';
 import { Label } from '@repo/ui/component/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/ui/select';
-import { SelectSearchSingle } from '@repo/ui/component/select-search';
 import { Drawer } from '@repo/ui/container/drawer/drawer';
 import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Controller, UseFormReturn, useFieldArray, useForm } from 'react-hook-form';
+import { Controller, useFieldArray, useForm,UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 
 import { FileUpload, ImageUpload } from '@/container/s3-file-upload/s3-file-upload';
 import { createOrganisation, getOrganisationById, listCountries, listCurrencies, updateOrganisation } from '@/lib/action/organisation.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 const SettingsSchema = z.object({
   noOfDaysInMonth: z.nativeEnum(NoOfDaysInMonthDtoEnum),
@@ -327,13 +328,16 @@ export function OrganisationUpsertDrawer({ open, onOpenChange, organisation, onS
 
       if (!result.ok) {
         applyActionError(result.error);
+        showErrorToast(new Error(result.error.message));
         return;
       }
 
+      showSuccessToast('Organisation saved');
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }
@@ -359,13 +363,16 @@ export function OrganisationUpsertDrawer({ open, onOpenChange, organisation, onS
 
       if (!result.ok) {
         applyActionError(result.error);
+        showErrorToast(new Error(result.error.message));
         return;
       }
 
+      showSuccessToast('Organisation saved');
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

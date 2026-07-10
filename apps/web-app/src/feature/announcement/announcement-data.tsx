@@ -6,10 +6,10 @@ import { Plus, X } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+import { AnnouncementDataTableClient } from './announcement.datatable';
 import { AnnouncementDeleteDialog } from './container/announcement-delete.dialog';
 import { AnnouncementUpsertModal } from './container/announcement-upsert.modal';
 import { AnnouncementViewDrawer } from './container/announcement-view.drawer';
-import { AnnouncementDataTableClient } from './announcement.datatable';
 
 interface Props {
   data: PaginatedResponseType<AnnouncementResponseType>;

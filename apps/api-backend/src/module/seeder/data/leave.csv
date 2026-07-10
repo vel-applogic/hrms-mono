@@ -1,0 +1,11 @@
+organisationId,email,leaveType,startDate,endDate,startDuration,endDuration,numberOfDays,numberOfLopDays,reason
+1,velmurugan@applogic.tech,casual,05-Jan-2026,06-Jan-2026,full,full,2,0,Personal work
+1,velmurugan@applogic.tech,sick,12-Feb-2026,12-Feb-2026,firstHalf,firstHalf,0.5,0,Fever
+1,karthik@applogic.tech,earned,02-Mar-2026,06-Mar-2026,full,full,5,0,Family vacation
+1,karthik@applogic.tech,casual,20-Jan-2026,20-Jan-2026,secondHalf,secondHalf,0.5,0,Bank work
+1,nikhil@applogic.tech,sick,15-Jan-2026,16-Jan-2026,full,full,2,0,Viral infection
+1,arthi@applogic.tech,casual,28-Jan-2026,28-Jan-2026,full,full,1,0,Personal reasons
+1,omjee@applogic.tech,medical,03-Feb-2026,07-Feb-2026,full,full,5,2,Surgery recovery
+1,ramya@applogic.tech,earned,10-Mar-2026,11-Mar-2026,full,full,2,0,Festival
+1,jayanthi@applogic.tech,casual,18-Feb-2026,18-Feb-2026,firstHalf,firstHalf,0.5,0,Appointment
+1,mohana@applogic.tech,sick,25-Feb-2026,26-Feb-2026,full,full,2,0,Cold and cough

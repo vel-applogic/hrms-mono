@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useState } from 'react';
 
 import { deleteUser } from '@/lib/action/user.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface UserDeleteDialogProps {
   open: boolean;
@@ -24,10 +25,12 @@ export function UserDeleteDialog({ open, onOpenChange, user, onSuccess }: UserDe
     setError('');
     try {
       await deleteUser(user.id);
+      showSuccessToast('User deleted');
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

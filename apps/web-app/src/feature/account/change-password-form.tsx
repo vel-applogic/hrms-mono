@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 
 import { changePassword } from '@/lib/action/account.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 export function ChangePasswordForm() {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -28,11 +29,13 @@ export function ChangePasswordForm() {
 
     if (result.ok) {
       setSuccessMessage('Password changed successfully.');
+      showSuccessToast('Password changed');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } else {
       setErrorMessage(result.error.message);
+      showErrorToast(new Error(result.error.message));
     }
   };
 

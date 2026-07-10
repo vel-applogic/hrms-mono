@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation';
-
 import { LeaveStatusDtoEnum } from '@repo/dto';
+import { redirect } from 'next/navigation';
 
 import { LeaveApprovalData } from '@/feature/leave/leave-approval-data';
 import { searchLeaves } from '@/lib/action/leave.actions';

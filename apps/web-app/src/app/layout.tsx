@@ -3,6 +3,7 @@ import './globals.css';
 
 import type { Metadata } from 'next';
 
+import { AppToaster } from '@/feature/common/app-toaster';
 import { AuthProvider } from '@/lib/auth/auth-provider';
 
 import { dmSans } from './fonts';
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang='en'>
       <body className={dmSans.className}>
         <AuthProvider>{children}</AuthProvider>
+        <AppToaster />
       </body>
     </html>
   );

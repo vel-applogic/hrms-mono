@@ -11,6 +11,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { createDepartment, updateDepartment } from '@/lib/action/department.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 const FormSchema = z.object({
   name: z.string().min(1, 'Department name is required'),
@@ -65,10 +66,12 @@ export function DepartmentUpsertDrawer({ open, onOpenChange, department, onSucce
         applyActionError(result.error);
         return;
       }
+      showSuccessToast('Department saved');
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

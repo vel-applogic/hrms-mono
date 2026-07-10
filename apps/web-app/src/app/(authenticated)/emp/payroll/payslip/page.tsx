@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
 
 import { EmpPayslipData } from '@/feature/emp/emp-payslip-data';
-import { auth } from '@/lib/auth/auth';
 import { searchPayslips } from '@/lib/action/payslip.actions';
+import { auth } from '@/lib/auth/auth';
 
 export default async function EmpPayrollPayslipPage() {
   const session = await auth();

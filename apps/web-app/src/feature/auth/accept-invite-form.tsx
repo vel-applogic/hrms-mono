@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
 import { acceptInvite } from '@/lib/action/auth.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface AcceptInviteFormProps {
   userId: number;
@@ -42,11 +43,13 @@ export function AcceptInviteForm({ userId, inviteKey }: AcceptInviteFormProps) {
 
     if (result.ok) {
       setSuccess(true);
+      showSuccessToast('Invite accepted');
       setTimeout(() => router.push('/auth/login'), 2500);
       return;
     }
 
     const { message, field, fieldErrors } = result.error;
+    showErrorToast(new Error(message));
     const apiPasswordErrors = fieldErrors?.password;
     if (apiPasswordErrors?.length) {
       setPasswordErrors(apiPasswordErrors);

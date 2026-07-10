@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation';
-
 import { EmployeeFilterRequestType, SearchParamsSchema, SortDirectionDtoEnum } from '@repo/dto';
+import { redirect } from 'next/navigation';
 
 import { EmployeeData } from '@/feature/employee/employee-data';
 import { auth } from '@/lib/auth/auth';

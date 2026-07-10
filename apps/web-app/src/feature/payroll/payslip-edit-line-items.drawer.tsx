@@ -1,15 +1,16 @@
 'use client';
 
-import type { PayslipDetailResponseType, PayrollPayslipLineItemTypeDtoEnum } from '@repo/dto';
-import { cn } from '@repo/ui/lib/utils';
+import type { PayrollPayslipLineItemTypeDtoEnum,PayslipDetailResponseType } from '@repo/dto';
 import { Button } from '@repo/ui/component/ui/button';
 import { Input } from '@repo/ui/component/ui/input';
 import { Label } from '@repo/ui/component/ui/label';
 import { Drawer } from '@repo/ui/container/drawer/drawer';
+import { cn } from '@repo/ui/lib/utils';
 import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { getPayslipById, updatePayslipLineItems } from '@/lib/action/payslip.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 const MONTH_LABELS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -115,9 +116,11 @@ export function PayslipEditLineItemsDrawer({ open, onOpenChange, payslipId, onSu
         })),
       });
       onSuccess(result);
+      showSuccessToast('Line items saved');
       onOpenChange(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save changes');
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

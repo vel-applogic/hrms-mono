@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation';
-
 import { BranchFilterRequestType, SearchParamsSchema, SortDirectionDtoEnum } from '@repo/dto';
+import { redirect } from 'next/navigation';
 
 import { BranchData } from '@/feature/branch/branch-data';
 import { auth } from '@/lib/auth/auth';

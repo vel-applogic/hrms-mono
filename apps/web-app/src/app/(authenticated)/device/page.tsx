@@ -1,4 +1,4 @@
-import { SearchParamsSchema, DeviceFilterRequestType, SortDirectionDtoEnum } from '@repo/dto';
+import { DeviceFilterRequestType, SearchParamsSchema, SortDirectionDtoEnum } from '@repo/dto';
 
 import { DeviceData } from '@/feature/device/device-data';
 import { deviceService } from '@/lib/service/device.service';

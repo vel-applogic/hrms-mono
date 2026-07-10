@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
 import { resetPassword } from '@/lib/action/auth.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface ResetPasswordFormProps {
   userId: number;
@@ -38,11 +39,13 @@ export function ResetPasswordForm({ userId, resetKey }: ResetPasswordFormProps) 
     const result = await resetPassword({ userId, key: resetKey, password });
 
     if (result.ok) {
+      showSuccessToast('Password reset');
       router.push('/auth/login?reset=success');
       return;
     }
 
     const { message, field, fieldErrors } = result.error;
+    showErrorToast(new Error(message));
     const apiPasswordErrors = fieldErrors?.password;
     if (apiPasswordErrors?.length) {
       setPasswordErrors(apiPasswordErrors);

@@ -10,6 +10,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { createEmployeeCompensation, updateEmployeeCompensation } from '@/lib/action/employee-compensation.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 function formatAmount(value: number) {
   return `₹${value.toLocaleString()}`;
@@ -141,6 +142,7 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
         });
         onSuccess(result);
       }
+      showSuccessToast('Compensation saved');
       onOpenChange(false);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An error occurred';
@@ -151,6 +153,7 @@ export function EmployeeCompensationFormDrawer({ open, onOpenChange, employeeId,
         setFieldErrors({});
         setError(message);
       }
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

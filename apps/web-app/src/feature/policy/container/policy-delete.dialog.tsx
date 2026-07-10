@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { useState } from 'react';
 
 import { deletePolicy } from '@/lib/action/policy.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface PolicyDeleteDialogProps {
   open: boolean;
@@ -24,11 +25,13 @@ export function PolicyDeleteDialog({ open, onOpenChange, policy, onSuccess }: Po
     setError('');
     try {
       await deletePolicy(policy.id);
+      showSuccessToast('Policy deleted');
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

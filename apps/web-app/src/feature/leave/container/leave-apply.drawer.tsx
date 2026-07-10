@@ -14,6 +14,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { createLeave, updateLeave } from '@/lib/action/leave.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 import { EmployeeSelect } from './employee-select';
 
@@ -195,14 +196,17 @@ export function LeaveApplyDrawer({ open, onOpenChange, leave, employeeId, onSucc
       };
       if (isEditing && leave) {
         await updateLeave(leave.id, payload);
+        showSuccessToast('Leave updated');
       } else {
         await createLeave(payload);
+        showSuccessToast('Leave applied');
       }
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

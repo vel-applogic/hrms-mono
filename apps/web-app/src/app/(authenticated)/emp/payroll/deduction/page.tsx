@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
 
 import { EmployeeViewDeduction } from '@/feature/employee/employee-view-deduction';
-import { auth } from '@/lib/auth/auth';
 import { searchEmployeeDeductions } from '@/lib/action/employee-deduction.actions';
+import { auth } from '@/lib/auth/auth';
 
 export default async function EmpPayrollDeductionPage() {
   const session = await auth();

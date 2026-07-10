@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation';
-
 import { OrganisationFilterRequestType, SearchParamsSchema, SortDirectionDtoEnum } from '@repo/dto';
+import { redirect } from 'next/navigation';
 
 import { OrganisationData } from '@/feature/organisation/organisation-data';
 import { auth } from '@/lib/auth/auth';

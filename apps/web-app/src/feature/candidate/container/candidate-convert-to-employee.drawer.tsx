@@ -10,6 +10,7 @@ import { Drawer } from '@repo/ui/container/drawer/drawer';
 import { useEffect, useState } from 'react';
 
 import { convertCandidateToEmployee } from '@/lib/action/candidate.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface Props {
   open: boolean;
@@ -73,10 +74,12 @@ export function CandidateConvertToEmployeeDrawer({ open, onOpenChange, candidate
         emergencyContactRelationship,
       });
       if (result.success) {
+        showSuccessToast('Converted to employee');
         onOpenChange(false);
         onSuccess();
       }
     } catch (err: unknown) {
+      showErrorToast(err);
       if (err instanceof Error) {
         setError(err.message);
       } else {

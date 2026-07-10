@@ -3,9 +3,9 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { Injectable } from '@nestjs/common';
-import { EmployeeStatusEnum, ExpenseForecastFrequency, ExpenseType, GenderDbEnum, HolidayType, PayrollDeductionFrequency, PayrollDeductionType } from '@repo/db';
+import { EmployeeStatusEnum, ExpenseForecastFrequency, ExpenseType, GenderDbEnum, HolidayType, LeaveStatusEnum, PayrollDeductionFrequency, PayrollDeductionType } from '@repo/db';
 import { UserRoleDtoEnum } from '@repo/dto';
-import { CommonLoggerService, CurrentUserType, PrismaService, stringToEmployeeStatusDbEnum, stringToGenderDbEnum, stringToHolidayTypeDbEnum } from '@repo/nest-lib';
+import { CommonLoggerService, CurrentUserType, PrismaService, stringToEmployeeStatusDbEnum, stringToGenderDbEnum, stringToHolidayTypeDbEnum, stringToLeaveDayHalfDbEnum, stringToLeaveTypeDbEnum } from '@repo/nest-lib';
 import { getFinancialYearCode } from '@repo/shared';
 
 import { PasswordService } from '../../service/password.service.js';
@@ -33,6 +33,7 @@ export class Seeder {
     await this.runMigration('seed-compensations-from-csv', () => this.seedCompensationsFromCSV());
     await this.runMigration('seed-deductions-from-csv', () => this.seedDeductionsFromCSV());
     await this.runMigration('seed-holidays-from-csv', () => this.seedHolidaysFromCSV());
+    await this.runMigration('seed-leaves-from-csv', () => this.seedLeavesFromCSV());
     await this.runMigration('resync-id-sequences-after-csv', () => this.resyncIdSequencesAfterCsv());
     await this.runMigration('generate-payslips-onetime', () => this.generatePayslipsOneTime());
 
@@ -817,6 +818,52 @@ export class Seeder {
     }
 
     this.logger.i(`Holidays seeded from CSV: ${dataRows.length}`);
+  }
+
+  private async seedLeavesFromCSV() {
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    const csvPath = join(__dirname, 'data', 'leave.csv');
+    const csvContent = readFileSync(csvPath, 'utf-8');
+
+    const lines = csvContent
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0);
+
+    const headers = lines[0].split(',').map((h) => h.trim());
+    const dataRows = lines.slice(1);
+
+    for (const line of dataRows) {
+      const values = line.split(',').map((v) => v.trim());
+      const row: Record<string, string> = {};
+      headers.forEach((h, i) => {
+        row[h] = values[i] ?? '';
+      });
+
+      const user = await this.prisma.user.findUnique({ where: { email: row.email } });
+      if (!user) {
+        this.logger.w(`Leave skipped - user not found: ${row.email}`);
+        continue;
+      }
+
+      await this.prisma.leave.create({
+        data: {
+          userId: user.id,
+          organisationId: parseInt(row.organisationId, 10),
+          leaveType: stringToLeaveTypeDbEnum(row.leaveType),
+          startDate: this.parseCsvDate(row.startDate)!,
+          endDate: this.parseCsvDate(row.endDate)!,
+          startDuration: stringToLeaveDayHalfDbEnum(row.startDuration),
+          endDuration: stringToLeaveDayHalfDbEnum(row.endDuration),
+          numberOfDays: parseFloat(row.numberOfDays),
+          numberOfLopDays: parseFloat(row.numberOfLopDays),
+          reason: row.reason,
+          status: LeaveStatusEnum.pending,
+        },
+      });
+    }
+
+    this.logger.i(`Leaves seeded from CSV: ${dataRows.length}`);
   }
 
   // After inserting rows with explicit ids (CSV import), Postgres' auto-increment sequence is left at its

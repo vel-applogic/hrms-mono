@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation';
-
 import { DepartmentFilterRequestType, SearchParamsSchema, SortDirectionDtoEnum } from '@repo/dto';
+import { redirect } from 'next/navigation';
 
 import { DepartmentData } from '@/feature/department/department-data';
 import { auth } from '@/lib/auth/auth';

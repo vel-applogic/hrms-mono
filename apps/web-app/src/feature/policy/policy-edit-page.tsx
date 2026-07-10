@@ -4,6 +4,7 @@ import type { PolicyCreateRequestType, PolicyDetailResponseType } from '@repo/dt
 import { MarkdownEditor } from '@repo/ui/component/markdown-editor';
 import { Button } from '@repo/ui/component/ui/button';
 import { Input } from '@repo/ui/component/ui/input';
+import axios from 'axios';
 import { ArrowLeft, Check, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -11,8 +12,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { getSignedUrlForUploadAction, getSignedUrlForViewAction } from '@/container/s3-file-upload/action';
 import { createPolicy, updatePolicy } from '@/lib/action/policy.actions';
-
-import axios from 'axios';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface ContentItem {
   type: 'text' | 'image';
@@ -136,11 +136,13 @@ export function PolicyEditPage({ policy, backHref }: Props) {
       } else {
         await createPolicy(data);
       }
+      showSuccessToast('Policy saved');
       router.push(backHref);
       router.refresh();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

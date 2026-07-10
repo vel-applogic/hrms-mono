@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react';
 
 import { getMonthlyPayrollCost } from '@/lib/action/employee-compensation.actions';
 import { bulkSaveExpenseForecasts, getExpenseForecasts } from '@/lib/action/expense-forecast.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface ForecastItem {
   key: string;
@@ -126,11 +127,13 @@ export function ExpenseForecastUpsertDrawer({ open, onOpenChange, onSuccess }: P
           frequency: item.frequency,
         })),
       });
+      showSuccessToast('Forecast saved');
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

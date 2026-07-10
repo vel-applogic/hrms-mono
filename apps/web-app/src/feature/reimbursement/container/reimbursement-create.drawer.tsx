@@ -12,6 +12,7 @@ import { z } from 'zod';
 
 import { UnifiedUpload } from '@/container/s3-file-upload/s3-file-upload';
 import { createReimbursement } from '@/lib/action/reimbursement.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 const FormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -56,11 +57,13 @@ export function ReimbursementCreateDrawer({ open, onOpenChange, onSuccess }: Pro
         date: data.date,
         files: medias.length > 0 ? medias : undefined,
       });
+      showSuccessToast('Reimbursement created');
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

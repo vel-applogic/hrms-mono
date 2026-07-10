@@ -1,7 +1,6 @@
 'use client';
 
 import type { EmployeeCompensationResponseType } from '@repo/dto';
-import { Button } from '@repo/ui/component/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,9 +9,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@repo/ui/component/shadcn/dialog';
+import { Button } from '@repo/ui/component/ui/button';
 import { useState } from 'react';
 
 import { deleteEmployeeCompensation } from '@/lib/action/employee-compensation.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 function formatAmount(value: number) {
   return `₹${value.toLocaleString()}`;
@@ -34,8 +35,11 @@ export function EmployeeCompensationDeleteDialog({ open, onOpenChange, compensat
     setLoading(true);
     try {
       await deleteEmployeeCompensation(compensation.id, employeeId);
+      showSuccessToast('Compensation deleted');
       onSuccess();
       onOpenChange(false);
+    } catch (err) {
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

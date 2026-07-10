@@ -1,14 +1,15 @@
 'use client';
 
 import type { NotificationResponseType } from '@repo/dto';
+import { notificationLinkDtoEnumToRoute } from '@repo/shared';
 import { Popover, PopoverContent, PopoverTrigger } from '@repo/ui/component/ui/popover';
 import { cn } from '@repo/ui/lib/utils';
-import { notificationLinkDtoEnumToRoute } from '@repo/shared';
 import { Bell, CheckCheck, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { getNotificationUnseenCount, markAllNotificationsSeen, markNotificationSeen, searchNotifications } from '@/lib/action/notification.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 const POLL_INTERVAL = 30000;
 const PAGE_SIZE = 20;
@@ -61,9 +62,13 @@ export function NotificationPanel() {
 
   const handleMarkSeen = async (notification: NotificationResponseType) => {
     if (!notification.isSeen) {
-      await markNotificationSeen(notification.id);
-      setNotifications((prev) => prev.map((n) => (n.id === notification.id ? { ...n, isSeen: true } : n)));
-      setUnseenCount((prev) => Math.max(0, prev - 1));
+      try {
+        await markNotificationSeen(notification.id);
+        setNotifications((prev) => prev.map((n) => (n.id === notification.id ? { ...n, isSeen: true } : n)));
+        setUnseenCount((prev) => Math.max(0, prev - 1));
+      } catch (err) {
+        showErrorToast(err);
+      }
     }
     const route = notificationLinkDtoEnumToRoute(notification.link);
     setOpen(false);
@@ -71,9 +76,14 @@ export function NotificationPanel() {
   };
 
   const handleMarkAllSeen = async () => {
-    await markAllNotificationsSeen();
-    setNotifications((prev) => prev.map((n) => ({ ...n, isSeen: true })));
-    setUnseenCount(0);
+    try {
+      await markAllNotificationsSeen();
+      setNotifications((prev) => prev.map((n) => ({ ...n, isSeen: true })));
+      setUnseenCount(0);
+      showSuccessToast('All notifications marked as read');
+    } catch (err) {
+      showErrorToast(err);
+    }
   };
 
   const formatTimeAgo = (dateStr: string): string => {

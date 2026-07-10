@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { useState } from 'react';
 
 import { deleteEmployee } from '@/lib/action/employee.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface Props {
   open: boolean;
@@ -24,11 +25,13 @@ export function EmployeeDeleteDialog({ open, onOpenChange, employee, onSuccess }
     setError('');
     try {
       await deleteEmployee(employee.id);
+      showSuccessToast('Employee deleted');
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

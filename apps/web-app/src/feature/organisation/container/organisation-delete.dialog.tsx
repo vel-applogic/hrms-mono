@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { useState } from 'react';
 
 import { deleteOrganisation } from '@/lib/action/organisation.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface Props {
   open: boolean;
@@ -26,13 +27,16 @@ export function OrganisationDeleteDialog({ open, onOpenChange, organisation, onS
       const result = await deleteOrganisation(organisation.id);
       if (!result.ok) {
         setError(result.error.message);
+        showErrorToast(new Error(result.error.message));
         return;
       }
+      showSuccessToast('Organisation deleted');
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

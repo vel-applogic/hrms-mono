@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 
 import { updateCandidateProgress, updateCandidateStatus } from '@/lib/action/candidate.actions';
+import { showSuccessToast } from '@/lib/util/toast';
 
 interface Props {
   data: PaginatedResponseType<CandidateListResponseType>;
@@ -62,7 +63,10 @@ export const CandidateDataTableClient = (props: Props) => {
   const onSaveStatus = useCallback(
     async (id: number, status: string) => {
       const r = await updateCandidateStatus(id, status as CandidateStatusDtoEnum);
-      if (r.success) props.onRefresh?.();
+      if (r.success) {
+        showSuccessToast('Candidate status updated');
+        props.onRefresh?.();
+      }
       return r;
     },
     [props.onRefresh],
@@ -71,7 +75,10 @@ export const CandidateDataTableClient = (props: Props) => {
   const onSaveProgress = useCallback(
     async (id: number, progress: string) => {
       const r = await updateCandidateProgress(id, progress as CandidateProgressDtoEnum);
-      if (r.success) props.onRefresh?.();
+      if (r.success) {
+        showSuccessToast('Candidate progress updated');
+        props.onRefresh?.();
+      }
       return r;
     },
     [props.onRefresh],

@@ -8,8 +8,8 @@ import {
   DropdownMenuTrigger,
 } from '@repo/ui/component/ui/dropdown-menu';
 import { LogOut, Menu, Settings, User } from 'lucide-react';
-import { signOut } from 'next-auth/react';
 import Link from 'next/link';
+import { signOut } from 'next-auth/react';
 
 import { OrgSwitcher } from '@/feature/org/org-switcher';
 

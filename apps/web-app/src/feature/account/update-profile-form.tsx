@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 
 import { updateProfile } from '@/lib/action/account.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface Props {
   initialFirstname: string;
@@ -37,8 +38,10 @@ export function UpdateProfileForm({ initialFirstname, initialLastname, email }: 
 
     if (result.ok) {
       setSuccessMessage('Profile updated successfully.');
+      showSuccessToast('Profile updated');
     } else {
       setErrorMessage(result.error.message);
+      showErrorToast(new Error(result.error.message));
     }
   };
 

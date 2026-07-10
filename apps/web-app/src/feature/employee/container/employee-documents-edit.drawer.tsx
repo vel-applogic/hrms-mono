@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 
 import { FileUpload } from '@/container/s3-file-upload/s3-file-upload';
 import { updateEmployeeDocuments } from '@/lib/action/employee.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface Props {
   open: boolean;
@@ -47,10 +48,12 @@ export function EmployeeDocumentsEditDrawer({ open, onOpenChange, employee, onSu
         otherDocuments: otherDocuments.map((m) => ({ key: m.key, name: m.name, type: m.type, id: m.id })),
       };
       await updateEmployeeDocuments(employee.id, payload);
+      showSuccessToast('Documents updated');
       onSuccess();
       onOpenChange(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

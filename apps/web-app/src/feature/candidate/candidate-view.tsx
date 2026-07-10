@@ -2,8 +2,8 @@
 
 import type { CandidateDetailResponseType, CandidateFeedbackResponseType, PaginatedResponseType } from '@repo/dto';
 import { Button } from '@repo/ui/component/ui/button';
-import { ArrowLeft } from 'lucide-react';
 import { PageTabs } from '@repo/ui/component/ui/page-tabs';
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 import { CandidateViewBasicDetails } from './candidate-view-basic-details';

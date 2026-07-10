@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
 
 import { EmployeeViewFeedbacks } from '@/feature/employee/employee-view-feedbacks';
-import { auth } from '@/lib/auth/auth';
 import { searchEmployeeFeedbacks } from '@/lib/action/employee-feedback.actions';
+import { auth } from '@/lib/auth/auth';
 
 export default async function EmpFeedbacksPage() {
   const session = await auth();

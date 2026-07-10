@@ -1,9 +1,9 @@
 'use client';
 
 import { DeviceDetailResponseType } from '@repo/dto';
+import { deviceStatusDtoEnumToReadableLabel, deviceTypeDtoEnumToReadableLabel } from '@repo/shared';
 import { Label } from '@repo/ui/component/ui/label';
 import { Drawer } from '@repo/ui/container/drawer/drawer';
-import { deviceStatusDtoEnumToReadableLabel, deviceTypeDtoEnumToReadableLabel } from '@repo/shared';
 import { FileText } from 'lucide-react';
 
 interface Props {

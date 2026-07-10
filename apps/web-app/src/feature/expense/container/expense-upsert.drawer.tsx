@@ -14,6 +14,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { createExpense, updateExpense } from '@/lib/action/expense.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 const FormSchema = z.object({
   date: z.string().min(1, 'Date is required'),
@@ -74,6 +75,7 @@ export function ExpenseUpsertDrawer({ open, onOpenChange, expense, onSuccess }: 
           type: data.type,
           amount: data.amount,
         });
+        showSuccessToast('Expense updated');
       } else {
         await createExpense({
           date: data.date,
@@ -81,12 +83,14 @@ export function ExpenseUpsertDrawer({ open, onOpenChange, expense, onSuccess }: 
           type: data.type,
           amount: data.amount,
         });
+        showSuccessToast('Expense created');
       }
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

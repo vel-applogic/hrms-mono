@@ -2,18 +2,19 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { AnnouncementResponseType, BranchResponseType, DepartmentResponseType } from '@repo/dto';
+import { MarkdownEditor } from '@repo/ui/component/markdown-editor';
 import { Button } from '@repo/ui/component/ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@repo/ui/component/ui/dialog';
 import { Input } from '@repo/ui/component/ui/input';
 import { Label } from '@repo/ui/component/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/ui/select';
 import { Switch } from '@repo/ui/component/ui/switch';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@repo/ui/component/ui/dialog';
-import { MarkdownEditor } from '@repo/ui/component/markdown-editor';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { createAnnouncement, updateAnnouncement } from '@/lib/action/announcement.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 const FormSchema = z.object({
   title: z.string().min(1, 'Title is required').trim(),
@@ -96,11 +97,13 @@ export function AnnouncementUpsertModal({ open, onOpenChange, announcement, bran
           isPublished: data.isPublished,
         });
       }
+      showSuccessToast('Announcement saved');
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

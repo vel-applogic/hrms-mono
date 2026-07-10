@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation';
-
 import { SearchParamsSchema } from '@repo/dto';
+import { redirect } from 'next/navigation';
 
 import { HolidayData } from '@/feature/holiday/holiday-data';
 import { getHolidayYears, searchHolidays } from '@/lib/action/holiday.actions';

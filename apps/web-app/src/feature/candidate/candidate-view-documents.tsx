@@ -7,8 +7,9 @@ import { FileText, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { CandidateDocumentsEditDrawer } from './container/candidate-documents-edit.drawer';
 import { getCandidateById } from '@/lib/action/candidate.actions';
+
+import { CandidateDocumentsEditDrawer } from './container/candidate-documents-edit.drawer';
 
 interface Props {
   candidateId: number;

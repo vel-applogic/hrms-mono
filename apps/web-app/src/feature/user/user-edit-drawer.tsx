@@ -9,6 +9,7 @@ import { Switch } from '@repo/ui/component/ui/switch';
 import React, { useEffect, useState } from 'react';
 
 import { updateUser } from '@/lib/action/user.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface UserEditDrawerProps {
   open: boolean;
@@ -41,10 +42,12 @@ export function UserEditDrawer({ open, onOpenChange, user, onSuccess }: UserEdit
     try {
       const data: AdminUserUpdateRequestType = { firstname, lastname, isActive };
       await updateUser(user.id, data);
+      showSuccessToast('User updated');
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

@@ -5,10 +5,6 @@ import {
   PayrollDeductionFrequencyDtoEnum,
   PayrollDeductionTypeDtoEnum,
 } from '@repo/dto';
-import { cn } from '@repo/ui/lib/utils';
-import { Button } from '@repo/ui/component/ui/button';
-import { Input } from '@repo/ui/component/ui/input';
-import { Label } from '@repo/ui/component/ui/label';
 import { MonthYearPicker } from '@repo/ui/component/shadcn/month-year-picker';
 import {
   Select,
@@ -17,11 +13,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@repo/ui/component/shadcn/select';
+import { Button } from '@repo/ui/component/ui/button';
+import { Input } from '@repo/ui/component/ui/input';
+import { Label } from '@repo/ui/component/ui/label';
 import { Drawer } from '@repo/ui/container/drawer/drawer';
+import { cn } from '@repo/ui/lib/utils';
 import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { createEmployeeDeduction, updateEmployeeDeduction } from '@/lib/action/employee-deduction.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 const DEDUCTION_TYPE_LABELS: Record<PayrollDeductionTypeDtoEnum, string> = {
   providentFund: 'Provident Fund',
@@ -178,6 +179,7 @@ export function EmployeeDeductionFormDrawer({ open, onOpenChange, employeeId, de
         });
         onSuccess(result);
       }
+      showSuccessToast('Deduction saved');
       onOpenChange(false);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An error occurred';
@@ -188,6 +190,7 @@ export function EmployeeDeductionFormDrawer({ open, onOpenChange, employeeId, de
         setFieldErrors({});
         setError(message);
       }
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

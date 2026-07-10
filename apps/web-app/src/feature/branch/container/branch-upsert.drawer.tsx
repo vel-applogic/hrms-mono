@@ -11,6 +11,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { createBranch, updateBranch } from '@/lib/action/branch.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 const FormSchema = z.object({
   name: z.string().min(1, 'Branch name is required'),
@@ -65,10 +66,12 @@ export function BranchUpsertDrawer({ open, onOpenChange, branch, onSuccess }: Pr
         applyActionError(result.error);
         return;
       }
+      showSuccessToast('Branch saved');
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

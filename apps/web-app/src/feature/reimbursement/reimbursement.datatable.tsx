@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReimbursementResponseType, PaginatedResponseType } from '@repo/dto';
+import type { PaginatedResponseType,ReimbursementResponseType } from '@repo/dto';
 import { ReimbursementStatusDtoEnum } from '@repo/dto';
 import { DataTableSimple } from '@repo/ui/container/datatable/datatable';
 import { ActionOption, ActionsIconCellRenderer } from '@repo/ui/container/datatable/datatable-cell-renderer';
@@ -9,6 +9,7 @@ import { CheckCircle, DollarSign, Eye, ThumbsDown } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
 import { updateReimbursementStatus } from '@/lib/action/reimbursement.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface Props {
   data: PaginatedResponseType<ReimbursementResponseType>;
@@ -67,17 +68,20 @@ export const ReimbursementDataTable = ({ data, isAdmin, onView, onRefresh }: Pro
       switch (action) {
         case 'approve':
           await updateReimbursementStatus(reimbursement.id, { status: ReimbursementStatusDtoEnum.approved });
+          showSuccessToast('Reimbursement approved');
           break;
         case 'reject':
           await updateReimbursementStatus(reimbursement.id, { status: ReimbursementStatusDtoEnum.rejected, rejectReason });
+          showSuccessToast('Reimbursement rejected');
           break;
         case 'markPaid':
           await updateReimbursementStatus(reimbursement.id, { status: ReimbursementStatusDtoEnum.paid });
+          showSuccessToast('Reimbursement marked paid');
           break;
       }
       onRefresh();
-    } catch {
-      // Error handled by service
+    } catch (err) {
+      showErrorToast(err);
     } finally {
       setConfirmModal(null);
       setRejectReason('');

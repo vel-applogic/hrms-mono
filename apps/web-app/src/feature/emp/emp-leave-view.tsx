@@ -1,7 +1,7 @@
 'use client';
 
-import { PageTabs } from '@repo/ui/component/ui/page-tabs';
 import type { PageTab } from '@repo/ui/component/ui/page-tabs';
+import { PageTabs } from '@repo/ui/component/ui/page-tabs';
 
 const TABS = [
   { id: 'leave', label: 'Leave', href: '/emp/leave' },

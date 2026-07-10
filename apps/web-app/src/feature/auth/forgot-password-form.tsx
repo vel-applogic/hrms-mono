@@ -4,6 +4,7 @@ import Link from 'next/link';
 import React, { useState } from 'react';
 
 import { forgotPassword } from '@/lib/action/auth.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState('');
@@ -19,8 +20,10 @@ export function ForgotPasswordForm() {
     try {
       await forgotPassword({ email });
       setSuccess(true);
+      showSuccessToast('Reset link sent');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

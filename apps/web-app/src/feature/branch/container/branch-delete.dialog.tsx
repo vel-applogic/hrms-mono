@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useState } from 'react';
 
 import { deleteBranch } from '@/lib/action/branch.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface Props {
   open: boolean;
@@ -22,8 +23,11 @@ export function BranchDeleteDialog({ open, onOpenChange, branch, onSuccess }: Pr
     setLoading(true);
     try {
       await deleteBranch(branch.id);
+      showSuccessToast('Branch deleted');
       onOpenChange(false);
       onSuccess();
+    } catch (err) {
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

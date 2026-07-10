@@ -1,20 +1,20 @@
 import type {
+  PaginatedResponseType,
   PayslipDetailResponseType,
   PayslipFilterRequestType,
   PayslipGenerateRequestType,
   PayslipGenerateResponseType,
   PayslipListResponseType,
   PayslipUpdateLineItemsRequestType,
-  PaginatedResponseType,
 } from '@repo/dto';
 import {
+  PaginatedResponseSchema,
   PayslipDetailResponseSchema,
   PayslipGenerateResponseSchema,
   PayslipListResponseSchema,
-  PaginatedResponseSchema,
 } from '@repo/dto';
-import { z } from 'zod';
 import { CreateAxiosInstance } from '@repo/ui/lib/axios/axios-instance';
+import { z } from 'zod';
 
 import { BaseService } from './_base.service';
 

@@ -1,19 +1,20 @@
 'use client';
 
 import type { PayslipListResponseType } from '@repo/dto';
-import { cn } from '@repo/ui/lib/utils';
+import { SelectSearchMulti } from '@repo/ui/component/select-search-multiple';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/shadcn/select';
 import { Button } from '@repo/ui/component/ui/button';
+import { Dialog, DialogContent, DialogDescription,DialogFooter, DialogHeader, DialogTitle } from '@repo/ui/component/ui/dialog';
 import { Input } from '@repo/ui/component/ui/input';
 import { Label } from '@repo/ui/component/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/shadcn/select';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '@repo/ui/component/ui/dialog';
-import { SelectSearchMulti } from '@repo/ui/component/select-search-multiple';
 import { Drawer } from '@repo/ui/container/drawer/drawer';
+import { cn } from '@repo/ui/lib/utils';
 import { AlertTriangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { generatePayslips } from '@/lib/action/payslip.actions';
 import { getEmployeesList } from '@/lib/action/employee.actions';
+import { generatePayslips } from '@/lib/action/payslip.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 const MONTH_LABELS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -98,9 +99,11 @@ export function PayslipGenerateDrawer({ open, onOpenChange, onSuccess }: Props) 
       }
 
       onSuccess();
+      showSuccessToast('Payslips generated');
       onOpenChange(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate payslips');
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

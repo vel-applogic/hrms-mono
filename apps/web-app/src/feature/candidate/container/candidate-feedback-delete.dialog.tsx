@@ -1,7 +1,6 @@
 'use client';
 
 import type { CandidateFeedbackResponseType } from '@repo/dto';
-import { Button } from '@repo/ui/component/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,9 +9,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@repo/ui/component/shadcn/dialog';
+import { Button } from '@repo/ui/component/ui/button';
 import { useState } from 'react';
 
 import { deleteCandidateFeedback } from '@/lib/action/candidate-feedback.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface Props {
   open: boolean;
@@ -29,8 +30,11 @@ export function CandidateFeedbackDeleteDialog({ open, onOpenChange, feedback, on
     setLoading(true);
     try {
       await deleteCandidateFeedback(feedback.id, feedback.candidateId);
+      showSuccessToast('Feedback deleted');
       onSuccess();
       onOpenChange(false);
+    } catch (err) {
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

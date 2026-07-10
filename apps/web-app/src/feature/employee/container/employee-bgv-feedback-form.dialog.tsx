@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 
 import { FileUpload } from '@/container/s3-file-upload/s3-file-upload';
 import { createEmployeeBgvFeedback, updateEmployeeBgvFeedback } from '@/lib/action/employee-bgv-feedback.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface Props {
   open: boolean;
@@ -53,11 +54,13 @@ export function EmployeeBgvFeedbackFormDialog({ open, onOpenChange, employeeId, 
         });
         onSuccess(result);
       }
+      showSuccessToast('BGV feedback saved');
       setText('');
       setFiles([]);
       onOpenChange(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

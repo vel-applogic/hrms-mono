@@ -3,6 +3,8 @@ import {
   CountryResponseType,
   CurrencyResponseSchema,
   CurrencyResponseType,
+  OperationStatusResponseSchema,
+  OperationStatusResponseType,
   OrganisationCreateRequestType,
   OrganisationDetailResponseSchema,
   OrganisationDetailResponseType,
@@ -12,8 +14,6 @@ import {
   OrganisationSettingResponseSchema,
   OrganisationSettingResponseType,
   OrganisationUpdateRequestType,
-  OperationStatusResponseSchema,
-  OperationStatusResponseType,
   PaginatedResponseSchema,
   PaginatedResponseType,
 } from '@repo/dto';

@@ -23,6 +23,7 @@ import { z } from 'zod';
 
 import { ImageUpload } from '@/container/s3-file-upload/s3-file-upload';
 import { createEmployee, updateEmployee } from '@/lib/action/employee.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 const CreateFormSchema = EmployeeCreateRequestSchema;
 const UpdateFormSchema = EmployeeCreateRequestSchema;
@@ -196,10 +197,12 @@ export function EmployeeUpsertDrawer({ open, onOpenChange, employee, onSuccess, 
         return;
       }
 
+      showSuccessToast(isEditing ? 'Employee updated' : 'Employee created');
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

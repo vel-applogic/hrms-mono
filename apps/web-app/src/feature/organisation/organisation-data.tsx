@@ -8,7 +8,6 @@ import {
 import { Button } from '@repo/ui/component/ui/button';
 import { Plus, X } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-
 import { useEffect, useRef, useState } from 'react';
 
 import { OrganisationDeleteDialog } from './container/organisation-delete.dialog';

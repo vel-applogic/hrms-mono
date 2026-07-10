@@ -587,6 +587,53 @@ export function stringToHolidayTypeDbEnum(value: string): HolidayType {
   return dbEnum;
 }
 
+export function stringToLeaveTypeDbEnum(value: string): LeaveTypeEnum {
+  const mapping: Record<string, LeaveTypeEnum> = {
+    casual: 'casual',
+    sick: 'sick',
+    medical: 'medical',
+    earned: 'earned',
+  };
+
+  const dbEnum = mapping[value];
+  if (!dbEnum) {
+    throw new Error(`Unknown leave type string: ${value}`);
+  }
+
+  return dbEnum;
+}
+
+export function stringToLeaveStatusDbEnum(value: string): LeaveStatusEnum {
+  const mapping: Record<string, LeaveStatusEnum> = {
+    pending: 'pending',
+    approved: 'approved',
+    rejected: 'rejected',
+    cancelled: 'cancelled',
+  };
+
+  const dbEnum = mapping[value];
+  if (!dbEnum) {
+    throw new Error(`Unknown leave status string: ${value}`);
+  }
+
+  return dbEnum;
+}
+
+export function stringToLeaveDayHalfDbEnum(value: string): LeaveDayHalfEnum {
+  const mapping: Record<string, LeaveDayHalfEnum> = {
+    full: 'full',
+    firstHalf: 'firstHalf',
+    secondHalf: 'secondHalf',
+  };
+
+  const dbEnum = mapping[value];
+  if (!dbEnum) {
+    throw new Error(`Unknown leave day half string: ${value}`);
+  }
+
+  return dbEnum;
+}
+
 export function contactTypeDtoEnumToDbEnum(dtoEnum: ContactTypeDtoEnum): ContactType {
   const mapping: Record<ContactTypeDtoEnum, ContactType> = {
     [ContactTypeDtoEnum.phone]: 'phone',

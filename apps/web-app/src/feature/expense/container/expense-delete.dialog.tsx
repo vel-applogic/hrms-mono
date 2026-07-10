@@ -1,7 +1,6 @@
 'use client';
 
 import type { ExpenseResponseType } from '@repo/dto';
-import { Button } from '@repo/ui/component/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,9 +9,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@repo/ui/component/shadcn/dialog';
+import { Button } from '@repo/ui/component/ui/button';
 import { useState } from 'react';
 
 import { deleteExpense } from '@/lib/action/expense.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface Props {
   open: boolean;
@@ -29,8 +30,11 @@ export function ExpenseDeleteDialog({ open, onOpenChange, expense, onSuccess }: 
     setLoading(true);
     try {
       await deleteExpense(expense.id);
+      showSuccessToast('Expense deleted');
       onSuccess();
       onOpenChange(false);
+    } catch (err) {
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

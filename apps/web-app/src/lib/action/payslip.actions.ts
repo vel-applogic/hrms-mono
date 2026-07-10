@@ -1,13 +1,13 @@
 'use server';
 
 import type {
+  PaginatedResponseType,
   PayslipDetailResponseType,
   PayslipFilterRequestType,
   PayslipGenerateRequestType,
   PayslipGenerateResponseType,
   PayslipListResponseType,
   PayslipUpdateLineItemsRequestType,
-  PaginatedResponseType,
 } from '@repo/dto';
 import { revalidatePath } from 'next/cache';
 

@@ -8,6 +8,7 @@ import { Textarea } from '@repo/ui/component/ui/textarea';
 import { useEffect, useState } from 'react';
 
 import { createCandidateFeedback, updateCandidateFeedback } from '@/lib/action/candidate-feedback.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface Props {
   open: boolean;
@@ -46,9 +47,11 @@ export function CandidateFeedbackFormDialog({ open, onOpenChange, candidateId, f
         const result = await createCandidateFeedback({ candidateId, feedback: trimmed });
         onSuccess(result);
       }
+      showSuccessToast(isEditing ? 'Feedback updated' : 'Feedback saved');
       setText('');
       onOpenChange(false);
     } catch (err) {
+      showErrorToast(err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);

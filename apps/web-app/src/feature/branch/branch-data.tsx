@@ -6,9 +6,9 @@ import { Plus, X } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+import { BranchDataTableClient } from './branch.datatable';
 import { BranchDeleteDialog } from './container/branch-delete.dialog';
 import { BranchUpsertDrawer } from './container/branch-upsert.drawer';
-import { BranchDataTableClient } from './branch.datatable';
 
 interface Props {
   data: PaginatedResponseType<BranchResponseType>;

@@ -1,7 +1,6 @@
 'use client';
 
 import type { EmployeeBgvFeedbackResponseType } from '@repo/dto';
-import { Button } from '@repo/ui/component/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,9 +9,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@repo/ui/component/shadcn/dialog';
+import { Button } from '@repo/ui/component/ui/button';
 import { useState } from 'react';
 
 import { deleteEmployeeBgvFeedback } from '@/lib/action/employee-bgv-feedback.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface Props {
   open: boolean;
@@ -29,8 +30,11 @@ export function EmployeeBgvFeedbackDeleteDialog({ open, onOpenChange, feedback, 
     setLoading(true);
     try {
       await deleteEmployeeBgvFeedback(feedback.id, feedback.employeeId);
+      showSuccessToast('BGV feedback deleted');
       onSuccess();
       onOpenChange(false);
+    } catch (err) {
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

@@ -2,7 +2,6 @@
 
 import type { HolidayResponseType, PaginatedResponseType, SearchParamsType } from '@repo/dto';
 import { holidayTypeDtoEnumToReadableLabel } from '@repo/shared';
-import { Button } from '@repo/ui/component/ui/button';
 import {
   Select,
   SelectContent,
@@ -10,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@repo/ui/component/shadcn/select';
+import { Button } from '@repo/ui/component/ui/button';
 import { DataTableSimple } from '@repo/ui/container/datatable/datatable';
 import { ColDef } from 'ag-grid-community';
 import { Pencil, Plus, Trash2 } from 'lucide-react';

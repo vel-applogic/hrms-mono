@@ -1,8 +1,8 @@
 'use client';
 
 import type { AnnouncementDetailResponseType } from '@repo/dto';
-import { Badge } from '@repo/ui/component/ui/badge';
 import { MarkdownViewer } from '@repo/ui/component/markdown-viewer';
+import { Badge } from '@repo/ui/component/ui/badge';
 import { Drawer } from '@repo/ui/container/drawer/drawer';
 import { useCallback, useEffect, useState } from 'react';
 

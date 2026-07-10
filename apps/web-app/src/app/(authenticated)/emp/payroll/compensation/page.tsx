@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
 
 import { EmployeeViewCompensation } from '@/feature/employee/employee-view-compensation';
-import { auth } from '@/lib/auth/auth';
 import { searchEmployeeCompensations } from '@/lib/action/employee-compensation.actions';
+import { auth } from '@/lib/auth/auth';
 
 export default async function EmpPayrollCompensationPage() {
   const session = await auth();

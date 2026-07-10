@@ -1,9 +1,9 @@
 'use client';
 
 import { EmployeeDeviceResponseType } from '@repo/dto';
-import { Label } from '@repo/ui/component/ui/label';
 import { deviceStatusDtoEnumToReadableLabel, deviceTypeDtoEnumToReadableLabel } from '@repo/shared';
-import { Laptop, Monitor, Smartphone, Tablet, Keyboard, Mouse, Headphones, HardDrive } from 'lucide-react';
+import { Label } from '@repo/ui/component/ui/label';
+import { HardDrive,Headphones, Keyboard, Laptop, Monitor, Mouse, Smartphone, Tablet } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
 import { getEmployeeDevices } from '@/lib/action/device.actions';

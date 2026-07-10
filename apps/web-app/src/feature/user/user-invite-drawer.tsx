@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 import React, { useEffect, useState } from 'react';
 
 import { createUser } from '@/lib/action/user.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface UserInviteDrawerProps {
   open: boolean;
@@ -34,10 +35,12 @@ export function UserInviteDrawer({ open, onOpenChange, onSuccess }: UserInviteDr
     try {
       const data: AdminUserCreateRequestType = { email };
       await createUser(data);
+      showSuccessToast('User invited');
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

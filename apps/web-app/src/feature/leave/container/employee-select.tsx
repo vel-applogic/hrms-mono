@@ -1,7 +1,6 @@
 'use client';
 
 import type { EmployeeListResponseType } from '@repo/dto';
-import { Label } from '@repo/ui/component/ui/label';
 import {
   Select,
   SelectContent,
@@ -9,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@repo/ui/component/shadcn/select';
+import { Label } from '@repo/ui/component/ui/label';
 import { useEffect, useMemo, useState } from 'react';
 
 import { getEmployeesList } from '@/lib/action/employee.actions';

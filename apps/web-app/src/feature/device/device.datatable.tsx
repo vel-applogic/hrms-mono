@@ -1,11 +1,11 @@
 'use client';
 
 import { DeviceResponseType, DeviceSortableColumns, PaginatedResponseType } from '@repo/dto';
+import { deviceStatusDtoEnumToReadableLabel, deviceTypeDtoEnumToReadableLabel } from '@repo/shared';
 import { DataTableSimple, DummySort, getSort } from '@repo/ui/container/datatable/datatable';
 import { ActionOption, ActionsIconCellRenderer, ActionsIconCellRendererParams, DateTimeRenderer } from '@repo/ui/container/datatable/datatable-cell-renderer';
 import { isSortable } from '@repo/ui/lib/utils';
 import { ColDef, ICellRendererParams } from 'ag-grid-community';
-import { deviceStatusDtoEnumToReadableLabel, deviceTypeDtoEnumToReadableLabel } from '@repo/shared';
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 

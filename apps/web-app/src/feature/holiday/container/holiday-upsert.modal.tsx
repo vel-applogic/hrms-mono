@@ -4,10 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { HolidayResponseType } from '@repo/dto';
 import { HolidayTypeDtoEnum } from '@repo/dto';
 import { holidayTypeDtoEnumToReadableLabel } from '@repo/shared';
-import { Button } from '@repo/ui/component/ui/button';
-import { Checkbox } from '@repo/ui/component/ui/checkbox';
-import { Input } from '@repo/ui/component/ui/input';
-import { Label } from '@repo/ui/component/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -15,11 +11,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@repo/ui/component/shadcn/dialog';
+import { Button } from '@repo/ui/component/ui/button';
+import { Checkbox } from '@repo/ui/component/ui/checkbox';
+import { Input } from '@repo/ui/component/ui/input';
+import { Label } from '@repo/ui/component/ui/label';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { createHoliday, updateHoliday } from '@/lib/action/holiday.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 const FormSchema = z.object({
   name: z.string().min(1, 'Name is required').trim(),
@@ -82,11 +83,13 @@ export function HolidayUpsertModal({ open, onOpenChange, holiday, onSuccess }: P
       } else {
         await createHoliday({ name: data.name, date: data.date, types: data.types });
       }
+      showSuccessToast('Holiday saved');
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

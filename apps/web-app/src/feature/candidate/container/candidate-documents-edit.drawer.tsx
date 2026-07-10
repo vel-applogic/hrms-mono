@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 
 import { FileUpload } from '@/container/s3-file-upload/s3-file-upload';
 import { updateCandidateDocuments } from '@/lib/action/candidate.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface Props {
   open: boolean;
@@ -46,9 +47,11 @@ export function CandidateDocumentsEditDrawer({ open, onOpenChange, candidate, on
         otherDocuments: otherDocuments.map((m) => ({ key: m.key, name: m.name, type: m.type as MediaTypeDtoEnum, id: m.id })),
       };
       await updateCandidateDocuments(candidate.id, payload);
+      showSuccessToast('Documents saved');
       onSuccess();
       onOpenChange(false);
     } catch (err) {
+      showErrorToast(err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);

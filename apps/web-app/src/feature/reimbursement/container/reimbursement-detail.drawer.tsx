@@ -15,6 +15,7 @@ import {
   updateReimbursementFeedback,
   updateReimbursementStatus,
 } from '@/lib/action/reimbursement.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface Props {
   open: boolean;
@@ -177,9 +178,10 @@ export function ReimbursementDetailDrawer({ open, onOpenChange, reimbursementId,
       const updated = await addReimbursementFeedback(detail.id, { message: feedbackMessage.trim() });
       setDetail(updated);
       setFeedbackMessage('');
+      showSuccessToast('Feedback added');
       onStatusChange();
-    } catch {
-      // Error handled by service
+    } catch (err) {
+      showErrorToast(err);
     } finally {
       setSubmittingFeedback(false);
     }
@@ -187,16 +189,26 @@ export function ReimbursementDetailDrawer({ open, onOpenChange, reimbursementId,
 
   const handleUpdateFeedback = async (feedbackId: number, message: string) => {
     if (!detail) return;
-    const updated = await updateReimbursementFeedback(detail.id, feedbackId, { message });
-    setDetail(updated);
-    onStatusChange();
+    try {
+      const updated = await updateReimbursementFeedback(detail.id, feedbackId, { message });
+      setDetail(updated);
+      showSuccessToast('Feedback updated');
+      onStatusChange();
+    } catch (err) {
+      showErrorToast(err);
+    }
   };
 
   const handleDeleteFeedback = async (feedbackId: number) => {
     if (!detail) return;
-    await deleteReimbursementFeedback(detail.id, feedbackId);
-    await loadDetail(detail.id);
-    onStatusChange();
+    try {
+      await deleteReimbursementFeedback(detail.id, feedbackId);
+      await loadDetail(detail.id);
+      showSuccessToast('Feedback deleted');
+      onStatusChange();
+    } catch (err) {
+      showErrorToast(err);
+    }
   };
 
   const handleApprove = async () => {
@@ -205,9 +217,10 @@ export function ReimbursementDetailDrawer({ open, onOpenChange, reimbursementId,
     try {
       await updateReimbursementStatus(detail.id, { status: ReimbursementStatusDtoEnum.approved });
       await loadDetail(detail.id);
+      showSuccessToast('Reimbursement approved');
       onStatusChange();
-    } catch {
-      // Error handled by service
+    } catch (err) {
+      showErrorToast(err);
     } finally {
       setActionLoading(false);
     }
@@ -221,9 +234,10 @@ export function ReimbursementDetailDrawer({ open, onOpenChange, reimbursementId,
       await loadDetail(detail.id);
       setShowRejectInput(false);
       setRejectReason('');
+      showSuccessToast('Reimbursement rejected');
       onStatusChange();
-    } catch {
-      // Error handled by service
+    } catch (err) {
+      showErrorToast(err);
     } finally {
       setActionLoading(false);
     }
@@ -235,9 +249,10 @@ export function ReimbursementDetailDrawer({ open, onOpenChange, reimbursementId,
     try {
       await updateReimbursementStatus(detail.id, { status: ReimbursementStatusDtoEnum.paid });
       await loadDetail(detail.id);
+      showSuccessToast('Reimbursement marked paid');
       onStatusChange();
-    } catch {
-      // Error handled by service
+    } catch (err) {
+      showErrorToast(err);
     } finally {
       setActionLoading(false);
     }

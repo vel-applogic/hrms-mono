@@ -78,7 +78,7 @@ export function EmployeeViewBasicDetails({ employeeId, readOnly }: Props) {
               rel='noopener noreferrer'
               className='block overflow-hidden rounded-lg border border-border'
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              { }
               <img src={employee.photo.urlFull} alt={employee.photo.name} className='h-48 w-48 object-cover' />
             </a>
           ) : (

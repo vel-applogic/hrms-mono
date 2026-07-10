@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useState } from 'react';
 
 import { deleteDepartment } from '@/lib/action/department.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface Props {
   open: boolean;
@@ -22,8 +23,11 @@ export function DepartmentDeleteDialog({ open, onOpenChange, department, onSucce
     setLoading(true);
     try {
       await deleteDepartment(department.id);
+      showSuccessToast('Department deleted');
       onOpenChange(false);
       onSuccess();
+    } catch (err) {
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

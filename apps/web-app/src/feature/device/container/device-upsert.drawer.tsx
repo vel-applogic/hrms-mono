@@ -2,21 +2,22 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeviceDetailResponseType, DeviceStatusDtoEnum, DeviceTypeDtoEnum, MediaTypeDtoEnum } from '@repo/dto';
+import { deviceStatusDtoEnumToReadableLabel, deviceTypeDtoEnumToReadableLabel } from '@repo/shared';
 import { Button } from '@repo/ui/component/ui/button';
 import { Input } from '@repo/ui/component/ui/input';
 import { Label } from '@repo/ui/component/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/component/ui/select';
 import { Switch } from '@repo/ui/component/ui/switch';
 import { Drawer } from '@repo/ui/container/drawer/drawer';
-import { deviceStatusDtoEnumToReadableLabel, deviceTypeDtoEnumToReadableLabel } from '@repo/shared';
 import { Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { Controller,useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { FileUpload } from '@/container/s3-file-upload/s3-file-upload';
-import { createDevice, updateDevice } from '@/lib/action/device.actions';
 import { EmployeeSelect } from '@/feature/leave/container/employee-select';
+import { createDevice, updateDevice } from '@/lib/action/device.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 
 const FormSchema = z.object({
@@ -145,11 +146,13 @@ export function DeviceUpsertDrawer({ open, onOpenChange, device, onSuccess }: Pr
       } else {
         await createDevice(submitData);
       }
+      showSuccessToast('Device saved');
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

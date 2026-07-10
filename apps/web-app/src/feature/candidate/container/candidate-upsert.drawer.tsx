@@ -24,6 +24,7 @@ import { z } from 'zod';
 
 import { FileUpload } from '@/container/s3-file-upload/s3-file-upload';
 import { createCandidate, updateCandidate } from '@/lib/action/candidate.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 const FormSchema = CandidateCreateRequestSchema.extend({
   contactNumbers: z.array(z.string()),
@@ -161,9 +162,11 @@ export function CandidateUpsertDrawer({ open, onOpenChange, candidate, onSuccess
       } else {
         await createCandidate(payload);
       }
+      showSuccessToast(isEditing ? 'Candidate updated' : 'Candidate created');
       onOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
+      showErrorToast(err);
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);
     } finally {

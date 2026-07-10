@@ -11,6 +11,7 @@ import { Textarea } from '@repo/ui/component/ui/textarea';
 import { useEffect, useState } from 'react';
 
 import { createEmployeeFeedback, updateEmployeeFeedback } from '@/lib/action/employee-feedback.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface Props {
   open: boolean;
@@ -71,6 +72,7 @@ export function EmployeeFeedbackFormDialog({ open, onOpenChange, employeeId, fee
         });
         onSuccess(result);
       }
+      showSuccessToast('Feedback saved');
       setTitle('');
       setTrend(EmployeeFeedbackTrendDtoEnum.neutral);
       setPoint('');
@@ -78,6 +80,7 @@ export function EmployeeFeedbackFormDialog({ open, onOpenChange, employeeId, fee
       onOpenChange(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }

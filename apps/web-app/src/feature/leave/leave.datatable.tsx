@@ -6,14 +6,16 @@ import {
   LeaveStatusDtoEnum,
   PaginatedResponseType,
 } from '@repo/dto';
+import { Button } from '@repo/ui/component/ui/button';
 import { DataTableMultiSelect, DataTableSimple } from '@repo/ui/container/datatable/datatable';
 import { ActionOption, ActionsIconCellRenderer } from '@repo/ui/container/datatable/datatable-cell-renderer';
-import { Button } from '@repo/ui/component/ui/button';
+import { formatDate } from '@repo/ui/lib/utils';
 import { ColDef } from 'ag-grid-community';
 import { CheckCircle, Eye, Pencil, ThumbsDown, X, XCircle } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
 import { approveLeave, cancelLeave, rejectLeave } from '@/lib/action/leave.actions';
+import { showErrorToast, showSuccessToast } from '@/lib/util/toast';
 
 interface Props {
   data: PaginatedResponseType<LeaveResponseType>;
@@ -103,9 +105,10 @@ export const LeaveDataTableClient = (props: Props) => {
     try {
       await Promise.all(selectedPendingIds.map((id) => approveLeave(id)));
       setSelectedIds([]);
+      showSuccessToast(`${selectedPendingIds.length} leave(s) approved`);
       props.onRefresh?.();
-    } catch {
-      // Error handled by leave service
+    } catch (err) {
+      showErrorToast(err);
     } finally {
       setBulkConfirmOpen(false);
       setBulkLoading(false);
@@ -130,17 +133,20 @@ export const LeaveDataTableClient = (props: Props) => {
       switch (action) {
         case 'approve':
           await approveLeave(leave.id);
+          showSuccessToast('Leave approved');
           break;
         case 'reject':
           await rejectLeave(leave.id);
+          showSuccessToast('Leave rejected');
           break;
         case 'cancel':
           await cancelLeave(leave.id);
+          showSuccessToast('Leave cancelled');
           break;
       }
       props.onRefresh?.();
-    } catch {
-      // Error handled by leave service
+    } catch (err) {
+      showErrorToast(err);
     } finally {
       setConfirmModal(null);
       setLoading(false);
@@ -190,9 +196,9 @@ export const LeaveDataTableClient = (props: Props) => {
           const { startDate, endDate, startDuration, endDuration } = params.data;
           const halfLabel = (h: LeaveDayHalfDtoEnum) => (h === LeaveDayHalfDtoEnum.firstHalf ? ' (1st half)' : h === LeaveDayHalfDtoEnum.secondHalf ? ' (2nd half)' : '');
           if (startDate === endDate) {
-            return `${startDate}${halfLabel(startDuration)}`;
+            return `${formatDate(startDate)}${halfLabel(startDuration)}`;
           }
-          return `${startDate}${halfLabel(startDuration)} – ${endDate}${halfLabel(endDuration)}`;
+          return `${formatDate(startDate)}${halfLabel(startDuration)} – ${formatDate(endDate)}${halfLabel(endDuration)}`;
         },
       },
       {
@@ -236,8 +242,8 @@ export const LeaveDataTableClient = (props: Props) => {
     const name = `${leave.user.firstname} ${leave.user.lastname}`;
     const halfLabel = (h: LeaveDayHalfDtoEnum) => (h === LeaveDayHalfDtoEnum.firstHalf ? ' (1st half)' : h === LeaveDayHalfDtoEnum.secondHalf ? ' (2nd half)' : '');
     const period = leave.startDate === leave.endDate
-      ? `${leave.startDate}${halfLabel(leave.startDuration)}`
-      : `${leave.startDate}${halfLabel(leave.startDuration)} – ${leave.endDate}${halfLabel(leave.endDuration)}`;
+      ? `${formatDate(leave.startDate)}${halfLabel(leave.startDuration)}`
+      : `${formatDate(leave.startDate)}${halfLabel(leave.startDuration)} – ${formatDate(leave.endDate)}${halfLabel(leave.endDuration)}`;
     let title = '';
     switch (action) {
       case 'approve':
