@@ -100,7 +100,6 @@ export function PayslipGenerateDrawer({ open, onOpenChange, onSuccess }: Props) 
 
       onSuccess();
       showSuccessToast('Payslips generated');
-      onOpenChange(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate payslips');
       showErrorToast(err);
@@ -160,7 +159,7 @@ export function PayslipGenerateDrawer({ open, onOpenChange, onSuccess }: Props) 
         footer={
           <div className='flex justify-end gap-3'>
             <Button variant='outline' onClick={() => onOpenChange(false)} disabled={loading}>
-              Cancel
+              Close
             </Button>
             <Button onClick={() => handleGenerate(false)} disabled={loading}>
               {loading ? 'Generating...' : 'Generate'}

@@ -159,22 +159,23 @@ export const PAYSLIP_HTML_TEMPLATE = `<!DOCTYPE html>
 
     /* ── Header ──────────────────────────────────────────────── */
     .header {
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
       border-bottom: 1px solid #e5e7eb;
       padding: 20px 24px;
     }
-    .header-logo { flex-shrink: 0; }
+    .header-logo { margin-bottom: 12px; }
     .logo-img {
       width: 150px; height: auto;
       object-fit: contain; display: block;
     }
-    .header-center { flex: 1; }
+    .header-body {
+      display: flex;
+      align-items: flex-end;
+      gap: 16px;
+    }
+    .header-left { flex: 1; }
     .header-right {
       text-align: right;
       flex-shrink: 0;
-      align-self: flex-end;
       padding-left: 24px;
     }
     .company-name { font-size: 14px; font-weight: 700; color: #111827; text-transform: uppercase; }
@@ -239,16 +240,18 @@ export const PAYSLIP_HTML_TEMPLATE = `<!DOCTYPE html>
 
   <div class="header">
     {{#if companyLogoUrl}}<div class="header-logo"><img class="logo-img" src="{{companyLogoUrl}}" alt="Logo" /></div>{{/if}}
-    <div class="header-center">
-      <p class="company-name">{{companyName}}</p>
-      {{#if companyAddress}}<p class="company-info">{{companyAddress}}</p>{{/if}}
-      {{#if companyPhones}}<p class="company-info">Phone: {{companyPhones}}</p>{{/if}}
-      {{#if companyEmails}}<p class="company-info">Email: {{companyEmails}}</p>{{/if}}
-      {{#if companyWebsites}}<p class="company-info">Website: {{companyWebsites}}</p>{{/if}}
-    </div>
-    <div class="header-right">
-      <p class="pay-month-label">Payslip For the Month</p>
-      <p class="pay-month-value">{{monthShortLabel}} {{year}}</p>
+    <div class="header-body">
+      <div class="header-left">
+        <p class="company-name">{{companyName}}</p>
+        {{#if companyAddress}}<p class="company-info">{{companyAddress}}</p>{{/if}}
+        {{#if companyPhones}}<p class="company-info">Phone: {{companyPhones}}</p>{{/if}}
+        {{#if companyEmails}}<p class="company-info">Email: {{companyEmails}}</p>{{/if}}
+        {{#if companyWebsites}}<p class="company-info">Website: {{companyWebsites}}</p>{{/if}}
+      </div>
+      <div class="header-right">
+        <p class="pay-month-label">Payslip For the Month</p>
+        <p class="pay-month-value">{{monthShortLabel}} {{year}}</p>
+      </div>
     </div>
   </div>
 
